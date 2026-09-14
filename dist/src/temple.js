@@ -284,9 +284,34 @@ export function buildTemple(K) {
   steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
   for(const x of [45.32,47.06])K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.10,5.92],.065,K.M.wood);
   K.railing(g,'Upper stairwell guard',45.33,1.25,45.33,5.35,4.08,.94,paleBlue);
-  K.railing(g,'Upper courtyard viewing rail',30.42,6.13,47.64,6.13,4.08,.90,whiteTrim);
+  // Courtyard-facing balcony in 15.02.27 / 15.03.51, distinct from the street facade.
+  box('Courtyard gallery white terrace parapet',32.95,4.53,6.13,5.20,.90,.22,white,true);
+  box('Courtyard gallery red balcony base',41.65,4.16,6.13,12.1,.16,.27,red);
+  box('Courtyard gallery red balcony coping',41.65,5.04,6.13,12.1,.16,.27,red);
+  const courtLace=[];
+  for(let i=0;i<=7;i++)box('Courtyard gallery red balcony pier',35.60+i*12.1/7,4.60,6.13,.17,1.0,.25,red);
+  for(let i=0;i<7;i++)courtLace.push([35.60+(i+.5)*12.1/7,4.60,6.14,.80,.77,1]);
+  instances('Courtyard gallery white floral lattice',openworkGeometry(),whiteTrim,courtLace);
+  K.blocker(41.65,6.13,12.1,.26,4.08,5.12);
+  box('Courtyard gallery left white upper wall',33.0,5.37,4.72,5.7,2.46,.19,white,true);
+  for(const x of [31.4,33.25,35.0]){
+    box('Courtyard upper blue window frame',x,5.45,4.85,1.12,1.65,.14,blue);
+    box('Courtyard upper window dark recess',x,5.45,4.94,.94,1.47,.04,dark);
+    for(let y=4.78;y<6.15;y+=.15)box('Courtyard upper horizontal window grille',x,y,4.99,.94,.025,.025,whiteTrim);
+    for(const dx of [-.52,.52]){
+      const leaf=box('Courtyard upper open timber shutter',x+dx,5.45,5.18,.065,1.59,.55,K.M.wood);leaf.rotation.y=dx<0?-.22:.22;
+    }
+  }
+  // Dark upper rooms and diamond transoms behind the shaded balcony.
+  box('Courtyard gallery shaded upper back',40.05,5.36,3.7,8.6,2.40,.18,oldStone,true);
+  for(const x of [37.8,41.8]){
+    box('Courtyard gallery upper timber doorway',x,5.22,3.83,1.28,2.12,.11,K.M.wood);
+    box('Courtyard gallery upper doorway shadow',x,5.02,3.91,1.08,1.55,.035,dark);
+    for(let j=0;j<6;j++)for(const sign of [-1,1])K.beam(g,'Courtyard upper doorway diamond transom',[x-.45+j*.18,5.68,3.96],[x-.45+j*.18+sign*.24,6.10,3.96],.034,whiteTrim);
+  }
+
   for(const x of [30.48,47.53])box('Upper courtyard gallery end post',x,5.19,6.04,.23,2.22,.24,white,true);
-  box('Upper courtyard gallery lintel',39,6.32,6.04,17.65,.24,.29,whiteTrim);
+  box('Upper courtyard gallery lintel',39,6.32,6.04,17.65,.24,.29,K.M.wood);
 
   // 15.19.41: red-framed floral balcony, pale-blue scalloped opening,
   // weathered flat canopy and open metal gates. The gabled building is adjacent.
@@ -332,8 +357,19 @@ export function buildTemple(K) {
     for(let x=a+.12;x<b-.12;x+=.30)for(const sign of [-1,1])diamonds.push([x,3.22,-1.43,.043,.64,.045,0,0,sign*.50]);
   }
   instances('Entrance white diamond transoms',new THREE.BoxGeometry(1,1,1),whiteTrim,diamonds);
-  const flatCanopy=box('Entrance weathered flat canopy',39,6.62,2.1,18.5,.24,8.65,K.M.plaster);K.roofs.push(flatCanopy);
+  const flatCanopy=box('Entrance weathered flat canopy',39,6.62,.2,18.5,.24,5.0,K.M.plaster);K.roofs.push(flatCanopy);
   box('Entrance flat canopy dark fascia',39,6.61,-2.27,18.7,.29,.16,oldStone);
+  const leftGalleryRoof=box('Courtyard left flat upper roof',32.8,6.62,4.52,5.9,.24,4.4,white);K.roofs.push(leftGalleryRoof);
+  const galleryRoof=new THREE.Group();galleryRoof.name='Courtyard gallery sloping corrugated roof';g.add(galleryRoof);K.roofs.push(galleryRoof);
+  for(let i=0;i<80;i++){
+    const x=35.66+i*.16;
+    K.beam(galleryRoof,'Courtyard gallery dark corrugated sheet',[x,7.02,2.55],[x,6.33,7.04],.165,darkRoof,.07);
+  }
+  for(const x of [36,38.4,40.8,43.2,45.6,48]){
+    K.beam(galleryRoof,'Courtyard gallery exposed timber rafter',[x,6.90,2.55],[x,6.20,7.16],.09,K.M.wood,.14);
+    K.beam(g,'Courtyard gallery slender timber support',[x,4.08,6.02],[x,6.41,6.02],.065,K.M.wood);
+  }
+
   for(const z of [-1.7,.2,2.1,4,5.9])box('Entrance exposed canopy beam',39,6.39,z,17.8,.21,.18,K.M.wood);
   box('Entrance balcony projecting white slab',39,3.94,-1.96,18.45,.21,1.02,white);
   box('Entrance balcony red slab edge',39,4.03,-2.46,18.55,.16,.12,red);
@@ -611,8 +647,8 @@ export function buildTemple(K) {
   cyl('Inner tower finial tip',39,8.23,23.1,.012,.1,.31,brass);
   // Photo-right is world -X when looking into the courtyard (+Z).
   // Upper hall stands behind the veranda roof, leaving its broad lean-to exposed.
-  box('Right hall tall white upper storey',22.27,5.59,21.4,4.1,3.37,19.6,innerWhite,true);
-  for(const z of [13,17.5,22,26.5,29.6]){
+  box('Right hall tall white upper storey',22.27,5.59,18.8,4.1,3.37,24.8,innerWhite,true);
+  for(const z of [8.1,12.3,17.5,22,26.5,29.6]){
     box('Right hall pink window border',24.36,5.59,z,.09,1.23,1.86,pink);
     box('Right hall dark window inset',24.42,5.59,z,.025,1.03,1.66,maroon);
     const bars=[];for(let j=0;j<13;j++)bars.push([24.45,5.59,z-.76+j*.126,.04,1.07,.043]);
@@ -621,7 +657,7 @@ export function buildTemple(K) {
     box('Right hall dark attic vent',24.39,7.04,z,.045,.57,2.4,dark);
     for(let j=0;j<12;j++)for(const sign of [-1,1])K.beam(g,'Right hall attic diamond lattice',[24.44,6.79,z-1.13+j*.19],[24.44,7.28,z-1.13+j*.19+sign*.25],.028,oldStone);
   }
-  corrugatedRoof('Right hall pitched gray upper roof',22.25,21.4,5.4,20.4,7.45,1.25,greySheet);
+  corrugatedRoof('Right hall pitched gray upper roof',22.25,18.8,5.4,25.6,7.45,1.25,greySheet);
   // Low lean-to over the shaded passage beneath the tall hall.
   const leanPos=[];for(let i=0;i<90;i++){
     const z=6.2+i*10.0/90,zz=z+10.0/90,a=i%2?.035:0,b=i%2?0:.035;
@@ -739,7 +775,7 @@ export function buildTemple(K) {
   K.blocker(48.9,24.31,.94,.22,.1,1.37);
 
   // Deepastambha: layered square foot, dark shaft and a vertical series of lamp dishes.
-  const lampX=40.3,lampZ=11.25;
+  const lampX=40.3,lampZ=10.50;
   box('Lamp stone foot',lampX,.26,lampZ,1.45,.32,1.45,oldStone,true);
   box('Lamp dark lower plinth',lampX,.48,lampZ,1.6,.13,1.6,dark);
   box('Lamp upper plinth',lampX,.67,lampZ,1.03,.22,1.03,dark);
@@ -754,19 +790,21 @@ export function buildTemple(K) {
   cyl('Lamp finial',lampX,9.12,lampZ,.018,.13,.42,dark,12);
   K.blocker(lampX,lampZ,1.6,1.6,.1,1.0);
   K.blocker(lampX,lampZ,1.02,1.02,1.0,9.35);
-  // Thick pink-red banded pillar, and a separate pale metal pole in front of it.
-  const flagX=37.4,flagZ=11.25;
-  box('Flagstaff stone foot',flagX,.24,flagZ,1.08,.28,1.08,oldStone,true);
-  box('Flagstaff blue base',flagX,.52,flagZ,.79,.33,.79,blue);
-  box('Flagstaff red base',flagX,.79,flagZ,.65,.23,.65,red);
-  cyl('Tall pink banded pillar',flagX,5.08,flagZ,.24,.34,8.35,pink,8);
+  // 15.03.47: pink pillar is diagonally behind the black lamp, nearer the inner building.
+  const flagX=37.4,flagZ=13.10;
+  box('Flagstaff stone foot',flagX,.26,flagZ,1.48,.32,1.48,oldStone,true);
+  box('Flagstaff blue base',flagX,.59,flagZ,1.30,.55,1.30,blue);
+  for(const y of [.38,.51,.64,.77])box('Flagstaff blue stepped base course',flagX,y,flagZ,1.38,.07,1.38,blue);
+  box('Flagstaff broad pale coping',flagX,.89,flagZ,1.68,.17,1.68,stoneFloor);
+  box('Flagstaff dark rounded shoulder',flagX,1.09,flagZ,.80,.26,.80,oldStone);
+  cyl('Tall pink banded pillar',flagX,5.30,flagZ,.24,.34,8.20,pink,8);
   const bands=[];for(let i=0;i<18;i++)bands.push([flagX,1.2+i*.46,flagZ,1-i*.01,1,1-i*.01]);
   instances('Pink pillar pale bands',new THREE.CylinderGeometry(.355,.355,.044,8),dado,bands);
   K.beam(g,'Pink pillar rope',[flagX+.31,9.2,flagZ],[flagX+.34,.95,flagZ],.012,K.M.cream);
-  K.blocker(flagX,flagZ,1.1,1.1,.1,1.0);
+  K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
   K.blocker(flagX,flagZ,.72,.72,1.0,9.3);
-  cyl('Separate pale metal pole',38.6,5.3,10.1,.115,.15,10.35,metalPole,16,true);
-  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([38.6,.9+i*1.25,10.1,1,1,1]);
+  cyl('Separate pale metal pole',39.4,5.3,10.35,.115,.15,10.35,metalPole,16,true);
+  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.4,.9+i*1.25,10.35,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.
   box('Tulsi lower blue course',31.8,.17,10.2,.85,.12,.85,blue);
@@ -779,16 +817,87 @@ export function buildTemple(K) {
   for(let i=0;i<9;i++)leaves.push([31.8+Math.cos(i*2.3)*.13,1.17+i*.047,10.2+Math.sin(i*2.3)*.13,.09,.035,.05,0,i,0]);
   instances('Tulsi leaves',leafGeo,K.M.leaf,leaves);
 
-  // Bell and lamp shelter in the front court, a recognisable view through the doorway.
-  cyl('Hanging portico bell',44.85,2.92,4.25,.12,.29,.39,brass,20);
-  K.beam(g,'Bell chain',[44.85,3.54,4.25],[44.85,3.13,4.25],.021,dark);
-  cyl('Bell clapper',44.85,2.68,4.25,.035,.045,.2,dark,8);
-  const shelterRoof=box('Small lamp shelter roof',41.1,1.65,12.52,1.8,.06,.8,brass);shelterRoof.rotation.x=.11;
-  K.beam(g,'Lamp shelter left leg',[40.25,.1,12.6],[40.25,1.65,12.6],.032,dark);
-  K.beam(g,'Lamp shelter right leg',[41.95,.1,12.6],[41.95,1.65,12.6],.032,dark);
-  cyl('Small brass oil lamp base',41.1,.21,12.6,.15,.22,.2,brass,14);
-  cyl('Small brass oil lamp stem',41.1,.49,12.6,.04,.08,.46,brass,12);
-  cyl('Small brass oil lamp dish',41.1,.72,12.6,.19,.1,.06,brass,16);
+  // 15.02.27 / 15.03.51: raised court-facing portico, low central entry,
+  // two small front bells and a much larger bell in the bay behind them.
+  for(const x of [34.10,44.0]){
+    floor('Courtyard portico raised marble platform',x,7.02,7.5,1.62,.602,stoneFloor);
+    box('Courtyard portico dark carved plinth',x,.32,7.80,7.5,.45,.14,oldStone,true);
+    for(let i=0;i<10;i++)panel('Courtyard portico inset relief panel',x-3.34+i*.74,.33,7.88,.60,.31,relief);
+    box('Courtyard portico marble lip',x,.59,7.87,7.6,.10,.18,whiteTrim);
+    steps('Courtyard portico side access',x<39?36.6:46.8,8.19,.90,.85,.1,.602,'-z',3);
+  }
+  for(const x of [40.65,47.3]){
+    box('Courtyard portico square white pier',x,2.14,7.58,.46,3.02,.46,white,true);
+    box('Courtyard portico pier red foot',x,.91,7.58,.61,.62,.61,red);
+  }
+  for(const x of [42.0,45.5]){
+    carvedColumn('Courtyard bell bay carved column',x,7.57,.602,3.04,.86);
+    box('Courtyard bell column red plinth',x,.93,7.57,.74,.66,.74,red);
+    panel('Courtyard bell column outward carving',x,1.63,7.87,.40,.62,relief);
+  }
+  for(const [x,w] of [[41.33,1.26],[43.75,3.10],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
+  box('Courtyard portico ceiling slab',44.0,3.94,7.05,7.6,.22,1.85,white);
+  // Blue scalloped service bay underneath the left-hand upper windows.
+  box('Courtyard left service bay blue back',32.0,2.09,6.28,3.35,2.91,.08,paleBlue);
+  box('Courtyard left service bay dark door',32.0,1.88,6.36,1.45,2.45,.06,dark);
+  for(const x of [30.35,33.65])blueColumn('Courtyard left service bay blue pier',x,7.59,.602,3.02);
+  scallop('Courtyard left service bay scalloped arch',32.0,7.60,3.25,3.71,.20,paleBlue,.58);
+  // Rotational profiles give the bells a hollow flared mouth, not a cone.
+  const bronze=mat('#d6b49c',.65,{metalness:.20,side:THREE.DoubleSide});
+  bronze.map=canvasMap(256,(c,n)=>{
+    c.fillStyle='#c78d59';c.fillRect(0,0,n,n);
+    for(let i=0;i<1000;i++){c.fillStyle=i%3?'#553f2422':'#dbbf8233';c.fillRect(rand()*n,rand()*n,2+rand()*10,2+rand()*6);}
+    for(const y of [12,32,182,215]){c.fillStyle='#583b29';c.fillRect(0,y,n,2);}
+  });
+  function bell(name,x,bottom,z,size){
+    const profile=[[.52,0],[.55,.04],[.55,.10],[.46,.15],[.37,.25],[.30,.44],[.27,.84],[.28,1.03],[.23,1.13],[.12,1.18],[.10,1.12],[.23,1.04],[.22,.84],[.25,.43],[.33,.23],[.43,.13],[.49,.07],[.49,0]];
+    const body=mesh(name,new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r*size,y*size)),40),bronze,x,bottom,z);
+    cyl(name+' crown',x,bottom+1.19*size,z,.09*size,.12*size,.14*size,bronze,16);
+    cyl(name+' dark clapper',x,bottom-.04*size,z,.045*size,.065*size,.35*size,dark,12);
+    return body;
+  }
+  const bellX=43.65,bellZ=6.89;
+  box('Great bell heavy timber suspension beam',bellX,3.39,bellZ,2.66,.25,.31,K.M.wood);
+  for(const x of [42.35,44.95])box('Great bell white suspension pier',x,1.98,bellZ,.39,2.75,.46,white,true);
+  bell('Great bronze temple bell',bellX,1.19,bellZ,1.10);
+  for(const dx of [-.14,.14]){
+    const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58,bellZ);handle.rotation.y=dx<0?-.3:.3;
+  }
+  const rope=mat('#b7934c');
+  for(let i=0;i<7;i++){
+    const dx=(i-3)*.041;
+    K.beam(g,'Great bell thick rope bundle',[bellX+dx,3.53,bellZ-.18],[bellX+dx+.04,2.65,bellZ+.03],.033,rope);
+    K.beam(g,'Great bell rope return',[bellX+dx,3.53,bellZ+.18],[bellX+dx+.04,2.65,bellZ+.03],.027,rope);
+  }
+  for(const y of [2.69,2.76,2.83]){
+    const knot=mesh('Great bell rope binding',new THREE.TorusGeometry(.19,.026,7,20),rope,bellX,y,bellZ);knot.rotation.x=Math.PI/2;
+  }
+  const pull=new THREE.CatmullRomCurve3([new THREE.Vector3(bellX,1.15,bellZ),new THREE.Vector3(bellX-.12,.85,bellZ+.02),new THREE.Vector3(bellX-.04,.69,bellZ+.05),new THREE.Vector3(bellX+.17,.85,bellZ+.05)]);
+  mesh('Great bell looped clapper rope',new THREE.TubeGeometry(pull,20,.017,6,false),rope);
+  K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
+  // The suspended drum is beside the large bell, as in the close-up 15.14.44.
+  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(45.20,1.78,6.96);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
+  const shell=mesh('Temple drum wooden shell',new THREE.CylinderGeometry(.45,.31,.65,32),K.M.wood,0,0,0,drum);
+  for(const y of [-.325,.325]){
+    const radius=y>0?.45:.31;
+    mesh('Temple drum hide head',new THREE.CylinderGeometry(radius,radius,.025,32),mat('#c5c4b8'),0,y,0,drum);
+    const rim=mesh('Temple drum rim',new THREE.TorusGeometry(radius,.022,8,32),K.M.wood,0,y,0,drum);rim.rotation.x=Math.PI/2;
+  }
+  for(let i=0;i<22;i++){
+    const a=i*Math.PI/11,b=a+.15;
+    K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
+  }
+  K.beam(g,'Temple drum hanging chain',[45.20,3.32,6.96],[45.20,2.18,6.96],.018,dark);
+  for(const x of [41.5,44.5]){
+    bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
+    K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
+  }
+  // Little lamp canopy projects toward the entrance from the black pole's base.
+  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.64,1.30,.07,1.70,brass);shelterRoof.rotation.x=-.07;
+  for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
+  cyl('Small brass oil lamp base',lampX,.33,lampZ-.61,.13,.18,.16,brass,14);
+  cyl('Small brass oil lamp stem',lampX,.65,lampZ-.61,.035,.07,.54,brass,12);
+  cyl('Small brass oil lamp dish',lampX,.93,lampZ-.61,.19,.1,.06,brass,20);
 
   // 14.58.48: family-identified right edge of the temple, facing the house.
   // Viewed down the road (+Z), the temple (+X) is on the photograph's left.

@@ -343,8 +343,30 @@ for(const key of ['templeleft','templecenter','templeright']){
 }
 const templeCamera=new THREE.PerspectiveCamera(photos.templecenter.fov,4/3,.06,400);
 const templeEye=new THREE.Vector3(39,5.7,5.4);templeCamera.position.copy(templeEye);templeCamera.lookAt(new THREE.Vector3(...photos.templecenter.target));templeCamera.updateMatrixWorld();
-assert.ok(new THREE.Vector3(40.3,4,11.25).project(templeCamera).x<0,'Black lamp is on photo-left');
-assert.ok(new THREE.Vector3(37.4,4,11.25).project(templeCamera).x>0,'Pink pillar is on photo-right');
+const lampPosition=temple.getObjectByName('Lamp stone foot').position.clone();
+assert.ok(lampPosition.clone().setY(4).project(templeCamera).x<0,'Black lamp is on photo-left');
+const flagPosition=temple.getObjectByName('Flagstaff stone foot').position.clone();
+assert.ok(flagPosition.clone().setY(4).project(templeCamera).x>0,'Pink pillar is on photo-right');
+assert.ok(flagPosition.z-lampPosition.z>2&&lampPosition.x-flagPosition.x>2,'Poles are staggered in both axes, pink behind black');
+const largeBell=temple.getObjectByName('Great bronze temple bell');
+const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.getSize(new THREE.Vector3());
+assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
+const bellTarget=bellBounds.getCenter(new THREE.Vector3());
+for(const key of ['templebellreturn','templebellwide','templepoles','templebell']){
+  const view=new Function('return ('+main.match(new RegExp('destinations\\.'+key+'=(\\{.*\\});'))[1]+')')();
+  assert.ok(!collision(view.p[0],view.p[2],view.p[1]),key+' viewpoint is walkable');
+  const eye=new THREE.Vector3(...view.p).add(new THREE.Vector3(0,1.62,0));
+  const c=new THREE.PerspectiveCamera(view.fov,4/3,.06,400);c.position.copy(eye);c.lookAt(new THREE.Vector3(...view.target));c.updateMatrixWorld();
+  if(key==='templepoles'){
+    const black=lampPosition.clone().setY(1).project(c),pink=flagPosition.clone().setY(1).project(c);
+    assert.ok(pink.x<black.x&&pink.x>-1&&black.x<1,'Side view shows pink left, black right');
+  }else{
+    const hit=new THREE.Raycaster(eye,bellTarget.clone().sub(eye).normalize()).intersectObject(temple,true)[0];
+    assert.equal(hit?.object,largeBell,key+' must see the great bell through its bay');
+    const frame=bellTarget.clone().project(c);assert.ok(Math.abs(frame.x)<1&&Math.abs(frame.y)<1,key+' frames the great bell');
+  }
+}
+
 for(const x of [33.65,44.35]){
   const target=new THREE.Vector3(x,1.40,16.25),ray=new THREE.Raycaster(templeEye,target.sub(templeEye).normalize());
   const hit=ray.intersectObject(temple,true)[0];
