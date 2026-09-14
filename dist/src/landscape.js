@@ -1005,17 +1005,7 @@ export function buildLandscape(K) {
   cb('Hatchback pale front number plate',-1.88,.48,0,.02,.12,.43,'cream');
   K.blocker(5.8,-2.35,3.85,1.88,.03,1.78);
 
-  // The weathered studio sign and purple plants appear in both 15.28 front views.
-  // Preserve the photographed lettering using the original image's UV region.
-  const studioMap=new THREE.TextureLoader().load('./assets/house-front.jpg');studioMap.colorSpace=THREE.SRGBColorSpace;studioMap.repeat.set(.115,.137);studioMap.offset.set(.014,1-.541);
-  const studioSign=new THREE.Mesh(new THREE.PlaneGeometry(2.05,1.82),new THREE.MeshStandardMaterial({map:studioMap,roughness:1,side:THREE.DoubleSide}));studioSign.name='Photographed studio sign beside the lake';studioSign.rotation.y=Math.PI;studioSign.position.set(7.2,2.35,-9.40);group.add(studioSign);
-  box('Studio sign dark back',7.2,2.35,-9.35,2.17,1.94,.075,materials.wetStone);
-  for(const x of [6.14,8.26])box('Studio sign blue metal side',x,2.35,-9.44,.065,1.96,.07,'blue');
-  for(const y of [1.40,3.30])box('Studio sign blue metal rail',7.2,y,-9.44,2.18,.06,.07,'blue');
-  box('Studio sign slender metal post',7.2,.73,-9.34,.085,1.46,.085,'blue',true);
-  const studioPivot=new THREE.Group();studioPivot.name='Angled roadside studio sign';studioPivot.position.set(7.2,0,-9.4);
-  for(const object of [...group.children])if(object.name.startsWith('Studio sign')||object===studioSign){object.position.x-=7.2;object.position.z+=9.4;studioPivot.add(object);}
-  studioPivot.rotation.y=.85;group.add(studioPivot);
+  // Purple roadside plants from the front-of-house photographs.
   for(let i=0;i<96;i++){
     const x=5.5+((i*61)%97)/97*4.15,z=-10.8+((i*37)%89)/89*1.2,h=.36+(i%13)*.065;
     if(i%5===0)shrub(x,z,.36+(i%7)*.06);

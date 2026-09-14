@@ -204,9 +204,7 @@ const leftFrontCamera=new THREE.PerspectiveCamera(photos.houseleft.fov,4/3,.06,4
 leftFrontCamera.position.set(photos.houseleft.p[0],photos.houseleft.p[1]+1.62,photos.houseleft.p[2]);leftFrontCamera.lookAt(new THREE.Vector3(...photos.houseleft.target));leftFrontCamera.updateMatrixWorld();
 assert.ok(leftFrontCamera.getWorldDirection(new THREE.Vector3()).x>.97,'Leftward front photo faces towards the temple side');
 assert.ok(new THREE.Vector3(5.8,1,-2.35).project(leftFrontCamera).x>0,'Car and house belong to photo-right');
-assert.ok(new THREE.Vector3(7.2,2.35,-9.4).project(leftFrontCamera).x<0,'Studio sign belongs to photo-left');
-const signEye=leftFrontCamera.position.clone(),signRay=new THREE.Raycaster(signEye,new THREE.Vector3(7.2,2.35,-9.4).sub(signEye).normalize());
-assert.equal(signRay.intersectObject(landscape,true)[0]?.object.name,'Photographed studio sign beside the lake','The photographed lettering must face the leftward camera');
+assert.ok(!landscape.getObjectByName('Angled roadside studio sign'),'Removed studio board must stay out of the scene');
 const reference=photos.veranda;
 assert.ok(reference.p[2]>0&&reference.p[2]<2,'Photo must start on the veranda before the main door');
 const camera=new THREE.PerspectiveCamera(reference.fov,4/3,.06,400);
