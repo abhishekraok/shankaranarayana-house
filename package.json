@@ -1,0 +1,15 @@
+{
+  "name": "shankaranarayana-house",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Walkable 3D reconstruction of Shankaranarayana, Udupi, from photographs and memories",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node tests/wheel-movement.mjs",
+    "test:browser": "node tests/verify.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
