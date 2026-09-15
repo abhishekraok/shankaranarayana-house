@@ -428,8 +428,8 @@ export function buildTemple(K) {
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
     floor('Outer circuit raised red veranda',xc,zc,w,d,.6,oxideFloor);
-    box('Outer circuit weathered white wall',r.wall,2.05,zc,.27,2.9,d,agedWhite,true);
-    box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,zc,.065,.6,d,red);
+    if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,zc,.27,2.9,d,agedWhite,true);
+    if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,zc,.065,.6,d,red);
     // Real notches in the plinth align with steps instead of blocking them.
     const cuts=[r.a,...r.stairs.flatMap(z=>[z-.72,z+.72]),r.b];
     for(let i=0;i<cuts.length-1;i+=2){const lo=cuts[i],hi=cuts[i+1];
@@ -666,6 +666,77 @@ export function buildTemple(K) {
   const leanGeo=new THREE.BufferGeometry();leanGeo.setAttribute('position',new THREE.Float32BufferAttribute(leanPos,3));leanGeo.computeVertexNormals();
   const leanRoof=mesh('Right hall low corrugated veranda awning',leanGeo,greySheet);K.roofs.push(leanRoof);
   K.beam(g,'Right hall white gutter',[29.12,3.48,6.2],[29.12,3.48,16.2],.105,whiteTrim);
+  // 15.10.49 / 15.11.00: the right-hand covered hall continues behind
+  // the round veranda columns. Its interior is open, with square blue piers.
+  const hallBlue=mat('#98bbc5'),hallFloor=oxideFloor.clone();hallFloor.roughness=.46;
+  floor('Covered hall continuous oxide floor',24.35,11.3,8.15,9.8,.60,hallFloor);
+  box('Covered hall rear end wall',24.25,2.03,16.10,8.0,2.86,.20,hallBlue,true);
+  box('Covered hall rear red dado',24.25,.88,15.985,8.0,.56,.025,red);
+  // Blue-framed daylight windows in the lane-side wall, with solid piers between.
+  for(const [z,d] of [[6.85,.9],[9.35,1.1],[12.2,1.8],[15.35,1.5]]){
+    box('Covered hall lane-side wall pier',20.30,2.03,z,.20,2.86,d,hallBlue,true);
+  }
+  for(const z of [8.05,10.55,13.65]){
+    box('Covered hall window sill wall',20.30,1.0,z,.20,.8,1.48,hallBlue,true);
+    box('Covered hall window lintel wall',20.30,3.19,z,.20,.54,1.48,hallBlue,true);
+    for(const dz of [-.72,.72])box('Covered hall blue window jamb',20.42,2.10,z+dz,.09,1.82,.09,blue);
+    for(const y of [1.20,2.36,2.96])box('Covered hall blue window crossbar',20.42,y,z,.09,.08,1.52,blue);
+    box('Covered hall blue window middle upright',20.42,2.10,z,.09,1.82,.055,blue);
+    K.blocker(20.30,z,.20,1.48,1.15,3.1);
+  }
+  const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
+  for(const z of [9.0,12.7]){
+    box('Covered hall square blue pier',24.15,2.08,z,.38,2.96,.38,hallBlue,true);
+    box('Covered hall square pier red foot',24.15,.87,z,.40,.54,.40,red);
+    const beam=box('Covered hall transverse white ceiling beam',24.2,3.35,z,7.8,.35,.30,white);K.roofs.push(beam);
+  }
+  // Stationary three-bladed ceiling fans and slim fluorescent wall fittings.
+  const fanMaterial=mat('#514b3e',.79);
+  for(const [x,z] of [[22.1,8.0],[26.2,9.2],[22.1,11.0],[26.2,11.0],[22.1,14.3],[26.2,14.3]]){
+    cyl('Covered hall fan downrod',x,3.15,z,.018,.018,.60,fanMaterial,8);
+    const motor=mesh('Covered hall fan motor',new THREE.SphereGeometry(1,12,8),fanMaterial,x,2.84,z);motor.scale.set(.14,.08,.14);
+    for(let j=0;j<3;j++){
+      const a=j*Math.PI*2/3+.25;
+      const blade=box('Covered hall fan blade',x+Math.cos(a)*.34,2.86,z+Math.sin(a)*.34,.56,.025,.105,fanMaterial);blade.rotation.y=-a;
+    }
+  }
+  for(const z of [8.05,10.55,13.65]){
+    box('Covered hall tube light fixture',20.48,3.02,z,.08,.055,1.3,whiteTrim);
+    K.beam(g,'Covered hall exposed light wiring',[20.47,3.13,z],[20.47,3.13,z+1.3],.012,dark);
+  }
+  // Nested blue plastic chair stacks are tucked against the hall wall.
+  const chairBlue=mat('#2589b5',.65);
+  for(const [x,z,count] of [[21.0,7.5,9],[21.0,8.5,11],[21.0,9.55,8]]){
+    for(let k=0;k<count;k++){
+      const y=.60+k*.075;
+      box('Covered hall stacked chair seat',x,y+.43,z,.54,.045,.53,chairBlue);
+      for(const dx of [-.235,.235]){
+        for(const dz of [-.22,.22])box('Covered hall stacked chair leg',x+dx,y+.21,z+dz,.038,.42,.038,chairBlue);
+        box('Covered hall chair back upright',x+dx,y+.73,z-.235,.045,.63,.055,chairBlue);
+        box('Covered hall chair arm',x+dx,y+.65,z,.055,.055,.50,chairBlue);
+      }
+      for(let j=0;j<5;j++)box('Covered hall chair back slat',x,y+.62+j*.082,z-.235,.46,.04,.055,chairBlue);
+    }
+    K.blocker(x,z,.65,.65,.60,1.70+count*.075);
+  }
+  // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay.
+  const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
+  const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,8),cp=curtainGeometry.attributes.position;
+  for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
+  mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,26.25,1.9,6.70);
+  for(const x of [24.55,27.95]){
+    box('Covered hall ceremonial bay decorated upright',x,1.95,6.92,.18,2.70,.20,blue);
+    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,7.04,.23,.07,.025,brass);
+  }
+  const parasolColors=[mat('#c5b99d'),mat('#c28b27'),mat('#a74f37')];
+  for(let tier=0;tier<3;tier++){
+    const radius=1.05-tier*.27,y=2.78+tier*.20;
+    for(let j=0;j<18;j++){
+      const segment=new THREE.ConeGeometry(radius,.26,2,1,true,j*Math.PI/9,Math.PI/9);
+      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],26.25,y,7.6);
+    }
+  }
+  K.beam(g,'Covered hall parasol suspension',[26.25,3.54,7.6],[26.25,3.21,7.6],.014,dark);
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
   for(const z of [10.0,23.2]){
     box('Left pavilion upper white back',53.65,4.59,z,.18,1.6,3.65,agedWhite);
@@ -905,7 +976,9 @@ export function buildTemple(K) {
   const edgeWhite=K.M.plaster.clone();edgeWhite.color.set('#f4f1eb');
   const balconyRed=mat('#b65f61'),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
   floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,stoneFloor);
-  box('Temple road corner white building',25.15,3.41,5.18,9.7,6.38,7.46,edgeWhite,true);
+  // Keep the street facade and upper storey; the rear ground floor opens into the hall.
+  box('Temple road corner lower frontage',25.15,1.91,3.925,9.7,3.38,4.95,edgeWhite,true);
+  box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
   for(const x of [20.38,25.18,29.89]){
@@ -970,7 +1043,7 @@ export function buildTemple(K) {
     box('Temple roadside small dark doorway',20.265,1.40,z,.025,2.28,.82,blue);
     box('Temple roadside projecting door canopy',19.98,2.69,z,.74,.12,1.18,edgeWhite);
   }
-  box('Temple road low rear connector',22.26,1.86,10.23,4.0,3.28,2.65,edgeWhite,true);
+  box('Temple road rear connector ceiling',22.26,3.56,10.23,4.0,.12,2.65,edgeWhite);
   // The narrow exterior stair is photographed. Its upper connection is estimated.
   steps('Temple exterior side stair',19.52,13.99,1.02,4.70,.04,3.46,'z',21);
   floor('Temple exterior stair top landing',19.52,16.76,1.02,.87,3.46,stoneFloor);
