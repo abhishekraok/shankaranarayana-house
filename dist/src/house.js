@@ -541,12 +541,46 @@ export function buildHouse(K) {
   // A small point lamp keeps the source altar visible in the deep veranda.
   const shrineLight=new THREE.PointLight(0xffd49b,2.8,5,2);shrineLight.position.set(0,2.85,7.3);g.add(shrineLight);
   const shrineRoof=K.hipRoof(g,'Small shrine tiled roof',0,8.0,4.9,4.95,3.64,1.0);
-  // The shelf close-ups show dark boarded timber above, not exposed tile faces.
+  // IMG_20130720_182845: the entrance end is an open gable, with
+  // exposed tile backs above a heavy tie beam and a faded painted plaster band.
+  // Keep the rear hip and the dark lining seen from inside the God room.
   const shrineRoofTiles=shrineRoof.children.find(o=>o.name==='Small shrine tiled roof tiles');
+  const roofPoints=[[-2.45,0,-2.475],[2.45,0,-2.475],[2.45,0,2.475],[-2.45,0,2.475],[0,1,-2.475],[0,1,.27]];
+  const roofPositions=[],roofUvs=[];
+  for(const face of [[1,4,5],[1,5,2],[2,5,3],[3,5,4],[3,4,0]])for(const i of face){const v=roofPoints[i];roofPositions.push(...v);roofUvs.push(v[0]*.36,v[2]*.36);}
+  const openGable=new THREE.BufferGeometry();openGable.setAttribute('position',new THREE.Float32BufferAttribute(roofPositions,3));openGable.setAttribute('uv',new THREE.Float32BufferAttribute(roofUvs,2));openGable.computeVertexNormals();
+  shrineRoofTiles.geometry=openGable;
   const roofLiningMaterial=shrineTimber.clone();roofLiningMaterial.side=THREE.DoubleSide;
-  const roofLining=new THREE.Mesh(shrineRoofTiles.geometry,roofLiningMaterial);
+  const roofLining=new THREE.Mesh(openGable,roofLiningMaterial);
   roofLining.name='God room dark timber roof lining';roofLining.position.copy(shrineRoofTiles.position);roofLining.position.y-=.055;shrineRoof.add(roofLining);
-
+  const tileBack=new THREE.MeshStandardMaterial({color:'#665044',roughness:1});
+  for(const side of [-1,1]){
+    K.beam(shrineRoof,'God room entrance gable rafter',[side*2.45,3.54,5.55],[0,4.54,5.55],.16,shrineTimber,.19);
+    for(let z=5.72;z<6.90;z+=.43)K.beam(shrineRoof,'God room exposed roof rafter',[side*2.32,3.58,z],[0,4.53,z],.075,shrineTimber,.095);
+    for(let x=.18;x<2.3;x+=.27){
+      const h=4.575-x/2.45;
+      for(let z=5.77;z<6.90;z+=.34){
+        const tile=K.box(shrineRoof,'God room visible clay tile underside',side*x,h,z,.255,.035,.325,tileBack);tile.rotation.z=-side*Math.atan(1/2.45);
+      }
+      K.beam(shrineRoof,'God room slender tile batten',[side*x,h-.035,5.58],[side*x,h-.035,6.91],.027,shrineTimber,.025);
+    }
+  }
+  K.box(shrineRoof,'God room heavy entrance tie beam',0,4.025,6.78,4.15,.25,.31,shrineTimber);
+  K.box(shrineRoof,'God room beam worn lower lip',0,3.895,6.60,4.18,.035,.06,verandaTimber);
+  const gablePlaster=new THREE.Shape();gablePlaster.moveTo(-1.15,4.15);gablePlaster.lineTo(1.15,4.15);gablePlaster.lineTo(.16,4.55);gablePlaster.lineTo(-.16,4.55);gablePlaster.closePath();
+  const gablePanel=new THREE.Mesh(new THREE.ShapeGeometry(gablePlaster),new THREE.MeshStandardMaterial({color:'#c0b9a2',roughness:1,side:THREE.DoubleSide}));gablePanel.name='God room pale gable plaster';gablePanel.position.z=6.62;shrineRoof.add(gablePanel);
+  const friezeCanvas=document.createElement('canvas');friezeCanvas.width=1024;friezeCanvas.height=128;
+  const fc=friezeCanvas.getContext('2d');fc.fillStyle='#bfb59b';fc.fillRect(0,0,1024,128);fc.strokeStyle='#876553';fc.lineWidth=5;
+  fc.beginPath();fc.moveTo(0,14);fc.lineTo(1024,14);fc.moveTo(0,113);fc.lineTo(1024,113);fc.stroke();
+  for(let x=0;x<1024;x+=128){fc.beginPath();fc.moveTo(x,64);fc.lineTo(x+64,22);fc.lineTo(x+128,64);fc.lineTo(x+64,106);fc.closePath();fc.stroke();
+    fc.fillStyle='#8c6a57';for(let i=0;i<8;i++){fc.save();fc.translate(x+64,64);fc.rotate(i*Math.PI/4);fc.beginPath();fc.ellipse(0,12,4,15,0,0,Math.PI*2);fc.fill();fc.restore();}}
+  for(let i=0;i<750;i++){fc.fillStyle=i%2?'#d1c9ae55':'#635e4020';fc.fillRect(i*137%1024,i*37%128,3+i%13,2+i%6);}
+  const friezeMap=new THREE.CanvasTexture(friezeCanvas);friezeMap.colorSpace=THREE.SRGBColorSpace;
+  const frieze=new THREE.Mesh(new THREE.PlaneGeometry(1.50,.17),new THREE.MeshStandardMaterial({map:friezeMap,roughness:1,side:THREE.DoubleSide}));frieze.name='God room faded floral diamond frieze';frieze.position.set(0,4.24,6.606);shrineRoof.add(frieze);
+  const switchPlate=new THREE.MeshStandardMaterial({color:'#ad965b',roughness:.9});
+  K.box(g,'God room old entrance switch plate',.76,3.79,6.78,.17,.23,.055,switchPlate);
+  K.box(g,'God room old ivory switch',.76,3.80,6.742,.055,.07,.025,'plaster');
+  K.beam(g,'God room entrance surface wire',[.76,3.91,6.74],[.76,4.0,6.61],.009,'black');
 
   // Tulsi pedestal is left of the projecting shrine, as in the plan.
   const tulsiStone=new THREE.MeshStandardMaterial({color:'#49463c',roughness:.98,bumpMap:mat('stone').map,bumpScale:.018});

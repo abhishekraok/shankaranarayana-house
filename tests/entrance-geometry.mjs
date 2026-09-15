@@ -35,6 +35,10 @@ const navigation=main.slice(main.indexOf('function inside('),main.indexOf('funct
 const {collision,supportY,blockedRise}=new Function('K','THREE',navigation+';return {collision,supportY,blockedRise};')(K,THREE);
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
+// 2013 entrance close-up: the painted gable must be visible, not buried in a hip roof or beam.
+const gableEye=new THREE.Vector3(0,2.07,5.35),gableTarget=new THREE.Vector3(0,4.24,6.606);
+const gableRay=new THREE.Raycaster(gableEye,gableTarget.clone().sub(gableEye).normalize());
+assert.equal(gableRay.intersectObject(house,true)[0]?.object.name,'God room faded floral diamond frieze','Entrance sees the painted band above the tie beam');
 const roofBounds=new THREE.Box3().setFromObject(house.getObjectByName('Broad upper facade tiled roof'));
 assert.ok(roofBounds.max.y>8.75&&roofBounds.max.y<9.05,'Upper roof ridge has half the former attic rise');
 assert.ok(Math.abs(new THREE.Box3().setFromObject(temple.getObjectByName('Entrance wash wall')).min.y)<.001,'Tap wall reaches the ground');
