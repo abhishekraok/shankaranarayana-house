@@ -933,16 +933,19 @@ export function buildLandscape(K) {
 
   // Dense greenery on the house side of the small road, as in 14.58.48.
   // The near end is occupied by the white tiled block seen in 14.59.36.
-  for(const p of [[13.45,9.5,18],[12.8,16.5,17],[13.4,23.8,16]])palm(...p);
-  for(let i=2;i<16;i++)palm(range(12.7,14.1),3+i*1.6,range(11,17),true);
+  for(const p of [[12.55,9.5,18],[12.8,16.5,17],[13.4,23.8,16]])palm(...p);
+  for(let i=2;i<16;i++){
+    const x=range(12.7,14.1),z=3+i*1.6;
+    palm(z>9&&z<15?Math.min(x,12.65):x,z,range(11,17),true);
+  }
   for(let i=0;i<76;i++){
     const z=range(2,28),x=range(12.9,14.4);
-    // Leave the photographed taps and stone bench accessible at the roadside.
+    // Leave the photographed taps and long washing trough accessible at the roadside.
     if(z<8.5)continue;
     if(z>9.4&&z<14.4)continue;
     shrub(x,z,range(.75,1.30));
   }
-  for(let i=2;i<7;i++)broadleaf(13.6,2.5+i*3.8,range(4.7,6.5),range(1.9,2.3));
+  for(let i=2;i<7;i++)broadleaf(i<4?11.3:13.6,2.5+i*3.8,range(4.7,6.5),range(1.9,2.3));
   for(const [z,y] of [[3.9,5.5],[9.3,5.0],[16.7,5.5]]){
     const line=new THREE.CatmullRomCurve3([new THREE.Vector3(20.15,y,z),new THREE.Vector3(17,y-.32,z+1.2),new THREE.Vector3(13.3,y+.10,z+2)]);
     const wire=new THREE.Mesh(new THREE.TubeGeometry(line,18,.009,4,false),materials.mortar);wire.name='Thin wires above the temple side road';group.add(wire);

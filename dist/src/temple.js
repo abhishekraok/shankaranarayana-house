@@ -1481,9 +1481,27 @@ export function buildTemple(K) {
     K.beam(g,'Temple road water tap outlet',[14.18,.87,z],[14.18,.80,z],.039,K.M.metal);
     K.beam(g,'Temple road tap handle',[13.96,.94,z-.075],[13.96,.94,z+.075],.028,whiteTrim);
   }
-  for(const z of [11.0,12.5])box('Temple road stone bench leg',13.76,.34,z,.38,.56,.27,roadStone,true);
-  box('Temple road weathered bench seat',13.76,.66,11.75,.69,.16,2.2,roadStone);
-  box('Temple road bench red end slab',13.3,.80,13.15,.90,.13,.42,red);
+  // IMG_20130720_180708 resolves the distant red slab as a long washing
+  // trough with a row of taps, rather than the previously inferred bench.
+  const troughRed=mat('#794038',.96),troughDamp=mat('#575b43',.98);
+  box('Temple lane long wash trough back',13.48,.67,11.75,.18,1.18,3.70,troughRed,true);
+  box('Temple lane wash trough red coping',13.63,1.30,11.75,.62,.13,3.95,troughRed);
+  box('Temple lane wash trough bed',14.04,.12,11.75,1.06,.16,3.76,oldStone);
+  box('Temple lane wash trough front wall',14.55,.34,11.75,.13,.53,3.76,roadStone,true);
+  box('Temple lane wash trough damp inner face',14.474,.33,11.75,.014,.43,3.55,troughDamp);
+  for(const z of [9.92,13.58])box('Temple lane wash trough end wall',14.04,.34,z,1.10,.53,.14,roadStone,true);
+  for(let i=0;i<7;i++){
+    const z=10.22+i*.51;
+    K.beam(g,'Temple lane long trough tap spout',[13.59,.88,z],[13.85,.88,z],.027,K.M.metal);
+    K.beam(g,'Temple lane long trough tap outlet',[13.85,.88,z],[13.85,.81,z],.031,K.M.metal);
+    K.beam(g,'Temple lane long trough tap cross handle',[13.69,.945,z-.05],[13.69,.945,z+.05],.023,K.M.metal);
+  }
+  // Moss-darkened open masonry tanks flank the long trough.
+  for(const z of [9.35,14.2]){
+    box('Temple lane open stone tank bed',13.65,.10,z,.88,.15,.83,troughDamp);
+    for(const x of [13.22,14.08])box('Temple lane mossy tank side',x,.46,z,.12,.78,.94,troughDamp,true);
+    for(const end of [-.41,.41])box('Temple lane mossy tank end',13.65,.46,z+end,.88,.78,.12,troughDamp,true);
+  }
   // Folded blue tarpaulin over low stored bundles, not a billboard photograph.
   const coverPos=[];
   for(let j=0;j<24;j++)for(let i=0;i<12;i++){
