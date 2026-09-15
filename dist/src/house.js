@@ -673,6 +673,29 @@ export function buildHouse(K) {
   K.box(g,'God room old ivory switch',.76,3.80,6.742,.055,.07,.025,'plaster');
   K.beam(g,'God room entrance surface wire',[.76,3.91,6.74],[.76,4.0,6.61],.009,'black');
 
+  // IMG_20130720_182826, user-labelled looking back toward the entry:
+  // stained gable plaster, a heavy tie beam and an old suspended tube fitting.
+  K.box(entryRoof,'Entrance return heavy weathered tie beam',0,3.54,5.92,4.38,.20,.12,shrineTimber);
+  const returnGable=new THREE.Shape();returnGable.moveTo(-2.02,3.65);returnGable.lineTo(2.02,3.65);returnGable.lineTo(.12,4.48);returnGable.lineTo(-.12,4.48);returnGable.closePath();
+  const stainCanvas=document.createElement('canvas');stainCanvas.width=512;stainCanvas.height=256;
+  const sc=stainCanvas.getContext('2d');sc.fillStyle='#8a7160';sc.fillRect(0,0,512,256);
+  let stainSeed=182826;const stainRandom=()=>{stainSeed=(Math.imul(stainSeed,1664525)+1013904223)>>>0;return stainSeed/4294967296;};
+  for(let j=0;j<250;j++){
+    const x=stainRandom()*512,y=stainRandom()*100,len=30+stainRandom()*170;
+    sc.strokeStyle=j%3?'#c1bba360':'#48382e45';sc.lineWidth=1+stainRandom()*4;sc.beginPath();sc.moveTo(x,y);sc.lineTo(x-3+stainRandom()*6,y+len);sc.stroke();
+  }
+  for(let j=0;j<3500;j++){sc.fillStyle=j%2?'#392e2718':'#cdc7b51c';sc.fillRect(stainRandom()*512,stainRandom()*256,1+stainRandom()*7,1+stainRandom()*5);}
+  const stainMap=new THREE.CanvasTexture(stainCanvas);stainMap.colorSpace=THREE.SRGBColorSpace;
+  const returnGeom=new THREE.ShapeGeometry(returnGable),ruv=returnGeom.attributes.uv,rp=returnGeom.attributes.position;
+  for(let j=0;j<ruv.count;j++)ruv.setXY(j,(rp.getX(j)+2.02)/4.04,(rp.getY(j)-3.65)/.83);
+  const stainedPanel=new THREE.Mesh(returnGeom,new THREE.MeshStandardMaterial({map:stainMap,roughness:1,side:THREE.DoubleSide}));stainedPanel.name='Entrance return streaked plaster gable';stainedPanel.position.z=6.006;entryRoof.add(stainedPanel);
+  const fittingPaint=new THREE.MeshStandardMaterial({color:'#b6b2a0',roughness:.87});
+  const tubeGlass=new THREE.MeshStandardMaterial({color:'#dbded2',roughness:.5});
+  K.box(entryRoof,'Entrance fluorescent metal channel',0,3.23,6.22,1.20,.065,.095,fittingPaint);
+  const tube=K.cylinder(entryRoof,'Entrance fluorescent glass tube',0,3.17,6.265,.020,.020,1.14,tubeGlass,20);tube.rotation.z=Math.PI/2;
+  for(const x of [-.58,.58])K.box(entryRoof,'Entrance fluorescent end socket',x,3.195,6.265,.038,.098,.055,fittingPaint);
+  K.box(entryRoof,'Entrance fluorescent old ballast',-.13,3.25,6.265,.17,.048,.055,shrineTimber);
+  for(const x of [-.20,.45])K.beam(entryRoof,'Entrance fluorescent hanging wire',[x,3.45,5.98],[x,3.27,6.22],.005,'black');
   // Tulsi pedestal is left of the projecting shrine, as in the plan.
   const tulsiStone=new THREE.MeshStandardMaterial({color:'#49463c',roughness:.98,bumpMap:mat('stone').map,bumpScale:.018});
   for(const [size,y,h] of [[.96,.13,.18],[.77,.27,.10],[.48,.62,.62],[.71,.98,.12],[.83,1.10,.12]]) {
