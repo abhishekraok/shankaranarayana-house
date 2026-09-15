@@ -35,7 +35,7 @@ const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x497a36,texture
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
-const keys=new Set();let mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='Across the lake';
+const keys=new Set();let mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
@@ -109,7 +109,7 @@ destinations.upstairs=photos.upperahead;destinations.upperahead=photos.upperahea
 destinations.upperfarther={p:[-1,3.85,.72],target:[52,1.4,-35],fov:70};
 destinations.houseexitleft={p:[9.2,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
 destinations.templeentryreturn={p:[48.5,.1,10.7],target:[50.7,2.0,6.4],fov:75};
-const tour=createPhotoTour(photos);
+const tour=createPhotoTour(photos,supportY);
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
 function terrainY(x,z){if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<54&&z>-43&&z<-12?-8:0;}

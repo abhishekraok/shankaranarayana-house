@@ -416,13 +416,14 @@ for(let z=1.35;z<=5.72;z+=.10){
   const ray=new THREE.Raycaster(new THREE.Vector3(46.18,height+.24,z),new THREE.Vector3(0,1,0),0,1.50);
   assert.equal(ray.intersectObject(temple,true).length,0,'Gallery stair must have physical head clearance');
 }
-const tour=createPhotoTour(photos),tourProblems=[];
+const tour=createPhotoTour(photos,supportY),tourProblems=[];
 assert.ok(Number.isFinite(tour.duration)&&tour.duration>0,'Tour duration follows its route');
-const godStop=tour.points.findIndex(p=>p.photo==='godroom');
-assert.ok(new THREE.Vector3(...tour.points[godStop+1].p).distanceTo(new THREE.Vector3(...tour.points[godStop].p))<1e-9,'Turn towards the exit at the God room');
-assert.deepEqual(tour.points[godStop+2].p,[0,2.07,3],'Return directly through the house entrance');
+assert.equal(tour.points[0].photo,'house','A visitor starts at the house');
+const ordered=['godroom','courtyard','temple','templeouterrear','templeleft','templeacross','lakehouse'];
+let previous=-1;for(const key of ordered){const i=tour.points.findIndex(p=>p.photo===key);assert.ok(i>previous,'Visitor itinerary order: '+key);previous=i;}
+assert.ok(tour.points.some(p=>p.label==='Behind the sanctum'),'Circle the inner sanctum');
+assert.ok(tour.points.some(p=>p.label==='Descending the gallery stair'),'Return via the stair');
 assert.ok(tour.points.every(p=>!(p.p[0]>14.6&&p.p[0]<21&&p.p[2]>0)),'Skip travel down the mud road');
-assert.ok(tour.points.every(p=>!(Math.abs(p.p[0])<12&&p.p[2]>4.45)),'Skip the house courtyard detour');
 let collisionSamples=0;
 for(const span of tour.spans){
   assert.ok(span.travel>0&&span.hold>=0);
@@ -432,28 +433,35 @@ for(const span of tour.spans){
   for(let i=0;i<=steps;i++){
     const t=span.start+span.hold+span.travel*i/steps,p=tour.sample(t).position;
     collisionSamples++;
-    const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-.12<c.top);
+    const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-1.50<c.top);
     if(hit)tourProblems.push({t,position:p.toArray(),hit});
+    assert.ok(p.y>1.60&&p.y<5.9,'Tour stays at walking height on the dry route');
+    if(Math.abs(p.y-1.62-supportY(p.x,p.z,p.y-1.62))>=.015)tourProblems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,p.y-1.62)});
   }
   if(span.a.photo){
     assert.ok(span.start+span.hold<tour.duration,'Every tour photograph must be visited before the loop repeats');
-    assert.equal(span.hold,0,'Photo viewpoints must not pause the tour');
+    assert.ok(span.hold>0&&span.hold<=1,'Brief pauses at photographic views');
   }
 }
 assert.ok(tour.sample(tour.duration).position.distanceTo(tour.sample(0).position)<1e-9,'The tour must loop continuously');
 for(const span of tour.spans){
-  assert.equal(span.hold,0,'No automatic tour holds');
-  const dt=1e-4,t=span.start;
-  const before=tour.sample(t).position.sub(tour.sample(t-dt).position).divideScalar(dt);
-  const after=tour.sample(t+dt).position.sub(tour.sample(t).position).divideScalar(dt);
-  assert.ok(before.distanceTo(after)<.02,'Camera velocity must remain continuous at route joins');
-  assert.equal(tour.sample(t+span.travel/2).fov,58,'Keep a steady tour lens');
-  assert.ok(tour.sample(t+span.travel*.4).position.distanceTo(tour.sample(t+span.travel*.6).position)>.01,'Every leg moves instead of turning in place');
+  const t=span.start;
+  for(const join of [t,t+span.hold]){
+    const dt=1e-4,center=tour.sample(join).position;
+    const before=center.clone().sub(tour.sample(join-dt).position).divideScalar(dt);
+    const after=tour.sample(join+dt).position.sub(center).divideScalar(dt);
+    before.y=after.y=0;
+    assert.ok(before.distanceTo(after)<.02,'Smooth horizontal motion into and out of brief stops');
+    assert.ok(tour.sample(join-dt).quaternion.angleTo(tour.sample(join+dt).quaternion)<.001,'No abrupt camera turns');
+  }
+  assert.equal(tour.sample(t+span.hold+span.travel/2).fov,58,'Keep a steady tour lens');
+  if(span.hold){assert.ok(tour.sample(t+.1).position.distanceTo(tour.sample(t+span.hold-.1).position)<1e-8,'Hold the photographic composition briefly');}
 }
+if(tourProblems.length)console.error(JSON.stringify({tourProblems:tourProblems.filter((p,i,a)=>i===0||JSON.stringify(p.hit)!==JSON.stringify(a[i-1].hit)),total:tourProblems.length}));
+assert.equal(tourProblems.length,0,'Tour must not pass through walls or posts');
+const checkpoints=tour.points.filter(p=>p.photo).map(p=>p.photo);
+for(const key of ['house','godroom','courtyard','temple','templedoor','templeleft','templecenter','templeright','lakeleft','lakemiddle','lakehouse',...outerKeys])assert.ok(checkpoints.includes(key));
 
-assert.deepEqual(tourProblems,[],'Tour must not fly through walls or posts');
-const checkpoints=tour.points.filter(p=>p.photo).map(p=>p.photo);for(const name of ['house','houseleft','godroom','laneleft','laneright','templehouse','temple','templedoor','templeleft','templecenter','templeright','lakeleft','lakemiddle','lakehouse',...outerKeys])assert.ok(checkpoints.includes(name));
-for(const key of ['courtyard','templeroad','veranda','verandaleft','verandaseat','verandaright'])assert.ok(!checkpoints.includes(key),'Skipped places remain manual destinations only');
 // Removed family photos must not survive in the app, tour or downloadable assets.
 const html=await fs.readFile(new URL('../dist/index.html',import.meta.url),'utf8');
 for(const [key,file] of [['templeouterentry','temple-outer-entry.jpg'],['templeouteraisle','temple-outer-aisle.jpg']]){
