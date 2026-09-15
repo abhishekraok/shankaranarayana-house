@@ -820,8 +820,31 @@ export function buildHouse(K) {
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
   const courtStairX=-6.75,courtStairFront=6.55,courtStairBack=12.10;
-  const courtStairStone=mat('paleStone').clone();courtStairStone.color.set('#807e70');
+  const courtStairStone=mat('plaster').clone();courtStairStone.color.set('#807e70');
   const courtStairWall=mat('plaster').clone();courtStairWall.color.set('#858779');
+  // 14.46.21: uneven moss and washed lime patches on the stair cheeks.
+  const mossCanvas=document.createElement('canvas');mossCanvas.width=512;mossCanvas.height=128;
+  const mossPaint=mossCanvas.getContext('2d'),mossImage=mossPaint.getImageData(0,0,512,128);
+  const mossHash=(x,y)=>{const n=Math.sin(x*127.1+y*311.7)*43758.5453;return n-Math.floor(n);};
+  const mossNoise=(x,y)=>{
+    const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
+    const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+    return (mossHash(ix,iy)*(1-sx)+mossHash(ix+1,iy)*sx)*(1-sy)+(mossHash(ix,iy+1)*(1-sx)+mossHash(ix+1,iy+1)*sx)*sy;
+  };
+  for(let y=0;y<128;y++)for(let x=0;x<512;x++){
+    const broad=mossNoise(x/24,y/18),grain=mossHash(x,y),streak=mossNoise(x/4,y/80);
+    const lime=Math.max(0,(broad-.56)*2.0),brightness=grain*23+streak*13;
+    const i=(y*512+x)*4;
+    mossImage.data[i]=48+brightness+lime*57;
+    mossImage.data[i+1]=56+brightness+lime*60;
+    mossImage.data[i+2]=35+brightness+lime*52;
+    mossImage.data[i+3]=255;
+  }
+  mossPaint.putImageData(mossImage,0,0);
+  const mossMap=new THREE.CanvasTexture(mossCanvas);mossMap.colorSpace=THREE.SRGBColorSpace;
+  const stairMoss=new THREE.MeshStandardMaterial({map:mossMap,roughness:.98});
+  const fadedCoping=mat('plaster').clone();fadedCoping.color.set('#b1827d');fadedCoping.roughness=.94;
+
   for(let i=0;i<24;i++){
     const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
     const top=F+(i+1)*(U-F)/24;
@@ -832,9 +855,15 @@ export function buildHouse(K) {
   for(const x of [courtStairX-.51,courtStairX+.51]){
     const cheek=new THREE.Shape();cheek.moveTo(courtStairFront,U-.16);cheek.lineTo(courtStairBack,F-.16);
     cheek.lineTo(courtStairBack,F+.73);cheek.lineTo(courtStairFront,U+.73);cheek.closePath();
-    const panel=new THREE.Mesh(new THREE.ExtrudeGeometry(cheek,{depth:.14,bevelEnabled:false}),courtStairWall);
+    const cheekGeometry=new THREE.ExtrudeGeometry(cheek,{depth:.14,bevelEnabled:false});
+    const cp=cheekGeometry.attributes.position,cu=cheekGeometry.attributes.uv;
+    for(let i=0;i<cp.count;i++){
+      const t=(cp.getX(i)-courtStairFront)/(courtStairBack-courtStairFront);
+      const bottom=U-.16+(F-U)*t;cu.setXY(i,t,(cp.getY(i)-bottom)/.89);
+    }
+    const panel=new THREE.Mesh(cheekGeometry,stairMoss);
     panel.name='Courtyard stair continuous sloping parapet';panel.rotation.y=-Math.PI/2;panel.position.x=x+.07;panel.castShadow=true;panel.receiveShadow=true;g.add(panel);
-    K.beam(g,'Courtyard stair red coping',[x,F+.74,courtStairBack],[x,U+.74,courtStairFront],.18,'red',.065);
+    K.beam(g,'Courtyard stair red coping',[x,F+.74,courtStairBack],[x,U+.74,courtStairFront],.18,fadedCoping,.065);
     for(let i=0;i<24;i++){
       const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
       const y=F+(i+.5)*(U-F)/24;
