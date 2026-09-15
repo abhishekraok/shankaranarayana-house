@@ -612,6 +612,28 @@ export function buildHouse(K) {
     const z=6.43+(i*1.317)%3.55;
     b('Shrine west plinth damp streak',-2.575,.61+(i%4)*.023,z,.008,.035+(i%5)*.021,.045+(i%3)*.047,moss);
   }
+  // 14.44.09/14: rough freestanding stone uprights and a rounded pole
+  // follow the shrine-side edge of the narrow planted courtyard strip.
+  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#8c887b');roughSupport.roughness=1;
+  for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
+    const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position;
+    for(let i=0;i<p.count;i++){
+      const x=p.getX(i),y=p.getY(i),zz=p.getZ(i),wear=.008*Math.sin(y*17+zz*11+j);
+      p.setXYZ(i,x*(1-.10*(y+1.22)/2.44)+wear,y,zz+.007*Math.sin(y*13+x*19+j));
+    }
+    geo.computeVertexNormals();const post=new THREE.Mesh(geo,roughSupport);post.name='Shrine-side rough stone pole support';post.position.set(-2.96,1.255,z);post.castShadow=post.receiveShadow=true;g.add(post);
+    K.blocker(-2.96,z,.26,.27,.035,2.475);
+  }
+  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',-2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
+  const poleStain=new THREE.MeshStandardMaterial({color:'#696c4c',roughness:1});
+  for(const z of [7.46,8.55,10.02,10.85]){
+    const collar=K.cylinder(g,'Round courtyard pole weathered band',-2.96,2.51,z,.087,.087,.055,poleStain,12);collar.rotation.x=Math.PI/2;
+  }
+  // Surface fissure, not an opening through the wall: the crack meets the
+  // upper edge of the west window reveal in the close-up.
+  const crackPoints=[[7.30,3.56],[7.32,3.45],[7.27,3.34],[7.28,3.23],[7.21,3.08],[7.20,2.98]];
+  const crackGeometry=new THREE.BufferGeometry().setFromPoints(crackPoints.map(([z,y])=>new THREE.Vector3(-2.167,y,z)));
+  const crack=new THREE.Line(crackGeometry,new THREE.LineBasicMaterial({color:'#63584a'}));crack.name='Shrine west plaster hairline crack';g.add(crack);
   // User-labelled 14.38.51: two unequal, tarnished metal discs beside
   // the God room's left grille. Their dimensions and spacing are estimated.
   const discCanvas=document.createElement('canvas');discCanvas.width=discCanvas.height=256;
