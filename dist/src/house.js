@@ -293,13 +293,38 @@ export function buildHouse(K) {
     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:1}));sheet.name='Right front wall 2011 paper calendar';sheet.position.set(x,y,2.205);g.add(sheet);
   }
   wallCalendar(1.93,1.98,.40,.64);wallCalendar(4.14,2.13,.40,.70);
-  const innerEntryStone=K.M.cream.clone();innerEntryStone.color.set('#454943');innerEntryStone.roughness=.70;
+  // IMG_20130720_175306: the lower entrance strip is dark, worn stone,
+  // with broad polished patches rather than the tiled veranda surface.
+  const entryCanvas=document.createElement('canvas');entryCanvas.width=entryCanvas.height=256;
+  const entryPaint=entryCanvas.getContext('2d');entryPaint.fillStyle='#373b3a';entryPaint.fillRect(0,0,256,256);
+  for(let i=0;i<170;i++){
+    const x=(i*97)%256,y=(i*157)%256,r=9+i%29;
+    for(const dx of [-256,0,256])for(const dy of [-256,0,256]){
+      const patch=entryPaint.createRadialGradient(x+dx,y+dy,0,x+dx,y+dy,r);
+      patch.addColorStop(0,i%3?'#a6afad16':'#10191b20');patch.addColorStop(1,'#747e7a00');
+      entryPaint.fillStyle=patch;entryPaint.fillRect(x+dx-r,y+dy-r,r*2,r*2);
+    }
+  }
+  const entryMap=new THREE.CanvasTexture(entryCanvas);entryMap.colorSpace=THREE.SRGBColorSpace;
+  entryMap.wrapS=entryMap.wrapT=THREE.RepeatWrapping;entryMap.repeat.set(.48,.48);
+  const innerEntryStone=new THREE.MeshStandardMaterial({map:entryMap,roughness:.48});
   floor('Inner entrance dark worn walking strip',0,3.05,2.12,2.0,F+.006,innerEntryStone,.026);
   for(const side of [-1,1]){
     floor('Inner entrance raised sitting platform',side*2.50,3.05,2.62,1.90,.79,verandaRed,.34);
     b('Inner entrance platform oxide riser',side*1.185,.62,3.05,.07,.34,1.90,verandaRed,true);
     b('Inner entrance platform dark coping',side*1.28,.808,3.05,.25,.038,1.90,innerEntryStone);
-    const innerPost=K.column(g,'Inner entrance platform timber post',side*1.40,3.71,.79,2.65,.19,verandaTimber);
+    // Broad square foot, layered mouldings and a stout octagonal shaft.
+    const postX=side*1.40,postZ=3.71;
+    for(const [y,w,h] of [[.831,.66,.082],[.902,.59,.060],[.958,.53,.052],[1.006,.47,.044]])
+      b('Inner entrance timber post stepped foot',postX,y,postZ,w,h,w,verandaTimber);
+    const postProfile=[[.235,0],[.245,.035],[.225,.08],[.218,1.95],
+      [.25,1.99],[.25,2.04],[.222,2.075],[.27,2.12],[.27,2.17],
+      [.23,2.20],[.29,2.26],[.29,2.31],[.24,2.35]];
+    const innerPost=new THREE.Mesh(new THREE.LatheGeometry(postProfile.map(([r,y])=>new THREE.Vector2(r,y)),8),verandaTimber);
+    innerPost.name='Inner entrance stout octagonal timber post';innerPost.position.set(postX,1.02,postZ);
+    innerPost.rotation.y=Math.PI/8;innerPost.castShadow=true;innerPost.receiveShadow=true;g.add(innerPost);
+    b('Inner entrance timber post beam seat',postX,3.415,postZ,.59,.13,.59,verandaTimber);
+    K.blocker(postX,postZ,.48,.48,.79,3.48);
     for(const y of [3.08,3.18,3.30])b('Inner entrance post capital moulding',side*1.40,y,3.71,.43,.06,.43,verandaTimber);
   }
   wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:0,w:7.6,top:3.1},{c:5.5,w:1.65,top:2.5}]);
