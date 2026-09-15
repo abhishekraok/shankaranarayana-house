@@ -541,7 +541,7 @@ export function buildHouse(K) {
     for(const z of [5.03,5.65,6.50])K.beam(entryRoof,'God room short exposed crossbeam',[side*2.02,3.56,z],[side*3.18,3.56,z],.14,shrineTimber,.18);
   }
   wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
-  wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
+  wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:1.58,top:2.87}],'plaster',.22);
   wallX('Shrine rear wall',-2.05,2.05,10.08,.68,2.9,[],'plaster',.22);
   for(const z of [6.5,9.65]) {
     detail(-2.18,1.28,z,.14,.13,.65,'red');detail(2.18,1.28,z,.14,.13,.65,'red');
@@ -549,7 +549,8 @@ export function buildHouse(K) {
   for(const y of [.83,1.12,2.70,3.38]) {
     detail(0,y,10.22,4.32,.10,.10,'red');
     if(y!==2.70)detail(-2.2,y,8.1,.10,.10,4.2,'red');
-    if(y!==2.70)detail(2.2,y,8.1,.10,.10,4.2,'red');
+    if(y!==2.70&&y!==3.38)detail(2.2,y,8.1,.10,.10,4.2,'red');
+    if(y===3.38)for(const [a,end] of [[6.0,7.16],[9.14,10.2]])detail(2.2,y,(a+end)/2,.10,.10,end-a,'red');
   }
   // Pale floral/triangle decoration on the red shrine bands (14.44.14).
   const borderCanvas=document.createElement('canvas');borderCanvas.width=512;borderCanvas.height=64;
@@ -558,7 +559,7 @@ export function buildHouse(K) {
   const borderMap=new THREE.CanvasTexture(borderCanvas);borderMap.colorSpace=THREE.SRGBColorSpace;borderMap.wrapS=THREE.RepeatWrapping;borderMap.repeat.x=2;
   const bandMat=new THREE.MeshStandardMaterial({map:borderMap,roughness:1});
   for(const y of [1.12,2.70,3.38])for(const side of [-1,1]){
-    const spans=y===2.70?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
+    const spans=(y===2.70||(side===1&&y===3.38))?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
     for(const [a,end] of spans){
       const material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2*(end-a)/4.15;map.offset.x=(a-6.025)/4.15*2;material.map=map;
       const band=new THREE.Mesh(new THREE.PlaneGeometry(end-a,.14),material);band.position.set(side*2.255,y,(a+end)/2);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
@@ -578,11 +579,29 @@ export function buildHouse(K) {
     b('Shrine west canopy corbel foot',-2.22,2.84,z,.24,.16,.15,verandaTimber);
   }
   // The newly located interior close-up confirms an open grille on this side too.
-  for(const z of [7.22,8.15,9.08])b('Shrine east window blue upright',2.205,2.18,z,.12,1.48,.085,wornWindowBlue);
-  for(const y of [1.48,2.15,2.88])b('Shrine east window blue cross rail',2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
-  for(let z=7.33;z<9.04;z+=.108)b('Shrine east window slender wooden grille',2.205,2.18,z,.055,1.36,.036,wornWindowBlue);
-  K.blocker(2.205,8.15,.12,1.94,1.48,2.92);
-  b('Shrine east window deep pale canopy',2.28,3.05,8.15,.61,.18,2.18,canopyPlaster);
+  for(const z of [7.22,8.15,9.08])b('Shrine east window blue upright',2.205,2.90,z,.12,1.38,.085,wornWindowBlue);
+  for(const y of [2.26,2.90,3.55])b('Shrine east window blue cross rail',2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
+  for(let z=7.33;z<9.04;z+=.108)b('Shrine east window slender wooden grille',2.205,2.90,z,.055,1.29,.036,wornWindowBlue);
+  K.blocker(2.205,8.15,.12,1.94,2.23,3.60);
+  b('Shrine east window deep pale canopy',2.28,3.68,8.15,.61,.18,2.18,canopyPlaster);
+  // 14.37.41/45/50 look back from inside the God room: the aqua
+  // plaster and dark skirting are confined to the reverse of the white screen.
+  const shrineSkirting=mat('wood').clone();shrineSkirting.color.set('#393b35');
+  for(const side of [-1,1]){
+    b('God room inside aqua half wall',side*1.48,1.67,7.038,1.30,1.18,.012,verandaAqua);
+    b('God room interior dark skirting',side*1.48,1.15,7.050,1.30,.14,.025,shrineSkirting);
+    b('God room exposed inside door jamb',side*.91,2.31,7.065,.16,2.56,.045,verandaTimber);
+  }
+  b('God room inside side aqua half wall',1.932,1.67,8.13,.012,1.18,2.16,verandaAqua);
+  b('God room inside side dark skirting',1.918,1.15,8.13,.025,.14,2.16,shrineSkirting);
+  b('God room inside corner timber shaft',1.995,2.14,7.075,.18,2.12,.18,verandaTimber);
+  for(let j=0;j<5;j++)b('God room inside corner carved collar',1.995,3.06+j*.058,7.075,.23+(j%2)*.035,.036,.23+(j%2)*.035,verandaTimber);
+  b('God room interior shelf above gate',0,3.70,7.18,2.10,.075,.34,verandaTimber);
+  for(const [x,h,r,col] of [[-.65,.18,.047,'#77776a'],[-.43,.24,.055,'#9c9b81'],[-.21,.29,.061,'#77766d'],[.05,.22,.048,'#773b32'],[.27,.19,.060,'#989784']]){
+    const jarMat=new THREE.MeshStandardMaterial({color:col,roughness:.86});
+    K.cylinder(g,'God room shelf storage vessel',x,3.74+h/2,7.19,r*.92,r,h,jarMat,12);
+    K.cylinder(g,'God room shelf vessel lid',x,3.75+h,7.19,r*1.05,r*1.05,.025,shrineSkirting,12);
+  }
   b('God room pale turquoise inside corner',1.932,1.93,9.61,.012,2.40,.72,verandaAqua);
   const shrineDampBase=K.M.plaster.clone();shrineDampBase.color.set('#696650');
   b('Shrine west projecting weathered plinth',-2.29,.73,8.23,.54,.20,3.78,shrineDampBase);
