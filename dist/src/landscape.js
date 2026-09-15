@@ -229,6 +229,32 @@ export function buildLandscape(K) {
     const capGeometry=new THREE.CylinderGeometry(.34,.46,.21,4);capGeometry.rotateY(Math.PI/4);
     const cap=new THREE.Mesh(capGeometry,fenceStone);cap.name='Tank roadside sloped square pier cap';cap.position.set(x,1.33,houseBankZ);group.add(cap);
   }
+  // 15.26.49 / 15.26.55: sparse plants emerge through the dark railing
+  // and ledge cracks. Independent placement keeps the surrounding grove stable.
+  const creviceLeaf=new THREE.BufferGeometry();
+  creviceLeaf.setAttribute('position',new THREE.Float32BufferAttribute([
+    0,0,0, -.42,.42,0, 0,.48,.13,
+    -.42,.42,0, 0,1,0, 0,.48,.13,
+    0,1,0, .42,.42,0, 0,.48,.13,
+    .42,.42,0, 0,0,0, 0,.48,.13],3));
+  creviceLeaf.computeVertexNormals();
+  const creviceGreen=new THREE.MeshStandardMaterial({color:'#7a9453',roughness:.94,side:THREE.DoubleSide});
+  for(let plant=0;plant<27;plant++){
+    const x=-17.1+plant*1.12+Math.sin(plant*3.7)*.23;
+    const base=plant%4===0?-.12:.29+(plant%3)*.14;
+    const z=plant%4===0?-12.29:-11.51;
+    for(let shoot=0;shoot<3;shoot++){
+      const dx=Math.sin(plant*2.1+shoot*2.4)*.23;
+      const height=.22+((plant*3+shoot*5)%7)*.035;
+      segment('Lake railing crevice stems',materials.green,[x,base,z],[x+dx,base+height,z-.09],.004);
+      for(let pair=0;pair<3;pair++)for(const side of [-1,1]){
+        const t=.27+pair*.23,angle=side*(.7+pair*.10);
+        const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(-.35,plant*.83+shoot,angle));
+        instance('Lake railing pointed crevice leaves',creviceLeaf,creviceGreen,
+          [x+dx*t,base+height*t,z-.09*t],[.12,.12+pair*.02,.12],q);
+      }
+    }
+  }
   // 15.28.13: the entrance crosses the bank at right angles to the
   // house-facing rail. Descend along +X, then follow the low waterside ledge.
   for(const z of [-11.25,-14.05]){
