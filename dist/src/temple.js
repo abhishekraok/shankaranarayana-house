@@ -987,6 +987,32 @@ export function buildTemple(K) {
   const leafGeo=new THREE.SphereGeometry(1,7,5),leaves=[];
   for(let i=0;i<9;i++)leaves.push([31.8+Math.cos(i*2.3)*.13,1.17+i*.047,10.2+Math.sin(i*2.3)*.13,.09,.035,.05,0,i,0]);
   instances('Tulsi leaves',leafGeo,K.M.leaf,leaves);
+  // 15.10.30: square wire guard encloses the plant above the stepped plinth.
+  const tulsiWire=mat('#6f7161',.73,{metalness:.25}),cage=[];
+  for(const side of [-1,1]){
+    for(const d of [-.31,.31])box('Tulsi cage angle upright',31.8+side*.31,1.29,10.2+d,.018,.69,.018,tulsiWire);
+    for(const y of [.96,1.63]){
+      cage.push([31.8,y,10.2+side*.31,.64,.018,.018]);cage.push([31.8+side*.31,y,10.2,.018,.018,.64]);
+    }
+    for(let i=1;i<13;i++){
+      const a=-.31+i*.62/13,y=.96+i*.67/13;
+      cage.push([31.8+a,1.295,10.2+side*.31,.005,.67,.005]);cage.push([31.8+side*.31,1.295,10.2+a,.005,.67,.005]);
+      cage.push([31.8,y,10.2+side*.31,.62,.005,.005]);cage.push([31.8+side*.31,y,10.2,.005,.005,.62]);
+    }
+  }
+  instances('Tulsi fine square wire mesh',new THREE.BoxGeometry(1,1,1),tulsiWire,cage);
+  for(const side of [-1,1]){
+    for(const y of [.31,.49,.76,.91]){
+      box('Tulsi pale masonry bed joint',31.8,y,10.2+side*.302,.60,.007,.008,whiteTrim);
+      box('Tulsi pale masonry side joint',31.8+side*.302,y,10.2,.008,.007,.60,whiteTrim);
+    }
+    for(const x of [-.10,.12])box('Tulsi pedestal vertical mortar',31.8+x,.4,10.2+side*.304,.006,.17,.008,whiteTrim);
+  }
+  for(const d of [-.25,.25]){
+    box('Tulsi top blue rim',31.8+d,1.01,10.2,.05,.055,.55,blue);
+    box('Tulsi top blue rim',31.8,1.01,10.2+d,.45,.055,.05,blue);
+  }
+
 
   // 15.02.27 / 15.03.51: raised court-facing portico, low central entry,
   // two small front bells and a much larger bell in the bay behind them.
@@ -1011,8 +1037,20 @@ export function buildTemple(K) {
   // Blue scalloped service bay underneath the left-hand upper windows.
   box('Courtyard left service bay blue back',32.0,2.09,6.28,3.35,2.91,.08,paleBlue);
   box('Courtyard left service bay dark door',32.0,1.88,6.36,1.45,2.45,.06,dark);
-  for(const x of [30.35,33.65])blueColumn('Courtyard left service bay blue pier',x,7.59,.602,3.02);
-  scallop('Courtyard left service bay scalloped arch',32.0,7.60,3.25,3.71,.20,paleBlue,.58);
+  for(const x of [30.35,33.65]){
+    cyl('Courtyard service bay round blue pier',x,2.35,7.59,.145,.145,2.52,paleBlue,20);
+    cyl('Courtyard service bay red column foot',x,.90,7.59,.151,.151,.60,red,20);
+    K.blocker(x,7.59,.32,.32,.602,3.61);
+  }
+  const bayArchShape=new THREE.Shape();bayArchShape.moveTo(-1.625,3.71);bayArchShape.lineTo(1.625,3.71);
+  for(let i=0;i<=112;i++){
+    const t=i/112;bayArchShape.lineTo(1.625-t*3.25,2.90+.60*Math.sin(t*Math.PI)+.10*Math.abs(Math.sin(t*Math.PI*7)));
+  }
+  bayArchShape.closePath();mesh('Courtyard left service bay scalloped arch',new THREE.ExtrudeGeometry(bayArchShape,{depth:.20,bevelEnabled:false}),paleBlue,32,0,7.50);
+  floor('Side bay red oxide platform',32,7.12,3.34,1.63,.613,oxideFloor);
+  box('Side bay red platform edge',32,.59,7.98,3.35,.09,.04,red);
+  box('Side bay pale masonry plinth',32,.32,7.97,3.35,.43,.035,outlinedPlinth);
+  steps('Side bay central approach steps',32,8.24,1.04,.92,.1,.613,'-z',3);
   // Rotational profiles give the bells a hollow flared mouth, not a cone.
   const bronze=mat('#d6b49c',.65,{metalness:.20,side:THREE.DoubleSide});
   bronze.map=canvasMap(256,(c,n)=>{
@@ -1027,6 +1065,31 @@ export function buildTemple(K) {
     cyl(name+' dark clapper',x,bottom-.04*size,z,.045*size,.065*size,.35*size,dark,12);
     return body;
   }
+  // 15.10.43: metal-faced double door in the blue recessed bay.
+  const doorSilver=mat('#aeb5af',.42,{metalness:.62});
+  for(const x of [31.32,32.0,32.68])box('Side bay metal door stile',x,1.84,6.42,.045,2.32,.055,doorSilver);
+  for(const y of [.69,1.55,2.12,2.96])box('Side bay metal door crossrail',32,y,6.42,1.40,.045,.055,doorSilver);
+  for(const x of [31.66,32.34]){
+    for(const [y,h] of [[1.11,.74],[2.48,.61]]){
+      box('Side bay silver door panel',x,y,6.43,.53,h,.026,doorSilver);
+      // The relief is unresolved in the photograph: retain panel depth without invented figures.
+      box('Side bay inset door panel',x,y,6.45,.40,h-.12,.015,oldStone);
+    }
+    for(let j=0;j<6;j++)box('Side bay door grille bar',x-.25+j*.10,1.83,6.44,.013,.51,.021,doorSilver);
+  }
+  for(const [x,z,y] of [[30.72,7.0,2.71],[31.35,6.68,2.98],[33.0,6.68,2.96]]){
+    bell('Side bay small suspended bell',x,y,z,.20);
+    K.beam(g,'Side bay bell cord',[x,3.54,z],[x,y+.27,z],.010,dark);
+  }
+  box('Side bay fluorescent tube',32,3.29,6.59,1.10,.05,.06,whiteTrim);
+  const vesselBlue=mat('#688b94',.68);
+  const vessel=mesh('Side bay rounded water vessel',new THREE.SphereGeometry(1,20,12),vesselBlue,30.98,.82,7.46);vessel.scale.set(.20,.22,.19);
+  cyl('Side bay water vessel neck',30.96,1.03,7.46,.067,.075,.13,vesselBlue,14);
+  cyl('Side bay vessel dark mouth',30.96,1.10,7.46,.053,.053,.01,dark,14);
+  box('Side bay blue collection box',33.0,.87,7.30,.43,.53,.36,vesselBlue,true);
+  box('Side bay collection box lid',33.0,1.15,7.30,.47,.035,.40,vesselBlue);
+  box('Side bay collection slot',33.0,.95,7.49,.17,.023,.008,dark);
+  for(const y of [.69,1.02])box('Side bay box hinge',33.19,y,7.495,.025,.08,.014,doorSilver);
   const bellX=43.65,bellZ=6.89;
   box('Great bell heavy timber suspension beam',bellX,3.39,bellZ,2.66,.25,.31,K.M.wood);
   for(const x of [42.35,44.95])box('Great bell white suspension pier',x,1.98,bellZ,.39,2.75,.46,white,true);
