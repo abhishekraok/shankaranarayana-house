@@ -5,11 +5,13 @@ import {K,THREE,main,collision,supportY,blockedRise} from './entrance-geometry.m
 const registration=main.slice(main.indexOf("renderer.domElement.addEventListener('wheel'"),main.indexOf('function translateWalk'));
 const movement=main.slice(main.indexOf('function translateWalk'),main.indexOf('function location'));
 const takeover=main.slice(main.indexOf('function takeFlight'),main.indexOf('function setMode'));
+const cameraLift=main.slice(main.indexOf('function lakeCameraLift'),main.indexOf('function inside'));
 const run=new Function('K','THREE','collision','supportY','blockedRise',`
  let mode='walk',entered=true,feet=.45,speed=2.6,wheelTravel=0,yaw=0,pitch=0;
  const camera=new THREE.PerspectiveCamera(),keys=new Set(),walkPosition=new THREE.Vector3(),lastSafe=new THREE.Vector3();
  const innerHeight=800,$=()=>({open:false}),updateModeUI=()=>{},release=()=>{keys.clear();wheelTravel=0;};
  const orbit={target:new THREE.Vector3()};let wheel;const renderer={domElement:{addEventListener:(name,handler)=>wheel=handler}};
+ ${cameraLift}
  ${takeover}
  ${registration}
  ${movement}

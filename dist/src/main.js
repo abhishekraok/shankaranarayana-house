@@ -117,6 +117,13 @@ destinations.upperfarther={p:[-1,3.85,.72],target:[52,1.4,-35],fov:70};
 destinations.houseexitleft={p:[9.2,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
 destinations.templeentryreturn={p:[48.5,.1,10.7],target:[50.7,2.0,6.4],fov:75};
 const tour=createPhotoTour(photos,supportY);
+// Change only the entry time: the route, segment order and loop stay intact.
+const tourStartTime=tour.spans.find(s=>s.a.photo==='templecenter').start;
+tourTime=tourStartTime;
+// Camera-only lift on the far bank; feet and collision height stay unchanged.
+function lakeCameraLift(x,z){
+ return .5*THREE.MathUtils.smoothstep(-z,43,44.5)*THREE.MathUtils.smoothstep(x,-24,-22)*(1-THREE.MathUtils.smoothstep(x,58,60));
+}
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
 function terrainY(x,z){if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<54&&z>-43&&z<-12?-8:0;}
@@ -136,9 +143,9 @@ function startTour(){release();mode='tour';orbit.enabled=false;entered=true;tour
 function takeFlight(){if(mode==='tour'){release();mode='fly';orbit.enabled=false;const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();}}
 function setMode(value){if(value===mode&&entered)return;const wasWalking=entered&&mode==='walk';release();entered=true;$('welcome').hidden=true;setLens();
  if(value==='orbit'){if(wasWalking)walkPosition.copy(camera.position);mode='orbit';orbit.enabled=true;camera.position.set(54,62,-68);orbit.target.set(10,0,-8);orbit.update();}
- else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62;lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
+ else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62-lakeCameraLift(camera.position.x,camera.position.z);lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
 }
-function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62;setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
+function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
 // Phone toolbar disclosure: collapsed initially, dismissed after choosing an action.
 const compactControls=matchMedia('(max-width:740px), (max-width:950px) and (max-height:500px)');
 const controlsToggle=$('controls-toggle'),exploreControls=$('explore-controls');
@@ -162,7 +169,7 @@ setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
 $('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
-$('tour-btn').onclick=()=>{tourTime=0;startTour();};
+$('tour-btn').onclick=()=>{tourTime=tourStartTime;startTour();};
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
 $('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
@@ -198,7 +205,7 @@ function move(dt){moveWheel(dt);if(!['walk','fly'].includes(mode))return;let for
   if(mode==='walk')translateWalk(dx,dz);else{const delta=camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(forward*v);delta.add(new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion).multiplyScalar(side*v));translateFlight(delta);}
  }
  if(mode==='fly')return;
- const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62,16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
+ const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62+lakeCameraLift(camera.position.x,camera.position.z),16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
 }
 function location(x,z,y){if(x>-8&&x<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>18.8&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>24&&x<54&&z>-1&&z<38.3){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>30.3)return x>45?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(x>-12&&x<12&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(x<-8&&z>14)return 'The kitchen';if(Math.abs(x)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(x<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(x)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-10&&x<58&&x>-24)return x>25&&x<31&&z<-36?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
@@ -212,7 +219,7 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
