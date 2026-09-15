@@ -150,24 +150,24 @@ export function buildHouse(K) {
     }
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
-  fenceX(-8.1,-7.3,5.83); fenceX(-6.1,-5.7,5.83); fenceX(-4.1,-2.15,5.83);
+  fenceX(-8.1,-7.3,5.83);
   fenceX(2.15,4.6,5.83);
   // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
   // entering, a stepped turquoise pedestal sits over a three-stone niche.
   // Place it beside the entrance-side court steps; spacing remains inferred.
-  const pedestalX=-6.66,pedestalZ=5.83;
+  const pedestalX=-3.40,pedestalZ=5.83;
   const nicheOxide=K.M.plaster.clone();nicheOxide.color.set('#b99b92');nicheOxide.roughness=1;
   const pedestalAqua=K.M.plaster.clone();pedestalAqua.color.set('#82c8c2');pedestalAqua.roughness=.98;
-  b('Entrance pedestal masonry left cheek',-6.285,.24,5.96,.13,.41,.16,nicheOxide,true);
-  b('Entrance pedestal masonry right cheek',-7.12,.24,5.96,.23,.41,.16,nicheOxide,true);
-  b('Entrance pedestal niche lintel',-6.66,.362,5.96,.88,.175,.16,nicheOxide);
-  b('Entrance pedestal niche dark back',-6.66,.154,5.73,.64,.23,.025,'stone');
-  b('Entrance pedestal niche stone sill',-6.66,.055,5.94,.76,.04,.49,'stone');
-  b('Entrance pedestal worn coping',-6.66,.466,5.90,1.03,.032,.36,'stone');
+  b('Entrance pedestal masonry left cheek',-3.025,.24,5.96,.13,.41,.16,nicheOxide,true);
+  b('Entrance pedestal masonry right cheek',-3.86,.24,5.96,.23,.41,.16,nicheOxide,true);
+  b('Entrance pedestal niche lintel',-3.40,.362,5.96,.88,.175,.16,nicheOxide);
+  b('Entrance pedestal niche dark back',-3.40,.154,5.73,.64,.23,.025,'stone');
+  b('Entrance pedestal niche stone sill',-3.40,.055,5.94,.76,.04,.49,'stone');
+  b('Entrance pedestal worn coping',-3.40,.466,5.90,1.03,.032,.36,'stone');
   for(const [w,d,h,y] of [[.82,.49,.125,.529],[.70,.40,.13,.6565],[.56,.29,.105,.774]])
     b('Entrance three-tier turquoise pedestal',pedestalX,y,pedestalZ,w,h,d,pedestalAqua,true);
   const nicheStone=new THREE.MeshStandardMaterial({color:'#8b9871',roughness:1});
-  for(const [j,x,h] of [[0,-6.44,.175],[1,-6.64,.19],[2,-6.84,.175]]){
+  for(const [j,x,h] of [[0,-3.18,.175],[1,-3.38,.19],[2,-3.58,.175]]){
     const geom=new THREE.BoxGeometry(.175,h,.06,3,3,1),pos=geom.attributes.position;
     for(let k=0;k<pos.count;k++)pos.setX(k,pos.getX(k)+.006*Math.sin(k*2.3+j));
     geom.computeVertexNormals();const stone=new THREE.Mesh(geom,j===1?K.M.stone:nicheStone);
@@ -175,7 +175,16 @@ export function buildHouse(K) {
     if(j!==1)for(const dx of [-.027,0,.027])b('Entrance niche faded red pigment',x+dx,.194,6.083,.008,.065,.002,'red');
   }
   const offeringCup=new THREE.Mesh(new THREE.LatheGeometry([[.014,0],[.028,.006],[.034,.022],[.029,.025],[.020,.01]].map(p=>new THREE.Vector2(...p)),16),K.M.stone);
-  offeringCup.name='Entrance niche small offering cup';offeringCup.position.set(-6.77,.076,6.08);g.add(offeringCup);
+  offeringCup.name='Entrance niche small offering cup';offeringCup.position.set(-3.51,.076,6.08);g.add(offeringCup);
+  // 2011 14.39.18 and 2013 17.53.12: an uninterrupted oxide ledge,
+  // three descending treads, and the peach round support beside the niche.
+  b('Pedestal ledge stair-side return',-3.98,.23,5.96,.29,.43,.16,nicheOxide,true);
+  b('Pedestal ledge solid return',-2.60,.23,5.96,.89,.43,.16,nicheOxide,true);
+  b('Pedestal ledge continuous dark coping',-3.12,.466,5.90,1.65,.032,.36,'stone');
+  const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
+  K.cylinder(g,'Entrance court peach round column',-5.73,2.01,5.68,.125,.145,2.78,peachColumn,20,true);
+  K.cylinder(g,'Entrance court round column oxide foot',-5.73,.535,5.68,.151,.166,.17,verandaRed,20,true);
+  K.cylinder(g,'Entrance court round column base rim',-5.73,.469,5.68,.178,.178,.038,verandaRed,20);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
   function stairSideFence(a,end){
@@ -206,8 +215,13 @@ export function buildHouse(K) {
     K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
   }
   // Court entry steps match every deliberate veranda opening.
-  for(const [x,z,w,d] of [[-4.9,6.03,1.55,.75],[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55],[7.15,10.15,.75,1.55],[-2.7,14.35,1.65,.75]]) {
+  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55],[7.15,10.15,.75,1.55],[-2.7,14.35,1.65,.75]]) {
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
+  }
+
+  for(const [z,top] of [[6.44,.14],[6.145,.28],[5.85,F]]){
+    floor('Pedestal-side red courtyard stair',-4.9,z,1.55,.30,top,verandaRed,.14);
+    b('Pedestal-side worn stair nosing',-4.9,top-.016,z+.142,1.55,.032,.032,nicheOxide);
   }
 
   // Ground floor enclosing walls. All rooms have usable openings.
