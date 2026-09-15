@@ -780,8 +780,9 @@ export function buildTemple(K) {
     box('Covered hall window sill wall',20.30,1.0,z,.20,.8,1.48,hallBlue,true);
     box('Covered hall window lintel wall',20.30,3.19,z,.20,.54,1.48,hallBlue,true);
     for(const dz of [-.72,.72])box('Covered hall blue window jamb',20.42,2.10,z+dz,.09,1.82,.09,blue);
-    for(const y of [1.20,2.36,2.96])box('Covered hall blue window crossbar',20.42,y,z,.09,.08,1.52,blue);
-    box('Covered hall blue window middle upright',20.42,2.10,z,.09,1.82,.055,blue);
+    for(const y of [1.20,1.91,2.63,2.96])box('Covered hall blue window crossbar',20.42,y,z,.09,.08,1.52,blue);
+    box('Covered hall blue window middle upright',20.42,1.915,z,.09,1.43,.055,blue);
+    const glazing=mesh('Covered hall pale translucent window glazing',new THREE.PlaneGeometry(1.40,1.72),new THREE.MeshStandardMaterial({color:0xdce5dd,roughness:.9,transparent:true,opacity:.90,side:THREE.DoubleSide}),20.405,2.08,z);glazing.rotation.y=Math.PI/2;
     K.blocker(20.30,z,.20,1.48,1.15,3.1);
   }
   const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
@@ -804,21 +805,48 @@ export function buildTemple(K) {
     box('Covered hall tube light fixture',20.48,3.02,z,.08,.055,1.3,whiteTrim);
     K.beam(g,'Covered hall exposed light wiring',[20.47,3.13,z],[20.47,3.13,z+1.3],.012,dark);
   }
-  // Nested blue plastic chair stacks are tucked against the hall wall.
-  const chairBlue=mat('#2589b5',.65);
-  for(const [x,z,count] of [[21.0,7.5,9],[21.0,8.5,11],[21.0,9.55,8]]){
-    for(let k=0;k<count;k++){
-      const y=.60+k*.075;
-      box('Covered hall stacked chair seat',x,y+.43,z,.54,.045,.53,chairBlue);
-      for(const dx of [-.235,.235]){
-        for(const dz of [-.22,.22])box('Covered hall stacked chair leg',x+dx,y+.21,z+dz,.038,.42,.038,chairBlue);
-        box('Covered hall chair back upright',x+dx,y+.73,z-.235,.045,.63,.055,chairBlue);
-        box('Covered hall chair arm',x+dx,y+.65,z,.055,.055,.50,chairBlue);
-      }
-      for(let j=0;j<5;j++)box('Covered hall chair back slat',x,y+.62+j*.082,z-.235,.46,.04,.055,chairBlue);
-    }
-    K.blocker(x,z,.65,.65,.60,1.70+count*.075);
+  // IMG_20130720_180635: one tall stack and a row facing into the hall.
+  const chairBlue=mat('#596f91',.65);
+  const chairBack=new THREE.Shape();chairBack.moveTo(-.23,.51);chairBack.lineTo(-.25,.85);
+  chairBack.bezierCurveTo(-.26,1.13,.26,1.13,.25,.85);chairBack.lineTo(.23,.51);chairBack.closePath();
+  for(let j=0;j<5;j++)for(const sign of [-1,1]){
+    const hole=new THREE.Path(),y=.66+j*.068;
+    hole.moveTo(sign*.027,y);hole.lineTo(sign*.185,y+.055);hole.lineTo(sign*.185,y+.074);hole.lineTo(sign*.027,y+.019);hole.closePath();chairBack.holes.push(hole);
   }
+  const backGeometry=new THREE.ExtrudeGeometry(chairBack,{depth:.036,bevelEnabled:false});
+  for(const [z,count] of [[14.25,1],[13.53,1],[12.35,10],[11.50,1],[10.78,1],[10.06,1],[9.34,1]]){
+    const chairs=new THREE.Group();chairs.name='Covered hall plastic armchair arrangement';chairs.position.set(21.02,.60,z);chairs.rotation.y=Math.PI/2;g.add(chairs);
+    for(let k=0;k<count;k++){
+      const y=k*.068;
+      K.box(chairs,'Covered hall molded chair seat',0,y+.43,0,.54,.045,.53,chairBlue);
+      for(const dx of [-.235,.235]){
+        for(const dz of [-.22,.22])K.beam(chairs,'Covered hall slightly splayed chair leg',[dx*1.08,y+.015,dz*1.08],[dx,y+.42,dz],.035,chairBlue);
+        K.box(chairs,'Covered hall molded chair arm',dx,y+.65,0,.05,.055,.50,chairBlue);
+        K.box(chairs,'Covered hall chair front arm support',dx,y+.54,.21,.04,.20,.035,chairBlue);
+      }
+      const back=new THREE.Mesh(backGeometry,chairBlue);back.name='Covered hall curved chair back with chevron slots';back.position.set(0,y,-.26);back.castShadow=true;back.receiveShadow=true;chairs.add(back);
+    }
+    K.blocker(21.02,z,.64,.64,.60,1.66+(count-1)*.068);
+  }
+  const clockWood=mat('#65422d'),clockIvory=mat('#d6d0b7');
+  box('Covered hall pendulum clock case',20.47,2.87,11.72,.13,.57,.31,clockWood);
+  const face=new THREE.Mesh(new THREE.CircleGeometry(.126,40),clockIvory);face.name='Covered hall clock face';face.rotation.y=Math.PI/2;face.position.set(20.542,2.98,11.72);g.add(face);
+  for(let i=0;i<12;i++){
+    const angle=i*Math.PI/6;
+    K.beam(g,'Covered hall clock hour tick',[20.548,2.98+Math.cos(angle)*.098,11.72+Math.sin(angle)*.098],[20.548,2.98+Math.cos(angle)*.112,11.72+Math.sin(angle)*.112],.006,dark);
+  }
+  K.beam(g,'Covered hall clock short hand',[20.553,2.98,11.72],[20.553,3.015,11.78],.010,dark);
+  K.beam(g,'Covered hall clock long hand',[20.554,2.98,11.72],[20.554,3.075,11.70],.007,dark);
+  const bob=mesh('Covered hall clock pendulum',new THREE.SphereGeometry(.054,12,8),brass,20.542,2.70,11.72);bob.scale.x=.22;
+  box('Covered hall wooden electrical board',20.46,3.04,12.70,.10,.30,.40,clockWood);
+  box('Covered hall pale electrical switchboard',20.47,3.04,12.30,.10,.28,.28,whiteTrim);
+  for(const z of [12.21,12.29,12.37])for(const y of [2.96,3.04])box('Covered hall switch rocker',20.529,y,z,.014,.042,.039,dark);
+  for(const z of [12.58,12.71,12.84])box('Covered hall old ceramic fuse',20.525,3.03,z,.027,.14,.06,clockIvory);
+  K.beam(g,'Covered hall horizontal electrical conduit',[20.43,3.27,7.0],[20.43,3.27,15.6],.012,dark);
+  for(const z of [11.72,12.30,12.70])K.beam(g,'Covered hall conduit branch',[20.43,3.27,z],[20.43,3.14,z],.012,dark);
+  box('Covered hall small square wall clock frame',20.47,3.18,14.80,.08,.27,.25,clockWood);
+  box('Covered hall small clock pale face',20.516,3.18,14.80,.014,.22,.20,clockIvory);
+  K.beam(g,'Covered hall small clock hand',[20.526,3.18,14.8],[20.526,3.25,14.78],.009,dark);
   // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay.
   const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
   const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,8),cp=curtainGeometry.attributes.position;
