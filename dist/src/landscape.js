@@ -1081,10 +1081,33 @@ export function buildLandscape(K) {
 
   // 15.20.01: one recessed stepped-outline pond, right of the temple entrance.
   // main.js cuts out the ground beneath this basin, so the water is below grade.
-  const pondOutline=[[-2,-1],[-.6,-1],[-.6,-1.40],[.6,-1.40],[.6,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.6,1],[.6,1.40],[-.6,1.40],[-.6,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
+  const pondOutline=[[-2,-1],[-.3,-1],[.3,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.3,1],[-.3,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
+  // Reusable procedural finish: mineral patches interrupted by long wet streaks.
+  const pondCanvas=document.createElement('canvas');pondCanvas.width=256;pondCanvas.height=256;
+  const pondContext=pondCanvas.getContext('2d'),pondPixels=pondContext.getImageData(0,0,256,256);
+  const pondHash=(x,y)=>{const v=Math.sin(x*127.1+y*311.7)*43758.5453;return v-Math.floor(v);};
+  const pondNoise=(x,y)=>{
+    const ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy,sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+    return (pondHash(ix,iy)*(1-sx)+pondHash(ix+1,iy)*sx)*(1-sy)+(pondHash(ix,iy+1)*(1-sx)+pondHash(ix+1,iy+1)*sx)*sy;
+  };
+  for(let y=0;y<256;y++)for(let x=0;x<256;x++){
+    const streak=pondNoise(x/9,y/110),patch=pondNoise(x/38,y/25),grain=pondHash(x,y);
+    const lime=Math.max(0,Math.min(1,(streak*.20+patch*.62+pondNoise(x/4,y/7)*.18-.48)*4.2));
+    const value=54+lime*111+grain*25;
+    const i=(y*256+x)*4;pondPixels.data[i]=value;pondPixels.data[i+1]=value+2;pondPixels.data[i+2]=value-5;pondPixels.data[i+3]=255;
+  }
+  pondContext.putImageData(pondPixels,0,0);
+  const pondTexture=new THREE.CanvasTexture(pondCanvas);pondTexture.colorSpace=THREE.SRGBColorSpace;pondTexture.wrapS=pondTexture.wrapT=THREE.RepeatWrapping;
+  const pondStone=new THREE.MeshStandardMaterial({map:pondTexture,roughness:.97});
+  const pondCoping=K.M.plaster.clone();pondCoping.color.set('#aaa99c');
+  function pondWallUV(wall){
+    const p=wall.geometry.attributes.position,uv=wall.geometry.attributes.uv,n=wall.geometry.attributes.normal;
+    for(let i=0;i<p.count;i++)uv.setXY(i,(Math.abs(n.getX(i))>.5?p.getZ(i)+wall.position.z:p.getX(i)+wall.position.x)*.75,(p.getY(i)+wall.position.y+1.05)/1.37);
+    uv.needsUpdate=true;
+  }
   const pondShape=new THREE.Shape(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z)));
   const water=new THREE.Mesh(new THREE.ShapeGeometry(pondShape),new THREE.MeshStandardMaterial({color:'#354d31',roughness:.26,metalness:.16}));
-  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(25.5,-.78,-1.5);group.add(water);
+  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(25.5,-.94,-1.5);group.add(water);
   const soil=new THREE.Shape([new THREE.Vector2(-2.5,-1.5),new THREE.Vector2(2.5,-1.5),new THREE.Vector2(2.5,1.5),new THREE.Vector2(-2.5,1.5)]);
   soil.holes.push(new THREE.Path(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z))));
   const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(25.5,0,-1.5);group.add(surround);
@@ -1092,10 +1115,10 @@ export function buildLandscape(K) {
   for(let i=0;i<pondOutline.length;i++){
     const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=25.5+(a[0]+b[0])/2,z=-1.5+(a[1]+b[1])/2;
     const w=Math.abs(a[0]-b[0])+.15,d=Math.abs(a[1]-b[1])+.15;
-    const notch=Math.abs(x-25.5)<.01&&Math.abs(z+1.5)>1.35,top=notch?.10:.32;
-    box('Temple small pond weathered retaining wall',x,(top-1.05)/2,z,w,top+1.05,d,materials.basalt,true);
-    box('Temple small pond worn pale coping',x,top,z,w+.035,.07,d+.035,materials.mortar);
-    box('Temple small pond algae waterline',x,-.63,z,w+.006,.20,d+.006,materials.moss);
+    const notch=Math.abs(x-25.5)<.01&&Math.abs(z+1.5)>.95,top=notch?.10:.32;
+    pondWallUV(box('Temple small pond weathered retaining wall',x,(top-1.05)/2,z,w,top+1.05,d,pondStone,true));
+    box('Temple small pond worn pale coping',x,top,z,w+.035,.07,d+.035,pondCoping);
+    box('Temple small pond algae waterline',x,-.94,z,w+.006,.08,d+.006,materials.wetStone);
   }
   // Prevent walking into the open water while retaining the visible depth.
   K.blocker(25.5,-1.5,4.2,2.2,-1.1,.35);
