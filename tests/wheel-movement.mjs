@@ -27,6 +27,6 @@ for(const mode of ['walk','tour','fly','orbit']){
  if(mode==='tour')assert.equal(a.mode,'fly','Wheel must take over from the tour without teleporting');
  results.push({mode,forward:a.p,backward:b.p});
 }
-run.set('walk',[0,2.07,3],[10,2.07,3]);const wall=run.wheel(-4000);assert.ok(wall.p[0]<.85,'Large wheel input must stop at the passage wall');
+run.set('walk',[7,2.07,3],[12,2.07,3]);const wall=run.wheel(-4000);assert.ok(wall.p[0]>7.2 && wall.p[0]<8.85,'Large wheel input must stop at the solid stair-wing partition');
 run.set('fly',[-8,5,-23],[0,3,2]);const line=run.wheel(-7.5,1);assert.ok(new THREE.Vector3(...line.p).distanceTo(new THREE.Vector3(-8,5,-23))>.65,'Line-mode wheel normalization');
 const report={passed:true,modes:results,wallStop:wall.p,lineWheel:line.p};await fs.writeFile(new URL('../checks/wheel-movement.json',import.meta.url),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

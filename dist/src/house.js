@@ -222,10 +222,19 @@ export function buildHouse(K) {
   b('Main door deep carved lintel',0,3.27,1.90,2.88,.24,.29,verandaTimber);
   for(let j=0;j<3;j++)b('Main door lintel layered rim',0,3.38+j*.075,1.88,3.04-j*.12,.06,.31,verandaTimber);
   const doorBoss=K.cylinder(g,'Main door central carved boss',0,3.27,1.723,.092,.108,.065,verandaTimber,12);doorBoss.rotation.x=Math.PI/2;
-  wallZ('Left entrance wall',-1.18,2.05,4.05,F,3.1,[]);
-  wallZ('Right entrance wall',1.18,2.05,4.05,F,3.1,[]);
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:0,w:2.05,top:2.7},{c:5.5,w:1.65,top:2.5}]);
-  doorX(-6.15,4.05,1.65);doorX(0,4.05,2.05,F,2.7);doorX(5.5,4.05,1.65);
+  // IMG_20130720_175306, looking out: a sunken dark entry strip with
+  // raised sitting platforms to either side, not a tall enclosed tunnel.
+  const innerEntryStone=K.M.cream.clone();innerEntryStone.color.set('#454943');innerEntryStone.roughness=.70;
+  floor('Inner entrance dark worn walking strip',0,3.05,2.12,2.0,F+.006,innerEntryStone,.026);
+  for(const side of [-1,1]){
+    floor('Inner entrance raised sitting platform',side*2.50,3.05,2.62,1.90,.79,verandaRed,.34);
+    b('Inner entrance platform oxide riser',side*1.185,.62,3.05,.07,.34,1.90,verandaRed,true);
+    b('Inner entrance platform dark coping',side*1.28,.808,3.05,.25,.038,1.90,innerEntryStone);
+    const innerPost=K.column(g,'Inner entrance platform timber post',side*1.40,3.71,.79,2.65,.19,verandaTimber);
+    for(const y of [3.08,3.18,3.30])b('Inner entrance post capital moulding',side*1.40,y,3.71,.43,.06,.43,verandaTimber);
+  }
+  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:0,w:7.6,top:3.1},{c:5.5,w:1.65,top:2.5}]);
+  doorX(-6.15,4.05,1.65);doorX(5.5,4.05,1.65);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
