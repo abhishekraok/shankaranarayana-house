@@ -285,6 +285,22 @@ export function buildLandscape(K) {
   for(const y of [.17,.78])box('Bathing arcade parapet rail',39,y,-10.78,18.5,.14,.16,materials.oldWhite);
   for(let x=29.8;x<48.3;x+=.32)box('Bathing arcade perforated parapet',x,.47,-10.78,.15,.48,.16,materials.oldWhite);
   K.blocker(39,-10.78,18.5,.17,.065,.87);
+  // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
+  const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
+  const arcadeScreen=new THREE.Shape();arcadeScreen.moveTo(-9.10,.20);
+  arcadeScreen.lineTo(9.10,.20);arcadeScreen.lineTo(9.10,.89);arcadeScreen.lineTo(-9.10,.89);arcadeScreen.closePath();
+  for(let row=0;row<3;row++)for(let x=-8.92+(row%2)*.17;x<8.99;x+=.34){
+    const y=.32+row*.18,hole=new THREE.Path();
+    hole.moveTo(x-.058,y-.054);hole.lineTo(x-.058,y+.054);
+    hole.lineTo(x+.058,y+.054);hole.lineTo(x+.058,y-.054);hole.closePath();arcadeScreen.holes.push(hole);
+  }
+  const arcadeWall=new THREE.Mesh(new THREE.ExtrudeGeometry(arcadeScreen,{depth:.16,bevelEnabled:false}),arcadePlaster);
+  arcadeWall.name='Bathing arcade lake-facing pierced masonry';arcadeWall.position.set(39,0,-13.31);
+  arcadeWall.castShadow=arcadeWall.receiveShadow=true;group.add(arcadeWall);
+  box('Bathing arcade lake-facing coping',39,.94,-13.23,18.35,.10,.27,materials.oldWhite);
+  box('Bathing arcade dark waterline foundation',39,-.20,-13.23,18.35,.68,.27,materials.wetStone);
+  K.blocker(39,-13.23,18.35,.27,-.54,.99);
+
   // Opposite the mud road, the long low dark wall spans the temple's right wing.
   box('Temple bank dark retaining parapet',23.2,.42,-11.3,10.8,.84,.26,materials.basalt,true);
   for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-11.45,.055,.76,.015,materials.oldWhite);
