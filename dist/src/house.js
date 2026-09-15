@@ -541,7 +541,7 @@ export function buildHouse(K) {
     for(const z of [5.03,5.65,6.50])K.beam(entryRoof,'God room short exposed crossbeam',[side*2.02,3.56,z],[side*3.18,3.56,z],.14,shrineTimber,.18);
   }
   wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
-  wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[],'plaster',.22);
+  wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
   wallX('Shrine rear wall',-2.05,2.05,10.08,.68,2.9,[],'plaster',.22);
   for(const z of [6.5,9.65]) {
     detail(-2.18,1.28,z,.14,.13,.65,'red');detail(2.18,1.28,z,.14,.13,.65,'red');
@@ -549,7 +549,7 @@ export function buildHouse(K) {
   for(const y of [.83,1.12,2.70,3.38]) {
     detail(0,y,10.22,4.32,.10,.10,'red');
     if(y!==2.70)detail(-2.2,y,8.1,.10,.10,4.2,'red');
-    detail(2.2,y,8.1,.10,.10,4.2,'red');
+    if(y!==2.70)detail(2.2,y,8.1,.10,.10,4.2,'red');
   }
   // Pale floral/triangle decoration on the red shrine bands (14.44.14).
   const borderCanvas=document.createElement('canvas');borderCanvas.width=512;borderCanvas.height=64;
@@ -558,18 +558,11 @@ export function buildHouse(K) {
   const borderMap=new THREE.CanvasTexture(borderCanvas);borderMap.colorSpace=THREE.SRGBColorSpace;borderMap.wrapS=THREE.RepeatWrapping;borderMap.repeat.x=2;
   const bandMat=new THREE.MeshStandardMaterial({map:borderMap,roughness:1});
   for(const y of [1.12,2.70,3.38])for(const side of [-1,1]){
-    const spans=side===-1&&y===2.70?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
+    const spans=y===2.70?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
     for(const [a,end] of spans){
       const material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2*(end-a)/4.15;map.offset.x=(a-6.025)/4.15*2;material.map=map;
       const band=new THREE.Mesh(new THREE.PlaneGeometry(end-a,.14),material);band.position.set(side*2.255,y,(a+end)/2);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
     }
-  }
-  for(const side of [1]){
-    b('Shrine weathered blue side shutter',side*2.18,2.0,8.15,.05,1.02,1.18,'wood');
-    for(let z=7.58;z<=8.73;z+=.12)detail(side*2.23,2.0,z,.045,1.05,.03,'blue');
-    for(const y of [1.48,2.52])detail(side*2.24,y,8.15,.065,.08,1.30,'blue');
-    b('Shrine heavy side window canopy',side*2.29,2.64,8.15,.42,.16,1.55,'wood');
-    for(const y of [.38,.51,.64])b('Shrine layered damp stone base',side*2.12,y,8.12,.25,.095,4.14,'stone');
   }
   // 14.46.10, from the courtyard stair: open blue double grille rather
   // than an opaque shutter. The unseen opposite wall remains an estimate.
@@ -584,6 +577,13 @@ export function buildHouse(K) {
     b('Shrine west canopy timber corbel',-2.32,2.94,z,.46,.14,.15,verandaTimber);
     b('Shrine west canopy corbel foot',-2.22,2.84,z,.24,.16,.15,verandaTimber);
   }
+  // The newly located interior close-up confirms an open grille on this side too.
+  for(const z of [7.22,8.15,9.08])b('Shrine east window blue upright',2.205,2.18,z,.12,1.48,.085,wornWindowBlue);
+  for(const y of [1.48,2.15,2.88])b('Shrine east window blue cross rail',2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
+  for(let z=7.33;z<9.04;z+=.108)b('Shrine east window slender wooden grille',2.205,2.18,z,.055,1.36,.036,wornWindowBlue);
+  K.blocker(2.205,8.15,.12,1.94,1.48,2.92);
+  b('Shrine east window deep pale canopy',2.28,3.05,8.15,.61,.18,2.18,canopyPlaster);
+  b('God room pale turquoise inside corner',1.932,1.93,9.61,.012,2.40,.72,verandaAqua);
   const shrineDampBase=K.M.plaster.clone();shrineDampBase.color.set('#696650');
   b('Shrine west projecting weathered plinth',-2.29,.73,8.23,.54,.20,3.78,shrineDampBase);
   b('Shrine west pale plinth lip',-2.49,.65,8.23,.17,.12,3.85,'plaster');
@@ -592,6 +592,28 @@ export function buildHouse(K) {
   for(let i=0;i<32;i++){
     const z=6.43+(i*1.317)%3.55;
     b('Shrine west plinth damp streak',-2.575,.61+(i%4)*.023,z,.008,.035+(i%5)*.021,.045+(i%3)*.047,moss);
+  }
+  // User-labelled 14.38.51: two unequal, tarnished metal discs beside
+  // the God room's left grille. Their dimensions and spacing are estimated.
+  const discCanvas=document.createElement('canvas');discCanvas.width=discCanvas.height=256;
+  const dc=discCanvas.getContext('2d');dc.fillStyle='#746854';dc.fillRect(0,0,256,256);
+  let discSeed=143851;const discRandom=()=>{discSeed=(Math.imul(discSeed,1664525)+1013904223)>>>0;return discSeed/4294967296;};
+  for(let j=0;j<3200;j++){
+    const x=discRandom()*256,y=discRandom()*256;
+    dc.fillStyle=['#423e3740','#ac9c7830','#81766040','#cec09f24'][j%4];
+    dc.beginPath();dc.arc(x,y,1+j%5,0,Math.PI*2);dc.fill();
+  }
+  const discMap=new THREE.CanvasTexture(discCanvas);discMap.colorSpace=THREE.SRGBColorSpace;
+  const discMetal=new THREE.MeshStandardMaterial({map:discMap,bumpMap:discMap,bumpScale:.003,metalness:.42,roughness:.87});
+  const discRim=new THREE.MeshStandardMaterial({color:'#807259',metalness:.45,roughness:.85});
+  b('God room disc hanging timber rail',1.915,3.34,9.14,.07,.34,1.05,shrineTimber);
+  for(const [z,r,y] of [[8.91,.145,3.12],[9.29,.205,3.10]]){
+    const metalDisc=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.014,48),discMetal);
+    metalDisc.name='God room hanging weathered metal disc';metalDisc.rotation.z=Math.PI/2;metalDisc.position.set(1.848,y,z);metalDisc.castShadow=true;metalDisc.receiveShadow=true;g.add(metalDisc);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(r-.007,.007,7,48),discRim);rim.name='God room disc rounded worn rim';rim.rotation.y=-Math.PI/2;rim.position.set(1.836,y,z);g.add(rim);
+    const hole=new THREE.Mesh(new THREE.CircleGeometry(.009,12),new THREE.MeshStandardMaterial({color:'#302e28',roughness:1}));hole.name='God room disc suspension hole';hole.rotation.y=-Math.PI/2;hole.position.set(1.835,y+r-.023,z);g.add(hole);
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,16),discRim);loop.name='God room disc suspension loop';loop.rotation.y=-Math.PI/2;loop.position.set(1.843,y+r-.008,z);g.add(loop);
+    K.beam(g,'God room disc short hanging wire',[1.85,y+r+.01,z],[1.90,3.44,z],.005,discRim);
   }
   b('Altar wooden base',0,1.31,9.46,3.42,.46,.75,'wood',true);
   b('Altar front ledge',0,1.55,9.28,3.7,.10,.86,'wood');

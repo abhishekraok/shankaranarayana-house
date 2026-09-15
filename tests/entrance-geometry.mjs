@@ -39,6 +39,9 @@ for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Functi
 const gableEye=new THREE.Vector3(0,2.07,5.35),gableTarget=new THREE.Vector3(0,4.24,6.606);
 const gableRay=new THREE.Raycaster(gableEye,gableTarget.clone().sub(gableEye).normalize());
 assert.equal(gableRay.intersectObject(house,true)[0]?.object.name,'God room faded floral diamond frieze','Entrance sees the painted band above the tie beam');
+// The newly identified left-side interior photo shows daylight through this grille.
+const sideWindowRay=new THREE.Raycaster(new THREE.Vector3(0,2.4,8.46),new THREE.Vector3(1,0,0),0,2.5);
+assert.equal(sideWindowRay.intersectObject(house,true).length,0,'God-room side grille has a real opening, without the old shutter or trim across it');
 const roofBounds=new THREE.Box3().setFromObject(house.getObjectByName('Broad upper facade tiled roof'));
 assert.ok(roofBounds.max.y>8.75&&roofBounds.max.y<9.05,'Upper roof ridge has half the former attic rise');
 assert.ok(Math.abs(new THREE.Box3().setFromObject(temple.getObjectByName('Entrance wash wall')).min.y)<.001,'Tap wall reaches the ground');
