@@ -430,10 +430,20 @@ for(const span of tour.spans){
   }
   if(span.a.photo){
     assert.ok(span.start+span.hold<tour.duration,'Every tour photograph must be visited before the loop repeats');
-    assert.equal(tour.sample(span.start+span.hold/2).photo,span.a.photo,'Photo pause must show its reference');
+    assert.equal(span.hold,0,'Photo viewpoints must not pause the tour');
   }
 }
 assert.ok(tour.sample(tour.duration).position.distanceTo(tour.sample(0).position)<1e-9,'The tour must loop continuously');
+for(const span of tour.spans){
+  assert.equal(span.hold,0,'No automatic tour holds');
+  const dt=1e-4,t=span.start;
+  const before=tour.sample(t).position.sub(tour.sample(t-dt).position).divideScalar(dt);
+  const after=tour.sample(t+dt).position.sub(tour.sample(t).position).divideScalar(dt);
+  assert.ok(before.distanceTo(after)<.02,'Camera velocity must remain continuous at route joins');
+  assert.equal(tour.sample(t+span.travel/2).fov,58,'Keep a steady tour lens');
+  assert.ok(tour.sample(t+span.travel*.4).position.distanceTo(tour.sample(t+span.travel*.6).position)>.01,'Every leg moves instead of turning in place');
+}
+
 assert.deepEqual(tourProblems,[],'Tour must not fly through walls or posts');
 const checkpoints=tour.points.filter(p=>p.photo).map(p=>p.photo);for(const name of ['house','houseleft','godroom','laneleft','laneright','templehouse','temple','templedoor','templeleft','templecenter','templeright','lakeleft','lakemiddle','lakehouse',...outerKeys])assert.ok(checkpoints.includes(name));
 for(const key of ['courtyard','templeroad','veranda','verandaleft','verandaseat','verandaright'])assert.ok(!checkpoints.includes(key),'Skipped places remain manual destinations only');
