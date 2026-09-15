@@ -1086,10 +1086,10 @@ export function buildTemple(K) {
     for(let i=0;i<1000;i++){c.fillStyle=i%3?'#553f2422':'#dbbf8233';c.fillRect(rand()*n,rand()*n,2+rand()*10,2+rand()*6);}
     for(const y of [12,32,182,215]){c.fillStyle='#583b29';c.fillRect(0,y,n,2);}
   });
-  function bell(name,x,bottom,z,size){
+  function bell(name,x,bottom,z,size,material=bronze){
     const profile=[[.52,0],[.55,.04],[.55,.10],[.46,.15],[.37,.25],[.30,.44],[.27,.84],[.28,1.03],[.23,1.13],[.12,1.18],[.10,1.12],[.23,1.04],[.22,.84],[.25,.43],[.33,.23],[.43,.13],[.49,.07],[.49,0]];
-    const body=mesh(name,new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r*size,y*size)),40),bronze,x,bottom,z);
-    cyl(name+' crown',x,bottom+1.19*size,z,.09*size,.12*size,.14*size,bronze,16);
+    const body=mesh(name,new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r*size,y*size)),40),material,x,bottom,z);
+    cyl(name+' crown',x,bottom+1.19*size,z,.09*size,.12*size,.14*size,material,16);
     cyl(name+' dark clapper',x,bottom-.04*size,z,.045*size,.065*size,.35*size,dark,12);
     return body;
   }
@@ -1375,11 +1375,19 @@ export function buildTemple(K) {
   const smallDrum=mesh('Inner smaller orange-covered drum',new THREE.CylinderGeometry(.23,.23,.9,18),mat('#b35b2b'),32.92,2.42,24.1);smallDrum.rotation.x=Math.PI/2;
   for(const z of [23.7,24.5])K.beam(g,'Inner small drum red suspension',[32.7,3.4,z],[32.92,2.62,z],.038,red);
   }
-  // Seven bells at differing heights across the front platform, long cords above.
+  // 15.08.10 looks back across the entrance platform. Unequal bells hang
+  // from long dark cords and exposed iron rings, rather than touching the cords.
+  const innerBellBronze=mat('#8e7656',.55,{metalness:.55,side:THREE.DoubleSide});
+  const bellSizes=[.27,.18,.25,.20,.32,.28,.24];
+  const bellHeights=[2.28,2.35,2.30,2.36,2.39,2.24,2.42];
+  const suspensionIron=mat('#504b3e',.83,{metalness:.40});
   for(let j=0;j<7;j++){
-    const x=40.8+j*.51,bottom=2.25+(j%3)*.09,size=[.24,.31,.27][j%3];
-    bell('Inner hall hanging bronze bell',x,bottom,19.12,size);
-    K.beam(g,'Inner hall long bell suspension',[x,3.67,19.12],[x,bottom+size*1.3,19.12],.012,brass);
+    const x=40.8+j*.51,bottom=bellHeights[j],size=bellSizes[j],crown=bottom+size*1.26,ringY=crown+.043;
+    bell('Inner hall hanging bronze bell',x,bottom,19.12,size,innerBellBronze);
+    const ring=mesh('Inner hall bell suspension iron ring',new THREE.TorusGeometry(.043,.007,6,14),suspensionIron,x,ringY,19.12);ring.rotation.y=(j%3-1)*.24;
+    const loopPoints=[new THREE.Vector3(x-.020,ringY+.07,19.12),new THREE.Vector3(x-.014,ringY+.023,19.12),new THREE.Vector3(x,ringY+.014,19.12),new THREE.Vector3(x+.014,ringY+.023,19.12),new THREE.Vector3(x+.020,ringY+.07,19.12)];
+    mesh('Inner hall bell cord lower loop',new THREE.TubeGeometry(new THREE.CatmullRomCurve3(loopPoints),10,.006,4,false),suspensionIron);
+    K.beam(g,'Inner hall long bell suspension',[x,3.67,19.12],[x,ringY+.065,19.12],.010,suspensionIron);
   }
 
   // 14.58.48: family-identified right edge of the temple, facing the house.
