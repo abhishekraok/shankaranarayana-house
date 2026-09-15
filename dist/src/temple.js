@@ -1026,7 +1026,48 @@ export function buildTemple(K) {
       box(n+' stone collar',x,base+yy,z,w*scale,hh,w*scale,sanctumStone);
     for(const side of [-1,1])box(n+' stepped corbel',x+side*.30*scale,base+h-.16,z,.40*scale,.20,.35*scale,sanctumStone);
   }
-  floor('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55,stoneFloor);
+  // 15.08.04 / 15.08.42: uneven rectangular stone slabs, narrow dark
+  // joints and localized damp wear. World UVs keep slab sizes consistent.
+  let pavingSeed=721;const pavingRand=()=>{pavingSeed=(1664525*pavingSeed+1013904223)>>>0;return pavingSeed/4294967296;};
+  const slabs=[],stains=[];
+  for(let row=0;row<6;row++){
+    let x=0;while(x<1024){const w=Math.min(1024-x,150+pavingRand()*110);slabs.push({x,y:row*1024/6,w,h:1024/6,tone:120+pavingRand()*45});x+=w;}
+  }
+  for(let i=0;i<95;i++)stains.push({x:pavingRand()*1024,y:pavingRand()*1024,rx:8+pavingRand()*65,ry:5+pavingRand()*30,a:pavingRand()*Math.PI});
+  const pavingMap=kind=>canvasMap(1024,(c,n)=>{
+    c.fillStyle=kind==='color'?'#4d4a41':kind==='bump'?'#404040':'#eeeeee';c.fillRect(0,0,n,n);
+    for(const q of slabs){
+      c.fillStyle=kind==='color'?`rgb(${q.tone},${q.tone-5},${q.tone-17})`:kind==='bump'?'#b6b6b6':'#d9d9d9';
+      c.fillRect(q.x+1.1,q.y+1.1,q.w-2.2,q.h-2.2);
+      c.strokeStyle=kind==='color'?'#d3c9af38':kind==='bump'?'#929292':'#cccccc';c.lineWidth=1.5;c.strokeRect(q.x+3,q.y+3,q.w-6,q.h-6);
+    }
+    if(kind!=='bump')for(const q of stains){
+      for(let layer=0;layer<22;layer++){
+        const scale=1-layer/24;c.fillStyle=kind==='color'?'#342e2306':'#55555509';c.beginPath();
+        for(let k=0;k<28;k++){
+          const a=k*Math.PI/14,r=scale*(1+.23*Math.sin(a*3+q.a)+.13*Math.cos(a*7+q.x));
+          const dx=Math.cos(a)*q.rx*r,dy=Math.sin(a)*q.ry*r;
+          const x=q.x+dx*Math.cos(q.a)-dy*Math.sin(q.a),y=q.y+dx*Math.sin(q.a)+dy*Math.cos(q.a);
+          if(k)c.lineTo(x,y);else c.moveTo(x,y);
+        }
+        c.closePath();c.fill();
+      }
+    }
+    // Fine grain stays finer than the joints rather than looking like blocks.
+    let grainSeed=89;for(let i=0;i<18000;i++){
+      grainSeed=(grainSeed*1664525+1013904223)>>>0;const x=grainSeed%1024,y=(grainSeed>>>10)%1024;
+      c.fillStyle=kind==='color'?(i%2?'#eee1c513':'#211e1815'):kind==='bump'?(i%2?'#d0d0d026':'#70707026'):'#99999915';c.fillRect(x,y,1.5,1.5);
+    }
+  });
+  const innerPavingMaterial=mat('#ffffff',.94,{map:pavingMap('color'),roughnessMap:pavingMap('roughness'),bumpMap:pavingMap('bump'),bumpScale:.007});
+  for(const texture of [innerPavingMaterial.roughnessMap,innerPavingMaterial.bumpMap])if(texture)texture.colorSpace=THREE.NoColorSpace;
+  function innerPaving(n,x,z,w,d,top){
+    floor(n,x,z,w,d,top,innerPavingMaterial);
+    const geo=g.children[g.children.length-1].geometry,position=geo.attributes.position,uv=geo.attributes.uv;
+    for(let i=0;i<uv.count;i++)uv.setXY(i,(x+position.getX(i))/4,(z+position.getZ(i))/4);
+    uv.needsUpdate=true;
+  }
+  innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
   for(const x of [34.3,43.7]){
     box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,sanctumStone,true);
     floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
@@ -1038,12 +1079,12 @@ export function buildTemple(K) {
   // The two front platforms leave the central entrance passage lower and clear.
   for(const x of [33.05,44.95]){
     box('Inner side raised stone ledge',x,.79,24.5,2.25,.44,8.0,sanctumStone,true);
-    floor('Inner side ledge paving',x,24.5,2.25,8.0,1.03,stoneFloor);
+    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.03);
     for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.03,2.45,.77);
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
   box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
-  floor('Inner rear ledge paving',39,28.92,14.1,1.05,1.03,stoneFloor);
+  innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.03);
   for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.03,2.45,.77);
   for(const x of [36.9,40.5]){
     box('Inner rear white cloth curtain',x,2.18,29.39,2.25,2.15,.025,whiteTrim);
@@ -1059,7 +1100,7 @@ export function buildTemple(K) {
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
-  floor('Inner mandapa raised paving',39,24,5.2,6.2,1.06,stoneFloor);
+  innerPaving('Inner mandapa raised paving',39,24,5.2,6.2,1.06);
   for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
   const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
   for(const x of [36.6,41.4])for(const z of [22.55,25.45]){
