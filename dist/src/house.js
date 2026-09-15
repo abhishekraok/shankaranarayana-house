@@ -355,6 +355,34 @@ export function buildHouse(K) {
   K.cylinder(g,'God room bowl hollow',-1.72,1.315,6.60,.16,.16,.015,'stone',18);
   const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
   grindingStone.name='God room grinding stone';grindingStone.position.set(-1.76,1.42,6.62);g.add(grindingStone);
+  // 14.52.11: worn desk beside the God-room approach, with open drawer
+  // and a green basin below. Position beside the side platform is inferred.
+  const desk=new THREE.Group();desk.name='God room side desk';desk.position.set(-1.95,F,5.15);desk.rotation.y=0;g.add(desk);
+  const deskWood=verandaTimber.clone();deskWood.color.set('#c0ada0');
+  const deskFrame=new THREE.MeshStandardMaterial({color:'#a6aaa0',roughness:.95});
+  K.box(desk,'Desk worn timber top',0,.76,0,1.03,.06,.53,deskWood);
+  K.box(desk,'Desk front apron',0,.64,-.23,.98,.19,.035,deskWood);
+  for(const x of [-.45,.45])for(const z of [-.20,.20])K.box(desk,'Desk pale square leg',x,.37,z,.045,.74,.045,deskFrame);
+  for(const z of [-.20,.20])K.box(desk,'Desk low cross brace',0,.15,z,.92,.035,.035,deskWood);
+  K.box(desk,'Desk partly open drawer shadow',0,.665,-.26,.40,.14,.015,'black');
+  K.box(desk,'Desk open drawer face',0,.615,-.31,.43,.13,.025,deskWood);
+  K.beam(desk,'Desk drawer brass pull',[-.065,.62,-.335],[.065,.62,-.335],.016,'brass');
+  const basinMat=new THREE.MeshStandardMaterial({color:'#559c56',side:THREE.DoubleSide,roughness:.65});
+  const basinProfile=[[.05,0],[.15,.025],[.25,.09],[.28,.16],[.265,.16],[.235,.095],[.14,.035],[.05,.012]].map(p=>new THREE.Vector2(...p));
+  const basin=new THREE.Mesh(new THREE.LatheGeometry(basinProfile,28),basinMat);basin.name='Desk green hollow basin';basin.position.set(.05,.17,.015);desk.add(basin);
+  for(const x of [-.265,.265])K.beam(desk,'Desk basin handle',[x,.31,-.10],[x,.40,.10],.018,'wood');
+  const jugMat=new THREE.MeshStandardMaterial({color:'#e4e6dc',roughness:.68});
+  K.box(desk,'Desk white water container',.28,.99,.075,.22,.40,.19,jugMat);
+  const handle=new THREE.Mesh(new THREE.TorusGeometry(.072,.018,8,16,Math.PI),jugMat);handle.name='Desk water container handle';handle.position.set(.28,1.20,.075);desk.add(handle);
+  K.cylinder(desk,'Desk water container red cap',.18,1.20,.075,.031,.031,.04,'red',12);
+  K.cylinder(desk,'Desk green lidded jar',.01,.90,-.03,.052,.052,.22,basinMat,16);
+  K.cylinder(desk,'Desk jar red lid',.01,1.016,-.03,.058,.058,.025,'red',16);
+  K.cylinder(desk,'Desk red cup',-.15,.84,-.12,.049,.039,.10,'red',16);
+  K.cylinder(desk,'Desk cup dark interior',-.15,.893,-.12,.039,.039,.005,'wood',16);
+  for(let i=0;i<3;i++){
+    const paper=K.box(desk,'Desk blank paper',-.31,.797+i*.002,-.08,.20,.002,.14,'cream');paper.rotation.y=i*.15;
+  }
+  K.blocker(-1.95,5.15,1.06,.55,F,F+.80);
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
   const roofGrey=new THREE.MeshStandardMaterial({color:'#81857c',roughness:.96,side:THREE.DoubleSide});

@@ -255,7 +255,7 @@ for(let x=-6.8;x<8.3;x+=.12){
   const ray=new THREE.Raycaster(new THREE.Vector3(x,.55,-.31),new THREE.Vector3(0,1,0),0,1.7);
   assert.equal(ray.intersectObject(house,true).length,0,'Lower veranda strip has physical head clearance');
 }
-checkRoute('Inner hall across the God room approach',[[0,5.15],[-4.9,5.15]]);
+checkRoute('Inner hall around the photographed desk',[[0,5.15],[0,4.55],[-2.9,4.55],[-2.9,5.15],[-4.9,5.15]]);
 checkRoute('Three steps to the God room gate',[[0,5.15],[0,6.5]]);
 checkRoute('Lane to original temple entrance',[[20,-5],[39,-5],[39,3],[39,9]],0,0);
 checkRoute('Temple photo shoulder to house entrance',[[23,-3],[23,-5],[0,-5],[0,-2]],.051,0);
