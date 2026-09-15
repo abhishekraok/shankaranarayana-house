@@ -739,7 +739,38 @@ export function buildHouse(K) {
   for(let i=0;i<2400;i++){const x=-7.45+((i*173)%2399)/2399*18.8,z=-.95+((i*317)%2393)/2393*2.67;const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>.1;growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(.012+(i%5)*.004,dense?.14+(i%9)*.021:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
   roofGrowth.name='Dry grass and moss on the lower tiled awning';porchRoof.add(roofGrowth);
   K.hipRoof(g,'West range tiled roof',-10.18,12.0,4.6,13.1,3.62,1.12);
-  K.hipRoof(g,'Rear veranda tiled roof',-.50,16.38,18.2,4.25,3.64,1.05);
+  const rearRoof=K.hipRoof(g,'Rear veranda tiled roof',-.50,16.38,18.2,4.25,3.64,1.05);
+  // 14.46.04 / 14.48.11: overlapping worn courses and dry grass on the
+  // courtyard-facing slope, rather than an unbroken printed roof plane.
+  const rearRows=[];
+  for(let z=14.27;z<16.35;z+=.22){
+    const t=(z-14.255)/2.125,edge=9.1-1.9125*t;
+    for(let x=-.5-edge+.13;x<-.5+edge-.13;x+=.25)rearRows.push({x,y:3.64+1.05*t,z,angle:Math.atan2(1.05,2.125)});
+  }
+  tilesOnSlope(rearRoof,'Overlapping rear courtyard tile courses',rearRows);
+  let roofSeed=4419;
+  const roofRand=()=>{roofSeed=(Math.imul(roofSeed,1664525)+1013904223)>>>0;return roofSeed/4294967296;};
+  const stems=[],stemColors=[];
+  for(let patch=0;patch<105;patch++){
+    const z=14.32+roofRand()*1.92,t=(z-14.255)/2.125,edge=9.1-1.9125*t;
+    const x=-.5+(roofRand()-.5)*(edge*2-.45);
+    for(let j=0;j<7;j++){
+      const px=x+(roofRand()-.5)*.28,pz=z+(roofRand()-.5)*.09,py=3.64+1.05*(pz-14.255)/2.125+.045;
+      const angle=roofRand()*Math.PI*2,len=.065+roofRand()*.14,lean=.14+roofRand()*.23;
+      const c=new THREE.Color(j%3?'#939079':'#6f795d');
+      const point=u=>[px+Math.cos(angle)*lean*u,py+Math.sin(angle)*lean*u*1.05/2.125+len*Math.sin(u*Math.PI*.85),pz+Math.sin(angle)*lean*u];
+      for(let segment=0;segment<4;segment++){
+        stems.push(...point(segment/4),...point((segment+1)/4));
+        for(let k=0;k<2;k++)stemColors.push(c.r,c.g,c.b);
+      }
+    }
+  }
+  const grassGeom=new THREE.BufferGeometry();grassGeom.setAttribute('position',new THREE.Float32BufferAttribute(stems,3));grassGeom.setAttribute('color',new THREE.Float32BufferAttribute(stemColors,3));
+  const roofGrass=new THREE.LineSegments(grassGeom,new THREE.LineBasicMaterial({vertexColors:true}));roofGrass.name='Rear roof scattered dry grass between tiles';rearRoof.add(roofGrass);
+  const gutterMat=K.M.plaster.clone();gutterMat.color.set('#b9c0b0');
+  const gutter=K.cylinder(rearRoof,'Rear veranda pale rain gutter',2.1,3.48,14.19,.065,.065,8.3,gutterMat,16);gutter.rotation.z=Math.PI/2;
+  for(const x of [-1.8,.4,2.6,4.8,6.15])K.beam(rearRoof,'Rear gutter timber support',[x,3.42,14.52],[x,3.42,14.10],.045,verandaTimber);
+
   K.hipRoof(g,'East passage tiled strip',8.1,10.1,2.40,8.8,3.6,.58);
   K.hipRoof(g,'East rear service roof',10.1,15.8,4.2,5.25,3.62,.85);
   // Low white block with its own hipped roof, visible at the house's temple end.
@@ -852,11 +883,12 @@ export function buildHouse(K) {
   K.cylinder(g,'Basin dark interior',-6.4,F+.264,15.2,.36,.36,.025,'black',20);
   // A restrained clothesline recalls the lived-in passages without obstructing movement.
   K.beam(g,'Rear veranda clothesline',[-7.5,2.95,15.1],[5.8,2.90,15.1],.014,'black');
-  const cloth1=new THREE.MeshStandardMaterial({color:0x8f627d,roughness:1,side:THREE.DoubleSide});
-  const cloth2=new THREE.MeshStandardMaterial({color:0xd6c9ac,roughness:1,side:THREE.DoubleSide});
-  for(const [x,w,h,m] of [[-5.2,.76,.75,cloth1],[-4.25,.55,.62,cloth2],[3.5,.70,.83,cloth2]]) {
-    const cloth=new THREE.Mesh(new THREE.PlaneGeometry(w,h,3,3),m);
-    cloth.position.set(x,2.9-h/2,15.1);cloth.castShadow=true;cloth.name='Cloth drying in rear veranda';g.add(cloth);
+  for(const [x,w,h,color] of [[-5.5,.67,1.35,0xd5d4c5],[-4.55,.60,1.12,0xc2ad88],[.3,.78,1.18,0xe0d9c7],[1.10,.69,.78,0x982d41],[2.0,.43,1.40,0x9a5d85]]) {
+    const geom=new THREE.PlaneGeometry(w,h,18,18),pos=geom.attributes.position;
+    for(let i=0;i<pos.count;i++)pos.setZ(i,.025*Math.sin(pos.getX(i)*40)+.012*Math.sin(pos.getY(i)*9));
+    geom.computeVertexNormals();
+    const cloth=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1,side:THREE.DoubleSide}));
+    cloth.position.set(x,2.9-h/2,15.1);cloth.castShadow=true;cloth.receiveShadow=true;cloth.name='Cloth drying in rear veranda';g.add(cloth);
   }
   // Sparse upstairs rooms intentionally leave space for later family corrections.
   b('Upstairs simple wooden cot',-9.35,U+.34,4.2,2.2,.15,1.08,'wood',true);
