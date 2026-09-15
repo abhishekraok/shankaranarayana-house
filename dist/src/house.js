@@ -152,7 +152,25 @@ export function buildHouse(K) {
   // Broad route around the shrine, with intentional breaks in the blue grilles.
   fenceX(-8.1,-5.7,5.83); fenceX(-4.1,-2.15,5.83);
   fenceX(2.15,4.6,5.83); fenceX(6.3,7.3,5.83);
-  fenceZ(-8.35,6.15,10.0); fenceZ(-8.35,11.65,14.5);
+  // 14.44.43: closely spaced blue boards between rough outer stone supports.
+  const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
+  function stairSideFence(a,end){
+    for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',-8.35,y,(a+end)/2,.11,.105,end-a,courtBlue);
+    for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',-8.35,F+.63,z,.068,1.10,.052,courtBlue);
+    for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',-8.35,F+.66,z,.115,1.32,.115,courtBlue);
+    K.blocker(-8.35,(a+end)/2,.12,end-a,F,F+1.22);
+  }
+  stairSideFence(6.15,10.0);stairSideFence(11.65,14.5);
+  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#898576');courtSupport.roughness=1;
+  for(const z of [6.19,9.86,14.42]){
+    b('Courtyard rough stone outer support',-8.28,1.84,z,.24,3.55,.26,courtSupport,true);
+    b('Courtyard outer support beam pad',-8.28,3.61,z,.36,.14,.34,courtSupport);
+    // Irregular shallow chips break the smooth pillar silhouette.
+    for(let j=0;j<15;j++){
+      const chip=b('Courtyard support weathered edge',-8.147,.18+j*.22,z+Math.sin(j*2.8)*.09,.016,.045+(j%3)*.019,.042,courtSupport);
+      chip.rotation.x=Math.sin(j)*.3;
+    }
+  }
   fenceZ(7.25,6.1,9.3); fenceZ(7.25,11.0,14.5);
   // 14.46.04: the rear veranda is screened by weathered horizontal boards.
   for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
