@@ -364,7 +364,16 @@ export function buildLandscape(K) {
   }
   // Low seat-height parapets; west entrance stays open at the centre.
   box('pavilion east parapet', px + pw / 2 - .17, -.035, pz, .22, .51, pd - .6, materials.oldWhite, true);
-  for (const sz of [-1, 1]) box('pavilion side parapet', px, -.035, pz + sz * (pd / 2 - .17), pw - .6, .51, .22, materials.oldWhite, true);
+  box('pavilion rear side parapet', px, -.035, pz - (pd / 2 - .17), pw - .6, .51, .22, materials.oldWhite, true);
+  // 15.28.02/05: the face along the lake bank has two bays, with a
+  // low opening in the right bay rather than one uninterrupted seat.
+  const pavilionFrontZ=pz+pd/2-.22;
+  box('pavilion central square pier',px,.88,pavilionFrontZ,.34,2.34,.31,materials.oldWhite,true);
+  box('pavilion central pier foot',px,-.07,pavilionFrontZ,.39,.43,.39,materials.oldWhite);
+  for(const [a,b] of [[-2.20,.66],[1.40,2.20]]) {
+    box('pavilion split front seat',px+(a+b)/2,-.035,pavilionFrontZ,b-a,.51,.22,materials.oldWhite,true);
+    box('pavilion seat coping',px+(a+b)/2,.237,pavilionFrontZ,b-a,.035,.27,materials.oldWhite);
+  }
   for (const sz of [-1, 1]) box('pavilion entry short seat', px - pw / 2 + .17, -.035, pz + sz * 1.42, .22, .51, 1.02, materials.oldWhite, true);
   const pavilionRoof = new THREE.Group();
   pavilionRoof.name = 'pavilion flat roof and scalloped fascia';
@@ -387,7 +396,19 @@ export function buildLandscape(K) {
   }
   for (const sz of [-1, 1]) {
     fascia(pw + .54, px - (pw + .54) / 2, 2.15, pz + sz * (pd + .54) / 2, 0, 22, .24);
-    fascia(pw - .6, px - (pw - .6) / 2, 1.99, pz + sz * (pd / 2 - .23), 0, 5, .43);
+    if(sz<0) fascia(pw - .6, px - (pw - .6) / 2, 1.99, pz + sz * (pd / 2 - .23), 0, 5, .43);
+    else for(const offset of [-2.125,.17]) {
+      const width=1.955,shape=new THREE.Shape();
+      shape.moveTo(0,2.11);shape.lineTo(width,2.11);
+      // A raised arch with small cusps, not a straight hanging fringe.
+      for(let i=72;i>=0;i--) {
+        const t=i/72;
+        shape.lineTo(width*t,1.54+.38*Math.sin(Math.PI*t)+.075*Math.abs(Math.sin(6*Math.PI*t)));
+      }
+      shape.closePath();
+      const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),materials.oldWhite);
+      arch.name='pavilion twin scalloped arch';arch.position.set(px+offset,0,pavilionFrontZ-.06);pavilionRoof.add(arch);
+    }
   }
   for (const sx of [-1, 1]) {
     fascia(pd + .54, px + sx * (pw + .54) / 2, 2.15, pz + (pd + .54) / 2, Math.PI / 2, 20, .24);
