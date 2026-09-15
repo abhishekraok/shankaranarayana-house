@@ -1510,6 +1510,25 @@ export function buildTemple(K) {
     for(const x of [13.22,14.08])box('Temple lane mossy tank side',x,.46,z,.12,.78,.94,troughDamp,true);
     for(const end of [-.41,.41])box('Temple lane mossy tank end',13.65,.46,z+end,.88,.78,.12,troughDamp,true);
   }
+  // IMG_20130720_180715: long salvaged poles stacked on the green edge
+  // when looking out of the temple side lane. Placement and lengths inferred.
+  const poleBark=K.M.wood.clone();poleBark.color.set('#898474');poleBark.roughness=.98;
+  const poleEnd=mat('#8c7c5b',.98);
+  const polePoses=[],endPoses=[];
+  for(let row=0;row<6;row++)for(let i=0;i<7-row;i++){
+    const radius=.075+((i*3+row*5)%5)*.009;
+    const x=14.25+i*.235+row*.12,y=.17+row*.17;
+    const z=3.55+Math.sin(i*4+row)*.15,length=4.10+((i*7+row*3)%9)*.13;
+    polePoses.push([x,y,z,radius,length,radius,Math.PI/2,0,0]);
+    for(const sign of [-1,1])endPoses.push([x,y,z+sign*(length/2+.002),radius*.83,.006,radius*.83,Math.PI/2,0,0]);
+  }
+  const poles=instances('Temple lane stacked salvaged timber poles',new THREE.CylinderGeometry(.84,1,1,9),poleBark,polePoses);
+  polePoses.forEach((_,i)=>poles.setColorAt(i,new THREE.Color().setHSL(.10+(i%3)*.013,.10+(i%4)*.025,.60+(i%7)*.048)));
+  poles.instanceColor.needsUpdate=true;
+  instances('Temple lane weathered pole cut ends',new THREE.CylinderGeometry(1,1,1,9),poleEnd,endPoses);
+  K.blocker(14.97,3.55,1.75,5.5,.04,1.20);
+  for(const z of [2.5,5.1])box('Temple lane timber stack stone support',14.95,.09,z,1.85,.14,.26,oldStone);
+
   // Folded blue tarpaulin over low stored bundles, not a billboard photograph.
   const coverPos=[];
   for(let j=0;j<24;j++)for(let i=0;i<12;i++){
