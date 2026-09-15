@@ -538,12 +538,25 @@ export function buildTemple(K) {
   floor('Inner front marble veranda',39,15.86,18.8,1.45,.57,dado);
   box('Inner front weathered plinth',39,.27,15.15,18.8,.44,.18,weathered);
   box('Inner plinth red trim',39,.5,15.12,18.9,.065,.12,red);
-  box('Inner front enclosed white volume',39,2.09,18.35,18.4,3.08,3.65,innerWhite,true);
-  box('Inner facade gray marble dado',39,.86,16.47,18.4,.58,.10,dado);
-  box('Inner facade green dado cap',39,1.19,16.40,18.45,.10,.10,greenBand);
+  // The photographed stone interior is open behind this facade.
+  const frontHoles=[[32.65,34.65],[35.28,37.28],[38.12,39.88],[40.72,42.72],[43.35,45.35]];
+  let frontEdge=29.8;
+  for(const [left,right] of [...frontHoles,[48.2,48.2]]){
+    if(left>frontEdge)box('Inner front facade pier',(frontEdge+left)/2,2.09,16.57,left-frontEdge,3.08,.20,innerWhite,true);
+    if(right>left&&left!==38.12){
+      box('Inner front window sill wall',(left+right)/2,.88,16.57,right-left,.66,.20,innerWhite,true);
+      box('Inner front window lintel wall',(left+right)/2,3.13,16.57,right-left,1.0,.20,innerWhite,true);
+      K.blocker((left+right)/2,16.57,right-left,.2,.55,3.63);
+    }
+    frontEdge=right;
+  }
+  box('Inner doorway overhead wall',39,3.21,16.57,1.76,.84,.20,innerWhite,true);
+  for(const x of [29.9,48.1])box('Inner front side wall',x,2.09,18.35,.20,3.08,3.65,innerWhite,true);
+  for(const x of [33.96,44.04])box('Inner facade gray marble dado',x,.86,16.47,8.32,.58,.10,dado);
+  for(const x of [33.96,44.04])box('Inner facade green dado cap',x,1.19,16.40,8.32,.10,.10,greenBand);
   // Openings are layered on the enclosed facade; the unseen sanctuary stays dark.
   function innerWindow(x){
-    box('Inner blue window shadow',x,1.91,16.37,2.0,1.27,.065,dark);
+    // Grilles are open to daylight on both sides of the wall.
     for(const dx of [-1,0,1])box('Inner blue window upright',x+dx,1.91,16.27,.105,1.44,.16,vividBlue);
     for(const y of [1.22,1.91,2.6])box('Inner blue window crossrail',x,y,16.25,2.1,.10,.17,vividBlue);
     const bars=[];for(let i=0;i<18;i++)bars.push([x-.92+i*1.84/17,1.91,16.28,.021,1.28,.03]);
@@ -556,7 +569,7 @@ export function buildTemple(K) {
     if(x>39)for(const dx of [-.29,.29])for(const y of [1.11,2.17])box('Service door white inset',x+dx,y,16.225,.18,.73,.022,whiteTrim);
     steps('Inner service door steps',x,14.84,1.35,.85,.1,.57,'z',2);
   }
-  box('Inner central doorway darkness',39,1.64,16.29,1.64,2.15,.04,dark);
+  // Central doorway remains open into the stone hall.
   for(const x of [38.1,39.9])box('Inner decorated blue door jamb',x,1.75,16.19,.21,2.4,.14,vividBlue);
   box('Inner central doorway lintel',39,2.79,16.20,2,.18,.17,vividBlue);
   steps('Inner central threshold stairs',39,14.75,1.8,1.0,.1,.57,'z',2);
@@ -609,7 +622,8 @@ export function buildTemple(K) {
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
   floor('Old inner shrine black stone platform',39,24.73,15.7,10.6,.54,weathered);
-  box('Old inner shrine enclosed red body',39,1.83,24.73,14.6,2.57,9.95,wornRed,true);
+  for(const x of [31.82,46.18])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
+  box('Old inner shrine red rear wall',39,1.83,29.58,14.6,2.57,.24,wornRed,true);
   for(const side of [-1,1]){
     const x=39+side*7.34;
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
@@ -969,6 +983,99 @@ export function buildTemple(K) {
   cyl('Small brass oil lamp base',lampX,.33,lampZ-.61,.13,.18,.16,brass,14);
   cyl('Small brass oil lamp stem',lampX,.65,lampZ-.61,.035,.07,.54,brass,12);
   cyl('Small brass oil lamp dish',lampX,.93,lampZ-.61,.19,.1,.06,brass,20);
+
+  // 15.08.04 / 15.08.10 / 15.08.42: lowered stone aisles surround a
+  // raised pillared mandapa. The front hall has marble-clad column bases.
+  // Footprint and bay spacing are inferred within the photographed exterior.
+  const sanctumStone=K.M.plaster.clone();sanctumStone.color.set('#aaa591');sanctumStone.roughness=.88;
+  function innerColumn(n,x,z,base,h,scale=1){
+    box(n+' shaft',x,base+h/2,z,.38*scale,h,.38*scale,sanctumStone,true);
+    for(const [yy,w,hh] of [[.10,.75,.20],[.38,.58,.30],[h*.48,.52,.48],[h-.25,.62,.18],[h-.08,.88,.16]])
+      box(n+' stone collar',x,base+yy,z,w*scale,hh,w*scale,sanctumStone);
+    for(const side of [-1,1])box(n+' stepped corbel',x+side*.30*scale,base+h-.16,z,.40*scale,.20,.35*scale,sanctumStone);
+  }
+  floor('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55,stoneFloor);
+  for(const x of [34.3,43.7]){
+    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,sanctumStone,true);
+    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
+  }
+  for(const x of [34.8,37.3,40.7,43.2]){
+    box('Inner hall marble column pedestal',x,1.57,18.8,.78,1.08,.78,dado,true);
+    innerColumn('Inner hall carved stone column',x,18.8,2.11,1.58,.63);
+  }
+  // The two front platforms leave the central entrance passage lower and clear.
+  for(const x of [33.05,44.95]){
+    box('Inner side raised stone ledge',x,.79,24.5,2.25,.44,8.0,sanctumStone,true);
+    floor('Inner side ledge paving',x,24.5,2.25,8.0,1.03,stoneFloor);
+    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.03,2.45,.77);
+    box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
+  }
+  box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
+  floor('Inner rear ledge paving',39,28.92,14.1,1.05,1.03,stoneFloor);
+  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.03,2.45,.77);
+  for(const x of [36.9,40.5]){
+    box('Inner rear white cloth curtain',x,2.18,29.39,2.25,2.15,.025,whiteTrim);
+    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
+  }
+  // Worn pale interior wall panels sit between the red masonry joints.
+  for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
+    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,white);
+  for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
+    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,white);
+  box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
+  box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
+  // Layered central plinth, projecting stone cornice and dark cross-braced gates.
+  for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
+    box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
+  floor('Inner mandapa raised paving',39,24,5.2,6.2,1.06,stoneFloor);
+  for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
+  const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
+  for(const x of [36.6,41.4])for(const z of [22.55,25.45]){
+    for(const dz of [-1.1,0,1.1])box('Inner mandapa grille upright',x,2.18,z+dz,.06,2.08,.06,dark);
+    for(const y of [1.18,2.20,3.22])box('Inner mandapa grille rail',x,y,z,.06,.07,2.25,dark);
+    for(const sign of [-1,1])K.beam(g,'Inner mandapa X grille',[x,1.2,z-sign*1.1],[x,3.2,z+sign*1.1],.045,dark);
+  }
+  // Small stone offering bases follow the aisle beside the central plinth.
+  for(const z of [22.0,23.2,24.4,25.6]){
+    box('Inner aisle offering stone base',35.85,.63,z,.35,.16,.38,sanctumStone);
+    cyl('Inner aisle rounded offering stone',35.85,.76,z,.10,.16,.13,sanctumStone,12);
+  }
+  // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
+  box('Inner sanctum dark rear chamber',39,2.17,26.64,4.5,2.22,.22,dark,true);
+  for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,26.46,.27,2.18,.14,vividBlue);
+  box('Inner sanctum blue doorway lintel',39,3.21,26.46,1.84,.27,.14,vividBlue);
+  const bulbColors=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'];
+  for(const x of [38.22,39.78])for(let j=0;j<8;j++){
+    const y=1.19+j*.27;
+    const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,26.35);boss.scale.z=.38;
+    mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,26.32);
+  }
+  for(let j=0;j<6;j++){
+    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.32+j*.27,3.21,26.35);boss.scale.z=.38;
+  }
+  for(let j=0;j<9;j++)box('Inner sanctum closed gate bar',38.4+j*.15,1.83,26.29,.026,1.38,.045,dark);
+  box('Inner sanctum gate crossrail',39,2.43,26.27,1.32,.05,.05,dark);
+  // User-labelled right side of inner sanctum: large horizontal drum,
+  // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
+  {
+  const drumCloth=mat('#b4aea0'),drumHide=mat('#71543d'),drumRope=mat('#bca47a');
+  const drum=mesh('Inner sanctum large suspended drum',new THREE.CylinderGeometry(.52,.52,1.65,24),drumHide,32.45,2.15,24.1);drum.rotation.x=Math.PI/2;
+  const wrap=mesh('Inner drum pale cloth wrap',new THREE.CylinderGeometry(.535,.535,1.13,24,1,true),drumCloth,32.45,2.15,24.1);wrap.rotation.x=Math.PI/2;
+  const band=mesh('Inner drum red cloth band',new THREE.CylinderGeometry(.544,.544,.18,24,1,true),red,32.45,2.15,24.1);band.rotation.x=Math.PI/2;
+  for(let i=0;i<16;i++){
+    const a=i*Math.PI/8,b=a+Math.PI/8;
+    K.beam(g,'Inner drum end rope lacing',[32.45+Math.cos(a)*.54,2.15+Math.sin(a)*.54,23.29],[32.45+Math.cos(b)*.54,2.15+Math.sin(b)*.54,24.91],.013,drumRope);
+  }
+  for(const z of [23.5,24.7])K.beam(g,'Inner drum suspension chain',[32.45,3.55,z],[32.45,2.65,z],.025,dark);
+  const smallDrum=mesh('Inner smaller orange-covered drum',new THREE.CylinderGeometry(.23,.23,.9,18),mat('#b35b2b'),32.92,2.42,24.1);smallDrum.rotation.x=Math.PI/2;
+  for(const z of [23.7,24.5])K.beam(g,'Inner small drum red suspension',[32.7,3.4,z],[32.92,2.62,z],.038,red);
+  }
+  // Seven bells at differing heights across the front platform, long cords above.
+  for(let j=0;j<7;j++){
+    const x=40.8+j*.51,bottom=2.25+(j%3)*.09,size=[.24,.31,.27][j%3];
+    bell('Inner hall hanging bronze bell',x,bottom,19.12,size);
+    K.beam(g,'Inner hall long bell suspension',[x,3.67,19.12],[x,bottom+size*1.3,19.12],.012,brass);
+  }
 
   // 14.58.48: family-identified right edge of the temple, facing the house.
   // Viewed down the road (+Z), the temple (+X) is on the photograph's left.
