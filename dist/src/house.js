@@ -1025,7 +1025,29 @@ export function buildHouse(K) {
 
   // Cover the full passage up to the exterior wall; the old narrow strip
   // left a 2.5 m opening beside the enclosed east rooms.
-  K.hipRoof(g,'East passage continuous tiled roof',9.65,10.1,5.05,8.8,3.6,.90);
+  const eastPassageRoof=K.hipRoof(g,'East passage continuous tiled roof',9.65,10.1,5.05,8.8,3.6,.90);
+  // 14.31.14 / 14.31.25: flat, closely joisted ceiling over the clock-side
+  // veranda. Keep all overhead members with the liftable roof assembly.
+  const ceilingTimber=verandaTimber.clone();ceilingTimber.color.set('#72736a');
+  K.box(eastPassageRoof,'East passage continuous roof dark timber lining',9.61,3.535,10.1,4.35,.045,8.12,ceilingTimber);
+  for(let z=6.13;z<14.13;z+=.34)
+    K.box(eastPassageRoof,'East passage exposed ceiling cross joist',9.61,3.425,z,4.35,.175,.075,verandaTimber);
+  for(const x of [7.43,11.70])K.box(eastPassageRoof,'East passage longitudinal ceiling bearer',x,3.365,10.1,.15,.20,8.16,verandaTimber);
+  const scallopedBeam=new THREE.Shape();scallopedBeam.moveTo(0,3.52);scallopedBeam.lineTo(7.82,3.52);scallopedBeam.lineTo(7.82,3.26);
+  for(let i=23;i>=0;i--){
+    const left=i*7.82/24,right=(i+1)*7.82/24;
+    scallopedBeam.quadraticCurveTo((left+right)/2,3.04,left,3.26);
+  }
+  scallopedBeam.closePath();
+  const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(scallopedBeam,{depth:.10,bevelEnabled:false}),ceilingTimber);
+  beamFrieze.name='Clock-side veranda scalloped timber wall beam';beamFrieze.rotation.y=-Math.PI/2;
+  beamFrieze.position.set(11.68,0,6.0);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
+  b('Clock-side veranda turquoise wall finish',11.735,1.97,9.82,.016,3.02,8.24,verandaAqua);
+  K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
+  K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
+  const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
+  corridorBulb.name='Clock-side veranda hanging bare bulb';corridorBulb.position.set(9.7,2.935,10.15);corridorBulb.scale.y=1.35;eastPassageRoof.add(corridorBulb);
+
   K.hipRoof(g,'East rear service roof',10.1,15.8,4.2,5.25,3.62,.85);
   // Low white block with its own hipped roof, visible at the house's temple end.
   // Its enclosed interior and exact connection are not visible in the references.
@@ -1114,7 +1136,6 @@ export function buildHouse(K) {
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
   // 14.31.43: arched timber case, ivory numbered dial and floral lower glass.
-  b('Clock bay turquoise interior plaster',11.735,1.97,6.7,.016,3.02,2.0,verandaAqua);
   b('Clock bay vertical timber mounting strip',11.71,1.97,6.7,.055,3.02,.19,verandaTimber);
   const clock=new THREE.Group();clock.name='Photographed veranda pendulum clock';
   clock.position.set(11.68,2.25,6.7);clock.rotation.y=-Math.PI/2;g.add(clock);
