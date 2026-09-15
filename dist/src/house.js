@@ -151,7 +151,31 @@ export function buildHouse(K) {
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
   fenceX(-8.1,-5.7,5.83); fenceX(-4.1,-2.15,5.83);
-  fenceX(2.15,4.6,5.83); fenceX(6.3,7.3,5.83);
+  fenceX(2.15,4.6,5.83);
+  // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
+  // entering, a stepped turquoise pedestal sits over a three-stone niche.
+  // Place it beside the entrance-side court steps; spacing remains inferred.
+  const pedestalX=6.66,pedestalZ=5.83;
+  const nicheOxide=K.M.plaster.clone();nicheOxide.color.set('#b99b92');nicheOxide.roughness=1;
+  const pedestalAqua=K.M.plaster.clone();pedestalAqua.color.set('#82c8c2');pedestalAqua.roughness=.98;
+  b('Entrance pedestal masonry left cheek',6.285,.24,5.96,.13,.41,.16,nicheOxide,true);
+  b('Entrance pedestal masonry right cheek',7.12,.24,5.96,.23,.41,.16,nicheOxide,true);
+  b('Entrance pedestal niche lintel',6.66,.362,5.96,.88,.175,.16,nicheOxide);
+  b('Entrance pedestal niche dark back',6.66,.154,5.73,.64,.23,.025,'stone');
+  b('Entrance pedestal niche stone sill',6.66,.055,5.94,.76,.04,.49,'stone');
+  b('Entrance pedestal worn coping',6.66,.466,5.90,1.03,.032,.36,'stone');
+  for(const [w,d,h,y] of [[.82,.49,.125,.529],[.70,.40,.13,.6565],[.56,.29,.105,.774]])
+    b('Entrance three-tier turquoise pedestal',pedestalX,y,pedestalZ,w,h,d,pedestalAqua,true);
+  const nicheStone=new THREE.MeshStandardMaterial({color:'#8b9871',roughness:1});
+  for(const [j,x,h] of [[0,6.44,.175],[1,6.64,.19],[2,6.84,.175]]){
+    const geom=new THREE.BoxGeometry(.175,h,.06,3,3,1),pos=geom.attributes.position;
+    for(let k=0;k<pos.count;k++)pos.setX(k,pos.getX(k)+.006*Math.sin(k*2.3+j));
+    geom.computeVertexNormals();const stone=new THREE.Mesh(geom,j===1?K.M.stone:nicheStone);
+    stone.name='Entrance niche upright stone';stone.position.set(x,.076+h/2,6.045);stone.rotation.z=(j-1)*.035;stone.castShadow=stone.receiveShadow=true;g.add(stone);
+    if(j!==1)for(const dx of [-.027,0,.027])b('Entrance niche faded red pigment',x+dx,.194,6.083,.008,.065,.002,'red');
+  }
+  const offeringCup=new THREE.Mesh(new THREE.LatheGeometry([[.014,0],[.028,.006],[.034,.022],[.029,.025],[.020,.01]].map(p=>new THREE.Vector2(...p)),16),K.M.stone);
+  offeringCup.name='Entrance niche small offering cup';offeringCup.position.set(6.77,.076,6.08);g.add(offeringCup);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
   function stairSideFence(a,end){
