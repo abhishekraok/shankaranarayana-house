@@ -838,10 +838,25 @@ export function buildHouse(K) {
     for(const dx of [-.50,.50])detail(x+dx,U+1.49,1.64,.07,1.26,.09,verandaTimber);
     for(const y of [U+.88,U+2.1])detail(x,y,1.64,1.07,.065,.09,verandaTimber);
   }
-  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:1.5,bottom:1.05,top:2.32},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
+  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
   doorX(-6.75,5.86,.95,U,2.5,-1);
-  for(const x of [-1.6,3.6])grilleX(x,5.69,1.5,U+1.05,1.27);
+  grilleX(3.6,5.69,1.5,U+1.05,1.27);
+  // 14.44.14/48: tall narrow courtyard-facing timber window. The upper
+  // half is shuttered; six bars cross the dark lower opening, facing +Z.
+  const courtWindowWood=verandaTimber.clone();courtWindowWood.color.setRGB(1.25,1.13,1.04);
+  b('Upper courtyard window dark recessed interior',-1.6,U+1.425,5.90,.85,1.65,.025,'black');
+  for(const x of [-2.075,-1.125])b('Upper courtyard tall wooden window jamb',x,U+1.425,6.015,.10,1.82,.12,courtWindowWood);
+  for(const y of [U+.555,U+2.295])b('Upper courtyard wooden window sill and head',-1.6,y,6.025,1.05,.095,.15,courtWindowWood);
+  b('Upper courtyard window middle rail',-1.6,U+1.42,6.04,.90,.075,.095,courtWindowWood);
+  for(let j=0;j<6;j++){
+    const x=-1.969+j*.146;
+    b('Upper courtyard closed upper shutter board',x,U+1.855,5.988,.14,.78,.055,courtWindowWood);
+    b('Upper courtyard lower window iron bar',x,U+.98,6.035,.020,.76,.030,'metal');
+  }
+  // Faint rain marks below the sill stay on the plaster surface.
+  for(let j=0;j<8;j++)detail(-2.0+j*.112,U+.39+(j%3)*.018,5.988,.009,.22-(j%3)*.025,.005,'stone');
+
   wallZ('Upper west gable',-11.85,0,5.86,U,2.83,[],'plaster');
   wallZ('Upper east end wall',11.85,0,5.86,U,2.83,[{c:1.5,w:.72,bottom:.80,top:2.30},{c:4.18,w:.72,bottom:.80,top:2.30}],'plaster');
   // 14.59.36, from the temple: two tall narrow barred windows in this end wall.
