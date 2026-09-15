@@ -859,10 +859,20 @@ export function buildHouse(K) {
   const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
   rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
   rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-2.80,.43,8.65);g.add(rustySheet);
-  K.cylinder(g,'Courtyard stone grinding bowl',-3.72,.18,8.73,.34,.30,.30,'stone',20);
-  K.cylinder(g,'Courtyard grinding bowl hollow',-3.72,.337,8.73,.24,.24,.02,'black',20);
-  const handStone=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mat('stone'));
-  handStone.name='Courtyard rounded grinding stone';handStone.scale.set(.18,.12,.11);handStone.position.set(-3.69,.42,8.74);g.add(handStone);
+  // 14.48.07: thick hollow stone basin with rainwater and a handled roller.
+  const bowlStone=mat('plaster').clone();bowlStone.color.set('#8b8c83');bowlStone.roughness=.94;
+  const bowlProfile=[[0,0],[.25,0],[.29,.035],[.325,.12],[.34,.27],[.337,.305],
+    [.315,.32],[.284,.302],[.277,.25],[.251,.09],[.20,.065],[0,.065]];
+  const grindingBowl=new THREE.Mesh(new THREE.LatheGeometry(bowlProfile.map(([r,y])=>new THREE.Vector2(r,y)),36),bowlStone);
+  grindingBowl.name='Courtyard hollow stone grinding bowl';grindingBowl.position.set(-3.72,.035,8.73);grindingBowl.castShadow=grindingBowl.receiveShadow=true;g.add(grindingBowl);
+  const bowlWater=new THREE.Mesh(new THREE.CircleGeometry(.277,36),new THREE.MeshStandardMaterial({color:'#666b50',roughness:.18,metalness:.18}));
+  bowlWater.name='Courtyard grinding bowl standing water';bowlWater.rotation.x=-Math.PI/2;bowlWater.position.set(-3.72,.289,8.73);g.add(bowlWater);
+  const handStone=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),bowlStone);
+  handStone.name='Courtyard elongated grinding roller';handStone.scale.set(.105,.095,.225);handStone.rotation.y=-.35;handStone.position.set(-3.72,.322,8.73);handStone.castShadow=true;g.add(handStone);
+  K.beam(g,'Courtyard grinding roller wooden handle',[-3.655,.322,8.555],[-3.596,.316,8.391],.038,verandaTimber);
+  const smallStone=new THREE.Mesh(new THREE.SphereGeometry(.057,12,8),mat('stone'));
+  smallStone.name='Courtyard bowl small dark rounded stone';smallStone.position.set(-3.91,.299,8.69);smallStone.scale.y=.75;g.add(smallStone);
+
 
   // Upper front range with airy perforated pink balcony.
   floor('Upper storey rear floor',0,3.9,23.75,4.2,U,'red',.22);
