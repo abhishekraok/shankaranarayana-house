@@ -248,6 +248,51 @@ export function buildHouse(K) {
   const doorBoss=K.cylinder(g,'Main door central carved boss',0,3.27,1.723,.092,.108,.065,verandaTimber,12);doorBoss.rotation.x=Math.PI/2;
   // IMG_20130720_175306, looking out: a sunken dark entry strip with
   // raised sitting platforms to either side, not a tall enclosed tunnel.
+  // User-labelled 14.49.15/14.49.42: above the right front window,
+  // facing out from inside. Reconstruct furnishings, leaving the family portrait out.
+  const cabinetWood=verandaTimber.clone();cabinetWood.color.set('#aa7960');
+  const cabinetDark=new THREE.MeshStandardMaterial({color:'#423b2e',roughness:1});
+  const cabinetBrass=new THREE.MeshStandardMaterial({color:'#9b8564',roughness:.72,metalness:.35});
+  for(const x of [2.68,3.32]){
+    b('Right front window closed timber shutter',x,1.98,2.17,.625,1.62,.07,cabinetWood);
+    for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.98,2.215,.046,1.62,.025,cabinetWood);
+    for(const y of [1.22,1.98,2.74])b('Right front shutter crossrail',x,y,2.215,.60,.053,.025,cabinetWood);
+  }
+  b('Right front window interior timber lintel',3,2.82,2.20,1.47,.13,.15,cabinetWood);
+  const cabinet=new THREE.Group();cabinet.name='Right front window suspended timber cabinet';g.add(cabinet);
+  K.box(cabinet,'Cabinet dark backing',3,3.18,2.23,1.39,.55,.06,cabinetDark);
+  for(const y of [2.91,3.48])K.box(cabinet,'Cabinet projecting shelf',3,y,2.35,1.55,.065,.36,cabinetWood);
+  for(const x of [2.28,3.72])K.box(cabinet,'Cabinet side upright',x,3.19,2.34,.065,.55,.25,cabinetWood);
+  for(const x of [2.51,3,3.49]){
+    K.box(cabinet,'Cabinet lower drawer face',x,3.026,2.455,.44,.15,.045,cabinetWood);
+    const knob=K.cylinder(cabinet,'Cabinet round brass knob',x,3.025,2.494,.024,.03,.036,cabinetBrass,12);knob.rotation.x=Math.PI/2;
+    for(const dx of [-.223,.223])K.box(cabinet,'Cabinet screened compartment frame',x+dx,3.28,2.46,.034,.28,.04,cabinetWood);
+    for(const y of [3.14,3.42])K.box(cabinet,'Cabinet screened compartment rail',x,y,2.46,.46,.03,.04,cabinetWood);
+  }
+  // Fine dark mesh remains a single inexpensive line mesh.
+  const meshLines=[];for(let x=2.31;x<3.70;x+=.018)meshLines.push(x,3.15,2.465,x,3.41,2.465);
+  for(let y=3.15;y<3.42;y+=.018)meshLines.push(2.31,y,2.465,3.70,y,2.465);
+  const screenGeom=new THREE.BufferGeometry();screenGeom.setAttribute('position',new THREE.Float32BufferAttribute(meshLines,3));
+  const cabinetScreen=new THREE.LineSegments(screenGeom,new THREE.LineBasicMaterial({color:'#6a6253',transparent:true,opacity:.48}));cabinetScreen.name='Cabinet fine wire screens';cabinet.add(cabinetScreen);
+  K.box(cabinet,'Cabinet side book shelf',3.94,2.92,2.34,.43,.055,.33,cabinetWood);
+  for(let j=0;j<7;j++){
+    const bookMat=new THREE.MeshStandardMaterial({color:['#8a7964','#a2987d','#b2a68c'][j%3],roughness:1});
+    K.box(cabinet,'Cabinet stacked book pages',3.94+(j%2)*.018,2.975+j*.047,2.34,.31+(j%3)*.019,.037,.22,bookMat);
+    K.box(cabinet,'Cabinet worn book cover',3.94+(j%2)*.018,2.998+j*.047,2.34,.34+(j%3)*.019,.008,.24,cabinetWood);
+  }
+  // Wall calendars are redrawn, with no source photo or personal content embedded.
+  function wallCalendar(x,y,w,h){
+    const c=document.createElement('canvas');c.width=256;c.height=384;const p=c.getContext('2d');
+    p.fillStyle='#deddd1';p.fillRect(0,0,256,384);p.strokeStyle='#ad8088';p.lineWidth=4;p.strokeRect(5,5,246,374);
+    p.fillStyle='#657c91';p.fillRect(12,12,232,52);p.fillStyle='#eee8d9';p.textAlign='center';p.font='20px serif';p.fillText('2011',128,47);
+    p.fillStyle='#695d56';p.font='16px serif';p.fillText('SEPTEMBER',128,90);
+    for(let row=0;row<5;row++)for(let col=0;col<7;col++){
+      const day=row*7+col-3;if(day<1||day>30)continue;p.fillStyle=col===0?'#a36569':'#58616a';p.font='18px serif';p.fillText(String(day),22+col*35,138+row*43);
+    }
+    const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
+    const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:1}));sheet.name='Right front wall 2011 paper calendar';sheet.position.set(x,y,2.205);g.add(sheet);
+  }
+  wallCalendar(1.93,1.98,.40,.64);wallCalendar(4.14,2.13,.40,.70);
   const innerEntryStone=K.M.cream.clone();innerEntryStone.color.set('#454943');innerEntryStone.roughness=.70;
   floor('Inner entrance dark worn walking strip',0,3.05,2.12,2.0,F+.006,innerEntryStone,.026);
   for(const side of [-1,1]){
