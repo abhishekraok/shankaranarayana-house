@@ -425,6 +425,16 @@ assert.ok(Number.isFinite(tour.duration)&&tour.duration>0,'Tour duration follows
 assert.equal(tour.points[0].photo,'house','A visitor starts at the house');
 const ordered=['godroom','courtyard','temple','templeouterrear','templeleft','templeacross','lakehouse'];
 let previous=-1;for(const key of ordered){const i=tour.points.findIndex(p=>p.photo===key);assert.ok(i>previous,'Visitor itinerary order: '+key);previous=i;}
+// The house leg must wrap the God room, rather than loop around the side veranda.
+const houseLeg=tour.points.slice(tour.points.findIndex(p=>p.photo==='godroom'),tour.points.findIndex(p=>p.label==='Leaving the house')+1);
+const around=houseLeg.map(p=>[p.p[0],p.p[2]]);
+let winding=0;for(let i=0;i<around.length;i++){
+  const a=around[i],b=around[(i+1)%around.length];
+  const aa=Math.atan2(a[1]-8.5,a[0]),bb=Math.atan2(b[1]-8.5,b[0]);
+  winding+=Math.atan2(Math.sin(bb-aa),Math.cos(bb-aa));
+}
+assert.ok(Math.abs(Math.abs(winding)-2*Math.PI)<1e-6,'House tour makes one complete circuit around the God room');
+assert.ok(houseLeg.every(p=>p.p[0]>-6&&p.p[0]<6),'House circuit stays close to the God room');
 assert.ok(tour.points.some(p=>p.label==='Behind the sanctum'),'Circle the inner sanctum');
 assert.ok(tour.points.some(p=>p.label==='Descending the gallery stair'),'Return via the stair');
 assert.ok(tour.points.every(p=>!(p.p[0]>14.6&&p.p[0]<21&&p.p[2]>0)),'Skip travel down the mud road');
