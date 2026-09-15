@@ -896,14 +896,32 @@ export function buildLandscape(K) {
   sb('upper terrace slab',1.65,6.05,4.1,3.25,.16,3.3,shopWhite);
   sb('upper weathered terrace parapet',1.65,6.44,2.52,3.25,.70,.16,shopWhite);
   sb('upper terrace side parapet',.10,6.44,4.05,.16,.70,3.20,shopWhite);
-  sb('cream end upper block',-7.0,4.16,4.3,3.55,2.12,4.30,shopCream,true);
+  // The ventilator is recessed through the front shell of the cream block.
+  sb('cream end upper block',-7,4.16,4.58,3.55,2.12,3.74,shopCream,true);
+  for(const a of [-8.105,-5.895])sb('cream ventilator side masonry',a,4.16,2.43,1.34,2.12,.56,shopCream,true);
+  sb('cream ventilator lower masonry',-7,3.40,2.43,.87,.60,.56,shopCream,true);
+  sb('cream ventilator upper masonry',-7,4.985,2.43,.87,.47,.56,shopCream,true);
   K.hipRoof(group,'Shop cream end hipped tile roof',64.3,-18.0,4.9,4.2,5.25,1.02);
-  sb('end block ventilator recess',-7.0,4.26,2.12,.70,1.0,.04,materials.darkSoil);
-  for(const a of [-7.39,-7.13,-6.87,-6.61])sb('cream ventilator upright',a,4.26,2.07,.065,1.11,.05,shopCream);
-  for(const y of [3.73,3.98,4.25,4.52,4.80])sb('cream ventilator crossbar',-7.0,y,2.07,.84,.06,.05,shopCream);
-  // Shop-scale details seen under the awning: stone bench, coconuts and crates.
-  for(const a of [-5.9,-3.0])sb('laterite bench support',a,.52,1.18,.48,.44,.66,'red');
-  sb('long timber shop bench',-4.45,.78,1.16,3.8,.12,.73,shopWood);
+  sb('end block ventilator dark interior',-7,4.225,2.70,.86,1.05,.018,materials.darkSoil);
+  const shopVentShape=new THREE.Shape();
+  shopVentShape.moveTo(-.43,-.525);shopVentShape.lineTo(.43,-.525);shopVentShape.lineTo(.43,.525);shopVentShape.lineTo(-.43,.525);shopVentShape.closePath();
+  // Six rows of chamfered openings retain the diagonals visible in 15.20.13.
+  for(let row=0;row<6;row++)for(let col=0;col<3;col++){
+    const x=(col-1)*.265,y=(row-2.5)*.166,hole=new THREE.Path();
+    for(const [i,[dx,dy]] of [[-.096,-.047],[-.048,-.069],[.096,-.047],[.096,.047],[.048,.069],[-.096,.047]].entries()) {
+      if(i===0)hole.moveTo(x+dx,y+dy);else hole.lineTo(x+dx,y+dy);
+    }
+    hole.closePath();shopVentShape.holes.push(hole);
+  }
+  const shopVent=new THREE.Mesh(new THREE.ExtrudeGeometry(shopVentShape,{depth:.075,bevelEnabled:false}),shopCream);
+  shopVent.name='Shop pierced cream masonry ventilator';shopVent.rotation.y=-Math.PI/2;shopVent.position.set(62.34,4.225,-18);group.add(shopVent);
+  // The photo separates a plank bench on laterite blocks from a grey stone seat.
+  const benchLaterite=K.M.plaster.clone();benchLaterite.color.set('#99634c');
+  const benchStone=K.M.plaster.clone();benchStone.color.set('#777970');
+  for(const a of [-4.35,-2.85])for(const y of [.415,.605])sb('laterite bench support course',a,y,1.03,.45,.18,.63,benchLaterite);
+  sb('short timber shop bench',-3.60,.735,1.03,2.22,.08,.76,shopWood);
+  sb('long grey masonry bench slab',-5.55,.76,1.53,2.28,.14,.62,benchStone);
+  for(const a of [-6.45,-4.70])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
   for(let j=0;j<24;j++){
     const a=2.6+(j%5)*.21,y=.42+Math.floor(j/8)*.15,depth=1.44+(Math.floor(j/5)%3)*.19;
     instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y,-25-a],[.14,.17,.15]);
