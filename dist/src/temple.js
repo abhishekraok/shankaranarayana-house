@@ -1230,6 +1230,40 @@ export function buildTemple(K) {
   }
   box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
   innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.03);
+  // 15.08.42: the perimeter column ledges have recessed relief panels,
+  // narrow dividing ribs and layered projecting copings. Individual figures are
+  // unresolved; use subdued foliage relief instead of inventing deity portraits.
+  const ledgeRecess=sanctumStone.clone(),ledgeRelief=sanctumStone.clone();
+  ledgeRecess.color.set('#999683');ledgeRelief.color.set('#a6a18e');
+  ledgeRecess.roughness=ledgeRelief.roughness=.98;
+  const recesses=[],ribs=[],foliage=[];
+  function ledgeFace(cx,cz,length,yaw){
+    const place=(u,y,out,w,h,d,angle=0)=>{
+      const c=Math.cos(yaw),sn=Math.sin(yaw);
+      return [cx+c*u+sn*out,y,cz-sn*u+c*out,w,h,d,0,yaw,angle];
+    };
+    for(const [y,h,out,d] of [[.593,.045,.012,.055],[.915,.045,.014,.055],[.976,.035,.042,.10]])
+      ribs.push(place(0,y,out,length,h,d));
+    const count=Math.floor(length/.72),spacing=length/count;
+    for(let j=0;j<count;j++){
+      const u=-length/2+(j+.5)*spacing;
+      recesses.push(place(u,.754,.008,spacing-.09,.265,.018));
+      for(const side of [-1,1])ribs.push(place(u+side*(spacing/2-.027),.755,.031,.046,.275,.044));
+      // A shallow central stem and paired leaves catch light as real relief.
+      ribs.push(place(u,.753,.028,.013,.207,.018));
+      for(let row=0;row<3;row++)for(const side of [-1,1]){
+        const y=.684+row*.060,du=side*(.040+row*.012);
+        foliage.push(place(u+du,y,.025,.029,.047,.009,-side*.60));
+      }
+      foliage.push(place(u,.856,.025,.025,.026,.010));
+    }
+  }
+  ledgeFace(34.175,24.5,8,Math.PI/2);
+  ledgeFace(43.825,24.5,8,-Math.PI/2);
+  ledgeFace(39,28.395,14.1,Math.PI);
+  instances('Inner ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),ledgeRecess,recesses);
+  instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
+  instances('Inner ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),ledgeRelief,foliage);
   for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.03,2.45,.77);
   for(const x of [36.9,40.5]){
     box('Inner rear white cloth curtain',x,2.18,29.39,2.25,2.15,.025,whiteTrim);
