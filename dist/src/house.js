@@ -154,7 +154,15 @@ export function buildHouse(K) {
   fenceX(2.15,4.6,5.83); fenceX(6.3,7.3,5.83);
   fenceZ(-8.35,6.15,10.0); fenceZ(-8.35,11.65,14.5);
   fenceZ(7.25,6.1,9.3); fenceZ(7.25,11.0,14.5);
-  fenceX(-8.3,-3.6,14.55); fenceX(-1.8,7.3,14.55);
+  // 14.46.04: the rear veranda is screened by weathered horizontal boards.
+  for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
+    for(let row=0;row<7;row++) {
+      const board=b('Courtyard weathered horizontal timber board',(a+end)/2,F+.10+row*.135,14.55,end-a,.112,.075,verandaTimber);
+      board.rotation.z=.004*Math.sin(row*2.1);
+    }
+    for(let x=a+.12;x<end;x+=1.13)b('Courtyard board fence upright',x,F+.57,14.50,.075,1.24,.11,verandaTimber);
+    K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
+  }
   // Court entry steps match every deliberate veranda opening.
   for(const [x,z,w,d] of [[-4.9,6.03,1.55,.75],[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55],[7.15,10.15,.75,1.55],[-2.7,14.35,1.65,.75]]) {
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
@@ -399,12 +407,14 @@ export function buildHouse(K) {
   leafmesh.name='Tulsi leaves';leafmesh.castShadow=true;g.add(leafmesh);
   // Small moist garden strips soften the open court, leaving its crossed paths clear.
   const weeds=[];
-  for(let i=0;i<650;i++){const x=-7.9+((i*71)%647)/647*14.6,z=6.4+((i*157)%643)/643*7.7;
+  let courtSeed=27092011;
+  const courtRandom=()=>{courtSeed=(Math.imul(courtSeed,1664525)+1013904223)>>>0;return courtSeed/4294967296;};
+  for(let i=0;i<6200;i++){const x=-7.9+courtRandom()*14.6,z=6.4+courtRandom()*7.7;
     // Leave the observed walking strips and cross-courtyard routes readable.
     if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+6.5)<.65)continue;
     weeds.push({x,z,a:i*2.3999});}
   const weedMesh=new THREE.InstancedMesh(new THREE.SphereGeometry(1,6,3),mat('leaf'),weeds.length);
-  weeds.forEach((p,i)=>{helper.position.set(p.x,.075+(i%5)*.016,p.z);helper.rotation.set(0,p.a,.1);helper.scale.set(.10+(i%4)*.027,.025,.12);helper.updateMatrix();weedMesh.setMatrixAt(i,helper.matrix);});weedMesh.name='Irregular courtyard ground cover';g.add(weedMesh);
+  weeds.forEach((p,i)=>{helper.position.set(p.x,.075+(i%5)*.016,p.z);helper.rotation.set(0,p.a,.1);helper.scale.set(.033+(i%4)*.012,.018,.055);helper.updateMatrix();weedMesh.setMatrixAt(i,helper.matrix);});weedMesh.name='Irregular courtyard ground cover';g.add(weedMesh);
   const gardenLeaves=[];
   for(const [cx,cz] of [[-7.4,7.5],[-7.4,12.7],[5.9,7.5],[5.9,12.8]]) {
     for(let i=0;i<26;i++) {
@@ -419,6 +429,53 @@ export function buildHouse(K) {
     b('Worn courtyard paving slab',-2.72,.065,11.0+i*.66,.78,.075,.51,'paleStone');
   }
 
+  // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
+  // the Tulsi side of the shrine, rising toward the upper front range.
+  const courtStairX=-6.75,courtStairFront=6.55,courtStairBack=12.10;
+  const courtStairStone=mat('paleStone').clone();courtStairStone.color.set('#807e70');
+  const courtStairWall=mat('plaster').clone();courtStairWall.color.set('#858779');
+  for(let i=0;i<24;i++){
+    const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
+    const top=F+(i+1)*(U-F)/24;
+    b('Courtyard exposed masonry stair tread',courtStairX,top-.075,z,.88,.15,(courtStairBack-courtStairFront)/24+.012,courtStairStone);
+  }
+  K.ramp(courtStairX,(courtStairFront+courtStairBack)/2,.88,courtStairBack-courtStairFront,'-z',F,U);
+  K.beam(g,'Courtyard stair sloping underside',[courtStairX,F-.13,courtStairBack],[courtStairX,U-.13,courtStairFront],.89,courtStairWall,.18);
+  for(const x of [courtStairX-.51,courtStairX+.51]){
+    const cheek=new THREE.Shape();cheek.moveTo(courtStairFront,U-.16);cheek.lineTo(courtStairBack,F-.16);
+    cheek.lineTo(courtStairBack,F+.73);cheek.lineTo(courtStairFront,U+.73);cheek.closePath();
+    const panel=new THREE.Mesh(new THREE.ExtrudeGeometry(cheek,{depth:.14,bevelEnabled:false}),courtStairWall);
+    panel.name='Courtyard stair continuous sloping parapet';panel.rotation.y=-Math.PI/2;panel.position.x=x+.07;panel.castShadow=true;panel.receiveShadow=true;g.add(panel);
+    K.beam(g,'Courtyard stair red coping',[x,F+.74,courtStairBack],[x,U+.74,courtStairFront],.18,'red',.065);
+    for(let i=0;i<24;i++){
+      const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
+      const y=F+(i+.5)*(U-F)/24;
+      K.blocker(x,z,.14,(courtStairBack-courtStairFront)/24,y-.17,y+.78);
+    }
+  }
+  // The white wall below the flight encloses the room beside the planted strip.
+  const underStair=new THREE.Shape();underStair.moveTo(courtStairFront,F);
+  underStair.lineTo(courtStairBack,F);underStair.lineTo(courtStairFront,U-.18);underStair.closePath();
+  const underWall=new THREE.Mesh(new THREE.ExtrudeGeometry(underStair,{depth:.14,bevelEnabled:false}),mat('plaster'));
+  underWall.name='White room wall beneath courtyard stair';underWall.rotation.y=-Math.PI/2;underWall.position.x=courtStairX+.51;underWall.receiveShadow=true;g.add(underWall);
+  for(let i=0;i<24;i++){
+    const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
+    K.blocker(courtStairX+.44,z,.14,(courtStairBack-courtStairFront)/24,F,F+(i+.5)*(U-F)/24);
+  }
+  floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
+  floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U,'paleStone',.18);
+  // Loose corrugated sheet rests against the shrine plinth, below the stair view.
+  const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,48,8),sp=sheetGeometry.attributes.position;
+  for(let i=0;i<sp.count;i++)sp.setZ(i,.034*Math.cos(sp.getX(i)*Math.PI/.092));
+  sheetGeometry.computeVertexNormals();
+  const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
+  rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
+  rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-2.80,.43,8.65);g.add(rustySheet);
+  K.cylinder(g,'Courtyard stone grinding bowl',-3.72,.18,8.73,.34,.30,.30,'stone',20);
+  K.cylinder(g,'Courtyard grinding bowl hollow',-3.72,.337,8.73,.24,.24,.02,'black',20);
+  const handStone=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),mat('stone'));
+  handStone.name='Courtyard rounded grinding stone';handStone.scale.set(.18,.12,.11);handStone.position.set(-3.69,.42,8.74);g.add(handStone);
+
   // Upper front range with airy perforated pink balcony.
   floor('Upper storey rear floor',0,3.9,23.75,4.2,U,'red',.22);
   floor('Upper balcony floor',1.8625,.9,20.025,1.8,U,'red',.22);
@@ -432,9 +489,10 @@ export function buildHouse(K) {
     for(const dx of [-.50,.50])detail(x+dx,U+1.49,1.64,.07,1.26,.09,verandaTimber);
     for(const y of [U+.88,U+2.1])detail(x,y,1.64,1.07,.065,.09,verandaTimber);
   }
-  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:1.5,bottom:1.05,top:2.32},{c:-1.6,w:1.5,bottom:1.05,top:2.32},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
+  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:1.5,bottom:1.05,top:2.32},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
-  for(const x of [-6.75,-1.6,3.6])grilleX(x,5.69,1.5,U+1.05,1.27);
+  doorX(-6.75,5.86,.95,U,2.5,-1);
+  for(const x of [-1.6,3.6])grilleX(x,5.69,1.5,U+1.05,1.27);
   wallZ('Upper west gable',-11.85,0,5.86,U,2.83,[],'plaster');
   wallZ('Upper east end wall',11.85,0,5.86,U,2.83,[{c:1.5,w:.72,bottom:.80,top:2.30},{c:4.18,w:.72,bottom:.80,top:2.30}],'plaster');
   // 14.59.36, from the temple: two tall narrow barred windows in this end wall.
