@@ -313,6 +313,27 @@ export function buildHouse(K) {
     b('God room blue upper louver frame',side*1.44,3.77,screenZ,.86,.31,.12,shrineBlue);
     for(let j=0;j<3;j++)b('God room upper louver slit',side*1.44,3.68+j*.09,screenZ-.075,.70,.042,.07,shrineTimber);
   }
+  // User-located 14.36.56 / 14.37.30: a single shelf above the door,
+  // seen from INSIDE the God room, with seven differently sized old containers.
+  b('God room inside door shelf',0,3.61,7.09,2.02,.12,.36,shrineTimber);
+  b('God room shelf worn front lip',0,3.68,7.285,2.07,.07,.055,verandaTimber);
+  b('God room shelf dark timber backing',0,3.93,6.94,2.05,.54,.055,shrineTimber);
+  const shelfTinColors=['#b5b6a1','#94aead','#796960','#bebba6','#adb7b2','#9d3338','#929c83'];
+  // Screen-left to screen-right when facing back toward the entry (-Z).
+  const shelfTins=[[-.83,.12,.35],[-.55,.145,.40],[-.25,.115,.32],[0,.082,.25],[.24,.12,.35],[.50,.112,.34],[.76,.12,.37]];
+  shelfTins.forEach(([x,r,h],i)=>{
+    const tinMaterial=new THREE.MeshStandardMaterial({color:shelfTinColors[i],roughness:.94});
+    const fadedTin=tinMaterial.clone();fadedTin.color.lerp(new THREE.Color('#b9b09a'),.30);
+    const tin=new THREE.Mesh(i===0?new THREE.LatheGeometry([[.08,0],[r,.035],[r,h*.72],[.085,h*.88],[.085,h]].map(([r,y])=>new THREE.Vector2(r,y)),20):new THREE.CylinderGeometry(r,r*.98,h,20),tinMaterial);
+    tin.name='God room shelf container '+(i+1);tin.position.set(x,3.68+(i===0?0:h/2),7.13);tin.castShadow=true;tin.receiveShadow=true;g.add(tin);
+    K.cylinder(g,'God room container lid',x,3.68+h+.012,7.13,i===0?.095:r+.006,i===0?.095:r+.006,.024,tinMaterial,20);
+    // Small irregular faded patches follow the cylinder surface; no invented label text.
+    if(i>0)for(let j=0;j<18;j++){
+      const a=j*2.3999,rr=r+.0015;
+      const patch=new THREE.Mesh(new THREE.CircleGeometry(.008+(j%4)*.005,5),fadedTin);
+      patch.name='Faded paper and corrosion on shelf tin';patch.position.set(x+Math.sin(a)*rr,3.72+(j*13%29)/29*(h-.08),7.13+Math.cos(a)*rr);patch.rotation.y=a;g.add(patch);
+    }
+  });
   // Four stacked X openings per leaf, as in the supplied photograph.
   for(const x of [-.87,.87])b('God room blue door jamb',x,2.30,screenZ-.04,.18,2.56,.24,gatePaint,true);
   b('God room blue lintel',0,3.58,screenZ-.04,1.92,.20,.24,gatePaint);
@@ -386,7 +407,13 @@ export function buildHouse(K) {
   K.beam(g,'Shrine bulb cord',[-1.10,3.2,8.75],[-1.10,3.57,8.75],.018,'black');
   // A small point lamp keeps the source altar visible in the deep veranda.
   const shrineLight=new THREE.PointLight(0xffd49b,2.8,5,2);shrineLight.position.set(0,2.85,7.3);g.add(shrineLight);
-  K.hipRoof(g,'Small shrine tiled roof',0,8.0,4.9,4.95,3.64,1.0);
+  const shrineRoof=K.hipRoof(g,'Small shrine tiled roof',0,8.0,4.9,4.95,3.64,1.0);
+  // The shelf close-ups show dark boarded timber above, not exposed tile faces.
+  const shrineRoofTiles=shrineRoof.children.find(o=>o.name==='Small shrine tiled roof tiles');
+  const roofLiningMaterial=shrineTimber.clone();roofLiningMaterial.side=THREE.DoubleSide;
+  const roofLining=new THREE.Mesh(shrineRoofTiles.geometry,roofLiningMaterial);
+  roofLining.name='God room dark timber roof lining';roofLining.position.copy(shrineRoofTiles.position);roofLining.position.y-=.055;shrineRoof.add(roofLining);
+
 
   // Tulsi pedestal is left of the projecting shrine, as in the plan.
   const tulsiStone=new THREE.MeshStandardMaterial({color:'#49463c',roughness:.98,bumpMap:mat('stone').map,bumpScale:.018});
@@ -699,13 +726,6 @@ export function buildHouse(K) {
   K.cylinder(g,'Vessel narrow rim',-7.3,F+.79,16.95,.23,.28,.07,'earth',18);
   K.cylinder(g,'Rear washing basin',-6.4,F+.13,15.2,.48,.44,.25,'paleStone',20,true);
   K.cylinder(g,'Basin dark interior',-6.4,F+.264,15.2,.36,.36,.025,'black',20);
-  for(const y of [F+.45,F+1.02,F+1.61,F+2.19])detail(-11.38,y,13.3,.68,.075,1.60,'wood');
-  for(const z of [12.58,14.02])detail(-11.43,F+1.12,z,.07,2.2,.07,'wood');
-  for(let row=0;row<3;row++)for(let i=0;i<5;i++) {
-    const z=12.71+i*.27,y=F+.63+row*.58;
-    K.cylinder(g,'Shelf storage tin',-11.34,y,z,.10,.10,.29,i%3===0?'red':i%3===1?'metal':'cream',12);
-    K.cylinder(g,'Tin lid',-11.34,y+.155,z,.108,.108,.028,'metal',12);
-  }
   // A restrained clothesline recalls the lived-in passages without obstructing movement.
   K.beam(g,'Rear veranda clothesline',[-7.5,2.95,15.1],[5.8,2.90,15.1],.014,'black');
   const cloth1=new THREE.MeshStandardMaterial({color:0x8f627d,roughness:1,side:THREE.DoubleSide});

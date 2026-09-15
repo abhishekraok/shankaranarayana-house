@@ -51,6 +51,7 @@ photos.verandaleft={url:'veranda-left-passage.jpg',caption:'September 2011 · Be
 photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[.05,.45,1.32],target:[4.10,1.65,1.15],fov:72};
 photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-.05,.45,1.32],target:[-4.10,1.65,1.15],fov:72};
 for(const key of ['veranda','verandaleft','verandaseat','verandaright'])destinations[key]=photos[key];
+destinations.godroomshelf={p:[0,1.08,8.65],target:[0,3.77,7.05],fov:48};
 destinations.courtstair={p:[-4,.035,12],target:[-4.3,1.8,6.2],fov:72};
 destinations.courtstairtop={p:[-6.75,3.85,6.5],target:[-3.8,1.5,14.55],fov:72};
 photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-3.4,.035,6.85],target:[-5.0,1.2,11]};
