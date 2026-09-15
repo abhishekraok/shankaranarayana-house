@@ -303,8 +303,9 @@ export function buildTemple(K) {
     }
   }
   // Dark upper rooms and diamond transoms behind the shaded balcony.
-  box('Courtyard gallery shaded upper back',40.05,5.36,3.7,8.6,2.40,.18,oldStone,true);
-  for(const x of [37.8,41.8]){
+  for(const [a,b] of [[35.75,41.16],[42.44,44.35]])box('Courtyard gallery shaded upper back',(a+b)/2,5.36,3.7,b-a,2.40,.18,oldStone,true);
+  box('Gallery hall doorway header',41.8,6.40,3.7,1.28,.32,.18,oldStone,true);
+  for(const x of [37.8]){
     box('Courtyard gallery upper timber doorway',x,5.22,3.83,1.28,2.12,.11,K.M.wood);
     box('Courtyard gallery upper doorway shadow',x,5.02,3.91,1.08,1.55,.035,dark);
     for(let j=0;j<6;j++)for(const sign of [-1,1])K.beam(g,'Courtyard upper doorway diamond transom',[x-.45+j*.18,5.68,3.96],[x-.45+j*.18+sign*.24,6.10,3.96],.034,whiteTrim);
@@ -350,6 +351,59 @@ export function buildTemple(K) {
   }
   box('Entrance upper closed central door frame',39,5.12,-.39,1.58,2.09,.14,upperTimber);
   for(const x of [38.63,39.37])box('Entrance upper closed timber door leaf',x,5.12,-.49,.72,1.94,.08,doorwayBlue);
+  // 15.12.42: upper entrance hall, looking along blue windows past rows
+  // of folding chairs and narrow tables. Arrangement is inferred in this wing.
+  const galleryChair=mat('#287d91',.48,{metalness:.22}),galleryTable=mat('#96988d',.35);
+  const upperInside=K.M.plaster.clone();upperInside.color.set('#dcd8c7');
+  const upperConcrete=K.M.plaster.clone();upperConcrete.color.set('#8c8b81');upperConcrete.roughness=.86;
+  floor('Upper hall worn gray concrete floor',37.8,1.65,15.2,3.48,4.09,upperConcrete);
+  box('Upper hall pale interior wall face',39,5.30,-.095,17.4,2.38,.014,upperInside);
+  const backShape=new THREE.Shape();backShape.moveTo(-.23,-.18);backShape.lineTo(.23,-.18);backShape.lineTo(.23,.08);backShape.quadraticCurveTo(.23,.20,.11,.20);backShape.lineTo(-.11,.20);backShape.quadraticCurveTo(-.23,.20,-.23,.08);backShape.closePath();
+  const chairBackGeometry=new THREE.ExtrudeGeometry(backShape,{depth:.022,bevelEnabled:true,bevelSize:.012,bevelThickness:.007,bevelSegments:2,steps:1});
+  box('Upper hall red interior wall skirt',39,4.42,-.08,17.4,.68,.025,red);
+  for(const x of [33.0,35.3,42.7,45.0]){
+    for(const dx of [-.58,.58])box('Upper hall blue inner window jamb',x+dx,5.39,-.06,.09,1.66,.10,blue);
+    for(const y of [4.58,6.20])box('Upper hall blue inner window rail',x,y,-.06,1.24,.09,.10,blue);
+    box('Upper hall inner window shadow',x,5.39,-.075,1.1,1.55,.014,dark);
+    for(let y=4.69;y<6.18;y+=.16)box('Upper hall white horizontal window bars',x,y,.01,1.1,.023,.03,whiteTrim);
+  }
+  for(const x of [31.8,34.2,36.6,39,41.4,43.8]){
+    box('Upper hall square plaster column',x,5.32,2.08,.35,2.48,.35,upperInside,true);
+    box('Upper hall square column red foot',x,4.42,2.08,.37,.68,.37,red);
+    const crossBeam=box('Upper hall white transverse beam',x,6.34,1.65,.36,.28,3.5,upperInside);K.roofs.push(crossBeam);
+  }
+  const upperCeiling=box('Upper hall flat plaster ceiling',37.8,6.53,1.62,15.2,.12,3.55,upperInside);K.roofs.push(upperCeiling);
+  // Tubular crossed legs and curved metal back distinguish folding chairs
+  // from the plastic stacks in the downstairs hall.
+  for(let i=0;i<17;i++){
+    const x=32.0+i*.67,z=1.61;
+    box('Upper hall folding chair seat',x,4.53,z,.49,.045,.43,galleryChair);
+    const back=mesh('Upper hall folding chair rounded blue back',chairBackGeometry,galleryChair,x,4.84,z+.23);back.rotation.x=-.12;
+    for(const dx of [-.225,.225]){
+      K.beam(g,'Upper hall folding chair crossed leg',[x+dx,4.1,z-.30],[x+dx,4.61,z+.20],.023,galleryChair);
+      K.beam(g,'Upper hall folding chair back leg',[x+dx,4.1,z+.32],[x+dx,5.04,z+.19],.023,galleryChair);
+    }
+    K.blocker(x,z,.53,.62,4.08,5.07);
+  }
+  for(const x of [33.3,36.1,38.9,42.0]){
+    box('Upper hall narrow folding tabletop',x,4.81,.88,2.38,.045,.48,galleryTable);
+    for(const dx of [-.82,.82]){
+      K.beam(g,'Upper hall table folding leg',[x+dx-.20,4.1,.63],[x+dx+.20,4.79,1.08],.027,dark);
+      K.beam(g,'Upper hall table crossed leg',[x+dx+.20,4.1,.63],[x+dx-.20,4.79,1.08],.027,dark);
+    }
+    K.blocker(x,.88,2.38,.48,4.08,4.84);
+  }
+  box('Upper hall low inner roof white base',38.8,4.43,2.94,4.65,.70,1.35,upperInside,true);
+  const hallRoofTile=K.M.tile.clone();hallRoofTile.color.set('#bc7951');
+  K.hipRoof(g,'Upper hall photographed small tiled roof',38.8,2.94,5.1,1.65,4.80,.65,hallRoofTile);
+  for(const x of [33.8,37.8,42.0]){
+    cyl('Upper hall fan suspension',x,6.16,1.25,.015,.015,.44,dark,8);
+    cyl('Upper hall ceiling fan motor',x,5.92,1.25,.11,.11,.08,dark,12);
+    for(let j=0;j<3;j++){
+      const a=j*Math.PI*2/3,b=box('Upper hall ceiling fan blade',x+.29*Math.cos(a),5.92,1.25+.29*Math.sin(a),.48,.022,.09,dark);b.rotation.y=-a;
+    }
+    box('Upper hall tube light',x,6.18,.03,1.25,.055,.065,whiteTrim);
+  }
   // Diamond transoms are genuinely open, leaving the interior visible below.
   const diamonds=[];
   for(const [a,b] of [[32.3,36.35],[36.95,41.05],[41.65,45.7]]){
@@ -370,7 +424,7 @@ export function buildTemple(K) {
     K.beam(g,'Courtyard gallery slender timber support',[x,4.08,6.02],[x,6.41,6.02],.065,K.M.wood);
   }
 
-  for(const z of [-1.7,.2,2.1,4,5.9])box('Entrance exposed canopy beam',39,6.39,z,17.8,.21,.18,K.M.wood);
+  for(const z of [-1.7,.2,2.1,4,5.9])box('Entrance exposed canopy beam',39,6.39,z,17.8,.21,.18,z>0&&z<3?upperInside:K.M.wood);
   box('Entrance balcony projecting white slab',39,3.94,-1.96,18.45,.21,1.02,white);
   box('Entrance balcony red slab edge',39,4.03,-2.46,18.55,.16,.12,red);
   // The two leaves are open along the sides of the low central approach.
