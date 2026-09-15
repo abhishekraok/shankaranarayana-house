@@ -1,3 +1,4 @@
+import {optimizeStaticScene} from './optimize.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {Reflector} from '../vendor/Reflector.js';
@@ -10,14 +11,16 @@ import {createPhotoTour} from './tour.js';
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
 scene.background=new THREE.Color(0xa3b7b2);scene.fog=new THREE.FogExp2(0xa3b7b2,.005);
+const phoneMode=matchMedia('(pointer: coarse)').matches;
+let renderScale=phoneMode?1:Math.min(devicePixelRatio,1.6);
 let renderer;
-try{renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
+try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
+renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
 $('world').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3D scene. Click to look around; WASD or arrow keys to walk.');
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-8,4.2,-20);camera.lookAt(1,2.1,5);
 scene.add(new THREE.HemisphereLight(0xdcebea,0x656048,1.5));
 scene.add(new THREE.AmbientLight(0xdbe3df,.7));
-const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(4096,4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
+const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
 const fill=new THREE.DirectionalLight(0xc1dce0,.4);fill.position.set(35,20,35);scene.add(fill);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#78a1b6')},bottom:{value:new THREE.Color('#c6d5cc')}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top;uniform vec3 bottom;void main(){float h=pow(max(normalize(p).y,0.),.48);gl_FragColor=vec4(mix(bottom,top,h),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));scene.add(sky);
 
@@ -28,10 +31,14 @@ ground(-80,0,124,240);ground(108,0,108,240);ground(18,-83,72,80);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
 ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
 const landscape=buildLandscape(K);scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
+const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs));
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:new THREE.Color('#547a42')},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);uv.xy+=vec2(a,b)*.0016*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7));gl_FragColor=vec4(mix(lake,reflection,.25+grazing*.42),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x497a36,textureWidth:768,textureHeight:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-.75,-27.5);water.name='Reflective lake water';scene.add(water);
+const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x497a36,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-.75,-27.5);water.name='Reflective lake water';scene.add(water);
+// Phone reflections update every other frame; ripples still animate each frame.
+const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
+water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)reflectFrame.apply(this,args);};
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
@@ -195,12 +202,22 @@ function move(dt){moveWheel(dt);if(!['walk','fly'].includes(mode))return;let for
 }
 function location(x,z,y){if(x>-8&&x<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>18.8&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>24&&x<54&&z>-1&&z<38.3){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>30.3)return x>45?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(x>-12&&x<12&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(x<-8&&z>14)return 'The kitchen';if(Math.abs(x)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(x<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(x)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-10&&x<58&&x>-24)return x>25&&x<31&&z<-36?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta(),dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+let qualityFrames=0,qualityTime=0,qualityWarmup=0;
+function adaptPhoneResolution(frameTime){
+  if(!phoneMode||document.hidden||frameTime>.25)return;
+  if(qualityWarmup<120){qualityWarmup++;return;}
+  qualityTime+=frameTime;qualityFrames++;
+  if(qualityFrames<120)return;
+  const average=qualityTime/qualityFrames;
+  if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
+  qualityTime=0;qualityFrames=0;
+}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
-window.houseWalk={ready:true,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
+window.houseWalk={ready:true,optimization,phoneMode,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
 if(document.modelContext?.registerTool){
  const c=document.modelContext;
  try{Promise.resolve(c.registerTool({name:'visit_place',description:'Move to a place in the Shankaranarayana reconstruction, using the same destinations as the Go to menu.',inputSchema:{type:'object',properties:{place:{type:'string',enum:Object.keys(destinations)}},required:['place'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!destinations[input.place]||Object.keys(input).length!==1)throw new Error('Choose a listed place.');teleport(destinations[input.place]);return window.houseWalk.getState();}})).catch(()=>{});}catch{}

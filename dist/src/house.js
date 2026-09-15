@@ -150,24 +150,24 @@ export function buildHouse(K) {
     }
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
-  fenceX(-8.1,-5.7,5.83); fenceX(-4.1,-2.15,5.83);
+  fenceX(-8.1,-7.3,5.83); fenceX(-6.1,-5.7,5.83); fenceX(-4.1,-2.15,5.83);
   fenceX(2.15,4.6,5.83);
   // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
   // entering, a stepped turquoise pedestal sits over a three-stone niche.
   // Place it beside the entrance-side court steps; spacing remains inferred.
-  const pedestalX=6.66,pedestalZ=5.83;
+  const pedestalX=-6.66,pedestalZ=5.83;
   const nicheOxide=K.M.plaster.clone();nicheOxide.color.set('#b99b92');nicheOxide.roughness=1;
   const pedestalAqua=K.M.plaster.clone();pedestalAqua.color.set('#82c8c2');pedestalAqua.roughness=.98;
-  b('Entrance pedestal masonry left cheek',6.285,.24,5.96,.13,.41,.16,nicheOxide,true);
-  b('Entrance pedestal masonry right cheek',7.12,.24,5.96,.23,.41,.16,nicheOxide,true);
-  b('Entrance pedestal niche lintel',6.66,.362,5.96,.88,.175,.16,nicheOxide);
-  b('Entrance pedestal niche dark back',6.66,.154,5.73,.64,.23,.025,'stone');
-  b('Entrance pedestal niche stone sill',6.66,.055,5.94,.76,.04,.49,'stone');
-  b('Entrance pedestal worn coping',6.66,.466,5.90,1.03,.032,.36,'stone');
+  b('Entrance pedestal masonry left cheek',-6.285,.24,5.96,.13,.41,.16,nicheOxide,true);
+  b('Entrance pedestal masonry right cheek',-7.12,.24,5.96,.23,.41,.16,nicheOxide,true);
+  b('Entrance pedestal niche lintel',-6.66,.362,5.96,.88,.175,.16,nicheOxide);
+  b('Entrance pedestal niche dark back',-6.66,.154,5.73,.64,.23,.025,'stone');
+  b('Entrance pedestal niche stone sill',-6.66,.055,5.94,.76,.04,.49,'stone');
+  b('Entrance pedestal worn coping',-6.66,.466,5.90,1.03,.032,.36,'stone');
   for(const [w,d,h,y] of [[.82,.49,.125,.529],[.70,.40,.13,.6565],[.56,.29,.105,.774]])
     b('Entrance three-tier turquoise pedestal',pedestalX,y,pedestalZ,w,h,d,pedestalAqua,true);
   const nicheStone=new THREE.MeshStandardMaterial({color:'#8b9871',roughness:1});
-  for(const [j,x,h] of [[0,6.44,.175],[1,6.64,.19],[2,6.84,.175]]){
+  for(const [j,x,h] of [[0,-6.44,.175],[1,-6.64,.19],[2,-6.84,.175]]){
     const geom=new THREE.BoxGeometry(.175,h,.06,3,3,1),pos=geom.attributes.position;
     for(let k=0;k<pos.count;k++)pos.setX(k,pos.getX(k)+.006*Math.sin(k*2.3+j));
     geom.computeVertexNormals();const stone=new THREE.Mesh(geom,j===1?K.M.stone:nicheStone);
@@ -175,7 +175,7 @@ export function buildHouse(K) {
     if(j!==1)for(const dx of [-.027,0,.027])b('Entrance niche faded red pigment',x+dx,.194,6.083,.008,.065,.002,'red');
   }
   const offeringCup=new THREE.Mesh(new THREE.LatheGeometry([[.014,0],[.028,.006],[.034,.022],[.029,.025],[.020,.01]].map(p=>new THREE.Vector2(...p)),16),K.M.stone);
-  offeringCup.name='Entrance niche small offering cup';offeringCup.position.set(6.77,.076,6.08);g.add(offeringCup);
+  offeringCup.name='Entrance niche small offering cup';offeringCup.position.set(-6.77,.076,6.08);g.add(offeringCup);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
   function stairSideFence(a,end){
@@ -947,7 +947,9 @@ export function buildHouse(K) {
   const gutter=K.cylinder(rearRoof,'Rear veranda pale rain gutter',2.1,3.48,14.19,.065,.065,8.3,gutterMat,16);gutter.rotation.z=Math.PI/2;
   for(const x of [-1.8,.4,2.6,4.8,6.15])K.beam(rearRoof,'Rear gutter timber support',[x,3.42,14.52],[x,3.42,14.10],.045,verandaTimber);
 
-  K.hipRoof(g,'East passage tiled strip',8.1,10.1,2.40,8.8,3.6,.58);
+  // Cover the full passage up to the exterior wall; the old narrow strip
+  // left a 2.5 m opening beside the enclosed east rooms.
+  K.hipRoof(g,'East passage continuous tiled roof',9.65,10.1,5.05,8.8,3.6,.90);
   K.hipRoof(g,'East rear service roof',10.1,15.8,4.2,5.25,3.62,.85);
   // Low white block with its own hipped roof, visible at the house's temple end.
   // Its enclosed interior and exact connection are not visible in the references.
@@ -1036,13 +1038,13 @@ export function buildHouse(K) {
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
   // Pendulum clock hangs on the turquoise corridor wall.
-  detail(-11.68,2.25,6.7,.20,.91,.43,'wood');
+  detail(11.68,2.25,6.7,.20,.91,.43,'wood');
   const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,28),mat('cream'));
-  clockFace.rotation.y=Math.PI/2;clockFace.position.set(-11.57,2.46,6.7);clockFace.name='Ivory wall clock face';g.add(clockFace);
-  K.beam(g,'Clock minute hand',[-11.55,2.46,6.7],[-11.55,2.59,6.72],.013,'black');
-  K.beam(g,'Clock hour hand',[-11.54,2.46,6.7],[-11.54,2.46,6.60],.017,'black');
-  K.beam(g,'Pendulum rod',[-11.55,2.18,6.7],[-11.55,1.96,6.7],.015,'gold');
-  const pendulum=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),mat('gold'));pendulum.position.set(-11.55,1.96,6.7);g.add(pendulum);
+  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,6.7);clockFace.name='Ivory wall clock face';g.add(clockFace);
+  K.beam(g,'Clock minute hand',[11.55,2.46,6.7],[11.55,2.59,6.72],.013,'black');
+  K.beam(g,'Clock hour hand',[11.54,2.46,6.7],[11.54,2.46,6.60],.017,'black');
+  K.beam(g,'Pendulum rod',[11.55,2.18,6.7],[11.55,1.96,6.7],.015,'gold');
+  const pendulum=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),mat('gold'));pendulum.position.set(11.55,1.96,6.7);g.add(pendulum);
   // Rear kitchen: low masonry stove, metal pots and an old storage shelf.
   b('Kitchen cooking platform',-10.9,F+.43,17.12,1.45,.86,1.05,'paleStone',true);
   b('Blackened stove top',-10.9,F+.885,17.12,1.45,.055,1.05,'black');

@@ -1,0 +1,33 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+const assert=require('node:assert/strict');
+(async()=>{
+ const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});
+ const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
+ const errors=[];page.on('pageerror',e=>errors.push(String(e)));
+ await page.goto('http://127.0.0.1:4173');await page.waitForFunction(()=>window.houseWalk?.ready);
+ const result=await page.evaluate(async()=>{
+  const THREE=await import('/vendor/three.module.js');
+  const {createKit}=await import('/src/kit.js'),{buildHouse}=await import('/src/house.js'),{buildTemple}=await import('/src/temple.js'),{optimizeStaticScene}=await import('/src/optimize.js');
+  const kit=createKit(),house=buildHouse(kit),fixture=new THREE.Group();fixture.add(house,buildTemple(kit));fixture.updateMatrixWorld(true);
+  const count=()=>{let n=0;fixture.traverse(o=>{if(o.isMesh)n+=(o.geometry.index?.count||o.geometry.attributes.position.count)/3*(o.isInstancedMesh?o.count:1);});return n;};
+  const rays=[];
+  for(const x of [-10,-6,-3,0,3,6,10])for(const z of [1,3,5,8,11,14,16])rays.push([new THREE.Vector3(x,1.9,z),new THREE.Vector3(0,1,0)]);
+  for(const x of [-9,-3,0,3,9])for(const z of [3,7,11,15])for(const sign of [-1,1])rays.push([new THREE.Vector3(x,2.4,z+.017),new THREE.Vector3(sign,0,0)]);
+  for(const x of [25,30,35,39,43,47,51])for(const z of [1.017,7.017,12.017,18.017,24.017,28.017])for(const direction of [new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0)])rays.push([new THREE.Vector3(x+.023,2.23,z),direction]);
+  const hits=()=>rays.map(([origin,direction])=>{const hit=new THREE.Raycaster(origin,direction,.01,30).intersectObject(fixture,true)[0];return hit?{distance:hit.distance,name:hit.object.name,color:hit.object.material.color?.getHex()}:null;});
+  const before=hits(),trianglesBefore=count(),roofParents=kit.roofs.map(r=>r.parent);
+  const pedestal=house.getObjectByName('Entrance three-tier turquoise pedestal').position.x;
+  const clock=house.getObjectByName('Ivory wall clock face').position.x;
+  const roofHit=new THREE.Raycaster(new THREE.Vector3(10.6,2.1,10),new THREE.Vector3(0,1,0),0,8).intersectObject(house,true)[0]?.object.name;
+  const stats=optimizeStaticScene(fixture,kit.roofs);fixture.updateMatrixWorld(true);const after=hits();
+  return {rayDetails:before.flatMap((b,i)=>{const a=after[i];return a&&b&&(Math.abs(a.distance-b.distance)>1e-4||a.color!==b.color)?[{i,b,a}]:[];}),phoneMode:houseWalk.phoneMode,pixelRatio:houseWalk.renderer.getPixelRatio(),antialias:houseWalk.renderer.getContext().getContextAttributes().antialias,stats,trianglesBefore,trianglesAfter:count(),rayMismatches:before.flatMap((b,i)=>{const a=after[i];return (!a!==!b)||(a&&b&&(Math.abs(a.distance-b.distance)>1e-4||a.color!==b.color))?[i]:[];}),roofParentsPreserved:kit.roofs.every((r,i)=>r.parent===roofParents[i]),pedestal,clock,roofHit};
+ });
+ if(result.rayMismatches.length)console.log(JSON.stringify(result.rayDetails));
+ assert.equal(result.phoneMode,true);assert.ok(result.pixelRatio<=1);assert.equal(result.antialias,false);
+ assert.equal(result.trianglesBefore,result.trianglesAfter);assert.deepEqual(result.rayMismatches,[]);assert.ok(result.roofParentsPreserved);assert.ok(result.stats.sourceMeshes>100);
+ assert.ok(result.pedestal<0);assert.ok(result.clock>0);assert.match(result.roofHit,/East passage continuous/);
+ await page.click('#controls-toggle');
+ await page.click('#roof-btn');assert.equal(await page.getAttribute('#roof-btn','aria-pressed'),'true');
+ await page.click('#controls-toggle');await page.click('#roof-btn');
+ assert.deepEqual(errors,[]);console.log(JSON.stringify(result,null,2));await browser.close();
+})();
