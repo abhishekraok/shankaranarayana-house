@@ -1113,14 +1113,56 @@ export function buildHouse(K) {
   b('Small veranda table',-10.83,F+.57,8.85,.90,.09,.72,'wood',true);
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
-  // Pendulum clock hangs on the turquoise corridor wall.
-  detail(11.68,2.25,6.7,.20,.91,.43,'wood');
-  const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,28),mat('cream'));
+  // 14.31.43: arched timber case, ivory numbered dial and floral lower glass.
+  b('Clock bay turquoise interior plaster',11.735,1.97,6.7,.016,3.02,2.0,verandaAqua);
+  b('Clock bay vertical timber mounting strip',11.71,1.97,6.7,.055,3.02,.19,verandaTimber);
+  const clock=new THREE.Group();clock.name='Photographed veranda pendulum clock';
+  clock.position.set(11.68,2.25,6.7);clock.rotation.y=-Math.PI/2;g.add(clock);
+  const caseShape=new THREE.Shape();caseShape.moveTo(-.215,-.415);
+  caseShape.quadraticCurveTo(-.215,-.455,-.17,-.455);caseShape.lineTo(.17,-.455);
+  caseShape.quadraticCurveTo(.215,-.455,.215,-.415);caseShape.lineTo(.215,.397);
+  caseShape.bezierCurveTo(.12,.395,.08,.47,0,.47);caseShape.bezierCurveTo(-.08,.47,-.12,.395,-.215,.397);caseShape.closePath();
+  const glassOpening=new THREE.Path();glassOpening.moveTo(-.153,-.318);glassOpening.lineTo(-.153,-.105);
+  glassOpening.quadraticCurveTo(-.09,-.09,-.075,-.06);glassOpening.lineTo(.075,-.06);
+  glassOpening.quadraticCurveTo(.09,-.09,.153,-.105);glassOpening.lineTo(.153,-.318);
+  glassOpening.quadraticCurveTo(.11,-.30,.07,-.332);glassOpening.quadraticCurveTo(0,-.363,-.07,-.332);
+  glassOpening.quadraticCurveTo(-.11,-.30,-.153,-.318);glassOpening.closePath();caseShape.holes.push(glassOpening);
+  const caseWood=verandaTimber.clone();caseWood.color.set('#ae8c78');
+  const caseMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(caseShape,{depth:.19,bevelEnabled:true,bevelSegments:2,bevelSize:.006,bevelThickness:.006,steps:1}),caseWood);
+  caseMesh.name='Clock curved wooden case with shaped pendulum opening';caseMesh.position.z=-.10;clock.add(caseMesh);
+  const backing=new THREE.Mesh(new THREE.PlaneGeometry(.37,.83),new THREE.MeshStandardMaterial({color:'#39332e',roughness:.44}));
+  backing.position.set(0,0,-.06);clock.add(backing);
+  const dialCanvas=document.createElement('canvas');dialCanvas.width=dialCanvas.height=256;
+  const dial=dialCanvas.getContext('2d');dial.fillStyle='#ded3b3';dial.fillRect(0,0,256,256);
+  dial.fillStyle='#666051';dial.font='27px Georgia';dial.textAlign='center';dial.textBaseline='middle';
+  for(let n=1;n<=12;n++){const angle=n*Math.PI/6;dial.fillText(String(n),128+Math.sin(angle)*96,128-Math.cos(angle)*96);}
+  for(let n=0;n<60;n++){
+    const angle=n*Math.PI/30;dial.strokeStyle='#746b596e';dial.lineWidth=n%5?1:2;dial.beginPath();
+    dial.moveTo(128+Math.sin(angle)*117,128-Math.cos(angle)*117);dial.lineTo(128+Math.sin(angle)*(n%5?113:109),128-Math.cos(angle)*(n%5?113:109));dial.stroke();
+  }
+  for(const x of [88,168]){dial.fillStyle='#51493c';dial.beginPath();dial.arc(x,166,5,0,Math.PI*2);dial.fill();}
+  const dialMap=new THREE.CanvasTexture(dialCanvas);dialMap.colorSpace=THREE.SRGBColorSpace;
+  const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,40),new THREE.MeshStandardMaterial({map:dialMap,roughness:.51}));
   clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,6.7);clockFace.name='Ivory wall clock face';g.add(clockFace);
-  K.beam(g,'Clock minute hand',[11.55,2.46,6.7],[11.55,2.59,6.72],.013,'black');
-  K.beam(g,'Clock hour hand',[11.54,2.46,6.7],[11.54,2.46,6.60],.017,'black');
-  K.beam(g,'Pendulum rod',[11.55,2.18,6.7],[11.55,1.96,6.7],.015,'gold');
-  const pendulum=new THREE.Mesh(new THREE.SphereGeometry(.065,10,8),mat('gold'));pendulum.position.set(11.55,1.96,6.7);g.add(pendulum);
+  const rim=new THREE.Mesh(new THREE.TorusGeometry(.168,.006,7,40),caseWood);rim.position.set(0,.21,.115);clock.add(rim);
+  K.beam(g,'Clock minute hand',[11.55,2.46,6.7],[11.55,2.46,6.555],.008,'black');
+  K.beam(g,'Clock hour hand',[11.54,2.46,6.7],[11.54,2.402,6.625],.013,'black');
+  const pendulumRod=new THREE.Mesh(new THREE.CylinderGeometry(.003,.003,.24,6),mat('gold'));pendulumRod.position.set(0,-.14,.008);clock.add(pendulumRod);
+  const bob=new THREE.Mesh(new THREE.CircleGeometry(.052,20),mat('gold'));bob.position.set(0,-.26,.013);clock.add(bob);
+  const etched=new THREE.MeshStandardMaterial({color:'#dddac1',roughness:.56});
+  for(const side of [-1,1]){
+    const flowerX=side*.093,flowerY=-.205;
+    for(let petal=0;petal<10;petal++){
+      const angle=petal*Math.PI/5,leaf=new THREE.Mesh(new THREE.CircleGeometry(1,8),etched);
+      leaf.position.set(flowerX+Math.sin(angle)*.020,flowerY+Math.cos(angle)*.020,.10);
+      leaf.scale.set(.006,.013,1);leaf.rotation.z=-angle;clock.add(leaf);
+    }
+    for(let j=0;j<5;j++){
+      const leaf=new THREE.Mesh(new THREE.CircleGeometry(1,7),etched);
+      leaf.position.set(side*(.104+.009*Math.sin(j*2)), -.115-j*.041,.10);
+      leaf.scale.set(.0035,.011,1);leaf.rotation.z=side*(j%2?.55:-.55);clock.add(leaf);
+    }
+  }
   // Rear kitchen: low masonry stove, metal pots and an old storage shelf.
   b('Kitchen cooking platform',-10.9,F+.43,17.12,1.45,.86,1.05,'paleStone',true);
   b('Blackened stove top',-10.9,F+.885,17.12,1.45,.055,1.05,'black');
