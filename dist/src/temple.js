@@ -641,7 +641,39 @@ export function buildTemple(K) {
     }
   }
   const oldRoof=K.hipRoof(g,'Old inner shrine deep sloping roof',39,24.85,16.65,11.6,3.13,2.92,darkRoof);
-  for(const side of [-1,1])for(let j=0;j<6;j++){
+  // 15.08.04 and 15.08.42 show daylight through corrugated translucent
+  // strips above the lowered aisles. Cut the opaque roof itself so an extra
+  // bright plane cannot leave an invisible solid roof blocking the skylight.
+  const lightWells=[[34.4,36.1],[41.9,43.6]],wellFront=21,wellBack=28.2;
+  const roofHeight=(x,z)=>3.13+2.92*Math.max(0,Math.min(1,(8.325-Math.abs(x-39))/5.22,(5.8-Math.abs(z-24.85))/5.8));
+  const opaque=[],clear=[],roofUV=[];
+  const xs=[30.675,34.4,36.1,41.9,43.6,47.325],zs=[19.05,21,28.2,30.65];
+  for(let xi=0;xi<xs.length-1;xi++)for(let zi=0;zi<zs.length-1;zi++){
+    const left=xs[xi],right=xs[xi+1],front=zs[zi],back=zs[zi+1];
+    const translucent=zi===1&&(xi===1||xi===3);
+    const nx=Math.ceil((right-left)/.14),nz=Math.ceil((back-front)/.35);
+    for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){
+      const point=(u,v)=>{const x=left+(right-left)*u,z=front+(back-front)*v;return [x,roofHeight(x,z)+(translucent?.018+.018*Math.cos(u*nx*Math.PI):0),z];};
+      const a=point(i/nx,j/nz),b=point((i+1)/nx,j/nz),c=point(i/nx,(j+1)/nz),d=point((i+1)/nx,(j+1)/nz);
+      const target=translucent?clear:opaque;
+      for(const v of [a,c,b,b,c,d]){target.push(...v);if(!translucent)roofUV.push((v[0]-39)*.36,(v[2]-24.85)*.36);}
+    }
+  }
+  const oldTiles=oldRoof.getObjectByName('Old inner shrine deep sloping roof tiles');
+  const cutGeometry=new THREE.BufferGeometry();cutGeometry.setAttribute('position',new THREE.Float32BufferAttribute(opaque,3));cutGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(roofUV,2));cutGeometry.computeVertexNormals();
+  oldTiles.geometry.dispose();oldTiles.geometry=cutGeometry;oldTiles.position.set(0,0,0);
+  const clearGeometry=new THREE.BufferGeometry();clearGeometry.setAttribute('position',new THREE.Float32BufferAttribute(clear,3));clearGeometry.computeVertexNormals();
+  const translucentRoof=mesh('Inner aisle translucent corrugated skylights',clearGeometry,mat('#e3e4d8',.65,{side:THREE.DoubleSide,transparent:true,opacity:.97,emissive:'#c2c9c2',emissiveIntensity:.35}));
+  translucentRoof.userData.noShadow=true;K.roofs.push(translucentRoof);
+  for(const [left,right] of lightWells){
+    for(const x of [left,right])K.beam(oldRoof,'Inner skylight longitudinal frame',[x,roofHeight(x,wellFront)-.04,wellFront],[x,roofHeight(x,24.85)-.04,24.85],.045,dark);
+    for(const x of [left,right])K.beam(oldRoof,'Inner skylight rear longitudinal frame',[x,roofHeight(x,24.85)-.04,24.85],[x,roofHeight(x,wellBack)-.04,wellBack],.045,dark);
+    for(const z of [21,23.4,25.8,28.2])K.beam(oldRoof,'Inner skylight transverse frame',[left,roofHeight(left,z)-.045,z],[right,roofHeight(right,z)-.045,z],.045,dark);
+    // Local diffuse fill approximates light scattered by the translucent sheets.
+    const fill=new THREE.PointLight('#e2e5de',7,9,2);fill.name='Inner skylight diffuse daylight';fill.position.set((left+right)/2,4.35,24.5);g.add(fill);
+    K.beam(oldRoof,'Inner aisle pale drain pipe',[left,3.55,21],[left,3.55,28.2],.085,whiteTrim);
+  }
+  for(const side of [-1,1])for(let j=0;j<5;j++){
     const t=j/6,xx=39+side*(8.28-t*4.65),yy=3.18+t*2.57;
     const course=K.box(oldRoof,'Old inner shrine overlapping gray roof course',xx,yy,24.85,.89,.12,10.9-j*.32,weathered);course.rotation.z=-side*.51;
   }
@@ -1204,6 +1236,6 @@ export function buildTemple(K) {
   K.blocker(19.17,4.73,.71,1.9,.04,1.12);
 
   K.labels?.push({text:'Temple entrance',position:[39,2,-1.5]},{text:'Temple courtyard',position:[39,1,10]},{text:'Inner temple building',position:[39,4.7,21.4]},{text:'Road between house and temple',position:[17,1.2,5]});
-  g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+  g.traverse(o=>{if(o.isMesh){o.castShadow=!o.userData.noShadow;o.receiveShadow=true;}});
   return g;
 }

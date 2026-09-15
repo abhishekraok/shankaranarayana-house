@@ -14,6 +14,13 @@ const {buildLandscape}=await loadModule('../dist/src/landscape.js');
 const {createPhotoTour}=await loadModule('../dist/src/tour.js');
 const K=createKit(),house=buildHouse(K);house.updateMatrixWorld(true);
 const temple=buildTemple(K),landscape=buildLandscape(K);temple.updateMatrixWorld(true);landscape.updateMatrixWorld(true);
+// The inner aisle skylights must replace opaque roofing, not overlay it.
+for(const x of [35.25,42.75])for(const z of [22.1,24.0,27.1]){
+  const ray=new THREE.Raycaster(new THREE.Vector3(x,3.8,z),new THREE.Vector3(0,1,0));
+  const hit=ray.intersectObject(temple,true)[0];
+  assert.equal(hit?.object.name,'Inner aisle translucent corrugated skylights','Daylight opening above each inner aisle');
+  assert.equal(hit.object.castShadow,false,'Translucent sheets must not cast an opaque roof shadow');
+}
 // Sweep the actual distant foliage from the house frontage, not bounding boxes.
 const horizon=landscape.children.filter(m=>m.name.startsWith('Horizon '));
 assert.ok(horizon.length<=4&&horizon.length>0,'Background uses a few shared draw calls');
