@@ -57,6 +57,7 @@ destinations.templeupperhall={p:[44.55,4.08,.37],target:[32.0,5.45,.80],fov:72};
 destinations.templesidebay={p:[33.6,.1,10.9],target:[32,1.9,6.5],fov:70};
 destinations.templehall={p:[26.1,.60,14.4],target:[23.8,2.1,7.8],fov:76};
 destinations.templehallbay={p:[27.2,.60,11.5],target:[26.1,2.1,6.85],fov:70};
+destinations.courtpassage={p:[-9.85,.45,11.8],target:[-9.5,1.8,5.7],fov:68};
 destinations.godroomdesk={p:[-2.9,.45,4.55],target:[-1.95,1.20,5.15],fov:65};
 destinations.godroomshelf={p:[0,1.08,8.65],target:[0,3.77,7.05],fov:48};
 destinations.courtstair={p:[-4,.035,12],target:[-4.3,1.8,6.2],fov:72};

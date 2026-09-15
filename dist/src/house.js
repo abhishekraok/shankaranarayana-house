@@ -217,6 +217,57 @@ export function buildHouse(K) {
   detail(-8.48,F+1.22,16.95,.36,2.45,.13,'wood');
   detail(-8.48,F+2.5,16.05,.38,.15,1.95,'wood');
 
+  // 14.44.19 / 14.44.22: heavy octagonal courtyard posts, ringed capitals,
+  // and stored household items along the stair-side veranda. Spacing inferred.
+  const passageTimber=verandaTimber.clone();passageTimber.color.setRGB(.9,.94,.92);
+  function courtyardPost(x,z){
+    const profile=[[.23,0],[.25,.06],[.25,.12],[.205,.19],[.205,2.04],
+      [.24,2.07],[.24,2.12],[.205,2.15],[.25,2.19],[.25,2.25],
+      [.21,2.29],[.26,2.39],[.27,2.49],[.235,2.57],[.20,2.61],
+      [.22,2.65],[.27,2.69],[.27,2.76],[.23,2.80],[.23,2.88]];
+    const mesh=new THREE.Mesh(new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),8),passageTimber);
+    mesh.name='Courtyard octagonal timber post with turned capital';mesh.rotation.y=Math.PI/8;
+    mesh.position.set(x,F,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
+    b('Courtyard post broad beam seat',x,F+2.94,z,.65,.12,.43,passageTimber);
+    for(const side of [-1,1])for(const offset of [-.105,.105])
+      b('Courtyard post recessed vertical groove',x+offset,F+1.17,z+side*.19,.012,1.64,.012,'black');
+    K.blocker(x,z,.40,.40,F,F+2.88);
+  }
+  const passageFloor=K.M.cream.clone();passageFloor.color.set('#99958a');passageFloor.roughness=.94;
+  floor('Stair-side veranda worn stone walking surface',-10.16,9.05,3.25,6.05,F+.006,passageFloor,.024);
+  const drumMat=new THREE.MeshStandardMaterial({color:0xa71e40,roughness:.6});
+  const drumProfile=[[0,0],[.235,0],[.267,.025],[.275,.10],[.268,.68],[.275,.75],
+    [.289,.77],[.289,.794],[.263,.794],[.252,.76],[.251,.09],[0,.09]];
+  const drum=new THREE.Mesh(new THREE.LatheGeometry(drumProfile.map(([r,y])=>new THREE.Vector2(r,y)),32),drumMat);
+  drum.name='Stair-side veranda red plastic storage drum';drum.position.set(-8.99,F,7.15);drum.castShadow=true;drum.receiveShadow=true;g.add(drum);
+  K.blocker(-8.99,7.15,.55,.55,F,F+.8);
+  const ropeCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(-8.56,2.65,7.8),new THREE.Vector3(-8.56,2.55,9.5),new THREE.Vector3(-8.56,2.67,11.2)]);
+  const rope=new THREE.Mesh(new THREE.TubeGeometry(ropeCurve,20,.008,5,false),new THREE.MeshStandardMaterial({color:0x887961,roughness:1}));
+  rope.name='Courtyard veranda sagging clothesline';g.add(rope);
+  function hangingCloth(z,width,length,color){
+    const geom=new THREE.PlaneGeometry(width,length,22,20),pos=geom.attributes.position;
+    for(let i=0;i<pos.count;i++)pos.setZ(i,.034*Math.sin(pos.getX(i)*42)+.009*Math.sin(pos.getY(i)*17));
+    geom.computeVertexNormals();
+    const mesh=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1,side:THREE.DoubleSide}));
+    mesh.name='Courtyard veranda hanging cloth';mesh.rotation.y=Math.PI/2;mesh.position.set(-8.56,2.57-length/2,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
+    return mesh;
+  }
+  hangingCloth(9.65,.66,1.70,0xdad9c9);
+  hangingCloth(8.35,.53,1.14,0xa74355);
+  hangingCloth(8.99,.45,1.48,0xc2ac7f);
+  // Narrow green woven border on the long white towel.
+  b('Hanging towel green border',-8.52,1.72,9.39,.008,1.69,.025,new THREE.MeshStandardMaterial({color:0x55734a,roughness:1}));
+  for(const [x,z,sx,sy,sz,color] of [[-11.38,10.05,.35,.36,.43,0xc8c4ad],[-11.43,10.69,.32,.24,.39,0xd8d5c6],[-11.27,11.24,.31,.28,.36,0xb9a34d]]){
+    const geom=new THREE.SphereGeometry(1,18,14),pos=geom.attributes.position;
+    for(let i=0;i<pos.count;i++){
+      const y=pos.getY(i),a=Math.atan2(pos.getZ(i),pos.getX(i));
+      const pinch=1-.35*Math.max(0,y),fold=1+.07*Math.sin(a*9+y*8);
+      pos.setXYZ(i,pos.getX(i)*pinch*fold,Math.max(-.77,y),pos.getZ(i)*pinch*fold);
+    }
+    geom.computeVertexNormals();const sack=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1}));
+    sack.name='Veranda stored fabric sack';sack.scale.set(sx,sy,sz);sack.position.set(x,F+sy*.77,z);sack.castShadow=true;sack.receiveShadow=true;g.add(sack);
+  }
+
   // Posts and exposed timber run continuously around the inner verandas.
   for(const x of [-6.4,-3.8,-1.55,1.55,5.6,8.7]) {
     K.column(g,'Front veranda slender outer column',x,-.88,F,2.45,.145,verandaTimber);
@@ -254,9 +305,9 @@ export function buildHouse(K) {
     b('Sitting bay transverse ceiling beam',x,3.50,1.17,.27,.21,1.84,verandaTimber);
     const mesh=new THREE.Mesh(bracketGeom,verandaTimber);mesh.name='Veranda carved transverse bracket';mesh.rotation.y=-Math.PI/2;mesh.position.set(x+.095,3.45,.36);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
   }
-  for(const x of [-8.2,-4.3,4.1,7.15])column(x,5.7,F,3.0,.15);
-  for(const z of [9.0,13.9]){column(-8.5,z);column(7.4,z);}
-  for(const x of [-6.1,-1.8,2.8,7.2])column(x,14.7,F,3.0,.15);
+  for(const x of [-8.2,-4.3,4.1,7.15])courtyardPost(x,5.7);
+  for(const z of [9.0,13.9]){courtyardPost(-8.5,z);courtyardPost(7.4,z);}
+  for(const x of [-6.1,-1.8,2.8,7.2])courtyardPost(x,14.7);
   b('Front timber crossbeam',1.15,2.885,-.88,15.65,.21,.24,verandaTimber);
   b('Inner front crossbeam',-.5,3.51,5.7,16.6,.23,.27,'wood');
   b('West veranda crossbeam',-8.5,3.51,10.25,.24,.25,9.3,'wood');
