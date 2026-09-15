@@ -462,7 +462,7 @@ export function buildHouse(K) {
     K.beam(entryRoof,'God room side roof timber',[side*2.25,3.52,4.82],[side*2.25,3.52,7.08],.17,shrineTimber,.21);
     for(const z of [5.03,5.65,6.50])K.beam(entryRoof,'God room short exposed crossbeam',[side*2.02,3.56,z],[side*3.18,3.56,z],.14,shrineTimber,.18);
   }
-  wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[],'plaster',.22);
+  wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
   wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[],'plaster',.22);
   wallX('Shrine rear wall',-2.05,2.05,10.08,.68,2.9,[],'plaster',.22);
   for(const z of [6.5,9.65]) {
@@ -470,7 +470,8 @@ export function buildHouse(K) {
   }
   for(const y of [.83,1.12,2.70,3.38]) {
     detail(0,y,10.22,4.32,.10,.10,'red');
-    detail(-2.2,y,8.1,.10,.10,4.2,'red');detail(2.2,y,8.1,.10,.10,4.2,'red');
+    if(y!==2.70)detail(-2.2,y,8.1,.10,.10,4.2,'red');
+    detail(2.2,y,8.1,.10,.10,4.2,'red');
   }
   // Pale floral/triangle decoration on the red shrine bands (14.44.14).
   const borderCanvas=document.createElement('canvas');borderCanvas.width=512;borderCanvas.height=64;
@@ -479,14 +480,40 @@ export function buildHouse(K) {
   const borderMap=new THREE.CanvasTexture(borderCanvas);borderMap.colorSpace=THREE.SRGBColorSpace;borderMap.wrapS=THREE.RepeatWrapping;borderMap.repeat.x=2;
   const bandMat=new THREE.MeshStandardMaterial({map:borderMap,roughness:1});
   for(const y of [1.12,2.70,3.38])for(const side of [-1,1]){
-    const band=new THREE.Mesh(new THREE.PlaneGeometry(4.15,.14),bandMat);band.position.set(side*2.255,y,8.1);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
+    const spans=side===-1&&y===2.70?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
+    for(const [a,end] of spans){
+      const material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2*(end-a)/4.15;map.offset.x=(a-6.025)/4.15*2;material.map=map;
+      const band=new THREE.Mesh(new THREE.PlaneGeometry(end-a,.14),material);band.position.set(side*2.255,y,(a+end)/2);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
+    }
   }
-  for(const side of [-1,1]){
+  for(const side of [1]){
     b('Shrine weathered blue side shutter',side*2.18,2.0,8.15,.05,1.02,1.18,'wood');
     for(let z=7.58;z<=8.73;z+=.12)detail(side*2.23,2.0,z,.045,1.05,.03,'blue');
     for(const y of [1.48,2.52])detail(side*2.24,y,8.15,.065,.08,1.30,'blue');
     b('Shrine heavy side window canopy',side*2.29,2.64,8.15,.42,.16,1.55,'wood');
     for(const y of [.38,.51,.64])b('Shrine layered damp stone base',side*2.12,y,8.12,.25,.095,4.14,'stone');
+  }
+  // 14.46.10, from the courtyard stair: open blue double grille rather
+  // than an opaque shutter. The unseen opposite wall remains an estimate.
+  const wornWindowBlue=K.M.blue.clone();wornWindowBlue.color.setRGB(.85,1.0,1.05);
+  for(const z of [7.22,8.15,9.08])b('Shrine west window blue upright',-2.205,2.18,z,.12,1.48,.085,wornWindowBlue);
+  for(const y of [1.48,2.15,2.88])b('Shrine west window blue cross rail',-2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
+  for(let z=7.33;z<9.04;z+=.108)b('Shrine west window slender wooden grille',-2.205,2.18,z,.055,1.36,.036,wornWindowBlue);
+  K.blocker(-2.205,8.15,.12,1.94,1.48,2.92);
+  const canopyPlaster=K.M.plaster.clone();canopyPlaster.color.set('#aca38e');
+  b('Shrine west window deep pale canopy',-2.28,3.05,8.15,.61,.18,2.18,canopyPlaster);
+  for(const z of [7.18,9.12]){
+    b('Shrine west canopy timber corbel',-2.32,2.94,z,.46,.14,.15,verandaTimber);
+    b('Shrine west canopy corbel foot',-2.22,2.84,z,.24,.16,.15,verandaTimber);
+  }
+  const shrineDampBase=K.M.plaster.clone();shrineDampBase.color.set('#696650');
+  b('Shrine west projecting weathered plinth',-2.29,.73,8.23,.54,.20,3.78,shrineDampBase);
+  b('Shrine west pale plinth lip',-2.49,.65,8.23,.17,.12,3.85,'plaster');
+  for(const y of [.38,.50])b('Shrine west base moulding',-2.23,y,8.23,.38,.07,3.74,'plaster');
+  const moss=K.M.plaster.clone();moss.color.set('#4f5839');
+  for(let i=0;i<32;i++){
+    const z=6.43+(i*1.317)%3.55;
+    b('Shrine west plinth damp streak',-2.575,.61+(i%4)*.023,z,.008,.035+(i%5)*.021,.045+(i%3)*.047,moss);
   }
   b('Altar wooden base',0,1.31,9.46,3.42,.46,.75,'wood',true);
   b('Altar front ledge',0,1.55,9.28,3.7,.10,.86,'wood');
