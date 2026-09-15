@@ -546,10 +546,13 @@ export function buildLandscape(K) {
     for(const [a,b,c,d] of [[-18,-6,-60,-49],[-1,14,-61,-50],[20,30,-68,-57],[31,46,-68,-54]])if(x>a&&x<b&&z>c&&z<d)return c-3.2;
     return z;
   }
-  function palm(x, z, height, areca = false) {
+  function palm(x, z, height, areca = false, reference = null) {
     z=clearOppositeBuildings(x,z);
-    const leanX = range(-1.6, 1.6) * (areca ? .38 : 1), leanZ = range(-1.5, 1.5) * (areca ? .38 : 1);
-    const radius = areca ? range(.085, .12) : range(.23, .32), n = areca ? 3 : 9;
+    let leanX = range(-1.6, 1.6) * (areca ? .38 : 1), leanZ = range(-1.5, 1.5) * (areca ? .38 : 1);
+    let radius = areca ? range(.085, .12) : range(.23, .32);
+    const n = areca ? 3 : 9;
+    // Consume the usual seeded draws before applying a photographed tree profile.
+    if(reference){leanX=reference.leanX;leanZ=reference.leanZ;radius=reference.radius;}
     const trunkPoint = t => [x + leanX * t * t, height * t, z + leanZ * t * t];
     for (let i = 0; i < n; i++) segment(areca ? 'areca trunks' : 'curved coconut trunks', materials.trunk, trunkPoint(i / n), trunkPoint((i + 1) / n), radius * (1 - .48 * i / n), radius * (1 - .48 * (i + 1) / n));
     const ringCount = Math.floor(height / (areca ? .68 : .36));
@@ -578,7 +581,7 @@ export function buildLandscape(K) {
     }
   }
   // Foreground coconut spacing follows the bank paths, preserving lake views.
-  for (const p of [[-23,-13,13],[-23.5,-25,16],[-22.9,-35,12],[-23,-43,15],[60,-40,14],[60,-20,16],[-14,-48,15],[-1,-48.5,17],[13,-48,14],[-20,28,15],[-13,29,17],[0,30,14],[13,28,16],[18,35,15]]) palm(...p);
+  for (const p of [[-23,-13,13],[-23.5,-25,16],[-22.9,-35,12],[-23,-43,15],[60,-40,14],[61.9,-27,16,false,{leanX:.3,leanZ:4.4,radius:.19}],[-14,-48,15],[-1,-48.5,17],[13,-48,14],[-20,28,15],[-13,29,17],[0,30,14],[13,28,16],[18,35,15]]) palm(...p);
   for (let i = 0; i < 29; i++) {
     const zone = i % 3;
     palm(zone === 0 ? range(-37, 19) : zone === 1 ? range(-43, 29) : range(-42, -29),
@@ -886,7 +889,9 @@ export function buildLandscape(K) {
   for(const a of [-9,-5.1,-1.7,2.4,6.7,9])K.beam(shopAwning,'Shop exposed awning rafter',[59.45,2.80,-25-a],[63.60,4.32,-25-a],.075,shopWood);
   const dryTufts=new THREE.InstancedMesh(new THREE.ConeGeometry(.025,1,3),materials.dryPalm,160);dryTufts.name='Shop dry grass in weathered roof tiles';
   for(let i=0;i<160;i++){
-    const x=59.8+(i%7)*.33,z=-33.6+((i*23)%159)/159*13.5,h=.13+(i%9)*.043;
+    const centers=[[60.10,-33.1,.55,1.0],[61.75,-23.8,.65,1.25],[62.50,-22.2,.43,.75]];
+    const [cx,cz,rx,rz]=centers[i%3],angle=i*2.39996,r=Math.sqrt(((i*37)%157)/157);
+    const x=cx+Math.cos(angle)*rx*r,z=cz+Math.sin(angle)*rz*r,h=.16+(i%9)*.045;
     tilePose.position.set(x,2.87+(x-59.48)*1.53/4.17+h/2,z);tilePose.rotation.set(.18*Math.sin(i),i*2.4,.22*Math.cos(i));tilePose.scale.set(1,h,1);tilePose.updateMatrix();dryTufts.setMatrixAt(i,tilePose.matrix);
   }
   dryTufts.instanceMatrix.needsUpdate=true;shopAwning.add(dryTufts);
