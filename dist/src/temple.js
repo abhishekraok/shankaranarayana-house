@@ -1279,6 +1279,59 @@ export function buildTemple(K) {
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
+  // User-labelled far-side left corner: carved mouldings wrap the rear plinth.
+  // The figure identities in the recessed band are unresolved in the close-up.
+  const cornerDark=mat('#414640',.98),cornerRelief=sanctumStone.clone();
+  cornerRelief.color.multiplyScalar(.87);
+  const cornerRibs=[],cornerPetals=[],cornerScrolls=[];
+  function carvedPlinthFace(cx,cz,length,yaw){
+    const c=Math.cos(yaw),sn=Math.sin(yaw);
+    const place=(u,y,out,w,h,d,angle=0)=>[cx+c*u+sn*out,y,cz-sn*u+c*out,w,h,d,0,yaw,angle];
+    const darkBand=box('Rear plinth recessed dark stone band',cx,.787,cz,length,.115,.025,cornerDark);
+    darkBand.rotation.y=yaw;
+    for(const [y,h,out,d] of [[.583,.028,.015,.075],[.704,.019,.020,.065],[.866,.035,.046,.11],[.916,.018,.014,.065],[1.045,.021,.018,.07]])
+      cornerRibs.push(place(0,y,out,length,h,d));
+    // Continuous curved stone courses with shallow petal outlines.
+    for(const [base,height] of [[.597,.105],[.875,.041]]){
+      const verts=[],indices=[];
+      for(let j=0;j<=12;j++){
+        const t=j/12,out=.01+Math.sin(t*Math.PI/2)*.066,y=base+height*(1-t);
+        for(const u of [-length/2,length/2])verts.push(cx+c*u+sn*out,y,cz-sn*u+c*out);
+        if(j<12){const k=j*2;indices.push(k,k+1,k+2,k+1,k+3,k+2);}
+      }
+      const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(verts,3));geo.setIndex(indices);geo.computeVertexNormals();
+      const stone=sanctumStone.clone();stone.side=THREE.DoubleSide;
+      mesh('Rear plinth continuous lotus course',geo,stone);
+      const count=Math.round(length/.145),spacing=length/count;
+      for(let i=0;i<count;i++)cornerPetals.push(place(-length/2+(i+.5)*spacing,base,.0,spacing*.48,height,1));
+    }
+    // Alternating scroll curls across the upper frieze, shared geometry below.
+    for(let i=0;i<Math.floor(length/.205);i++){
+      const u=-length/2+.11+i*.205;
+      cornerScrolls.push(place(u,.981,.035,.077,.047,.045,i%2?Math.PI:0));
+    }
+  }
+  carvedPlinthFace(41.79,26.3,1.95,Math.PI/2);
+  carvedPlinthFace(40.70,27.29,2.18,0);
+  instances('Rear plinth projecting stone fillets',new THREE.BoxGeometry(1,1,1),sanctumStone,cornerRibs);
+  const petalPoints=[];
+  for(let i=0;i<=20;i++){
+    const a=i/20*Math.PI,u=Math.cos(a),t=.12+.82*Math.sin(a);
+    petalPoints.push(new THREE.Vector3(u,1-t,.012+Math.sin(t*Math.PI/2)*.066));
+  }
+  instances('Rear plinth lotus petal outlines',new THREE.TubeGeometry(new THREE.CatmullRomCurve3(petalPoints),24,.0023,4,false),cornerRelief,cornerPetals);
+  const scrollPoints=[];
+  for(let i=0;i<=36;i++){
+    const a=i/36*Math.PI*2.4,r=1-i/36*.79;
+    scrollPoints.push(new THREE.Vector3(Math.cos(a)*r,Math.sin(a)*r,0));
+  }
+  const scrollCurve=new THREE.CatmullRomCurve3(scrollPoints);
+  instances('Rear plinth curling stone frieze',new THREE.TubeGeometry(scrollCurve,36,.10,5,false),cornerRelief,cornerScrolls);
+  box('Rear corner rounded-stone offering slab',42.06,.585,26.29,.43,.07,1.02,cornerDark);
+  const offeringStones=[];
+  for(let i=0;i<8;i++)offeringStones.push([41.93,.654,25.89+i*.112,.050,.042,.045,0,0,0]);
+  for(const z of [25.89,26.674])offeringStones.push([42.075,.65,z,.051,.039,.045,0,0,0]);
+  instances('Rear corner ten rounded offering stones',new THREE.SphereGeometry(1,10,6),cornerDark,offeringStones);
   innerPaving('Inner mandapa raised paving',39,24,5.2,6.2,1.06);
   for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
   const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
