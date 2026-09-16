@@ -6,11 +6,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.waitForFunction(()=>window.houseWalk?.ready);
  assert.equal(await page.evaluate(()=>houseWalk.getState().mode),'tour');
  const initial=await page.evaluate(()=>houseWalk.getState());
- assert.ok(initial.position[0]>=19.4&&initial.position[0]<30&&initial.position[2]<-5&&initial.position[1]<2,'Tour opens on the lane approaching the temple');
+ assert.ok(initial.position[0]>=-.1&&initial.position[0]<8&&initial.position[2]<-5&&initial.position[1]<2,'Tour opens just outside the house');
  await page.evaluate(()=>{document.getElementById('tour-btn').click();document.getElementById('tour-pause').click();});
  await page.waitForTimeout(50);
  const restart=await page.evaluate(()=>houseWalk.getState());
- assert.ok(Math.abs(restart.position[0]-19.5)<.01&&restart.position[2]<-5,'Restart uses the midpoint between house and temple');
+ assert.ok(Math.abs(restart.position[0])<.01&&restart.position[2]<-5,'Restart uses the lane just outside the house');
  const bank=await page.evaluate(()=>{
   houseWalk.teleport({p:[17.1,1.08,-45.4],target:[25,2,-1]});
   const before=houseWalk.getState();houseWalk.moveFor('KeyD',.3);const moved=houseWalk.getState();

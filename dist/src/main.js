@@ -118,14 +118,7 @@ destinations.houseexitleft={p:[9.2,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
 destinations.templeentryreturn={p:[48.5,.1,10.7],target:[50.7,2.0,6.4],fov:75};
 const tour=createPhotoTour(photos,supportY);
 // Change only the entry time: the route, segment order and loop stay intact.
-const templeApproach=tour.spans.find(s=>s.a.photo==='laneleft');
-// Enter the existing approach segment halfway between the house and temple.
-let approachLow=templeApproach.start+templeApproach.hold,approachHigh=approachLow+templeApproach.travel;
-for(let i=0;i<30;i++){
- const middle=(approachLow+approachHigh)/2;
- if(tour.sample(middle).position.x<19.5)approachLow=middle;else approachHigh=middle;
-}
-const tourStartTime=(approachLow+approachHigh)/2;
+const tourStartTime=tour.spans.find(s=>s.a.label==='Along the lane').start;
 tourTime=tourStartTime;
 // Camera-only lift on the far bank; feet and collision height stay unchanged.
 function lakeCameraLift(x,z){
