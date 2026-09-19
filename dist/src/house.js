@@ -720,7 +720,12 @@ export function buildHouse(K) {
   const roofPositions=[],roofUvs=[];
   for(const face of [[1,4,5],[1,5,2],[2,5,3],[3,5,4],[3,4,0]])for(const i of face){const v=roofPoints[i];roofPositions.push(...v);roofUvs.push(v[0]*.36,v[2]*.36);}
   const openGable=new THREE.BufferGeometry();openGable.setAttribute('position',new THREE.Float32BufferAttribute(roofPositions,3));openGable.setAttribute('uv',new THREE.Float32BufferAttribute(roofUvs,2));openGable.computeVertexNormals();
+  shrineRoofTiles.geometry.dispose();
   shrineRoofTiles.geometry=openGable;
+  // The original short hip ridge no longer matches the open front gable.
+  const oldRidge=shrineRoof.children.find(o=>o.name==='Small shrine tiled roof ridge');
+  if(oldRidge){shrineRoof.remove(oldRidge);oldRidge.geometry.dispose();}
+  K.beam(shrineRoof,'Small shrine tiled roof ridge',[0,4.665,5.525],[0,4.665,8.27],.15,'tile',.17);
   const roofLiningMaterial=shrineTimber.clone();roofLiningMaterial.side=THREE.DoubleSide;
   const roofLining=new THREE.Mesh(openGable,roofLiningMaterial);
   roofLining.name='God room dark timber roof lining';roofLining.position.copy(shrineRoofTiles.position);roofLining.position.y-=.055;shrineRoof.add(roofLining);
@@ -970,7 +975,9 @@ export function buildHouse(K) {
   floor('Front stair approach step',-14.05,.95,.5,1.75,.20,'paleStone');
   for(let i=0;i<22;i++){
     const x=-12.95+(i+.5)*4.8/22,y=F+(i+1)*(U-F)/22;
-    b('Front-right masonry stair tread',x,y-.07,.95,4.8/22+.015,.14,1.65,'paleStone');
+    // Overlap each riser slightly; the old .14 m slab left daylight between steps.
+    const thickness=(U-F)/22+.02;
+    b('Front-right masonry stair tread',x,y-thickness/2,.95,4.8/22+.015,thickness,1.65,'paleStone');
   }
   for(let i=0;i<6;i++){
     const x=-12.95+(i+.5)*.8,top=F+(i+1)*(U-F)/6+.9;

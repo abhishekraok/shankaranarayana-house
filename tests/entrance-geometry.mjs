@@ -514,3 +514,11 @@ const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise};
+
+// Solid stair risers and ridge continuity must survive future detail edits.
+const frontTreads=[];house.traverse(o=>{if(o.name==='Front-right masonry stair tread')frontTreads.push(new THREE.Box3().setFromObject(o));});
+frontTreads.sort((a,b)=>a.min.x-b.min.x);
+assert.equal(frontTreads.length,22);
+for(let i=1;i<frontTreads.length;i++)assert.ok(frontTreads[i].min.y<frontTreads[i-1].max.y,'Front stair risers must overlap without daylight slits');
+const shrineRidgeBounds=new THREE.Box3().setFromObject(house.getObjectByName('Small shrine tiled roof ridge'));
+assert.ok(shrineRidgeBounds.min.z<=5.526&&shrineRidgeBounds.max.z>=8.269,'Ridge cap covers the full revised God-room roof ridge');
