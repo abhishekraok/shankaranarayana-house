@@ -522,3 +522,12 @@ assert.equal(frontTreads.length,22);
 for(let i=1;i<frontTreads.length;i++)assert.ok(frontTreads[i].min.y<frontTreads[i-1].max.y,'Front stair risers must overlap without daylight slits');
 const shrineRidgeBounds=new THREE.Box3().setFromObject(house.getObjectByName('Small shrine tiled roof ridge'));
 assert.ok(shrineRidgeBounds.min.z<=5.526&&shrineRidgeBounds.max.z>=8.269,'Ridge cap covers the full revised God-room roof ridge');
+
+for(const [prefix,base] of [['Front central stair',0],['Courtyard descending stair',.1],['Temple gallery access stair',.6],['Temple exterior side stair',.04]]){
+ temple.traverse(o=>{
+  if(!o.isMesh||!o.name.startsWith(prefix+' '))return;
+  const box=new THREE.Box3().setFromObject(o);
+  assert.ok(box.min.y>=base-.001,prefix+' masonry stays above its lower landing');
+  assert.ok(o.geometry.parameters.height>0,prefix+' has no inverted stair blocks');
+ });
+}

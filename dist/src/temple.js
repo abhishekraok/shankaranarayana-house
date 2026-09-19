@@ -102,8 +102,11 @@ export function buildTemple(K) {
     const alongX = axis.includes('x'), sign = axis.startsWith('-') ? -1 : 1;
     for(let i=0;i<count;i++){
       const t=(i+.5)/count-.5, h=low+(high-low)*(i+1)/count;
-      box(`${n} tread ${i+1}`, x+(alongX?sign*t*w:0),h-.06,z+(alongX?0:sign*t*d),alongX?w/count:w,.12,alongX?d:d/count,stoneFloor);
-      box(`${n} riser ${i+1}`,x+(alongX?sign*t*w:0),(h-.12)/2,z+(alongX?0:sign*t*d),alongX?w/count:w,h-.12,alongX?d:d/count,oldStone);
+      const cap=Math.min(.12,h-low),baseHeight=h-cap-low;
+      box(`${n} tread ${i+1}`, x+(alongX?sign*t*w:0),h-cap/2,z+(alongX?0:sign*t*d),alongX?w/count:w,cap,alongX?d:d/count,stoneFloor);
+      // Shallow first steps need only a cap. Never generate inverted boxes or
+      // bury a staircase's infill below the landing it actually rises from.
+      if(baseHeight>1e-6)box(`${n} riser ${i+1}`,x+(alongX?sign*t*w:0),low+baseHeight/2+.001,z+(alongX?0:sign*t*d),alongX?w/count:w,baseHeight+.002,alongX?d:d/count,oldStone);
     }
     K.ramp(x,z,w,d,axis,low,high);
   }
