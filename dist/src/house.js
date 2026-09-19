@@ -635,6 +635,23 @@ export function buildHouse(K) {
   b('God room inside side dark skirting',1.918,1.15,8.13,.025,.14,2.16,shrineSkirting);
   b('God room inside corner timber shaft',1.995,2.14,7.075,.18,2.12,.18,verandaTimber);
   for(let j=0;j<5;j++)b('God room inside corner carved collar',1.995,3.06+j*.058,7.075,.23+(j%2)*.035,.036,.23+(j%2)*.035,verandaTimber);
+  // Identified interior corner close-up: a deep scalloped timber corbel
+  // joins the corner post to the grille head, beneath the continuous beam.
+  const shrineCorbel=new THREE.Shape();
+  shrineCorbel.moveTo(0,0);shrineCorbel.lineTo(1.12,0);shrineCorbel.lineTo(1.12,-.17);
+  shrineCorbel.bezierCurveTo(1.10,-.26,.97,-.29,.88,-.36);
+  shrineCorbel.bezierCurveTo(.82,-.42,.78,-.45,.73,-.38);
+  shrineCorbel.lineTo(.69,-.49);
+  shrineCorbel.bezierCurveTo(.62,-.46,.63,-.34,.56,-.36);
+  shrineCorbel.bezierCurveTo(.49,-.37,.46,-.50,.35,-.47);
+  shrineCorbel.bezierCurveTo(.29,-.46,.26,-.43,.23,-.43);
+  shrineCorbel.lineTo(.20,-.54);shrineCorbel.lineTo(0,-.54);shrineCorbel.closePath();
+  const shrineCorbelGeo=new THREE.ExtrudeGeometry(shrineCorbel,{depth:.14,steps:1,curveSegments:4,bevelEnabled:false});
+  const shrineCorbelMesh=new THREE.Mesh(shrineCorbelGeo,verandaTimber);
+  shrineCorbelMesh.name='God room inside scalloped corner bracket';
+  shrineCorbelMesh.position.set(1.995,3.65,7.075);shrineCorbelMesh.rotation.y=-Math.PI/2;
+  shrineCorbelMesh.castShadow=true;shrineCorbelMesh.receiveShadow=true;g.add(shrineCorbelMesh);
+  b('God room inside grille head timber',1.925,3.69,7.62,.19,.16,1.25,verandaTimber);
   b('God room interior shelf above gate',0,3.70,7.18,2.10,.075,.34,verandaTimber);
   for(const [x,h,r,col] of [[-.65,.18,.047,'#77776a'],[-.43,.24,.055,'#9c9b81'],[-.21,.29,.061,'#77766d'],[.05,.22,.048,'#773b32'],[.27,.19,.060,'#989784']]){
     const jarMat=new THREE.MeshStandardMaterial({color:col,roughness:.86});
