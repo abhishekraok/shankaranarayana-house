@@ -248,14 +248,30 @@ export function buildHouse(K) {
   grilleX(-7.9,1.90,1.7,F+.9,1.5);
   const entranceOchre=new THREE.MeshStandardMaterial({color:0x988258,roughness:.98});
   const verandaIron=new THREE.MeshStandardMaterial({color:0x96968e,roughness:.86});
+  const verandaShutter=new THREE.MeshStandardMaterial({color:'#94584a',bumpMap:timberMap,bumpScale:.002,roughness:.98});
+  const windowIron=new THREE.MeshStandardMaterial({color:'#555852',roughness:.94});
   for(const side of [-1,1]) {
     const x=side*3.0;
     for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,entranceOchre);
     for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,entranceOchre);
-    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,'black');
-    for(const dx of [-.595,.595])b('Veranda blue window jamb',x+dx,2.0,2.02,.10,1.69,.10,'blue');
-    for(const y of [1.20,1.99,2.80])b('Veranda blue window rail',x,y,2.02,1.25,.09,.10,'blue');
-    for(let dx=-.48;dx<.5;dx+=.098)b('Veranda slender iron window bar',x+dx,2.0,2.02,.020,1.55,.025,verandaIron);
+    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,side>0?verandaShutter:'black');
+    if(side>0){
+      // 14.56.56 / 14.57.08 / 14.57.13: closed red-brown shutters
+      // behind a dense grille, with stepped blue mouldings and a grey crossrail.
+      for(let layer=0;layer<3;layer++){
+        const w=1.17+layer*.073,h=1.61+layer*.073,z=2.01-layer*.030;
+        for(const dx of [-w/2,w/2])b('Veranda window nested blue side moulding',x+dx,2,z,.055,h+.055,.06,'blue');
+        for(const dy of [-h/2,h/2])b('Veranda window nested blue horizontal moulding',x,2+dy,z,w,.055,.06,'blue');
+      }
+      b('Veranda window grey middle crossrail',x,1.99,1.985,1.13,.065,.045,verandaIron);
+      for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,2,2.023,.014,1.54,.018,windowIron);
+      for(const dx of [-.39,-.195,0,.195,.39])
+        b('Veranda window closed shutter board joint',x+dx,2,2.072,.009,1.54,.009,verandaTimber);
+    }else{
+      for(const dx of [-.595,.595])b('Veranda blue window jamb',x+dx,2.0,2.02,.10,1.69,.10,'blue');
+      for(const y of [1.20,1.99,2.80])b('Veranda blue window rail',x,y,2.02,1.25,.09,.10,'blue');
+      for(let dx=-.48;dx<.5;dx+=.098)b('Veranda slender iron window bar',x+dx,2.0,2.02,.020,1.55,.025,verandaIron);
+    }
     // The sitting bays end at transverse walls; the lower outer strip continues.
     b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,1.15,.20,2.98,1.80,verandaAqua,true);
     b('Sitting bay end red skirting',side*4.188,1.00,1.15,.026,.49,1.80,verandaRed);

@@ -246,7 +246,7 @@ for(const key of verandaKeys){
 for(const [key,point,prefix] of [
   ['verandaseat',[3.78,1.29,1.67],'Entrance-left chair seat'],
   ['verandaseat',[3.82,1.255,.86],'Entrance-left wooden bench'],
-  ['veranda',[3.0,1.99,2.06],'Veranda blue window'],
+  ['veranda',[3.0,1.99,2.06],'Veranda window grey middle crossrail'],
   ['verandaright',[-4.19,1.90,1.50],'Right sitting bay turquoise end wall'],
 ]){
   const eye=new THREE.Vector3(...photos[key].p).add(new THREE.Vector3(0,1.62,0));
