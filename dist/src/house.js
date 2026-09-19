@@ -188,12 +188,23 @@ export function buildHouse(K) {
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
   function stairSideFence(a,end){
+    b('Stair-side railing continuous masonry plinth',-8.35,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,'paleStone');
     for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',-8.35,y,(a+end)/2,.11,.105,end-a,courtBlue);
     for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',-8.35,F+.63,z,.068,1.10,.052,courtBlue);
     for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',-8.35,F+.66,z,.115,1.32,.115,courtBlue);
     K.blocker(-8.35,(a+end)/2,.12,end-a,F,F+1.22);
   }
   stairSideFence(6.15,10.0);stairSideFence(11.65,14.5);
+  // User-identified 14.33.49: a short ladder is stored on its side
+  // against the courtyard face of the blue grille, below the clothesline.
+  const ladderWood=verandaTimber.clone();ladderWood.color.set('#bc9c7d');
+  for(const [x,y] of [[-8.18,.50],[-8.24,1.04]])
+    K.beam(g,'Courtyard stored ladder long rail',[x,y,6.72],[x,y,9.52],.065,ladderWood,.085);
+  for(let i=0;i<8;i++){
+    const z=6.86+i*.36;
+    K.beam(g,'Courtyard stored ladder rung',[-8.18,.50,z],[-8.24,1.04,z],.048,ladderWood,.050);
+  }
+
   const courtSupport=K.M.plaster.clone();courtSupport.color.set('#898576');courtSupport.roughness=1;
   for(const z of [6.19,9.86,14.42]){
     b('Courtyard rough stone outer support',-8.28,1.84,z,.24,3.55,.26,courtSupport,true);
@@ -904,7 +915,7 @@ export function buildHouse(K) {
   floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
   floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U,'paleStone',.18);
   // Loose corrugated sheet rests against the shrine plinth, below the stair view.
-  const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,48,8),sp=sheetGeometry.attributes.position;
+  const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,48,1),sp=sheetGeometry.attributes.position;
   for(let i=0;i<sp.count;i++)sp.setZ(i,.034*Math.cos(sp.getX(i)*Math.PI/.092));
   sheetGeometry.computeVertexNormals();
   const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
