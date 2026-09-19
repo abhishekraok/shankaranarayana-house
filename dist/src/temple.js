@@ -1343,11 +1343,23 @@ export function buildTemple(K) {
     for(const y of [1.18,2.20,3.22])box('Inner mandapa grille rail',x,y,z,.06,.07,2.25,dark);
     for(const sign of [-1,1])K.beam(g,'Inner mandapa X grille',[x,1.2,z-sign*1.1],[x,3.2,z+sign*1.1],.045,dark);
   }
-  // Small stone offering bases follow the aisle beside the central plinth.
-  for(const z of [22.0,23.2,24.4,25.6]){
-    box('Inner aisle offering stone base',35.85,.63,z,.35,.16,.38,sanctumStone);
-    cyl('Inner aisle rounded offering stone',35.85,.76,z,.10,.16,.13,sanctumStone,12);
+  // User-identified 15.08.04: two separate worn bases precede a shared
+  // slab with a row of small upright stones; these are not repeated pedestals.
+  const aisleOfferingStone=sanctumStone.clone();aisleOfferingStone.color.set('#77705e');
+  for(const [z,w,r] of [[22.0,.34,.13],[22.65,.39,.16]]){
+    box('Inner aisle offering stone base',35.85,.595,z,w,.09,w,aisleOfferingStone);
+    const profile=[[r,0],[r,.025],[r*.87,.05],[r*.60,.095],[r*.40,.12],[0,.12]];
+    mesh('Inner aisle worn rounded offering base',new THREE.LatheGeometry(profile.map(([x,y])=>new THREE.Vector2(x,y)),12),aisleOfferingStone,35.85,.64,z);
   }
+  box('Inner left grouped offering slab',35.85,.595,24.15,.47,.09,1.18,aisleOfferingStone);
+  const leftOfferingStones=[];
+  for(let i=0;i<8;i++){
+    const h=.12+(i%3)*.013;
+    leftOfferingStones.push([35.76,.64+h/2,23.67+i*.135,.057,h,.057,0,0,0]);
+  }
+  instances('Inner left row of upright offering stones',new THREE.CylinderGeometry(1,1,1,10),aisleOfferingStone,leftOfferingStones);
+  for(const z of [23.70,24.60])box('Inner left offering slab end block',35.97,.695,z,.13,.11,.15,aisleOfferingStone);
+  cyl('Inner left low rear offering disc',35.85,.585,25.30,.15,.18,.07,aisleOfferingStone,12);
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
   box('Inner sanctum dark rear chamber',39,2.17,26.64,4.5,2.22,.22,dark,true);
   for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,26.46,.27,2.18,.14,vividBlue);
