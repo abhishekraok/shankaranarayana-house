@@ -708,6 +708,12 @@ export function buildHouse(K) {
     K.blocker(-2.96,z,.26,.27,.035,2.475);
   }
   const pole=K.cylinder(g,'Shrine-side weathered round cross pole',-2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
+  // 14.30.57: pale pipe lies on the soil beside the shrine-side supports.
+  const courtPipe=K.M.plaster.clone();courtPipe.color.set('#d0d2bc');
+  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',-2.78,.075,8.53,.034,.034,5.10,courtPipe,8);groundPipe.rotation.x=Math.PI/2;
+  for(const z of [6.03,8.12,10.98]){
+    const joint=K.cylinder(g,'Courtyard ground pipe coupling',-2.78,.075,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
+  }
   const poleStain=new THREE.MeshStandardMaterial({color:'#696c4c',roughness:1});
   for(const z of [7.46,8.55,10.02,10.85]){
     const collar=K.cylinder(g,'Round courtyard pole weathered band',-2.96,2.51,z,.087,.087,.055,poleStain,12);collar.rotation.x=Math.PI/2;
@@ -850,7 +856,14 @@ export function buildHouse(K) {
     // Leave the observed walking strips and cross-courtyard routes readable.
     if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+6.5)<.65)continue;
     weeds.push({x,z,a:i*2.3999});}
-  const weedMesh=new THREE.InstancedMesh(new THREE.SphereGeometry(1,6,3),mat('leaf'),weeds.length);
+  // Six folded triangles retain pointed leaf silhouettes at a fraction of
+  // the old tiny spheres' cost. Reuse the existing deterministic placements.
+  const weedGeometry=new THREE.BufferGeometry(),weedVertices=[];
+  const weedEdge=[[0,0,-1],[-.82,0,-.48],[-.82,0,.48],[0,0,1],[.82,0,.48],[.82,0,-.48]];
+  for(let i=0;i<6;i++)weedVertices.push(0,.5,0,...weedEdge[i],...weedEdge[(i+1)%6]);
+  weedGeometry.setAttribute('position',new THREE.Float32BufferAttribute(weedVertices,3));weedGeometry.computeVertexNormals();
+  const weedMaterial=mat('leaf').clone();weedMaterial.side=THREE.DoubleSide;
+  const weedMesh=new THREE.InstancedMesh(weedGeometry,weedMaterial,weeds.length);
   weeds.forEach((p,i)=>{helper.position.set(p.x,.075+(i%5)*.016,p.z);helper.rotation.set(0,p.a,.1);helper.scale.set(.033+(i%4)*.012,.018,.055);helper.updateMatrix();weedMesh.setMatrixAt(i,helper.matrix);});weedMesh.name='Irregular courtyard ground cover';g.add(weedMesh);
   const gardenLeaves=[];
   for(const [cx,cz] of [[-7.4,7.5],[-7.4,12.7],[5.9,7.5],[5.9,12.8]]) {
