@@ -918,8 +918,24 @@ export function buildTemple(K) {
     box('Outer shrine closed door shadow',53.61,1.80,z,.08,2.38,1.08,dark,true);
     for(const dz of [-.58,.58])box('Outer shrine tall door jamb',53.53,1.82,z+dz,.14,2.54,.11,timber?K.M.wood:blue);
     for(const y of [.64,3.04])box('Outer shrine doorway cross frame',53.51,y,z,.16,.11,1.27,timber?K.M.wood:blue);
-    for(let i=0;i<7;i++)box('Outer shrine closed gate vertical bar',53.51,1.82,z-.45+i*.15,.055,2.35,.045,timber?K.M.wood:blue);
-    for(const y of [1.24,2.06,2.73])box('Outer shrine gate cross rail',53.49,y,z,.06,.075,1.02,timber?K.M.wood:blue);
+    // 15.04.08 / 15.04.30: narrow metal bars within two framed leaves;
+    // the blue gate has two tiers, the timber gate four.
+    const doorMaterial=timber?K.M.wood:blue;
+    for(const side of [-1,1])for(let i=0;i<4;i++)
+      box('Outer shrine slender metal gate bar',53.50,1.82,z+side*.285+(i-1.5)*.095,.025,2.30,.016,whiteTrim);
+    box('Outer shrine paired door central stile',53.47,1.82,z,.09,2.38,.09,doorMaterial);
+    for(const y of (timber?[1.24,1.82,2.40]:[1.82]))box('Outer shrine gate cross rail',53.46,y,z,.08,.09,1.06,doorMaterial);
+    box('Outer shrine horizontal latch',53.405,1.59,z,.025,.025,.28,brass);
+    const smallBellMetal=mat('#888879',.8,{metalness:.35});
+    bell('Outer shrine small suspended bell',51.45,2.08,z-.80,.22,smallBellMetal);
+    K.beam(g,'Outer shrine bell suspension',[51.45,3.42,z-.80],[51.45,2.37,z-.80],.012,dark);
+    if(timber){
+      K.beam(g,'Timber shrine tiered lamp suspension',[52.9,3.22,z+.82],[52.9,1.39,z+.82],.009,dark);
+      for(const y of [1.45,1.94,2.43]){
+        const dish=mesh('Timber shrine hanging oil lamp dish',new THREE.LatheGeometry([[.015,0],[.075,.012],[.095,.045],[.095,.055],[.071,.025],[.016,.014]].map(p=>new THREE.Vector2(...p)),12),brass,52.9,y,z+.82);
+        cyl('Timber shrine oil lamp central stem',52.9,y+.085,z+.82,.014,.025,.10,brass,8);
+      }
+    }
     sideScallop('Outer shrine pale blue scalloped entrance',51.04,z,2.40,3.33);
     if(timber)for(let i=0;i<24;i++){
       const t=i/23;cyl('Outer shrine hanging flower garland',51.0,3.02-.30*Math.sin(t*Math.PI),z-.8+t*1.6,.032,.028,.055,i%3?K.M.cream:red,7);
