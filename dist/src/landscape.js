@@ -544,6 +544,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   const frond = palmFrondGeometry();
   function clearOppositeBuildings(x,z){
+    // Keep inferred palms outside the lane cottage and its pink rear block.
+    if(x>-33&&x<-23&&z>-18&&z<-9.4)return -19.8;
     for(const [a,b,c,d] of [[-18,-6,-60,-49],[-1,14,-61,-50],[20,30,-68,-57],[31,46,-68,-54]])if(x>a&&x<b&&z>c&&z<d)return c-3.2;
     return z;
   }
@@ -964,6 +966,27 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
+  // 14.46.51 resolves the roadside facade: raised door between barred
+  // windows and a shallow white projection with a half-height brown shutter.
+  const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
+  box('Western cottage dark raised foundation',-28,.225,-13,8.24,.45,5.44,materials.wetStone);
+  group.getObjectByName('Western lane right cottage dark doorway').position.y=1.50;
+  for(let i=0;i<3;i++){
+    const top=.45-i*.15,z=-10.275+.14+i*.28;
+    box('Western cottage worn doorstep',-28.8,top/2,z,1.05,top,.30,materials.path);
+    K.surface(-28.8,z,1.05,.30,top);
+  }
+  for(const x of [-30.1,-26.55]){
+    for(let j=0;j<7;j++)box('Western cottage narrow window iron bar',x-.22+j*.073,1.65,-10.24,.017,.78,.018,materials.mortar);
+    for(const dx of [-.31,.31])box('Western cottage small window timber jamb',x+dx,1.65,-10.24,.055,.94,.08,cottageWood);
+  }
+  box('Western cottage projecting white shutter bay',-24.95,1.48,-10.15,1.95,2.35,.36,'plaster');
+  box('Western cottage shutter bay dark sill',-24.95,.345,-9.951,1.95,.08,.045,materials.wetStone);
+  box('Western cottage recessed brown half shutter',-24.95,2.04,-9.951,1.25,.71,.045,cottageWood);
+  for(let j=0;j<9;j++)box('Western cottage shutter horizontal louvre',-24.95,1.72+j*.077,-9.915,1.20,.018,.025,materials.darkSoil);
+  const cottageCanopy=box('Western cottage shallow grey shutter canopy',-24.95,2.72,-10.01,2.15,.065,.77,materials.roofConcrete);
+  cottageCanopy.rotation.x=.13;K.roofs.push(cottageCanopy);
+
   box('Western cottage recessed pink upper floor',-29.1,4.17,-15.2,6.2,1.62,3.8,'pink',true);
   box('Western cottage pale terrace slab',-29.1,5.02,-15.2,6.5,.16,4.1,'plaster');
   box('Western cottage pink terrace parapet',-29.1,5.29,-13.22,6.5,.52,.16,'pink');
