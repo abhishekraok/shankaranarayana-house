@@ -788,6 +788,10 @@ export function buildTemple(K) {
     const glazing=mesh('Covered hall pale translucent window glazing',new THREE.PlaneGeometry(1.40,1.72),new THREE.MeshStandardMaterial({color:0xdce5dd,roughness:.9,transparent:true,opacity:.90,side:THREE.DoubleSide}),20.405,2.08,z);glazing.rotation.y=Math.PI/2;
     K.blocker(20.30,z,.20,1.48,1.15,3.1);
   }
+  // Continuous wall heads meet the ceiling underside; the original wall
+  // pieces stopped six centimetres short and leaked a strip of outdoor light.
+  box('Covered hall lane wall ceiling closure',20.30,3.51,11.3,.22,.14,9.8,hallBlue);
+  box('Covered hall rear wall ceiling closure',24.25,3.51,16.10,8.0,.14,.22,hallBlue);
   const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
   for(const z of [9.0,12.7]){
     box('Covered hall square blue pier',24.15,2.08,z,.38,2.96,.38,hallBlue,true);
@@ -808,7 +812,8 @@ export function buildTemple(K) {
     box('Covered hall tube light fixture',20.48,3.02,z,.08,.055,1.3,whiteTrim);
     K.beam(g,'Covered hall exposed light wiring',[20.47,3.13,z],[20.47,3.13,z+1.3],.012,dark);
   }
-  // IMG_20130720_180635: one tall stack and a row facing into the hall.
+  // IMG_20130720_180635 / 180647: chairs face into the hall, with
+  // several unequal tall stacks stored at the ceremonial end of the wall.
   const chairBlue=mat('#596f91',.65);
   const chairBack=new THREE.Shape();chairBack.moveTo(-.23,.51);chairBack.lineTo(-.25,.85);
   chairBack.bezierCurveTo(-.26,1.13,.26,1.13,.25,.85);chairBack.lineTo(.23,.51);chairBack.closePath();
@@ -817,7 +822,7 @@ export function buildTemple(K) {
     hole.moveTo(sign*.027,y);hole.lineTo(sign*.185,y+.055);hole.lineTo(sign*.185,y+.074);hole.lineTo(sign*.027,y+.019);hole.closePath();chairBack.holes.push(hole);
   }
   const backGeometry=new THREE.ExtrudeGeometry(chairBack,{depth:.036,bevelEnabled:false});
-  for(const [z,count] of [[14.25,1],[13.53,1],[12.35,10],[11.50,1],[10.78,1],[10.06,1],[9.34,1]]){
+  for(const [z,count] of [[14.25,12],[13.53,16],[12.35,19],[11.50,1],[10.78,1],[10.06,1],[9.34,1]]){
     const chairs=new THREE.Group();chairs.name='Covered hall plastic armchair arrangement';chairs.position.set(21.02,.60,z);chairs.rotation.y=Math.PI/2;g.add(chairs);
     for(let k=0;k<count;k++){
       const y=k*.068;
@@ -852,7 +857,7 @@ export function buildTemple(K) {
   K.beam(g,'Covered hall small clock hand',[20.526,3.18,14.8],[20.526,3.25,14.78],.009,dark);
   // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay.
   const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
-  const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,8),cp=curtainGeometry.attributes.position;
+  const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,1),cp=curtainGeometry.attributes.position;
   for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
   mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,26.25,1.9,6.70);
   for(const x of [24.55,27.95]){
