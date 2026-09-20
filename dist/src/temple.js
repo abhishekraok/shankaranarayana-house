@@ -761,6 +761,24 @@ export function buildTemple(K) {
     for(let j=0;j<12;j++)for(const sign of [-1,1])K.beam(g,'Right hall attic diamond lattice',[24.44,6.79,z-1.13+j*.19],[24.44,7.28,z-1.13+j*.19+sign*.25],.028,oldStone);
   }
   corrugatedRoof('Right hall pitched gray upper roof',22.25,18.8,5.4,25.6,7.45,1.25,greySheet);
+  // Close the attic between the masonry and pitched roof. The roof overhang
+  // remains outside this shell; the existing lattice vents stay below it.
+  const hallAtticSection=new THREE.Shape();
+  const hallRoofY=x=>7.45+1.25*(1-Math.abs(x-22.25)/2.7);
+  hallAtticSection.moveTo(20.22,7.27);
+  hallAtticSection.lineTo(24.32,7.27);
+  hallAtticSection.lineTo(24.32,hallRoofY(24.32)+.01);
+  hallAtticSection.lineTo(22.25,8.71);
+  hallAtticSection.lineTo(20.22,hallRoofY(20.22)+.01);
+  hallAtticSection.closePath();
+  const hallAtticGeometry=new THREE.ExtrudeGeometry(hallAtticSection,{depth:24.8,bevelEnabled:false,steps:1});
+  // Keep only the enclosing walls and underside. A second sloping top skin
+  // would intersect the corrugations and produce bright flickering stripes.
+  const atticPositions=hallAtticGeometry.attributes.position,atticNormals=hallAtticGeometry.attributes.normal,atticFaces=[];
+  for(let i=0;i<atticPositions.count;i+=3)if(atticNormals.getY(i)<=0)for(let j=0;j<3;j++)atticFaces.push(i+j);
+  hallAtticGeometry.setIndex(atticFaces);
+  mesh('Right hall continuous attic closure',hallAtticGeometry,innerWhite,0,0,6.4);
+
   // Low lean-to over the shaded passage beneath the tall hall.
   const leanPos=[];for(let i=0;i<90;i++){
     const z=6.2+i*10.0/90,zz=z+10.0/90,a=i%2?.035:0,b=i%2?0:.035;
