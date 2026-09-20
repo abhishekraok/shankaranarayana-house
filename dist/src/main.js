@@ -27,7 +27,9 @@ const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMat
 // The ground is cut out below the lake rather than covering its descending banks.
 const terrain=new THREE.Group();terrain.name='Ground';scene.add(terrain);
 function ground(x,z,w,d){const m=K.box(terrain,'Earth',x,-.22,z,w,.44,d,'earth');m.receiveShadow=true;}
-ground(-80,0,124,240);ground(108,0,108,240);ground(18,-83,72,80);
+ground(-80,0,124,240);ground(108,0,108,240);
+// Shallow notch below the far-bank stair's first below-grade risers.
+ground(-2.95,-83,30.10,80);ground(34.20,-83,39.60,80);ground(13.25,-83.10,2.30,79.80);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
 ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
@@ -126,7 +128,7 @@ function lakeCameraLift(x,z){
 }
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
-function terrainY(x,z){if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<54&&z>-43&&z<-12?-8:0;}
+function terrainY(x,z){if(x>12.10&&x<14.40&&z>-43.20&&z<=-43)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<54&&z>-43&&z<-12?-8:0;}
 function supportY(x,z,previous){let best=terrainY(x,z);for(const s of K.surfaces){if(inside(x,z,s)&&s.y<=previous+.38&&s.y>best)best=s.y;}
  for(const r of K.ramps)if(inside(x,z,r)){let t=r.axis.endsWith('x')?(x-(r.x-r.w/2))/r.w:(z-(r.z-r.d/2))/r.d;if(r.axis.startsWith('-'))t=1-t;const h=THREE.MathUtils.lerp(r.lowY,r.highY,THREE.MathUtils.clamp(t,0,1));if(h<=previous+.38&&h>best)best=h;}
  return best;

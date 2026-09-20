@@ -164,14 +164,15 @@ export function buildLandscape(K, {mobile=false}={}) {
     // burying them inside the old continuous retaining courses.
     for(const [a,b] of [[lake.x-w/2+thickness,16.4],[29.6,lake.x+w/2-thickness]])
       box(`${name} near`,(a+b)/2,top-height/2,lake.z+d/2-thickness/2,b-a,height,thickness,mat);
-    box(`${name} far`, lake.x, top - height / 2, lake.z - d / 2 + thickness / 2, w - thickness * 2, height, thickness, mat);
+    for(const [a,b] of [[lake.x-w/2+thickness,12.10],[14.40,lake.x+w/2-thickness]])
+      box(`${name} far`,(a+b)/2,top-height/2,lake.z-d/2+thickness/2,b-a,height,thickness,mat);
   }
   ringCourse(0, .52, -.08, 1.8, 'upper dark stone retaining course', materials.basalt);
   ringCourse(.50, .45, -.31, 1.55, 'middle worn stone tread', materials.basalt);
   ringCourse(.93, .48, -.54, 1.30, 'low mossy stone tread', materials.wetStone);
   ringCourse(1.39, .36, -.77, 1.02, 'submerged tank course', materials.wetStone);
   for(const [a,b] of [[-17.4,16.4],[29.6,53.4]])K.surface((a+b)/2,-12.73,b-a,.40,-.31);
-  K.surface(18, -42.27, 70.8, .40, -.31);
+  for(const [a,b] of [[-17.4,12.10],[14.40,53.4]])K.surface((a+b)/2,-42.27,b-a,.40,-.31);
   K.surface(-17.27, -27.5, .40, 29.5, -.31);
   K.surface(53.27, -27.5, .40, 29.5, -.31);
   // Keep later planting stable when the longer shoreline needs more stones.
@@ -180,7 +181,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   for (const side of [-1, 1]) {
     for (let i = 0; i < 66; i++) {
       const x = -17.1 + i * 1.08;
-      blockBatch('bank individual masonry', materials.basalt, x, -.34, side < 0 ? -42.985 : -12.015, 1.03, .34, .027, new THREE.Color().setScalar(range(.73, 1.23)));
+      const stoneColor=new THREE.Color().setScalar(range(.73,1.23));
+      // Keep the seeded planting sequence stable while clearing stair masonry.
+      if(side<0&&x+.515>12.10&&x-.515<14.40)continue;
+      blockBatch('bank individual masonry', materials.basalt, x, -.34, side < 0 ? -42.985 : -12.015, 1.03, .34, .027, stoneColor);
     }
     for (let i = 0; i < 28; i++) {
       blockBatch('bank individual masonry', materials.basalt, 18 + side * 35.985, -.34, -42.25 + i * 1.08, .027, .34, 1.03, new THREE.Color().setScalar(range(.73, 1.23)));
