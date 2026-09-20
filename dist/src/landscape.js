@@ -4,7 +4,7 @@ import * as THREE from 'three';
  * Ground and animated water are supplied by the application. Keep this group
  * at identity: all walkable surfaces and collision bounds use world metres.
  */
-export function buildLandscape(K) {
+export function buildLandscape(K, {mobile=false}={}) {
   const group = new THREE.Group();
   group.name = 'Shankaranarayana · tank and coconut grove';
   let seed = 927131;
@@ -513,24 +513,25 @@ export function buildLandscape(K) {
     const greenA = new THREE.Color('#4c773f'), greenB = new THREE.Color('#759b4d'), stem = new THREE.Color('#89985b');
     const point = t => new THREE.Vector3(5.25 * t, 1.22 * Math.sin(t * Math.PI) - 1.45 * t * t, 0);
     function vertex(v, color) { positions.push(v.x, v.y, v.z); colors.push(color.r, color.g, color.b); return positions.length / 3 - 1; }
-    for (let i = 0; i <= 15; i++) {
-      const t = i / 15, p = point(t), radius = .028 * (1 - t * .88);
-      for (let j = 0; j < 5; j++) {
-        const a = j / 5 * Math.PI * 2;
+    const stemSegments=mobile?10:15,stemSides=mobile?3:5,leafSegments=mobile?2:3;
+    for (let i = 0; i <= stemSegments; i++) {
+      const t = i / stemSegments, p = point(t), radius = .028 * (1 - t * .88);
+      for (let j = 0; j < stemSides; j++) {
+        const a = j / stemSides * Math.PI * 2;
         vertex(new THREE.Vector3(p.x, p.y + Math.sin(a) * radius, Math.cos(a) * radius), stem);
-        if (i) { const a0 = (i - 1) * 5 + j, b0 = (i - 1) * 5 + (j + 1) % 5, c0 = i * 5 + j, d0 = i * 5 + (j + 1) % 5; indices.push(a0, b0, c0, b0, d0, c0); }
+        if (i) { const a0 = (i - 1) * stemSides + j, b0 = (i - 1) * stemSides + (j + 1) % stemSides, c0 = i * stemSides + j, d0 = i * stemSides + (j + 1) % stemSides; indices.push(a0, b0, c0, b0, d0, c0); }
       }
     }
     for (let i = 0; i < 21; i++) for (const side of [-1, 1]) {
       const t = .085 + i / 21 * .89, p = point(t);
       const length = (.32 + 1.25 * Math.sin(Math.PI * t) ** .72) * (side < 0 ? .98 : 1.04);
       const base = positions.length / 3, shade = greenA.clone().lerp(greenB, (i % 5) / 5);
-      for (let j = 0; j <= 3; j++) {
-        const s = j / 3, width = .115 * Math.sin(Math.PI * s) + .016 * (1 - s);
+      for (let j = 0; j <= leafSegments; j++) {
+        const s = j / leafSegments, width = .115 * Math.sin(Math.PI * s) + .016 * (1 - s);
         const center = p.clone().add(new THREE.Vector3(length * .53 * s, -.27 * length * s - .35 * s * s, side * length * s));
         for (const edge of [-1, 0, 1]) vertex(center.clone().add(new THREE.Vector3(width * edge, edge === 0 ? .033 * Math.sin(Math.PI * s) : 0, -side * width * .4 * edge)), shade.clone().multiplyScalar(1 - s * .19));
       }
-      for (let j = 0; j < 3; j++) for (let k = 0; k < 2; k++) {
+      for (let j = 0; j < leafSegments; j++) for (let k = 0; k < 2; k++) {
         const a = base + j * 3 + k, b = a + 1, c = a + 3, d = c + 1;
         indices.push(a, c, b, b, c, d);
       }

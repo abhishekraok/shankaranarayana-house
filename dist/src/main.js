@@ -30,7 +30,7 @@ function ground(x,z,w,d){const m=K.box(terrain,'Earth',x,-.22,z,w,.44,d,'earth')
 ground(-80,0,124,240);ground(108,0,108,240);ground(18,-83,72,80);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
 ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
-const landscape=buildLandscape(K);scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
+const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs));
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:new THREE.Color('#547a42')},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
