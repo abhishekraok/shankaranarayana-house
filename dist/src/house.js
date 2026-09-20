@@ -1180,6 +1180,31 @@ export function buildHouse(K) {
     for(let xx=-.2;xx<.25;xx+=.1)place(xx,F+.9,.255,.04,.55,.045);
     K.blocker(x,z,.78,.78,base,base+1.2);
   }
+  // User-labelled 14.33.35 / 14.33.42: red steel cupboard and open
+  // curved-arm chairs in the raised sitting bay left of the main entry.
+  const cupboardRed=new THREE.MeshStandardMaterial({color:'#783438',roughness:.72,metalness:.15});
+  b('Inner sitting bay red steel cupboard',-3.43,1.56,3.27,.55,1.54,.83,cupboardRed,true);
+  for(const z of [3.06,3.48]){
+    b('Cupboard recessed door',-3.147,1.58,z,.026,1.43,.395,cupboardRed);
+    b('Cupboard small silver handle',-3.122,1.67,z+(z<3.27?.15:-.15),.028,.095,.027,'metal');
+  }
+  b('Cupboard dark central door seam',-3.131,1.58,3.27,.008,1.42,.012,'black');
+  b('Cupboard projecting top lip',-3.43,2.35,3.27,.59,.045,.88,cupboardRed);
+  const sittingChairWood=verandaTimber.clone();sittingChairWood.color.set('#6f6153');
+  for(const z of [2.48,3.40]){
+    const c=new THREE.Group();c.name='Inner sitting bay curved-arm wooden chair';c.position.set(-2.43,.79,z);c.rotation.y=-Math.PI/2;g.add(c);
+    K.box(c,'Sitting chair solid seat',0,.43,0,.59,.065,.63,sittingChairWood);
+    for(const x of [-.255,.255]){
+      const legProfile=[[.034,0],[.046,.025],[.031,.07],[.029,.19],[.046,.22],[.030,.25],[.028,.39],[.045,.44],[.034,.49],[.028,.68]];
+      const leg=new THREE.Mesh(new THREE.LatheGeometry(legProfile.map(p=>new THREE.Vector2(...p)),8),sittingChairWood);leg.name='Sitting chair turned front leg';leg.position.set(x,0,-.25);c.add(leg);
+      K.beam(c,'Sitting chair inclined back upright',[x,0,.24],[x,1.05,.37],.05,sittingChairWood,.06);
+      const armCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(x,.67,-.32),new THREE.Vector3(x,.73,-.20),new THREE.Vector3(x,.74,.09),new THREE.Vector3(x,.86,.31),new THREE.Vector3(x,1.02,.37)]);
+      const arm=new THREE.Mesh(new THREE.TubeGeometry(armCurve,12,.034,6,false),sittingChairWood);arm.name='Sitting chair sweeping curved arm';c.add(arm);
+      K.beam(c,'Sitting chair lower stretcher',[x,.20,-.25],[x,.20,.27],.038,sittingChairWood);
+    }
+    for(const [y,zz,h] of [[.56,.31,.085],[.98,.36,.12]])K.box(c,'Sitting chair open back crossrail',0,y,zz,.56,h,.045,sittingChairWood);
+    K.blocker(-2.43,z,.82,.65,.79,1.86);
+  }
   chair(-10.85,6.0,Math.PI/2);chair(-10.85,7.45,Math.PI/2);
   chair(-5.1,4.48,Math.PI);chair(4.0,4.48,Math.PI);
   chair(-6.7,16.95,Math.PI);chair(-5.5,16.95,Math.PI);
