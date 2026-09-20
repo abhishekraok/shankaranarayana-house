@@ -45,3 +45,11 @@ Any static host can serve `dist/`. GitHub updates do not automatically redeploy 
 The public repository begins with a clean snapshot of the approved source and photographs. Earlier development history and private references are excluded.
 
 Original code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: [CC BY 4.0](LICENSE-PHOTOS.txt), credited to Abhishek Rao. For photo reuse, credit Abhishek Rao, link to this repository and the license, and indicate any changes. See [reference photographs](REFERENCE-SOURCES.md) for provenance. Vendored Three.js retains its [MIT license](dist/vendor/THREE-LICENSE.txt).
+
+### Photo alignment
+
+Open **Photographs → Align photo** locally. Select a reference or open JPEG/PNG/WebP files from your computer. Local files are never uploaded. Use the overlay, camera controls, and field of view to match the photograph. Save each pose, then **Export JSON** and share that file for model refinement.
+
+Saves live in browser storage, separately for localhost, dev, and production; export is the portable backup. Local photo pixels are not stored or exported. Reopen the same file to restore its saved pose (matched by SHA-256). Imports merge poses, replacing matching photo IDs. Each photo has one saved pose.
+
+The versioned export records world-space eye position in metres, quaternion, viewing direction, vertical field of view, viewport aspect, photo dimensions and cover crop mode, filename/hash, timestamp, and notes. It does not change the tour or model. For identical framing when restoring, use the original window aspect ratio.

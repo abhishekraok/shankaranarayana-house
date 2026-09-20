@@ -8,7 +8,8 @@
     "start": "node server.mjs",
     "test": "node tests/wheel-movement.mjs",
     "test:browser": "node tests/verify.cjs",
-    "test:mobile": "node tests/mobile-rendering.cjs"
+    "test:mobile": "node tests/mobile-rendering.cjs",
+    "test:alignment": "node tests/photo-alignment.cjs"
   },
   "engines": {
     "node": ">=18"

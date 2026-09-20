@@ -1,0 +1,22 @@
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
+(async()=>{const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});try{
+ const context=await browser.newContext({viewport:{width:1200,height:850},acceptDownloads:true});const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.goto('http://127.0.0.1:4173');await page.waitForFunction(()=>window.houseWalk?.ready);
+ await page.click('#photos-btn');await page.click('#align-photo');assert.equal(await page.evaluate(()=>houseWalk.getState().mode),'fly');
+ await page.click('#align-suggested');const before=await page.evaluate(()=>houseWalk.camera.position.toArray());await page.click('[data-shift=up]');const after=await page.evaluate(()=>houseWalk.camera.position.toArray());assert.ok(Math.abs(after[1]-before[1]-.25)<1e-7);
+ await page.click('[data-turn=right]');await page.locator('#align-fov').fill('64');await page.locator('#align-fov').dispatchEvent('input');await page.fill('#align-notes','Standing on the front step.');await page.click('#align-save');
+ const first=await page.evaluate(()=>JSON.parse(localStorage.getItem('shankaranarayana.photo-poses.v1'))[0]);assert.equal(first.notes,'Standing on the front step.');assert.equal(first.camera.verticalFov,64);
+ await page.click('[data-shift=up]');await page.click('#align-restore');assert.deepEqual(await page.evaluate(()=>houseWalk.camera.position.toArray()),first.camera.position);
+ const file='dist/assets/house-front.jpg';await page.setInputFiles('#align-files',file);await page.waitForFunction(()=>document.getElementById('align-select').value.startsWith('local:'));await page.click('#align-save');
+ const downloadPromise=page.waitForEvent('download');await page.click('#align-export');const download=await downloadPromise;const exported=JSON.parse(fs.readFileSync(await download.path(),'utf8'));assert.equal(exported.poses.length,2);assert.equal(exported.poses[1].filename,'house-front.jpg');assert.match(exported.poses[1].sha256,/^[a-f0-9]{64}$/);assert.ok(!JSON.stringify(exported).includes('data:image'));
+ await page.screenshot({path:'D:/Codex/alignment-desktop.png'});
+ await page.reload();await page.waitForFunction(()=>window.houseWalk?.ready);await page.click('#photos-btn');await page.click('#align-photo');await page.click('#align-restore');assert.deepEqual(await page.evaluate(()=>houseWalk.camera.position.toArray()),first.camera.position);
+ // Invalid imports must not overwrite existing saved data.
+ const old=await page.evaluate(()=>localStorage.getItem('shankaranarayana.photo-poses.v1'));
+ await page.setInputFiles('#align-import',{name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{"version":1,"poses":[{}]}')});await page.waitForFunction(()=>document.getElementById('align-status').textContent.includes('not a valid'));assert.equal(await page.evaluate(()=>localStorage.getItem('shankaranarayana.photo-poses.v1')),old);
+ await page.setInputFiles('#align-import',{name:'poses.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(exported))});await page.waitForFunction(()=>document.getElementById('align-status').textContent.includes('Imported 2'));
+ await page.click('#align-close');assert.equal(await page.isVisible('#alignment-overlay'),false);await page.click('#close-photos');await page.click('#tour-btn');assert.equal(await page.evaluate(()=>houseWalk.getState().mode),'tour');
+ const mobile=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});mobile.on('pageerror',e=>errors.push(e.message));await mobile.goto('http://127.0.0.1:4173');await mobile.waitForFunction(()=>window.houseWalk?.ready);await mobile.click('#controls-toggle');await mobile.click('#photos-btn');await mobile.click('#align-photo');await mobile.click('#align-tools summary');await mobile.screenshot({path:'D:/Codex/alignment-mobile.png'});assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await mobile.click('#align-save');assert.match(await mobile.textContent('#align-status'),/saved on this device/);await mobile.click('#align-close');
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['camera adjustment','save and restore','reload persistence','local image hash','JSON export and import','invalid import rejection','tour restart','mobile controls'],errors}));
+}finally{await browser.close();}})();
