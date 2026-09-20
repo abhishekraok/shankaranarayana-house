@@ -484,7 +484,18 @@ export function buildTemple(K) {
   ];
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
-    floor('Outer circuit raised red veranda',xc,zc,w,d,.6,oxideFloor);
+    if(r.side>0){
+      // The small shrine stairs are recessed into the raised veranda.
+      // Split both the visible slab and walkable surface around their slots.
+      let start=r.a;
+      for(const z of [16.2,21.4]){
+        floor('Outer circuit raised red veranda',xc,(start+z-.72)/2,w,z-.72-start,.6,oxideFloor);
+        floor('Outer shrine rear threshold',(52.45+r.wall)/2,z,r.wall-52.45,1.44,.6,oxideFloor);
+        for(const side of [-1,1])box('Outer shrine recessed stair side riser',51.75,.35,z+side*.73,1.40,.50,.045,oldStone);
+        start=z+.72;
+      }
+      floor('Outer circuit raised red veranda',xc,(start+r.b)/2,w,r.b-start,.6,oxideFloor);
+    }else floor('Outer circuit raised red veranda',xc,zc,w,d,.6,oxideFloor);
     if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,zc,.27,2.9,d,agedWhite,true);
     if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,zc,.065,.6,d,red);
     // Real notches in the plinth align with steps instead of blocking them.
@@ -497,14 +508,21 @@ export function buildTemple(K) {
     const count=Math.round(d/2.8);
     for(let i=0;i<=count;i++){
       const z=r.a+.2+(d-.4)*i/count;
+      if(r.side>0&&[16.2,21.4].some(center=>Math.abs(z-center)<2.5))continue;
       if(r.side>0&&z>28.2&&z<36.2)continue; // Four shared piers frame the three vaulted bays below.
       if(r.round){cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
       if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.23,1.13,z,.37,.35,.38,blue);
     }
+    if(r.side>0)for(const center of [16.2,21.4])for(const side of [-1,1])
+      blueColumn('Outer shrine flanking pale blue pier',r.edge,center+side*1.25,.6,2.85);
     for(const z of r.stairs){
-      steps('Outer circuit veranda access stair',r.edge-r.side*.57,z,1.2,1.4,.1,.6,r.side<0?'-x':'x',3);
-      floor('Outer circuit stair landing',r.edge+r.side*.12,z,.38,1.4,.6,oxideFloor);
+      if(r.side>0&&[16.2,21.4].includes(z)){
+        steps('Outer shrine recessed access stair',51.75,z,1.4,1.4,.1,.6,'x',3);
+      }else{
+        steps('Outer circuit veranda access stair',r.edge-r.side*.57,z,1.2,1.4,.1,.6,r.side<0?'-x':'x',3);
+        floor('Outer circuit stair landing',r.edge+r.side*.12,z,.38,1.4,.6,oxideFloor);
+      }
     }
     const rg=new THREE.Group();rg.name='Outer circuit veranda roof';g.add(rg);K.roofs.push(rg);
     if(!r.round){
@@ -970,7 +988,7 @@ export function buildTemple(K) {
   box('Entrance circuit stained terrace parapet',50.94,4.34,7.74,6.3,.75,.22,agedWhite);
   box('Entrance circuit terrace corner return',47.85,4.34,7.0,.22,.75,1.70,agedWhite);
   // Bells hang inside the covered bays; their chains and clappers are separate.
-  for(const z of [15.15,20.4,25.2]){
+  for(const z of [25.2]){
     K.beam(g,'Outer circuit small bell chain',[51.55,3.42,z],[51.55,2.69,z],.012,dark);
     cyl('Outer circuit hanging bell',51.55,2.60,z,.057,.12,.19,brass,16);
     cyl('Outer circuit bell clapper',51.55,2.47,z,.018,.026,.13,brass,8);
