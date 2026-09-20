@@ -865,6 +865,21 @@ export function buildHouse(K) {
   const weedMaterial=mat('leaf').clone();weedMaterial.side=THREE.DoubleSide;
   const weedMesh=new THREE.InstancedMesh(weedGeometry,weedMaterial,weeds.length);
   weeds.forEach((p,i)=>{helper.position.set(p.x,.075+(i%5)*.016,p.z);helper.rotation.set(0,p.a,.1);helper.scale.set(.033+(i%4)*.012,.018,.055);helper.updateMatrix();weedMesh.setMatrixAt(i,helper.matrix);});weedMesh.name='Irregular courtyard ground cover';g.add(weedMesh);
+  // 14.30.57 / 14.31.01: knee-low stems rise above the small ground
+  // leaves in the west court. Keep the established crossing paths open.
+  const uprightWeeds=weeds.filter((p,i)=>i%3===0&&p.x>-5.75&&p.x<-4.4&&p.z>8.6&&Math.abs(p.z-10.8)>.72);
+  const weedStems=new THREE.InstancedMesh(new THREE.CylinderGeometry(.007,.012,1,5),weedMaterial,uprightWeeds.length);
+  const uprightLeaves=new THREE.InstancedMesh(weedGeometry,weedMaterial,uprightWeeds.length*6);
+  uprightWeeds.forEach((p,i)=>{
+    const height=.24+(i%7)*.045;
+    helper.position.set(p.x,.035+height/2,p.z);helper.rotation.set(0,p.a,0);helper.scale.set(1,height,1);helper.updateMatrix();weedStems.setMatrixAt(i,helper.matrix);
+    for(let tier=0;tier<3;tier++)for(let side=0;side<2;side++){
+      const angle=p.a+tier*.65+side*Math.PI,length=.08-tier*.013;
+      helper.position.set(p.x+Math.sin(angle)*length*.72,.035+height*(.38+tier*.24),p.z+Math.cos(angle)*length*.72);
+      helper.rotation.set(-.32,angle,.12);helper.scale.set(.038-tier*.005,.020,length);helper.updateMatrix();uprightLeaves.setMatrixAt(i*6+tier*2+side,helper.matrix);
+    }
+  });
+  weedStems.name='West courtyard upright weed stems';uprightLeaves.name='West courtyard paired weed leaves';g.add(weedStems,uprightLeaves);
   const gardenLeaves=[];
   for(const [cx,cz] of [[-7.4,7.5],[-7.4,12.7],[5.9,7.5],[5.9,12.8]]) {
     for(let i=0;i<26;i++) {
