@@ -319,8 +319,11 @@ export function buildLandscape(K, {mobile=false}={}) {
     for (let i = 0; i < count; i++) {
       const t = (i + .5) / count, rise = low + (high - low) * (i + 1) / count;
       const offset = (positive ? t - .5 : .5 - t) * (alongX ? w : d);
-      box(`${name} tread ${i + 1}`, x + (alongX ? offset : 0), rise - .075, z + (alongX ? 0 : offset),
-        alongX ? w / count : w, .15, alongX ? d : d / count, materials.basalt);
+      // These are solid masonry flights, not floating slabs. Extend each
+      // tread to the shared footing so oblique lake views cannot see gaps.
+      const footing=low-.15,stepHeight=rise-footing;
+      box(`${name} tread ${i + 1}`, x + (alongX ? offset : 0), footing+stepHeight/2, z + (alongX ? 0 : offset),
+        alongX ? w / count+.008 : w, stepHeight, alongX ? d : d / count+.008, materials.basalt);
     }
     K.ramp(x, z, w, d, axis, low, high);
   }
