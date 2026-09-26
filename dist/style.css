@@ -39,6 +39,9 @@ body.aligning-photo #world{z-index:1}
 #align-title{font-family:Georgia,serif;font-size:15px;font-weight:400}
 #align-reason{color:#c9d2bc;flex:1;min-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #align-count{color:var(--gold)}
+#align-jump{max-width:340px;background:#152621;color:#eee5d0;border:1px solid #647267;border-radius:5px;padding:5px 6px;font-size:12px}
+#align-title.discarded{text-decoration:line-through;color:#d49a8a}
+#photo-alignment #align-discard{border-color:#a4705f}
 #photo-alignment button,#photo-alignment .align-file{border:1px solid #778476;border-radius:6px;padding:6px 10px;min-height:34px;cursor:pointer;font-size:12px}
 #photo-alignment button.primary-action{background:#eee6ce;color:#21382e;font-weight:600}
 #photo-alignment button.active{background:#efe8d5;color:#253b32}

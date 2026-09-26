@@ -265,6 +265,8 @@ function adaptPhoneResolution(frameTime){
 }
 function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);if(hq)hq.render();else renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
+// ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
+{const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
 addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);hq?.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
