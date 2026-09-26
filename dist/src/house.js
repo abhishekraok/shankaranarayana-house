@@ -155,14 +155,13 @@ export function buildHouse(K) {
   floor('Front centre entry step',0,-.50,3.5,1.2,.19,'paleStone');
   stairs('Central approach',0,-.15,3.0,1.0,0,F,'z',3);
   // The front photographs show a continuous worn plinth with one low entry gap.
-  const plinthFace=mat('plaster').clone();plinthFace.color.set('#b3a590');
+  // 15.28.36: a plain ochre wash, darkened only along the ground by splash-back.
+  const plinthFace=mat('plaster').clone();plinthFace.color.set('#ad9171');
+  const plinthDamp=mat('plaster').clone();plinthDamp.color.set('#7a6a55');
   for(const [x,w] of [[-4.62,6.35],[5.09,7.30]]){
     b('Front veranda weathered retaining plinth',x,.43,-.98,w,.86,.18,plinthFace,true);
     b('Front veranda worn stone coping',x,.88,-.98,w+.025,.055,.23,'stone');
-    for(let i=0;i<28;i++){
-      const xx=x-w/2+.13+(i*1.719)%(w-.26);
-      b('Front plinth small damp patch',xx,.08+(i%4)*.032,-1.076,.09+(i%5)*.05,.12+(i%3)*.04,.008,'stone');
-    }
+    b('Front plinth splash-back damp band',x,.09,-1.074,w,.18,.008,plinthDamp);
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
   fenceX(-8.1,-7.3,5.83);
