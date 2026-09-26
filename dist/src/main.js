@@ -203,7 +203,7 @@ $('close-photos').onclick=()=>{$('photos').hidden=true;$('photos-btn').setAttrib
 function showPhoto(key){currentPhoto=key;const p=photos[key];$('photo-select').value=key;$('reference-photo').src='./assets/'+p.url;$('reference-photo').alt=p.caption;$('photo-caption').textContent=p.caption;$('photo-view').textContent='Go to a similar viewpoint ↗';}
 $('photo-select').onchange=e=>{if(mode==='tour'){tourPaused=true;updateModeUI();}showPhoto(e.target.value);};
 $('photo-view').onclick=()=>teleport(photos[currentPhoto]);
-const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);},enter:()=>{
+const photoAlignment=installPhotoAlignment({camera,photos,release,groundY:(x,z,y)=>supportY(x,z,y),setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);},enter:()=>{
  release();keys.clear();wheelTravel=0;mode='fly';orbit.enabled=false;entered=true;
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});

@@ -7,7 +7,9 @@ const STORAGE='shankaranarayana.photo-poses.v1',POSITION='shankaranarayana.align
 // Open directly with ?align (resume) or ?align=14.59.54 (first filename match).
 // Discard hides a useless photo from the queue (DIR/align-discarded.json); the
 // file itself is never deleted, and Restore brings it back.
-export function installPhotoAlignment({camera,photos,enter,release,resize,setAligning}){
+export function installPhotoAlignment({camera,photos,enter,release,resize,setAligning,groundY}){
+ // Eye height of the photographer (1.8 m tall), used by the H key and the readout.
+ const EYE=1.68;
  const $=id=>document.getElementById(id);
  let items=[],index=0,active=false,saved=new Map(),discarded=new Set(),ghost=false,diskSync=false;
  const stage=document.createElement('div');stage.id='align-stage';stage.hidden=true;
@@ -16,11 +18,11 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  const panel=document.createElement('section');panel.id='photo-alignment';panel.hidden=true;panel.setAttribute('aria-label','Align photographs');
  panel.innerHTML=`<div class="align-row"><strong id="align-title"></strong><span id="align-reason"></span><span id="align-count"></span><select id="align-jump" aria-label="Go to photo" title="Go to any photo, in queue order"></select></div>
  <div class="align-row"><button id="align-prev" title="Previous photo (P)">‹ Prev</button><button id="align-skip" title="Next photo without saving (N)">Skip ›</button><button id="align-save" class="primary-action" title="Save pose and go to the next photo (Space)">Save &amp; next <kbd>Space</kbd></button><button id="align-discard" title="Useless photo: hide it from the queue (Delete). The file is kept.">Discard <kbd>Del</kbd></button>
- <label class="align-fov">FOV <output id="align-fov-value"></output><input id="align-fov" type="range" min="20" max="110" step=".1"></label>
+ <span id="align-height" title="Camera height above the ground below it (H snaps to 1.68 m standing eye height)"></span><label class="align-fov">FOV <output id="align-fov-value"></output><input id="align-fov" type="range" min="20" max="110" step=".1"></label>
  <button id="align-ghost" title="Overlay the photo on the 3D view (G)">Ghost</button><button id="align-start" title="Back to this photo's starting camera (R)">Reset</button>
  <input id="align-notes" maxlength="1000" placeholder="Notes: where were you standing? what differs?">
  <button id="align-export">Export JSON</button><label class="align-file">Import<input id="align-import" type="file" accept="application/json,.json"></label><button id="align-close" aria-label="Close photo alignment">Close</button></div>
- <p class="align-help"><b>Drag</b> look · <b>WASD</b> move (passes through walls) · <b>Q/E</b> down/up · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <b>Del</b> discard · <span id="align-status" role="status"></span></p>`;
+ <p class="align-help"><b>Drag</b> look · <b>WASD</b> move (passes through walls) · <b>Q/E</b> down/up · <b>H</b> standing eye height · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <b>Del</b> discard · <span id="align-status" role="status"></span></p>`;
  document.body.append(panel);
  const button=document.createElement('button');button.id='align-photo';button.textContent='Align photos';$('photos').append(button);
  const photo=$('align-photo-view'),overlay=$('alignment-overlay');
@@ -58,6 +60,8 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   const world=$('world');Object.assign(world.style,{left:x2+'px',top:y2+'px',width:w+'px',height:h+'px',right:'auto',bottom:'auto'});
   resize(w,h);
  }
+ function showHeight(){if(!groundY)return;const h=camera.position.y-groundY(camera.position.x,camera.position.z,camera.position.y-1.2);const el=$('align-height');el.textContent=`Eye ${h.toFixed(2)} m`;el.classList.toggle('align-height-off',Math.abs(h-EYE)>.25);}
+ setInterval(()=>{if(active)showHeight();},250);
  function lens(){const f=THREE.MathUtils.clamp(camera.fov,20,110);camera.fov=f;camera.updateProjectionMatrix();$('align-fov').value=f;$('align-fov-value').value=f.toFixed(1)+'°';}
  function toStart(){const s=items[index].start;camera.position.set(s.p[0],s.p[1]+1.62,s.p[2]);camera.lookAt(new THREE.Vector3(...s.target));camera.fov=s.fov||48;enter();lens();}
  const mark=it=>discarded.has(it.id)?'✕':saved.has(it.id)?'✓':'·';
@@ -134,6 +138,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   else if(e.code==='Delete'){e.preventDefault();if(!e.repeat)toggleDiscard();}
   else if(e.code==='KeyG'){e.preventDefault();setGhost(!ghost);}
   else if(e.code==='KeyR'){e.preventDefault();toStart();}
+  else if(e.code==='KeyH'&&groundY){e.preventDefault();camera.position.y=groundY(camera.position.x,camera.position.z,camera.position.y-1.2)+EYE;showHeight();}
   else if(e.code==='KeyQ'||e.code==='KeyE'){e.preventDefault();camera.position.y+=(e.code==='KeyE'?1:-1)*.05*fine;}
   else if(e.code==='KeyZ'||e.code==='KeyX'){e.preventDefault();camera.fov+=(e.code==='KeyZ'?-1:1)*.5*fine;lens();}
   else if(e.altKey&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();e.stopPropagation();
