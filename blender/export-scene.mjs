@@ -5,6 +5,7 @@
 //
 // Output (blender/build/, ignored by git):
 //   scene.json  meshes, materials and transforms in three.js world space (metres, +Y up)
+//   nav.json    colliders, walkable surfaces and ramps from the kit
 //   scene.bin   float32 positions and normals, uint32 indices, per shared geometry
 //
 // Usage: node blender/export-scene.mjs
@@ -96,6 +97,10 @@ const out=new URL('./build/',import.meta.url);await fs.mkdir(out,{recursive:true
 await fs.writeFile(new URL('scene.bin',out),Buffer.concat(chunks));
 const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null},materials,geometries:geoms,objects};
 await fs.writeFile(new URL('scene.json',out),JSON.stringify(meta));
+// Navigation the web walker uses: solid boxes, walkable slabs and stair/ramp slopes.
+// A native build rebuilds collision from these rather than from render geometry.
+await fs.writeFile(new URL('nav.json',out),JSON.stringify({colliders:K.colliders,surfaces:K.surfaces,ramps:K.ramps,
+  spawn:{p:[0,1.62,-2],target:[0,1.6,-12]}}));
 const inst=objects.filter(o=>o.instances).reduce((n,o)=>n+o.instances.length,0);
 console.log(`roots ${roots.map(r=>r.name).join(' | ')}`);
 console.log(`objects ${objects.length} (instanced ${objects.filter(o=>o.instances).length}, ${inst} instances), geometries ${geoms.length}, materials ${materials.length}, bin ${(offset/1e6).toFixed(1)} MB`);
