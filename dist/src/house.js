@@ -28,7 +28,8 @@ export function buildHouse(K) {
   const timberMap=new THREE.CanvasTexture(oldTimberCanvas);timberMap.colorSpace=THREE.SRGBColorSpace;timberMap.wrapS=timberMap.wrapT=THREE.RepeatWrapping;
   const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.004,roughness:.9});
   // 14.56.30: the veranda lime-wash is a bright mint turquoise.
-  const verandaAqua=K.M.aqua.clone();verandaAqua.color.setRGB(.72,1.3,1.18);
+  K.baseGrime(K.M.aqua,{top:1.6,strength:.45,tint:[.7,.66,.58]});
+  const verandaAqua=K.M.aqua.clone();K.baseGrime(verandaAqua,{top:1.5,strength:.35,tint:[.7,.66,.58]});verandaAqua.color.setRGB(.72,1.3,1.18);
   const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;verandaRed.userData.hqRoughness=.34;
   // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
   // on the rear veranda, rather than oxide floors and turquoise paint.
@@ -166,7 +167,7 @@ export function buildHouse(K) {
   stairs('Central approach',0,-.15,3.0,1.0,0,F,'z',3);
   // The front photographs show a continuous worn plinth with one low entry gap.
   // 15.28.36: a plain ochre wash, darkened only along the ground by splash-back.
-  const plinthFace=mat('plaster').clone();plinthFace.color.set('#ad9171');
+  const plinthFace=mat('plaster').clone();plinthFace.color.set('#9d8a73');
   const plinthDamp=mat('plaster').clone();plinthDamp.color.set('#7a6a55');
   for(const [x,w] of [[-4.62,6.35],[5.09,7.30]]){
     b('Front veranda weathered retaining plinth',x,.43,-.98,w,.86,.18,plinthFace,true);
