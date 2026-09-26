@@ -67,3 +67,6 @@ checks/*.png
 /PHOTO-REVIEW.md
 /.openai/
 /.claude/
+
+# Blender pipeline outputs (renders and sheets include private photo pixels)
+/blender/build/
