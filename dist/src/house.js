@@ -18,7 +18,8 @@ export function buildHouse(K) {
   }
   const timberMap=new THREE.CanvasTexture(oldTimberCanvas);timberMap.colorSpace=THREE.SRGBColorSpace;timberMap.wrapS=timberMap.wrapT=THREE.RepeatWrapping;
   const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.0015,roughness:.96});
-  const verandaAqua=K.M.aqua.clone();verandaAqua.color.setRGB(1.12,1.22,1.19);
+  // 14.56.30: the veranda lime-wash is a bright mint turquoise.
+  const verandaAqua=K.M.aqua.clone();verandaAqua.color.setRGB(.72,1.3,1.18);
   const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;
   // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
   // on the rear veranda, rather than oxide floors and turquoise paint.

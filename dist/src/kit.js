@@ -37,7 +37,7 @@ function canvasTexture(kind, color){
 }
 
 export function createKit(){
-  const defs={plaster:['plaster','#d3d2ba'],aqua:['plaster','#71a9a3'],red:['red','#833d30'],wood:['wood','#43372a'],blue:['wood','#277b91'],tile:['tile','#61513e'],stone:['stone','#5c6256'],paleStone:['stone','#b8b8a1'],cream:['plaster','#ded7bb'],pink:['plaster','#ba9690'],earth:['plain','#7a4c3a'],grass:['plain','#677344']};
+  const defs={plaster:['plaster','#d3d2ba'],aqua:['plaster','#8cc9bf'],red:['red','#833d30'],wood:['wood','#43372a'],blue:['wood','#277b91'],tile:['tile','#61513e'],stone:['stone','#5c6256'],paleStone:['stone','#b8b8a1'],cream:['plaster','#ded7bb'],pink:['plaster','#ba9690'],earth:['plain','#7a4c3a'],grass:['plain','#677344']};
   const M={};for(const [n,[kind,color]]of Object.entries(defs)){
     const t=canvasTexture(kind,color);M[n]=new THREE.MeshStandardMaterial({map:t,bumpMap:t,bumpScale:kind==='tile'?.09:kind==='wood'?.012:.006,roughness:kind==='red'?.62:.91});
   }
