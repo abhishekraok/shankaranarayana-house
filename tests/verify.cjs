@@ -8,7 +8,8 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  const initial=await page.evaluate(()=>houseWalk.getState());
  assert.ok(initial.position[0]>=-.1&&initial.position[0]<8&&initial.position[2]<-5&&initial.position[1]<2,'Tour opens just outside the house');
  await page.evaluate(()=>{document.getElementById('tour-btn').click();document.getElementById('tour-pause').click();});
- await page.waitForTimeout(50);
+ // Wait for rendered frames rather than wall time; headless frames can exceed 50 ms.
+ await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
  const restart=await page.evaluate(()=>houseWalk.getState());
  assert.ok(Math.abs(restart.position[0])<.01&&restart.position[2]<-5,'Restart uses the lane just outside the house');
  const bank=await page.evaluate(()=>{

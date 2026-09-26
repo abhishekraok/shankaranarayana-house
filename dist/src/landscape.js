@@ -1228,6 +1228,22 @@ export function buildLandscape(K, {mobile=false}={}) {
     }
   }
 
+  // 15.22.36 / 15.26.12: a steep forested hill rises behind the temple and house,
+  // filling the view north across the tank. Its shape is inferred from those views.
+  seed=77121;
+  const hillY=(x,z)=>{const t=Math.max(0,z-62);return t*.85*(1-.55*Math.min(1,Math.abs(x-10)/170))+3.5*Math.sin(x*.05+z*.03)*Math.min(1,t/20);};
+  const hillGeometry=new THREE.PlaneGeometry(300,90,60,20);hillGeometry.rotateX(-Math.PI/2);
+  const hp=hillGeometry.attributes.position;
+  for(let i=0;i<hp.count;i++){const x=hp.getX(i)+10,z=hp.getZ(i)+107;hp.setXYZ(i,x,hillY(x,z)-.6,z);}
+  hillGeometry.computeVertexNormals();
+  const hill=new THREE.Mesh(hillGeometry,new THREE.MeshStandardMaterial({color:'#263f25',roughness:1}));hill.name='Distant forested hill slope';group.add(hill);
+  for(let z=66;z<150;z+=mobile?13:10)for(let x=-130;x<150;x+=mobile?13:10){
+    const px=x+range(-3.5,3.5),pz=z+range(-3.5,3.5),r=range(6.2,9.4)*(random()<.12?1.35:1);
+    instance('Horizon overlapping broadleaf crowns',farCrown,materials.foliage,
+      [px,hillY(px,pz)+r*.55+range(0,2.5),pz],[r,r*range(.72,1.0),r],
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.5,.74)));
+  }
+
   // Flush all repeat details into one draw call per geometry/material family.
   for (const [name, batch] of batches) {
     const mesh = new THREE.InstancedMesh(batch.geometry, batch.material, batch.instances.length);
@@ -1241,7 +1257,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     mesh.computeBoundingBox(); mesh.computeBoundingSphere();
     group.add(mesh);
   }
-  group.traverse(object => { if (object.isMesh) { object.castShadow = !object.name.startsWith('Horizon '); object.receiveShadow = !object.name.startsWith('Horizon '); } });
+  group.traverse(object => { if (object.isMesh) { const far=/^(Horizon |Distant forested)/.test(object.name); object.castShadow = !far; object.receiveShadow = !far; } });
   K.labels.push({ text: 'Temple tank · stepped stone banks', position: [0, .4, -11.0] });
   K.labels.push({ text: 'Coconut and areca grove', position: [-6, 1.3, 31] });
   group.userData.referenceNotes = '2011 tank: dark stone courses, white posts, near-bank flat-roof scalloped pavilion; approximate coconut and areca planting. No water or base terrain mesh.';

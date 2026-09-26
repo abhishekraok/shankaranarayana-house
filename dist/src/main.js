@@ -11,7 +11,8 @@ import {createPhotoTour} from './tour.js';
 
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
-scene.background=new THREE.Color(0xa3b7b2);scene.fog=new THREE.FogExp2(0xa3b7b2,.005);
+// Overcast September monsoon light, as in every 2011 photograph.
+scene.background=new THREE.Color(0xb2c1bd);scene.fog=new THREE.FogExp2(0xb2c1bd,.005);
 const phoneMode=matchMedia('(pointer: coarse)').matches;
 let renderScale=phoneMode?1:Math.min(devicePixelRatio,1.6);
 let renderer;
@@ -23,7 +24,7 @@ scene.add(new THREE.HemisphereLight(0xdcebea,0x656048,1.5));
 scene.add(new THREE.AmbientLight(0xdbe3df,.7));
 const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
 const fill=new THREE.DirectionalLight(0xc1dce0,.4);fill.position.set(35,20,35);scene.add(fill);
-const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#78a1b6')},bottom:{value:new THREE.Color('#c6d5cc')}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top;uniform vec3 bottom;void main(){float h=pow(max(normalize(p).y,0.),.48);gl_FragColor=vec4(mix(bottom,top,h),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));scene.add(sky);
+const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#98adb6')},bottom:{value:new THREE.Color('#d9dfd6')}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top;uniform vec3 bottom;void main(){float h=pow(max(normalize(p).y,0.),.48);gl_FragColor=vec4(mix(bottom,top,h),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));scene.add(sky);
 
 // The ground is cut out below the lake rather than covering its descending banks.
 const terrain=new THREE.Group();terrain.name='Ground';scene.add(terrain);
@@ -36,9 +37,9 @@ ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,2
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs));
 
-const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:new THREE.Color('#547a42')},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
-void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);uv.xy+=vec2(a,b)*.0016*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7));gl_FragColor=vec4(mix(lake,reflection,.25+grazing*.42),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x497a36,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-.75,-27.5);water.name='Reflective lake water';scene.add(water);
+const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:new THREE.Color('#5d8e47')},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
+void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);uv.xy+=vec2(a,b)*.0016*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7));gl_FragColor=vec4(mix(lake,reflection,.14+grazing*.34),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
+const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x497a36,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
 const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
 water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)reflectFrame.apply(this,args);};

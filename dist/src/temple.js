@@ -180,9 +180,20 @@ export function buildTemple(K) {
 
   // Main raised portico: four front bays and an open central passage into the court.
   // 15.15.51: a low central entry between broad raised marble platforms.
+  // 15.19.41: the platform fronts are dark laterite blocks with red-painted joints.
+  const laterite=mat('#ffffff',.95);
+  laterite.map=canvasMap(512,(c,s)=>{
+    c.fillStyle='#9b4337';c.fillRect(0,0,s,s);
+    const rows=3,cols=4,h=s/rows,w=s/cols;
+    for(let r=0;r<rows;r++)for(let k=-1;k<cols;k++){
+      const x=k*w+(r%2)*w/2,v=62+rand()*26|0;
+      c.fillStyle=`rgb(${v},${v-3|0},${v-10|0})`;c.fillRect(x+7,r*h+7,w-14,h-14);
+      for(let i=0;i<40;i++){c.fillStyle=`rgba(${rand()<.5?20:150},${rand()<.5?30:110},25,${.05+rand()*.12})`;c.fillRect(x+7+rand()*(w-20),r*h+7+rand()*(h-20),3+rand()*9,2+rand()*6);}
+    }
+  },7.8/1.6,1);
   for(const x of [33.9,44.1]){
     floor('Entrance raised side marble platform',x,2.1,7.8,8.2,.602,stoneFloor);
-    box('Entrance side platform red riser',x,.35,-1.95,7.8,.48,.24,red);
+    box('Entrance side platform laterite riser',x,.35,-1.95,7.8,.48,.24,laterite);
     box('Entrance side platform white moulding',x,.12,-1.99,7.9,.13,.34,whiteTrim);
   }
   floor('Entrance recessed middle passage',39,2.1,2.4,8.2,.20,blackFloor);
@@ -272,6 +283,16 @@ export function buildTemple(K) {
     box('Entrance pier white capital',x,3.49,-1.42,.80,.25,.70,whiteTrim);
     blueColumn('Entrance upper pale blue pier',x,-1.42,4.08,2.25);
   }
+  // White pierced scroll brackets in the upper corners of each front opening.
+  const bracketShape=new THREE.Shape();
+  bracketShape.moveTo(0,0);bracketShape.lineTo(.36,0);bracketShape.bezierCurveTo(.36,-.09,.20,-.07,.15,-.19);
+  bracketShape.bezierCurveTo(.11,-.28,.13,-.36,.05,-.42);bracketShape.lineTo(0,-.42);bracketShape.closePath();
+  const eye=new THREE.Path();eye.absarc(.10,-.11,.04,0,Math.PI*2,true);bracketShape.holes.push(eye);
+  const bracketGeometry=new THREE.ExtrudeGeometry(bracketShape,{depth:.07,bevelEnabled:false,curveSegments:8});
+  const brackets=[];
+  colX.forEach((x,i)=>{for(const side of [-1,1]){if((i===0&&side<0)||(i===colX.length-1&&side>0))continue;
+    brackets.push([x+side*.24,2.87,-1.47,side,1,1]);}});
+  instances('Entrance white scroll brackets',bracketGeometry,whiteTrim,brackets);
   for(const x of [32.6,45.4])carvedColumn('Rear carved column',x,4.25,.6,3.02,.87);
   box('Front flat ground lintel',39,3.59,-1.39,14.5,.24,.38,whiteTrim);
   box('Front flat upper lintel',39,6.38,-1.39,14.5,.24,.35,whiteTrim);
