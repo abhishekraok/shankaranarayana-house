@@ -177,7 +177,7 @@ assert.ok(!collision(16.4,-12.65,.055),'Rotated bathing gate is clear');
 assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefined,'No extra roofed gatehouse between the entrance and long arcade');
 const gatePiers=landscape.children.filter(o=>o.name==='Tank gate square stepped stone pier');
 assert.ok(gatePiers.every(o=>Math.abs(o.position.x-16.4)<.01),'Gate piers run perpendicular to the house-facing rail');
-assert.ok(!collision(54.68,-26.55,.055),'East bathing stair opening remains clear');
+assert.ok(!collision(50.08,-26.55,.055),'East bathing stair opening remains clear');
 for(const name of ['Stage upper left photographed figure','Stage upper right photographed figure','Stage lower left photographed figure','Stage lower right photographed figure']){
   const figure=landscape.getObjectByName(name),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),figure.position.clone().sub(new THREE.Vector3(51,4,-5)).normalize());
   assert.equal(ray.intersectObject(landscape,true)[0]?.object.name,name,'Decorative figure visible from the forecourt');

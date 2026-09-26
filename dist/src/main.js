@@ -41,13 +41,13 @@ ground(-80,0,124,240);ground(108,0,108,240);
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(-2.95,-83,30.10,80);ground(34.20,-83,39.60,80);ground(13.25,-83.10,2.30,79.80);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
-ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
+ground(18,-7.5,72,9);ground(51.7,-27.5,4.6,31);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:null},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);float c=(sin(dot(q,vec2(6.1,2.9))+time*1.6)+sin(dot(q,vec2(-3.7,7.3))-time*1.3)+sin(dot(q,vec2(4.3,-6.7))+time*1.9))/3.,d=(sin(dot(q,vec2(11.3,5.9))-time*2.1)+sin(dot(q,vec2(-8.9,12.7))+time*1.7)+sin(dot(q,vec2(13.9,-9.1))-time*2.4))/3.;uv.xy+=(vec2(a,b)*.0016+vec2(c,d)*.0022)*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7)+.035*c+.02*d);vec3 lift=max(reflection-lake,0.);gl_FragColor=vec4(lake+lift*(.17+.09*c+grazing*.32)+(reflection-lake)*.03,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x5b8350,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
+const water=new Reflector(new THREE.PlaneGeometry(67.4,31),{color:0x5b8350,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(15.7,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
 // The mirror camera only draws layer 1. It omits enclosed interiors (house rooms
 // behind the front wall, the temple court behind its frontage), ground-level
@@ -125,8 +125,8 @@ photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuma
 photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[25.5,.051,-4.1],target:[25.5,-.25,-1.3],fov:78};
 photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,0,-45.4],target:[36,3.6,1],fov:58};
 for(const key of ['templepicturesleft','templevishnu','templehanuman','templepond','templeacross'])destinations[key]=photos[key];
-photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[47,0,-8.7],target:[61.4,2.3,-24.5],fov:74};
-photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-20.2,0,-27],target:[61.5,3.2,-19.5],fov:48};
+photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.25,-12.22],target:[59.6,2.57,-20.7],fov:60};
+photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-20.2,0,-27],target:[59.8,-.8,-25.4],fov:34};
 destinations.shop=photos.shop;destinations.shoplake=photos.shoplake;
 destinations.lakefence={p:[9.8,0,-8],target:[56,3.2,-7],fov:74};
 photos.upperahead={url:'house-upper-ahead.jpg',caption:'September 2011 · House upstairs, directly ahead · 15.30.09',p:[-1,3.85,.72],target:[-2.65,1.6,-55],fov:64};
@@ -145,7 +145,7 @@ function lakeCameraLift(x,z){
 }
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
-function terrainY(x,z){if(x>12.10&&x<14.40&&z>-43.20&&z<=-43)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<54&&z>-43&&z<-12?-8:0;}
+function terrainY(x,z){if(x>12.10&&x<14.40&&z>-43.20&&z<=-43)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-18&&x<49.4&&z>-43&&z<-12?-8:0;}
 function supportY(x,z,previous){let best=terrainY(x,z);for(const s of K.surfaces){if(inside(x,z,s)&&s.y<=previous+.38&&s.y>best)best=s.y;}
  for(const r of K.ramps)if(inside(x,z,r)){let t=r.axis.endsWith('x')?(x-(r.x-r.w/2))/r.w:(z-(r.z-r.d/2))/r.d;if(r.axis.startsWith('-'))t=1-t;const h=THREE.MathUtils.lerp(r.lowY,r.highY,THREE.MathUtils.clamp(t,0,1));if(h<=previous+.38&&h>best)best=h;}
  return best;
