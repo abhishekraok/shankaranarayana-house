@@ -109,9 +109,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   const sideRoadSeed=seed; // New grit must not reshuffle the established grove.
   const sideRoadCurve=new THREE.CatmullRomCurve3([[17,-4.6],[17.2,1],[17.2,8],[16.9,18],[17.2,27],[17.0,34]].map(([x,z])=>new THREE.Vector3(x,.043,z)));
   const dirtCanvas=document.createElement('canvas');dirtCanvas.width=dirtCanvas.height=256;const dirtContext=dirtCanvas.getContext('2d');
-  dirtContext.fillStyle='#a47c67';dirtContext.fillRect(0,0,256,256);
+  dirtContext.fillStyle='#98604a';dirtContext.fillRect(0,0,256,256);
   for(let i=0;i<15000;i++){
-    const light=random()>.47;dirtContext.fillStyle=light?'#c3a28b88':'#76584777';
+    const light=random()>.47;dirtContext.fillStyle=light?'#b9846a88':'#6a443577';
     dirtContext.fillRect(random()*256,random()*256,random()*2+.4,random()*2+.4);
   }
   const dirtMap=new THREE.CanvasTexture(dirtCanvas);dirtMap.colorSpace=THREE.SRGBColorSpace;dirtMap.wrapS=dirtMap.wrapT=THREE.RepeatWrapping;dirtMap.anisotropy=8;
