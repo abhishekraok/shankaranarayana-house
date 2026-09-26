@@ -331,17 +331,34 @@ export function buildLandscape(K, {mobile=false}={}) {
     K.surface(-2.1,z,32.4,d,y);
   }
   // The panorama shows the bathing shelter parallel to the temple-facing bank.
-  box('Bathing arcade floor',39,-.015,-12.0,19.2,.16,3.1,materials.basalt);
+  // 14.59.39 / 15.14.07: the lake entrance building. A raised slab open to the
+  // lane, square stepped white pillars on red-oxide bases about 2.6 m apart,
+  // and at the west end a solid whitewashed block with a tiled dado, the
+  // orange sign and a tap. The first bay beside it is the way down to the water.
+  box('Bathing arcade raised floor slab',39,-.015,-12.0,19.2,.16,3.1,materials.path);
   K.surface(39,-12.0,19.2,3.1,.065);
-  for(const x of [29.9,34.45,39,43.55,48.1])for(const z of [-13.24,-10.77]){
-    K.column(group,'Bathing arcade white pier',x,z,.065,2.48,.15,materials.oldWhite);
-    box('Bathing arcade white pier foot',x,.24,z,.46,.40,.46,materials.oldWhite);
+  box('Bathing arcade slab worn front edge',39,.03,-10.47,19.2,.07,.06,materials.mortar);
+  const dadoTiles=materials.oldWhite.clone();
+  if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
+    x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
+    dadoTiles.map=new THREE.CanvasTexture(c);dadoTiles.map.colorSpace=THREE.SRGBColorSpace;dadoTiles.map.wrapS=dadoTiles.map.wrapT=THREE.RepeatWrapping;dadoTiles.map.repeat.set(3,3);dadoTiles.color.set('#ffffff');}
+  const pillarRed=materials.oldWhite.clone();pillarRed.color.set('#9a4a3a');
+  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6,48.2])for(const z of [-13.24,-10.77]){
+    box('Bathing arcade red-oxide pillar base',x,.065+.11,z,.40,.22,.40,pillarRed,true);
+    box('Bathing arcade white-tiled pillar foot',x,.065+.61,z,.36,.78,.36,dadoTiles);
+    box('Bathing arcade square white pillar',x,.065+1.4,z,.29,1.6,.29,materials.oldWhite,true);
+    for(const y of [1.3,1.8])box('Bathing arcade stepped pillar collar',x,.065+y,z,.37,.2,.37,materials.oldWhite);
+    box('Bathing arcade pillar capital block',x,2.34,z,.36,.14,.36,materials.oldWhite);
   }
+  // The block holds the lane-side corner; the way down to the water passes behind it.
+  box('Lake entrance west end block',30.15,1.25,-11.15,1.3,2.5,1.1,materials.oldWhite,true);
+  box('Lake entrance block white tiled dado',30.15,.065+.55,-11.15,1.34,1.1,1.14,dadoTiles);
+  box('Lake entrance orange painted sign',30.15,1.55,-10.585,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
+  K.beam(group,'Lake entrance brass tap pipe',[30.55,.95,-10.58],[30.55,.55,-10.50],.03,'metal');
+  box('Lake entrance yellow notice board',29.2,1.45,-10.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
+  box('Lake entrance notice board post',29.2,.72,-10.15,.06,1.44,.06,'metal');
   K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-12.0,20.1,3.6,2.57,.93);
   for(const z of [-13.24,-10.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
-  for(const y of [.17,.78])box('Bathing arcade parapet rail',39,y,-10.78,18.5,.14,.16,materials.oldWhite);
-  for(let x=29.8;x<48.3;x+=.32)box('Bathing arcade perforated parapet',x,.47,-10.78,.15,.48,.16,materials.oldWhite);
-  K.blocker(39,-10.78,18.5,.17,.065,.87);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
   const arcadeScreen=new THREE.Shape();arcadeScreen.moveTo(-9.10,.20);
@@ -355,6 +372,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   arcadeWall.name='Bathing arcade lake-facing pierced masonry';arcadeWall.position.set(39,0,-13.31);
   arcadeWall.castShadow=arcadeWall.receiveShadow=true;group.add(arcadeWall);
   box('Bathing arcade lake-facing coping',39,.94,-13.23,18.35,.10,.27,materials.oldWhite);
+  box('Bathing arcade pink lower wall band',39,.30,-13.14,18.35,.2,.02,new THREE.MeshStandardMaterial({color:'#c48b83',roughness:.9}));
   box('Bathing arcade dark waterline foundation',39,-.20,-13.23,18.35,.68,.27,materials.wetStone);
   K.blocker(39,-13.23,18.35,.27,-.54,.99);
 
