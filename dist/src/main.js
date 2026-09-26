@@ -28,7 +28,15 @@ const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMat
 
 // The ground is cut out below the lake rather than covering its descending banks.
 const terrain=new THREE.Group();terrain.name='Ground';scene.add(terrain);
-function ground(x,z,w,d){const m=K.box(terrain,'Earth',x,-.22,z,w,.44,d,'earth');m.receiveShadow=true;}
+// Open ground is red laterite broken by patchy monsoon grass and grit.
+const groundMat=K.M.earth.clone();{const c=document.createElement('canvas');c.width=c.height=512;const x=c.getContext('2d');let n=90127;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+ x.fillStyle='#86553f';x.fillRect(0,0,512,512);
+ const soft=(px,py,rx,ry,rgb,a)=>{for(const dx of [-512,0,512])for(const dy of [-512,0,512]){x.save();x.translate(px+dx,py+dy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(.55,`rgba(${rgb},${a*.7})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,7);x.fill();x.restore();}};
+ for(let i=0;i<30;i++)soft(r()*512,r()*512,20+r()*60,20+r()*50,r()<.5?'160,110,82':'110,70,52',.3+r()*.3);
+ for(let i=0;i<40;i++)soft(r()*512,r()*512,15+r()*45,12+r()*35,r()<.6?'92,116,56':'74,98,46',i<18?.45+r()*.3:.18+r()*.2);
+ for(let i=0;i<16000;i++){const v=r();x.fillStyle=v<.18?'rgba(110,140,66,.5)':v<.32?'rgba(70,94,44,.45)':v<.75?'rgba(176,128,98,.45)':'rgba(70,44,34,.45)';x.fillRect(r()*512,r()*512,1+r()*1.5,1+r()*2.5);}
+ groundMat.map=new THREE.CanvasTexture(c);groundMat.map.colorSpace=THREE.SRGBColorSpace;groundMat.map.wrapS=groundMat.map.wrapT=THREE.RepeatWrapping;groundMat.map.repeat.set(.2,.2);groundMat.map.anisotropy=4;groundMat.bumpMap=null;groundMat.color.set('#ffffff');}
+function ground(x,z,w,d){const m=K.box(terrain,'Earth',x,-.22,z,w,.44,d,groundMat);m.receiveShadow=true;}
 ground(-80,0,124,240);ground(108,0,108,240);
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(-2.95,-83,30.10,80);ground(34.20,-83,39.60,80);ground(13.25,-83.10,2.30,79.80);

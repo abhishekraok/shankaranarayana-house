@@ -168,7 +168,15 @@ export function buildLandscape(K, {mobile=false}={}) {
     const c=document.createElement('canvas');c.width=512;c.height=64;const x=c.getContext('2d');
     x.fillStyle='#5d7a3c';x.fillRect(0,0,512,64);
     for(let i=0;i<900;i++){const g=random();x.fillStyle=g<.18?`rgba(150,88,58,${.35+random()*.5})`:g<.6?`rgba(112,138,68,${.3+random()*.5})`:`rgba(58,84,40,${.3+random()*.5})`;x.fillRect(random()*512,random()*64,2+random()*(g<.18?26:9),2+random()*(g<.18?9:5));}
-    verge.map=new THREE.CanvasTexture(c);verge.map.colorSpace=THREE.SRGBColorSpace;verge.map.wrapS=verge.map.wrapT=THREE.RepeatWrapping;verge.map.repeat.set(12,1);
+    // Repaint (the loop above still runs so later seeded placement is unchanged):
+    // fine mown-grass speckle with soft worn laterite patches.
+    c.width=1024;c.height=128;let n=60221;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle='#627f3e';x.fillRect(0,0,1024,128);
+    const soft=(px,py,rx,ry,rgb,a)=>{for(const dx of [-1024,0,1024])for(const dy of [-128,0,128]){x.save();x.translate(px+dx,py+dy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(.6,`rgba(${rgb},${a*.6})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,7);x.fill();x.restore();}};
+    for(let i=0;i<60;i++)soft(r()*1024,r()*128,20+r()*60,10+r()*30,r()<.5?'120,146,70':'70,96,46',.35+r()*.3);
+    for(let i=0;i<22;i++)soft(r()*1024,r()*128,12+r()*50,8+r()*22,'150,98,70',.45+r()*.35);
+    for(let i=0;i<14000;i++){const v=r();x.fillStyle=v<.35?'rgba(140,166,88,.7)':v<.7?'rgba(66,92,44,.6)':v<.93?'rgba(96,124,58,.7)':'rgba(170,120,90,.5)';x.fillRect(r()*1024,r()*128,1,1+r()*3);}
+    verge.map=new THREE.CanvasTexture(c);verge.map.colorSpace=THREE.SRGBColorSpace;verge.map.wrapS=verge.map.wrapT=THREE.RepeatWrapping;verge.map.repeat.set(.12,.9);verge.map.anisotropy=4;
   }
   for (const [i, p] of paths.entries()) {
     box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], i===0?verge:materials.path);
@@ -662,6 +670,15 @@ export function buildLandscape(K, {mobile=false}={}) {
     crownPositions.setXYZ(i, x * lobe, y * lobe * (.94 + x * .09), z * lobe);
   }
   crown.computeBoundingSphere();
+  // Grey-scale leaf clumps break up the smooth crowns; instance colours tint them.
+  if(typeof document!=='undefined'){
+    const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=31337;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle='#a8a8a8';x.fillRect(0,0,256,256);
+    for(let i=0;i<900;i++){const px=r()*256,py=r()*256,rx=3+r()*7,ry=2+r()*5,a=r()*3,v=r();
+      for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.fillStyle=v<.25?'rgba(50,50,50,.5)':v<.75?'rgba(175,175,175,.6)':'rgba(235,235,235,.55)';x.beginPath();x.ellipse(px+dx,py+dy,rx,ry,a,0,7);x.fill();}}
+    const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(3,2);
+    materials.foliage.map=m;materials.foliage.color.set('#ffffff');
+  }
   const leafPalette = ['#294c2b', '#365a30', '#41622f', '#4b6937', '#31563a'];
   const foliageColor = () => new THREE.Color(leafPalette[Math.floor(random() * leafPalette.length)]).multiplyScalar(range(.9, 1.13));
   // Four folded leaf shapes per instanced peripheral spray, no texture/billboard.
