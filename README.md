@@ -48,7 +48,7 @@ Original code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: 
 
 ### High quality (desktop)
 
-The **HQ** button beside the info button switches a desktop browser to high quality graphics and remembers the choice; `?quality=high` or `?quality=standard` overrides it for one visit. High quality adds ground-truth ambient occlusion (GTAO), 4x MSAA, a soft overcast sky reflected by the polished floors, native pixel density up to 2x and sharper lake reflections. If frames slow below about 40 fps it lowers resolution, never the effects. Phones always use the standard tier. The post-processing add-ons in `dist/vendor/addons/` are unmodified files from Three.js r180.
+The **HQ** button beside the info button switches a desktop browser to high quality graphics and remembers the choice; `?quality=high` or `?quality=standard` overrides it for one visit. High quality adds ground-truth ambient occlusion (GTAO), 4x MSAA, a soft overcast sky reflected by the polished floors, soft wide-kernel shadows, full anisotropic filtering, leafy fringes on tree crowns and shrubs, a gentle photographic contrast grade, native pixel density up to 2x and sharper lake reflections. If frames slow below about 40 fps it lowers resolution, never the effects. Phones always use the standard tier. The post-processing add-ons in `dist/vendor/addons/` are unmodified files from Three.js r180.
 
 ### Photo alignment
 

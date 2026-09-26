@@ -11,7 +11,7 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  const high=await open('http://127.0.0.1:4173/?quality=high');
  const state=await high.evaluate(async()=>{const H=houseWalk;H.teleport(H.destinations.veranda);await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
   return {quality:H.quality,passes:H.hq.composer.passes.map(p=>p.constructor.name),env:!!H.scene.environment,pressed:document.getElementById('quality-btn').getAttribute('aria-pressed'),reflectionLayer:H.scene.getObjectByName('Reflective lake water').camera.layers.mask};});
- assert.equal(state.quality,'high');assert.deepEqual(state.passes,['RenderPass','GTAOPass','OutputPass']);assert.ok(state.env);assert.equal(state.pressed,'true');assert.equal(state.reflectionLayer,2);
+ assert.equal(state.quality,'high');assert.deepEqual(state.passes,['RenderPass','GTAOPass','ShaderPass','OutputPass']);assert.ok(state.env);assert.equal(state.pressed,'true');assert.equal(state.reflectionLayer,2);
  // The toggle remembers the choice and reloads into the standard tier.
  await Promise.all([high.waitForNavigation(),high.click('#quality-btn')]);await high.waitForFunction(()=>window.houseWalk?.ready);
  assert.equal(await high.evaluate(()=>houseWalk.quality+location.search),'standard');

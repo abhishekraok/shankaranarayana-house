@@ -3,6 +3,7 @@ import {EffectComposer} from '../vendor/addons/postprocessing/EffectComposer.js'
 import {RenderPass} from '../vendor/addons/postprocessing/RenderPass.js';
 import {GTAOPass} from '../vendor/addons/postprocessing/GTAOPass.js';
 import {OutputPass} from '../vendor/addons/postprocessing/OutputPass.js';
+import {ShaderPass} from '../vendor/addons/postprocessing/ShaderPass.js';
 
 // Desktop-only "High quality" tier. It is opt-in, so phones and the default
 // desktop view keep their established budget. ?quality=high|standard overrides
@@ -41,6 +42,12 @@ export function createHighQualityPipeline({renderer,scene,camera,water,sky}){
     const reflect=water.onBeforeRender;water.onBeforeRender=()=>{};const skyVisible=sky.visible;sky.visible=false;
     try{renderGBuffer(...args);}finally{water.onBeforeRender=reflect;sky.visible=skyVisible;for(const o of hidden)o.visible=true;hidden.length=0;}};
   composer.addPass(ao);
+  // Gentle photographic grade in linear light before tone mapping: slightly more
+  // contrast and saturation, as the 2011 camera rendered the overcast scenes.
+  const grade=new ShaderPass({uniforms:{tDiffuse:{value:null},contrast:{value:1.08},saturation:{value:1.02}},
+    vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+    fragmentShader:'uniform sampler2D tDiffuse;uniform float contrast;uniform float saturation;varying vec2 vUv;void main(){vec4 c=texture2D(tDiffuse,vUv);vec3 l=log2(max(c.rgb,1e-4));l=(l+2.)*contrast-2.;vec3 v=exp2(l);float y=dot(v,vec3(.2126,.7152,.0722));gl_FragColor=vec4(max(mix(vec3(y),v,saturation),0.),c.a);}'});
+  composer.addPass(grade);
   composer.addPass(new OutputPass());
   return {
     ao,composer,
