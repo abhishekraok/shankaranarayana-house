@@ -45,7 +45,7 @@ water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)re
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
-const keys=new Set();let mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
+const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
@@ -141,7 +141,7 @@ function syncLook(){camera.quaternion.setFromEuler(new THREE.Euler(pitch,yaw,0,'
 function setLens(fov=58){if(Math.abs(camera.fov-fov)>.01){camera.fov=fov;camera.updateProjectionMatrix();}}
 function updateModeUI(){ $('walk-btn').classList.toggle('active',mode==='walk');$('orbit-btn').classList.toggle('active',mode==='orbit');$('tour-btn').classList.toggle('active',mode==='tour');$('mode-label').textContent={walk:'WALK',orbit:'AERIAL',tour:'TOUR',fly:'FREE FLIGHT'}[mode];$('crosshair').style.display=mode==='walk'||mode==='fly'?'block':'none';$('tour-controls').hidden=mode!=='tour';$('tour-pause').textContent=tourPaused?'Resume':'Pause';document.body.dataset.mode=mode; }
 function release(){keys.clear();wheelTravel=0;if(document.pointerLockElement)document.exitPointerLock();}
-function capture(){if(!['walk','fly'].includes(mode))return;renderer.domElement.focus();try{const p=renderer.domElement.requestPointerLock?.();p?.catch(()=>{});}catch{/* Drag-to-look remains available without pointer lock. */}}
+function capture(){if(aligning||!['walk','fly'].includes(mode))return;renderer.domElement.focus();try{const p=renderer.domElement.requestPointerLock?.();p?.catch(()=>{});}catch{/* Drag-to-look remains available without pointer lock. */}}
 function startTour(){release();mode='tour';orbit.enabled=false;entered=true;tourPaused=false;$('welcome').hidden=true;updateModeUI();}
 function takeFlight(){if(mode==='tour'){release();mode='fly';orbit.enabled=false;const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();}}
 function setMode(value){if(value===mode&&entered)return;const wasWalking=entered&&mode==='walk';release();entered=true;$('welcome').hidden=true;setLens();
@@ -187,7 +187,7 @@ $('close-photos').onclick=()=>{$('photos').hidden=true;$('photos-btn').setAttrib
 function showPhoto(key){currentPhoto=key;const p=photos[key];$('photo-select').value=key;$('reference-photo').src='./assets/'+p.url;$('reference-photo').alt=p.caption;$('photo-caption').textContent=p.caption;$('photo-view').textContent='Go to a similar viewpoint ↗';}
 $('photo-select').onchange=e=>{if(mode==='tour'){tourPaused=true;updateModeUI();}showPhoto(e.target.value);};
 $('photo-view').onclick=()=>teleport(photos[currentPhoto]);
-const photoAlignment=installPhotoAlignment({camera,photos,getCurrentPhoto:()=>currentPhoto,release,enter:()=>{
+const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);},enter:()=>{
  release();keys.clear();wheelTravel=0;mode='fly';orbit.enabled=false;entered=true;
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});
@@ -229,7 +229,7 @@ function adaptPhoneResolution(frameTime){
 }
 function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
 window.houseWalk={ready:true,optimization,phoneMode,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};

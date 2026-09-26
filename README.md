@@ -48,8 +48,13 @@ Original code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: 
 
 ### Photo alignment
 
-Open **Photographs → Align photo** locally. Select a reference or open JPEG/PNG/WebP files from your computer. Local files are never uploaded. Use the overlay, camera controls, and field of view to match the photograph. Save each pose, then **Export JSON** and share that file for model refinement.
+Open **Photographs → Align photos**. The photo and a live 3D view appear side by side, the 3D view sized to the photo's exact shape. Drag to look, WASD to move, Q/E to lower or raise the camera, Z/X to zoom, Shift for bigger and Alt for finer steps. G overlays the photo on the 3D view; R returns to the starting camera. **Space saves the pose and moves to the next photo**; N skips and P goes back.
 
-Saves live in browser storage, separately for localhost, dev, and production; export is the portable backup. Local photo pixels are not stored or exported. Reopen the same file to restore its saved pose (matched by SHA-256). Imports merge poses, replacing matching photo IDs. Each photo has one saved pose.
+Without a local photo folder, the queue is the bundled reference photos. To align a private collection, generate a queue (most uncertain photos first) and serve the folder locally:
 
-The versioned export records world-space eye position in metres, quaternion, viewing direction, vertical field of view, viewport aspect, photo dimensions and cover crop mode, filename/hash, timestamp, and notes. It does not change the tour or model. For identical framing when restoring, use the original window aspect ratio.
+```sh
+node tools/align-queue.mjs "F:/Photos"
+node server.mjs --photos "F:/Photos"
+```
+
+The server then serves only that folder's image files and `align-queue.json` on 127.0.0.1, and writes every save to `align-poses.json` in the same folder. Photos are never copied into the project. Saves are also kept in browser storage; **Export JSON** and **Import** move them between browsers. Each export records world-space eye position in metres, quaternion, viewing direction, vertical field of view, aspect, photo dimensions, filename, timestamp and notes, and no photo pixels.

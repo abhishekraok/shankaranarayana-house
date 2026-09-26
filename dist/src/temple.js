@@ -319,7 +319,32 @@ export function buildTemple(K) {
 
   // 15.19.41: red-framed floral balcony, pale-blue scalloped opening,
   // weathered flat canopy and open metal gates. The gabled building is adjacent.
-  const entranceLace=whiteTrim.clone();entranceLace.side=THREE.DoubleSide;
+  // The photographed screens are mostly solid white, pierced by mirrored
+  // paisleys, leaves and a central rosette; holes are real alpha cut-outs.
+  const entranceLace=whiteTrim.clone();entranceLace.side=THREE.DoubleSide;entranceLace.alphaTest=.5;
+  entranceLace.map=(()=>{
+    if(typeof document==='undefined')return null;
+    const W=512,H=236,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    x.fillStyle='#f2efe6';x.fillRect(0,0,W,H);
+    for(let i=0;i<260;i++){x.fillStyle=`rgba(70,74,62,${.02+rand()*.07})`;x.fillRect(rand()*W,rand()*H,1+rand()*3,2+rand()*14);}
+    x.globalCompositeOperation='destination-out';x.fillStyle='#000';
+    const drop=(px,py,len,wid,ang,curl=0)=>{x.save();x.translate(px,py);x.rotate(ang);x.beginPath();
+      x.moveTo(0,-len/2);x.bezierCurveTo(wid*(1+curl),-len/4,wid,len/3,0,len/2);x.bezierCurveTo(-wid,len/3,-wid*(1-curl),-len/4,0,-len/2);x.fill();x.restore();};
+    const cx=W/2,cy=H/2;
+    for(let i=0;i<8;i++){const a=i*Math.PI/4;drop(cx+Math.cos(a)*27,cy+Math.sin(a)*27,30,9,a+Math.PI/2);}
+    for(const sx of [-1,1])for(const sy of [-1,1]){
+      drop(cx+sx*78,cy+sy*42,62,15,sx*sy*1.05,.5);
+      drop(cx+sx*132,cy+sy*62,44,11,-sx*sy*.55,.4);
+      drop(cx+sx*176,cy+sy*30,52,12,sx*sy*.35,.5);
+      drop(cx+sx*210,cy+sy*72,26,8,sx*sy*.9);
+      drop(cx+sx*104,cy+sy*84,24,7,sx*sy*1.4);
+      x.beginPath();x.arc(cx+sx*148,cy+sy*14,7,0,Math.PI*2);x.fill();
+      x.beginPath();x.arc(cx+sx*60,cy+sy*88,6,0,Math.PI*2);x.fill();
+    }
+    for(const sx of [-1,1]){drop(cx+sx*222,cy,36,10,0);drop(cx+sx*46,cy,22,7,Math.PI/2);}
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;
+  })();
+  const screenGeometry=new THREE.PlaneGeometry(1.86,.86);
   const entryPanels=[];
   for(const [a,b] of [[30.3,37.6],[40.4,47.7]]){
     const count=Math.round((b-a)/1.8),step=(b-a)/count;
@@ -329,7 +354,7 @@ export function buildTemple(K) {
     for(let i=0;i<count;i++)entryPanels.push([a+(i+.5)*step,4.62,-1.91,(step-.18)/1.86,.96,1]);
     K.blocker((a+b)/2,-1.88,b-a,.3,4.08,5.20);
   }
-  instances('Entrance balcony white floral lattice',openworkGeometry(),entranceLace,entryPanels);
+  instances('Entrance balcony white pierced screens',screenGeometry,entranceLace,entryPanels);
   box('Entrance central balcony low wall',39,4.44,-1.72,2.8,.7,.19,white);
   K.blocker(39,-1.72,2.8,.19,4.08,4.79);
   for(const x of [37.48,40.52])box('Entrance upper blue arch pier',x,5.30,-1.66,.35,2.44,.40,paleBlue,true);
@@ -458,7 +483,7 @@ export function buildTemple(K) {
   box('Entrance projecting balcony side base',30.1,4.12,-.68,.26,.20,2.4,red);
   box('Entrance projecting balcony side coping',30.1,5.11,-.68,.26,.15,2.4,red);
   for(const z of [-1.88,-.68,.52])box('Entrance projecting balcony side post',30.1,4.62,z,.23,1.02,.16,red);
-  const sideLace=instances('Entrance projecting side floral lattice',openworkGeometry(),entranceLace,
+  const sideLace=instances('Entrance projecting side pierced screens',screenGeometry,entranceLace,
     [[30.1,4.62,-1.28,.56,.96,1,0,Math.PI/2,0],[30.1,4.62,-.08,.56,.96,1,0,Math.PI/2,0]]);
   K.blocker(30.1,-.68,.26,2.4,4.08,5.20);
 

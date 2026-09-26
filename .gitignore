@@ -66,3 +66,4 @@ checks/*.png
 !/checks/.gitkeep
 /PHOTO-REVIEW.md
 /.openai/
+/.claude/
