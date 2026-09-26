@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 // Preserve authored meshes in the builders; batch only their static rendering.
 // Each batch shares a parent (including liftable roofs), material and local cell.
-export function optimizeStaticScene(root, protectedObjects=[], cellSize=12){
+export function optimizeStaticScene(root, protectedObjects=[], cellSize=24, foliageCell=32){
   root.updateMatrixWorld(true);
   const groups=new Map(),instanced=[];
   root.traverse(o=>{
@@ -16,7 +16,7 @@ export function optimizeStaticScene(root, protectedObjects=[], cellSize=12){
   });
   let sourceMeshes=0,mergedBatches=0,spatialBatches=0;
   for(const objects of groups.values()){
-    if(objects.length<4)continue;
+    if(objects.length<2)continue;
     const parts=objects.map(o=>{const geom=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();return geom.applyMatrix4(o.matrix);});
     const geom=new THREE.BufferGeometry();
     for(const name of Object.keys(parts[0].attributes)){
@@ -35,7 +35,8 @@ export function optimizeStaticScene(root, protectedObjects=[], cellSize=12){
     const cells=new Map();
     for(let i=0;i<source.count;i++){
       source.getMatrixAt(i,matrix);position.setFromMatrixPosition(matrix);
-      const key=`${Math.floor(position.x/cellSize)},${Math.floor(position.z/cellSize)}`;
+      // Instances are cheap per triangle but costly per draw call: coarser cells.
+      const key=`${Math.floor(position.x/foliageCell)},${Math.floor(position.z/foliageCell)}`;
       if(!cells.has(key))cells.set(key,[]);cells.get(key).push(i);
     }
     if(cells.size<2)continue;

@@ -8,20 +8,22 @@ import {buildHouse} from './house.js';
 import {buildTemple} from './temple.js';
 import {buildLandscape} from './landscape.js';
 import {createPhotoTour} from './tour.js';
+import {readQuality,storeQuality,createHighQualityPipeline,overcastEnvironment} from './quality.js';
 
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
 // Overcast September monsoon light, as in every 2011 photograph.
 scene.background=new THREE.Color(0xc4ccc8);scene.fog=new THREE.FogExp2(0xc4ccc8,.005);
 const phoneMode=matchMedia('(pointer: coarse)').matches;
-let renderScale=phoneMode?1:Math.min(devicePixelRatio,1.6);
+const quality=readQuality(phoneMode),highQuality=quality==='high';
+let renderScale=phoneMode?1:Math.min(devicePixelRatio,highQuality?2:1.6);
 let renderer;
-try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
+try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode&&!highQuality,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
 renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
 $('world').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3D scene. Click to look around; WASD or arrow keys to walk.');
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-8,4.2,-20);camera.lookAt(1,2.1,5);
-scene.add(new THREE.HemisphereLight(0xdcebea,0x656048,1.5));
-scene.add(new THREE.AmbientLight(0xdbe3df,.7));
+const hemiLight=new THREE.HemisphereLight(0xdcebea,0x656048,1.5);scene.add(hemiLight);
+const ambientLight=new THREE.AmbientLight(0xdbe3df,.7);scene.add(ambientLight);
 const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
 const fill=new THREE.DirectionalLight(0xc1dce0,.4);fill.position.set(35,20,35);scene.add(fill);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#b4c1c4')},bottom:{value:new THREE.Color('#e6e9e3')}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top;uniform vec3 bottom;void main(){float h=pow(max(normalize(p).y,0.),.48);gl_FragColor=vec4(mix(bottom,top,h),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));scene.add(sky);
@@ -43,14 +45,26 @@ ground(-2.95,-83,30.10,80);ground(34.20,-83,39.60,80);ground(13.25,-83.10,2.30,7
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
 ground(18,-7.5,72,9);ground(18,60,72,120);ground(2.5,-1.5,41,3);ground(41,-1.5,26,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
-const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs));
+const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:null},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);uv.xy+=vec2(a,b)*.0016*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7));vec3 lift=max(reflection-lake,0.);gl_FragColor=vec4(lake+lift*(.03+grazing*.28)+(reflection-lake)*.03,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x4f7f45,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
+const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x4f7f45,textureWidth:phoneMode?384:highQuality?1536:768,textureHeight:phoneMode?384:highQuality?1536:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
+// The mirror camera only draws layer 1: everything except enclosed interiors
+// (house rooms behind the front wall, the temple court behind its frontage and
+// roof undersides), which the tank never reflects. Reflection cost roughly halves.
+{const box=new THREE.Box3(),hidden=b=>(b.min.x>-12.6&&b.max.x<12.6&&b.min.z>1.9&&b.max.z<19&&b.max.y<3.9)||(b.min.x>20&&b.max.x<58&&b.min.z>6.5&&b.max.z<40&&b.max.y<4.6);
+ scene.traverse(o=>{if(!(o.isMesh||o.isLine||o.isPoints)||o===water)return;if(o.isInstancedMesh){o.computeBoundingBox();box.copy(o.boundingBox).applyMatrix4(o.matrixWorld);}else box.setFromObject(o);if(!hidden(box))o.layers.enable(1);});
+ water.camera.layers.set(1);}
 const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
 water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)reflectFrame.apply(this,args);};
+// Desktop high quality: ambient occlusion, MSAA and a soft overcast sky for PBR.
+// The image-based sky replaces part of the flat fill so totals stay balanced.
+const hq=highQuality?createHighQualityPipeline({renderer,scene,camera,water,sky}):null;
+if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;}
+{const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';
+  button.addEventListener('click',()=>{storeQuality(highQuality?'standard':'high');const url=new URL(window.location.href);url.searchParams.delete('quality');window.location.replace(url.href);});}}
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
@@ -196,7 +210,7 @@ $('close-photos').onclick=()=>{$('photos').hidden=true;$('photos-btn').setAttrib
 function showPhoto(key){currentPhoto=key;const p=photos[key];$('photo-select').value=key;$('reference-photo').src='./assets/'+p.url;$('reference-photo').alt=p.caption;$('photo-caption').textContent=p.caption;$('photo-view').textContent='Go to a similar viewpoint ↗';}
 $('photo-select').onchange=e=>{if(mode==='tour'){tourPaused=true;updateModeUI();}showPhoto(e.target.value);};
 $('photo-view').onclick=()=>teleport(photos[currentPhoto]);
-const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);},enter:()=>{
+const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);hq?.setSize(w,h);},enter:()=>{
  release();keys.clear();wheelTravel=0;mode='fly';orbit.enabled=false;entered=true;
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});
@@ -229,20 +243,22 @@ function location(x,z,y){if(x>-8&&x<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front ve
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){
-  if(!phoneMode||document.hidden||frameTime>.25)return;
+  if(!(phoneMode||highQuality)||document.hidden||frameTime>.25)return;
   if(qualityWarmup<120){qualityWarmup++;return;}
   qualityTime+=frameTime;qualityFrames++;
   if(qualityFrames<120)return;
   const average=qualityTime/qualityFrames;
-  if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
+  // High quality trades resolution, never the effects, to hold about 40 fps.
+  const floor=phoneMode?.75:1;
+  if(average>(phoneMode?1/32:1/40)&&renderScale>floor){renderScale=Math.max(floor,renderScale-.125);renderer.setPixelRatio(renderScale);hq?.setSize(innerWidth,innerHeight);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);if(hq)hq.render();else renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
-addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);hq?.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
-window.houseWalk={ready:true,optimization,phoneMode,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
+window.houseWalk={ready:true,optimization,phoneMode,quality,hq,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
 if(document.modelContext?.registerTool){
  const c=document.modelContext;
  try{Promise.resolve(c.registerTool({name:'visit_place',description:'Move to a place in the Shankaranarayana reconstruction, using the same destinations as the Go to menu.',inputSchema:{type:'object',properties:{place:{type:'string',enum:Object.keys(destinations)}},required:['place'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!destinations[input.place]||Object.keys(input).length!==1)throw new Error('Choose a listed place.');teleport(destinations[input.place]);return window.houseWalk.getState();}})).catch(()=>{});}catch{}
