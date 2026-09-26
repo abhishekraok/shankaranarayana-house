@@ -771,74 +771,100 @@ export function buildHouse(K) {
     K.beam(g,'God room disc short hanging wire',[1.85,y+r+.01,z],[1.90,3.44,z],.005,discRim);
   }
   // 14.35.26 (shrine.jpg): a low ledge and four white stepped tiers with dark
-  // timber treads carry the brass plates, idols and framed pictures. The
-  // photograph is projected from its estimated camera onto the real tiers and
-  // onto standing frames and plates, so the view from the doorway matches the
-  // photo while other angles keep the depth of the shelves. The camera and
-  // tier sizes were fitted to the photographed tier edges (about 25 px RMS).
+  // timber treads carry brass bells, standing plates, a flame-edged arch, bronze
+  // idols, a lamp and a flower offering, all built as geometry. Only the flat
+  // printed pictures inside their frames reuse the photograph. The photo's
+  // camera, fitted to the tier edges, places each object where it was seen.
   const shrineMap=new THREE.TextureLoader().load('./assets/shrine.jpg');
   shrineMap.colorSpace=THREE.SRGBColorSpace;
-  const altarPhoto=new THREE.MeshBasicMaterial({map:shrineMap,side:THREE.DoubleSide});altarPhoto.color.setScalar(1.2);
+  const printMat=new THREE.MeshBasicMaterial({map:shrineMap});printMat.color.setScalar(1.3);
   const altarCam=new THREE.PerspectiveCamera(47.1,2048/1536,.05,20);altarCam.position.set(.35,3.0,7.34);altarCam.lookAt(.05,2.01,9.9);altarCam.updateMatrixWorld();
   const pv=new THREE.Vector3();
-  // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z or height y.
-  const photoRay=(u,v)=>{pv.set(u/1000-1,1-v/750,.5).unproject(altarCam);return pv.clone().sub(altarCam.position).normalize();};
-  const atZ=(u,v,z)=>{const d=photoRay(u,v),o=altarCam.position;return o.clone().addScaledVector(d,(z-o.z)/d.z);};
-  const standZ=(u,v,y)=>{const d=photoRay(u,v),o=altarCam.position;return o.z+d.z*(y-o.y)/d.y;};
-  const projected=(name,geo)=>{const p=geo.attributes.position,uv=geo.attributes.uv;
-    for(let i=0;i<p.count;i++){pv.fromBufferAttribute(p,i).project(altarCam);uv.setXY(i,(pv.x+1)/2,(pv.y+1)/2);}
-    const m=new THREE.Mesh(geo,altarPhoto);m.name=name;m.receiveShadow=true;g.add(m);return m;};
-  // A subdivided quad from a corner and two edge vectors, in world space.
-  const photoQuad=(name,o,a,c)=>{const geo=new THREE.PlaneGeometry(1,1,16,8),p=geo.attributes.position;
-    for(let i=0;i<p.count;i++){const s=p.getX(i)+.5,t=p.getY(i)+.5;p.setXYZ(i,o[0]+a[0]*s+c[0]*t,o[1]+a[1]*s+c[1]*t,o[2]+a[2]*s+c[2]*t);}
-    geo.computeVertexNormals();return projected(name,geo);};
-  const altarY0=1.434,rise=.361,run=.126,ledgeRun=.203,altarBack=9.88,altarFront=altarBack-ledgeRun-4*run;
-  const treadWood=mat('wood').clone();treadWood.color.set('#4a372c');
+  // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z.
+  const atZ=(u,v,z)=>{pv.set(u/1000-1,1-v/750,.5).unproject(altarCam);const o=altarCam.position,d=pv.clone().sub(o).normalize();return o.clone().addScaledVector(d,(z-o.z)/d.z);};
+  const altarY0=1.434,rise=.361,run=.16,ledgeRun=.26,altarBack=9.88,altarFront=altarBack-ledgeRun-4*run;
+  const treadWood=mat('wood').clone();treadWood.color.set('#3d2d23');
+  const tierWhite=shrineWhite.clone();tierWhite.color.set('#d9dad4');
   // The niche is only about 1.85 m wide between the two carved pillars.
   const altarX0=-.83,altarX1=1.02,altarCX=(altarX0+altarX1)/2,altarW=altarX1-altarX0;
-  b('Altar low white ledge',altarCX,(shrineFloor+altarY0)/2,(altarFront+altarBack)/2,altarW,altarY0-shrineFloor,altarBack-altarFront,shrineWhite,true);
+  b('Altar low white ledge',altarCX,(shrineFloor+altarY0)/2,(altarFront+altarBack)/2,altarW,altarY0-shrineFloor,altarBack-altarFront,tierWhite,true);
   b('Altar ledge timber top',altarCX,altarY0+.008,(altarFront+altarBack)/2,altarW,.016,altarBack-altarFront+.02,treadWood);
   for(let k=1;k<=4;k++){
     const z0=altarFront+ledgeRun+(k-1)*run,top=altarY0+k*rise;
-    b('Altar white stepped tier',altarCX,top-rise/2,(z0+altarBack)/2,altarW,rise,altarBack-z0,shrineWhite);
+    b('Altar white stepped tier',altarCX,top-rise/2,(z0+altarBack)/2,altarW,rise,altarBack-z0,tierWhite);
     b('Altar dark timber tread',altarCX,top+.008,(z0+altarBack)/2,altarW,.016,altarBack-z0+.02,treadWood);
   }
-  // Photographed faces stop at the pillars; beyond them the plain tiers continue.
-  const faceX=(v,z)=>[Math.max(altarX0,atZ(1760,v,z).x),Math.min(altarX1,atZ(280,v,z).x)];
-  const vertical=(name,z,y0,y1,v)=>{const [x0,x1]=faceX(v,z);photoQuad(name,[x0,y0,z],[x1-x0,0,0],[0,y1-y0,0]);};
-  const flat=(name,y,z0,z1,v)=>{const [x0,x1]=faceX(v,(z0+z1)/2);photoQuad(name,[x0,y,z1],[x1-x0,0,0],[0,0,z0-z1]);};
-  vertical('Altar photographed ledge front',altarFront-.004,shrineFloor+.02,altarY0+.016,1420);
-  flat('Altar photographed ledge top',altarY0+.018,altarFront,altarFront+ledgeRun,1270);
-  for(let k=1;k<=4;k++){
-    const z0=altarFront+ledgeRun+(k-1)*run,top=altarY0+k*rise,rows=[1130,870,600,320];
-    vertical('Altar photographed tier front',z0-.004,top-rise+.016,top+.016,rows[k-1]);
-    flat('Altar photographed tread',top+.018,z0,k===4?altarBack:z0+run,rows[k-1]-120);
-  }
-  // Standing frames and brass plates, each resting on the tread its base meets.
-  const treadTop=k=>altarY0+k*rise+.018;
-  const treadZ=(k,z)=>{const z0=k===0?altarFront:altarFront+ledgeRun+(k-1)*run,z1=k===4?altarBack:k===0?altarFront+ledgeRun:z0+run;return THREE.MathUtils.clamp(z,z0+.02,z1-.03);};
-  const frameBack=mat('wood').clone();frameBack.color.set('#3a2c24');
-  const frame=(name,u0,v0,u1,v1,k)=>{
-    const z=treadZ(k,standZ((u0+u1)/2,v1,treadTop(k))),a=atZ(u1,v1,z),c=atZ(u0,v0,z);
-    const w=c.x-a.x,h=c.y-a.y;photoQuad(name,[a.x,a.y,z-.012],[w,0,0],[0,h,0]);
-    b(name+' backing',a.x+w/2,a.y+h/2,z,Math.abs(w),h,.018,frameBack);};
-  const brassBack=new THREE.MeshStandardMaterial({color:'#6f5a36',metalness:.4,roughness:.6});
-  const plate=(name,cu,cv,r,k)=>{
-    const z=treadZ(k,standZ(cu,cv+r*.98,treadTop(k))),c=atZ(cu,cv,z),radius=c.distanceTo(atZ(cu+r,cv,z));
-    projected(name,new THREE.CircleGeometry(radius,40).translate(c.x,c.y,z-.01));
-    const back=K.cylinder(g,name+' back',c.x,c.y,z,radius*.98,radius*.98,.012,brassBack,32);back.rotation.x=Math.PI/2;};
-  frame('Altar framed Lakshmi print',510,710,865,1025,1);
-  frame('Altar small framed deity print',1405,780,1600,1080,1);
-  frame('Altar dark framed temple print',1575,845,1740,1090,1);
-  frame('Altar red-framed mirror picture',1310,1085,1690,1360,0);
-  frame('Altar small upper photograph',730,450,880,690,2);
-  frame('Altar white card on upper tier',1465,270,1605,450,3);
-  plate('Altar Krishna brass halo',1062,790,188,1);
-  plate('Altar large scalloped brass plate',1185,555,175,2);
-  plate('Altar upper left brass plate',980,300,112,3);
-  plate('Altar upper right brass plate',1695,290,118,3);
-  {const z=standZ(1062,1110,treadTop(1)),c=atZ(1062,1110,z),r=c.distanceTo(atZ(1250,1110,z)),h=atZ(1062,1000,z).y-c.y;
-    projected('Altar round brass idol pedestal',new THREE.CylinderGeometry(r*.96,r,h,32,1,true).translate(c.x,c.y+h/2,z+r*.6));}
+  const treadTop=k=>altarY0+k*rise+.016;
+  const treadFront=k=>k===0?altarFront:altarFront+ledgeRun+(k-1)*run,treadDepth=k=>k===0?ledgeRun:k===4?altarBack-treadFront(4):run;
+  // Where a photographed object stands: tread k, pixel box u0..u1 × v0..v1,
+  // at fraction f of the tread's depth. Returns centre, width and height.
+  const spot=(k,u0,u1,v0,v1,f=.5)=>{const z=treadFront(k)+treadDepth(k)*f,a=atZ(u0,v1,z),c=atZ(u1,v0,z);return {x:(a.x+c.x)/2,y:treadTop(k),z,w:Math.abs(a.x-c.x),h:Math.abs(c.y-a.y)};};
+  const brass=new THREE.MeshStandardMaterial({color:'#8f7a4c',metalness:.25,roughness:.48});
+  const bronze=new THREE.MeshStandardMaterial({color:'#4a4032',metalness:.25,roughness:.6});
+  const lathe=(name,profile,m,s,scaleXZ,scaleY,seg=18)=>{const geo=new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),seg);
+    const mesh=new THREE.Mesh(geo,m);mesh.name=name;mesh.position.set(s.x,s.y,s.z);mesh.scale.set(scaleXZ,scaleY,scaleXZ);mesh.castShadow=mesh.receiveShadow=true;g.add(mesh);return mesh;};
+  const bellProfile=[[0,0],[.5,0],[.47,.08],[.36,.45],[.3,.72],[.14,.84],[.1,.98],[.05,1.05],[0,1.06]];
+  const bell=(k,u,v,px)=>{const s=spot(k,u-px*.4,u+px*.4,v-px,v,.45);lathe('Altar small brass bell',bellProfile,brass,s,s.h,s.h,14);};
+  // Stylised standing or seated murti: plinth, robe, waist, torso, head, crown.
+  const murtiProfile=[[0,0],[.5,0],[.5,.06],[.3,.08],[.24,.12],[.3,.4],[.17,.48],[.24,.58],[.22,.68],[.09,.72],[.15,.76],[.16,.83],[.1,.88],[.09,.92],[.02,1.02],[0,1.03]];
+  const murti=(k,u0,u1,v0,v1,m=bronze,f=.5,lift=0)=>{const s=spot(k,u0,u1,v0,v1,f);s.y+=lift;lathe('Altar bronze murti',murtiProfile,m,s,s.w*.8,s.h,16);
+    for(const side of [-1,1])K.beam(g,'Altar murti arm',[s.x+side*s.w*.16,s.y+s.h*.66,s.z],[s.x+side*s.w*.3,s.y+s.h*.46,s.z-.01],Math.max(.008,s.w*.07),m);return s;};
+  const scallop=(r,lobes,depth)=>{const sh=new THREE.Shape();for(let i=0;i<=lobes*8;i++){const a=i/(lobes*8)*Math.PI*2,rr=r*(1-depth+depth*Math.abs(Math.cos(a*lobes/2)));const x=Math.cos(a)*rr,y=Math.sin(a)*rr;if(i)sh.lineTo(x,y);else sh.moveTo(x,y);}return sh;};
+  // Standing plates lean back against the riser behind their tread.
+  const standingPlate=(name,k,u0,u1,v0,v1,lobes=0,f=.8)=>{const s=spot(k,u0,u1,v0,v1,f),r=s.w/2;
+    const shape=lobes?scallop(r,lobes,.06):new THREE.Shape().absarc(0,0,r,0,Math.PI*2);
+    const plate=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.008,bevelEnabled:false,curveSegments:24}),brass);plate.name=name;plate.position.set(s.x,s.y+r*.97,s.z);plate.rotation.x=.14;plate.castShadow=true;g.add(plate);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r*.55,r*.03,6,32),brass);ring.name=name+' raised ring';ring.position.set(s.x,s.y+r*.97,s.z-.006);ring.rotation.x=.14;g.add(ring);return s;};
+  // Framed prints: the printed picture is the photo's own pixels, the frame is geometry.
+  const framed=(name,k,u0,u1,v0,v1,frameMat,inset=.08)=>{const s=spot(k,u0,u1,v0,v1,.35),w=s.w,h=s.h;
+    const holder=new THREE.Group();holder.name=name;holder.position.set(s.x,s.y,s.z);holder.rotation.x=.16;g.add(holder);
+    K.box(holder,name+' frame',0,h/2,0,w,h,.02,frameMat);
+    const du=(u1-u0)*inset,dv=(v1-v0)*inset,geo=new THREE.PlaneGeometry(w*(1-2*inset),h*(1-2*inset)),uv=geo.attributes.uv;
+    for(let i=0;i<uv.count;i++)uv.setXY(i,(uv.getX(i)?u0+du:u1-du)/2000,1-(uv.getY(i)?v0+dv:v1-dv)/1500);
+    const print=new THREE.Mesh(geo,printMat);print.name=name+' printed picture';print.rotation.y=Math.PI;print.position.set(0,h/2,-.011);holder.add(print);};
+  const frameWood=mat('wood').clone();frameWood.color.set('#2e241d');
+  const frameRed=new THREE.MeshStandardMaterial({color:'#b24a4f',roughness:.7});
+  framed('Altar framed Lakshmi print',1,510,865,710,1025,frameWood,.03);
+  framed('Altar small framed deity print',1,1405,1600,780,1080,frameWood,.06);
+  framed('Altar dark framed temple print',1,1575,1740,845,1090,frameWood,.08);
+  framed('Altar red-framed mirror picture',0,1310,1690,1085,1360,frameRed,.07);
+  framed('Altar small upper photograph',2,730,880,450,690,frameWood,.06);
+  framed('Altar white card with red emblem',3,1465,1605,270,450,shrineWhite,.12);
+  // Krishna with his flute on a round brass pedestal, before a plain halo.
+  {const p=spot(1,875,1250,1000,1110,.45),r=p.w/2,ph=p.h*.55;
+    K.cylinder(g,'Altar round brass pedestal',p.x,p.y+ph/2,p.z,r*.9,r,ph,brass,28);
+    standingPlate('Altar Krishna brass halo',1,880,1245,600,990,0,.9);
+    const s=murti(1,960,1170,640,1000,brass,.45,ph);
+    K.beam(g,'Altar Krishna flute',[s.x+s.w*.35,s.y+s.h*.66,s.z-.06],[s.x-s.w*.25,s.y+s.h*.62,s.z-.08],.012,brass);}
+  standingPlate('Altar large scalloped brass plate',2,1010,1360,350,760,12);
+  standingPlate('Altar upper left brass plate',3,870,1090,190,420,16);
+  standingPlate('Altar upper right brass plate',3,1580,1810,160,420,16);
+  // Flame-edged prabhavali arch with a small figure inside, on the third tier.
+  {const s=spot(3,1110,1370,30,420,.6),w=s.w,h=s.h,sh=new THREE.Shape();
+    sh.moveTo(-w/2,0);sh.lineTo(-w/2,h*.55);
+    for(let i=0;i<=18;i++){const a=Math.PI-i/18*Math.PI,rr=w/2*(i%2?1.08:.94);sh.lineTo(Math.cos(a)*rr,h*.55+Math.sin(a)*rr*.95);}
+    sh.lineTo(w/2,0);sh.lineTo(w*.34,0);sh.lineTo(w*.34,h*.5);sh.absarc(0,h*.5,w*.34,0,Math.PI,false);sh.lineTo(-w*.34,0);sh.closePath();
+    const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.012,bevelEnabled:false,curveSegments:12}),brass);arch.name='Altar flame-edged brass prabhavali';arch.position.set(s.x,s.y,s.z);arch.castShadow=true;g.add(arch);
+    murti(3,1180,1300,160,400,bronze,.3);}
+  murti(1,1230,1330,820,995);murti(2,1455,1610,490,750);murti(2,1620,1720,470,760);murti(2,870,960,510,650);
+  murti(3,735,820,245,405);murti(3,1655,1760,200,430);murti(4,1470,1690,-40,150);murti(4,1150,1300,-30,110);
+  for(const [k,u,v,px] of [[1,495,1030,75],[1,705,1045,70],[2,780,695,60],[2,1350,785,85],[3,935,440,60],[3,1415,440,55],[3,1745,470,60],[1,1305,1035,55]])bell(k,u,v,px);
+  // On the ledge: a lidded brass lamp vessel, a dark pot on a plate with
+  // jasmine and leaves, and a blue cloth bundle.
+  {const s=spot(0,630,800,1100,1330,.45);lathe('Altar lidded brass lamp vessel',[[0,0],[.42,0],[.5,.2],[.46,.45],[.3,.58],[.34,.66],[.2,.72],[.24,.84],[.1,.95],[.12,1],[0,1.04]],brass,s,s.w,s.h,20);}
+  {const s=spot(0,860,1100,1160,1400,.5);K.cylinder(g,'Altar offering plate',s.x,s.y+.01,s.z,s.w*.5,s.w*.46,.02,brass,24);
+    lathe('Altar dark round offering pot',[[0,0],[.3,0],[.45,.25],[.42,.5],[.25,.62],[.28,.7],[0,.72]],new THREE.MeshStandardMaterial({color:'#1f1b17',roughness:.5}),{x:s.x,y:s.y+.02,z:s.z},s.w*.8,s.h*.9,18);
+    const jasmine=new THREE.MeshStandardMaterial({color:'#f2f0e6',roughness:.8}),leaf=new THREE.MeshStandardMaterial({color:'#3f5a2c',roughness:.9});
+    for(let i=0;i<9;i++){const a=i*2.4,m=new THREE.Mesh(new THREE.IcosahedronGeometry(.012,0),i%3?jasmine:leaf);m.name='Altar jasmine and leaves';m.position.set(s.x+Math.cos(a)*s.w*.36,s.y+.03+(i%2)*.01,s.z+Math.sin(a)*s.w*.3);g.add(m);}}
+  {const s=spot(0,455,620,1230,1370,.4),bag=new THREE.Mesh(new THREE.SphereGeometry(.5,10,8),new THREE.MeshStandardMaterial({color:'#2c4f8a',roughness:.8}));
+    bag.name='Altar blue cloth bundle';bag.position.set(s.x,s.y+s.h*.3,s.z);bag.scale.set(s.w,s.h*.6,s.w*.6);g.add(bag);}
+  const frameBack=frameWood;
+  // 14.35.26: the dark underside of a stair crosses the niche's upper left,
+  // edged with a row of turned wooden beads.
+  {const z=altarFront-.06,p0=atZ(240,730,z),p1=atZ(640,130,z),top=atZ(240,-20,z).y,sh=new THREE.Shape();
+    sh.moveTo(p0.x,p0.y);sh.lineTo(p1.x,p1.y);sh.lineTo(p1.x,top);sh.lineTo(p0.x,top);sh.closePath();
+    const soffit=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.05,bevelEnabled:false}),frameWood);soffit.name='Altar stair underside across the niche';soffit.position.z=z-.05;soffit.castShadow=true;g.add(soffit);
+    for(let i=0;i<=26;i++){const t=i/26,bead=new THREE.Mesh(new THREE.SphereGeometry(.022,8,6),frameWood);bead.name='Altar stair turned bead edge';bead.position.set(p0.x+(p1.x-p0.x)*t,p0.y+(p1.y-p0.y)*t-.012,z+.01);g.add(bead);}}
   // Fluted pillars frame the niche in 14.35.26; dark panels close its sides.
   const pillarPaint=mat('plaster').clone();pillarPaint.color.set('#8d8b82');
   for(const x of [altarX0-.02,altarX1+.02]){K.column(g,'Altar pale fluted pillar',x,altarFront-.2,shrineFloor,2.34,.13,pillarPaint);
