@@ -64,6 +64,15 @@ export function buildTemple(K) {
     }
   }, .45, .45);
   stoneFloor.color.set('#ffffff');
+  // Every 2011 photograph shows monsoon mildew on the whitewash: sparse grey-green
+  // drips and damp patches. A separate generator keeps other textures unchanged.
+  let mildewSeed=6151;const mildew=()=>{mildewSeed=(Math.imul(mildewSeed,1664525)+1013904223)>>>0;return mildewSeed/4294967296;};
+  white.map=canvasMap(512,(c,s)=>{
+    c.fillStyle='#deded4';c.fillRect(0,0,s,s);
+    for(let i=0;i<40;i++){const x=mildew()*s,y=mildew()*s,r=30+mildew()*100;const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(96,104,84,${.06+mildew()*.10})`);g.addColorStop(1,'rgba(96,104,84,0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);}
+    for(let i=0;i<120;i++){const x=mildew()*s,y=mildew()*s,h=20+mildew()*110;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(52,60,46,${.06+mildew()*.14})`);g.addColorStop(1,'rgba(52,60,46,0)');c.fillStyle=g;c.fillRect(x,y,1.5+mildew()*5,h);}
+    for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.03+mildew()*.06})`;c.fillRect(mildew()*s,mildew()*s,1+mildew()*2.5,1+mildew()*2.5);}
+  },.35,.35);white.color.set('#ffffff');
   blackFloor.map = canvasMap(256, (c,s) => {
     c.fillStyle='#3b4442';c.fillRect(0,0,s,s);
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
