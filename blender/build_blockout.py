@@ -56,20 +56,29 @@ def collection(name):
         c = bpy.data.collections.new(name); scene.collection.children.link(c); cols[name] = c
     return cols[name]
 
-def mesh_from(gi, mat_ids, transforms=None, name='mesh'):
+COLOURED = set()  # materials whose meshes carry a 'Col' colour attribute
+
+def mesh_from(gi, mat_ids, transforms=None, name='mesh', inst_colors=None):
     g = meta['geometries'][gi]
     P = arr(g['positions'], np.float32).reshape(-1, 3)
     I = arr(g['indices'], np.uint32).reshape(-1, 3)
+    # three.js multiplies vertex colours and per-instance colours into the material
+    # colour; foliage relies on both, so carry them into a linear 'Col' attribute.
+    VC = arr(g['color'], np.float32).reshape(-1, 3) if g.get('color') else None
     groups = g['groups']
     tri_mat = np.zeros(len(I), dtype=np.int32)
     for start, count, mi in groups:
         tri_mat[start // 3:(start + count) // 3] = min(mi, len(mat_ids) - 1)
     if transforms is not None:  # realise instances into one mesh
-        Ps, Is, Ms = [], [], []
+        Ps, Is, Ms, Cs = [], [], [], []
         for k, T in enumerate(transforms):
             T = np.array(T, dtype=np.float64).reshape(4, 4).T
             Ps.append((np.c_[P, np.ones(len(P))] @ T.T)[:, :3]); Is.append(I + k * len(P)); Ms.append(tri_mat)
+            if inst_colors or VC is not None:
+                c = np.ones((len(P), 3)) if VC is None else VC.astype(np.float64)
+                Cs.append(c * (np.array(inst_colors[k]) if inst_colors else 1))
         P, I, tri_mat = np.vstack(Ps), np.vstack(Is), np.concatenate(Ms)
+        VC = np.vstack(Cs) if Cs else None
     me = bpy.data.meshes.new(name)
     me.vertices.add(len(P)); me.vertices.foreach_set('co', P.astype(np.float32).ravel())
     me.loops.add(len(I) * 3); me.loops.foreach_set('vertex_index', I.astype(np.int32).ravel())
@@ -78,6 +87,10 @@ def mesh_from(gi, mat_ids, transforms=None, name='mesh'):
     me.polygons.foreach_set('material_index', tri_mat)
     for mi in mat_ids: me.materials.append(mats[mi])
     me.update(calc_edges=True)
+    if VC is not None:
+        a = me.color_attributes.new('Col', 'FLOAT_COLOR', 'POINT')
+        a.data.foreach_set('color', np.c_[VC, np.ones(len(VC))].astype(np.float32).ravel())
+        COLOURED.update(mat_ids)
     # Weld the split per-face vertices three.js uses for flat shading, then
     # rejoin triangle pairs into quads so bevels and subdivision work later.
     bm = bmesh.new(); bm.from_mesh(me)
@@ -92,7 +105,7 @@ count = 0
 for o in meta['objects']:
     col = collection(o['root'])
     if o.get('instances'):
-        me = mesh_from(o['geometry'], o['materials'], o['instances'], o['name'])
+        me = mesh_from(o['geometry'], o['materials'], o['instances'], o['name'], o.get('instanceColors'))
         ob = bpy.data.objects.new(o['name'], me)
     else:
         key = (o['geometry'], tuple(o['materials']))
@@ -102,7 +115,21 @@ for o in meta['objects']:
     ob['parents'] = ' / '.join(o['parents'])
     col.objects.link(ob); ob.parent = root
     count += 1
-print(f'objects {count}, meshes {len(bpy.data.meshes)}, materials {len(mats)}')
+# Every mesh using a coloured material needs the attribute (white where it has none),
+# and those materials multiply it into their base colour.
+for me in bpy.data.meshes:
+    if 'Col' not in me.color_attributes and any(m and mats.index(m) in COLOURED for m in me.materials if m in mats):
+        a = me.color_attributes.new('Col', 'FLOAT_COLOR', 'POINT')
+        a.data.foreach_set('color', np.ones(len(me.vertices) * 4, dtype=np.float32))
+for mi in COLOURED:
+    mat = mats[mi]; nt = mat.node_tree; bsdf = nt.nodes['Principled BSDF']
+    attr = nt.nodes.new('ShaderNodeAttribute'); attr.attribute_name = 'Col'
+    rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = tuple(bsdf.inputs['Base Color'].default_value)
+    mul = nt.nodes.new('ShaderNodeMix'); mul.data_type = 'RGBA'; mul.blend_type = 'MULTIPLY'; mul.inputs['Factor'].default_value = 1
+    nt.links.new(rgb.outputs[0], mul.inputs[6]); nt.links.new(attr.outputs['Color'], mul.inputs[7])
+    nt.links.new(mul.outputs[2], bsdf.inputs['Base Color'])
+    mat['vertex_colour'] = True
+print(f'objects {count}, meshes {len(bpy.data.meshes)}, materials {len(mats)}, coloured materials {len(COLOURED)}')
 
 # Photo cameras from the alignment tool, in the same three.js frame.
 cams = collection('Photo cameras')

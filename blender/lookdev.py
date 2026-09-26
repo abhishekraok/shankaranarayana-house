@@ -31,7 +31,7 @@ def is_floor_material(mat):
 
 SETS = {
     'plaster': ('painted_plaster_wall', 0.9),
-    'granite': ('granite_tile_04', 2.0),
+    'granite': ('granite_tile_04', 3.6),  # courtyard slabs read about 0.8-1 m in 15.03.38
 }
 def surface(nt, key, coord):
     stem, scale = SETS[key]
@@ -44,9 +44,21 @@ def surface(nt, key, coord):
         maps[tag] = t
     return maps
 
-count = {'plaster': 0, 'granite': 0, 'plain': 0}
+VEG_WORDS = ('frond', 'leaf', 'leaves', 'crown', 'palm', 'areca', 'coconut', 'grass', 'tree', 'foliage', 'bush',
+             'shrub', 'plant', 'canopy', 'fern', 'balsam', 'weed', 'moss', 'undergrowth', 'stems', 'litter', 'banana')
+veg_users = {}
+for o in bpy.data.objects:
+    if o.type == 'MESH':
+        v = any(w in o.name.lower() for w in VEG_WORDS)
+        for m in o.data.materials:
+            if m: veg_users.setdefault(m.name, []).append(v)
+def is_vegetation(mat):
+    u = veg_users.get(mat.name, [])
+    return bool(u) and sum(u) / len(u) >= 0.5
+
+count = {'plaster': 0, 'granite': 0, 'plain': 0, 'leaf': 0}
 for mat in bpy.data.materials:
-    if not mat.use_nodes or 'web' not in mat: continue
+    if not mat.use_nodes or 'web' not in mat or mat.name == 'lake water': continue
     web = json.loads(mat['web'])
     nt = mat.node_tree; bsdf = nt.nodes.get('Principled BSDF')
     if bsdf is None: continue
@@ -57,11 +69,22 @@ for mat in bpy.data.materials:
     # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
     bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
     kind = 'plain'
-    if (web['metalness'] or 0) < 0.3 and not web['transparent']:
+    if is_vegetation(mat):
+        kind = 'leaf'
+    elif (web['metalness'] or 0) < 0.3 and not web['transparent']:
         kind = 'granite' if is_floor_material(mat) else ('plaster' if web['roughness'] is None or web['roughness'] > 0.5 else 'plain')
     rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = base
     col_out = rgb.outputs[0]
-    if kind != 'plain':
+    if mat.get('vertex_colour') and bsdf.inputs['Base Color'].links:
+        # Keep the per-vertex / per-instance colour the importer wired in.
+        col_out = bsdf.inputs['Base Color'].links[0].from_socket
+    if kind == 'leaf':
+        # Thin leaves: soft sheen, a little light through them, and both sides shaded.
+        bsdf.inputs['Roughness'].default_value = 0.55
+        for name, val in (('Transmission Weight', 0.12), ('Subsurface Weight', 0.0)):
+            if name in bsdf.inputs: bsdf.inputs[name].default_value = val
+        nt.links.new(bev.outputs['Normal'], bsdf.inputs['Normal'])
+    elif kind != 'plain':
         maps = surface(nt, kind, coord)
         # Keep the web colour; borrow the scan's value variation (stains, pits) around it.
         gray = nt.nodes.new('ShaderNodeRGBToBW'); nt.links.new(maps['diff'].outputs['Color'], gray.inputs['Color'])
@@ -81,8 +104,29 @@ for mat in bpy.data.materials:
         nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = 0.7
         nt.links.new(maps['nor_gl'].outputs['Color'], nm.inputs['Color'])
         nt.links.new(nm.outputs['Normal'], bsdf.inputs['Normal'])
-    else:
+    elif kind == 'plain':
         nt.links.new(bev.outputs['Normal'], bsdf.inputs['Normal'])
+    if kind == 'plaster':
+        # Monsoon weathering: dark vertical streaks run down from ledges, and damp rises
+        # from the ground. Object-space noise stretched vertically makes the streaks.
+        geo = nt.nodes.new('ShaderNodeNewGeometry')
+        sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(geo.outputs['Position'], sep.inputs[0])
+        streak = nt.nodes.new('ShaderNodeTexNoise'); streak.inputs['Scale'].default_value = 1.0
+        streak.inputs['Detail'].default_value = 6; streak.inputs['Roughness'].default_value = 0.6
+        sq = nt.nodes.new('ShaderNodeMapping'); sq.inputs['Scale'].default_value = (9, 9, 0.6)
+        nt.links.new(geo.outputs['Position'], sq.inputs['Vector']); nt.links.new(sq.outputs['Vector'], streak.inputs['Vector'])
+        sr = nt.nodes.new('ShaderNodeMapRange'); sr.inputs['From Min'].default_value = 0.52; sr.inputs['From Max'].default_value = 0.72
+        sr.inputs['To Min'].default_value = 1.0; sr.inputs['To Max'].default_value = 0.62 if lum > 0.3 else 0.8
+        nt.links.new(streak.outputs['Fac'], sr.inputs['Value'])
+        damp = nt.nodes.new('ShaderNodeMapRange')  # world height: Blender Z is three.js Y
+        damp.inputs['From Min'].default_value = 0.05; damp.inputs['From Max'].default_value = 0.75
+        damp.inputs['To Min'].default_value = 0.72 if lum > 0.3 else 0.85; damp.inputs['To Max'].default_value = 1.0
+        nt.links.new(sep.outputs['Z'], damp.inputs['Value'])
+        both = nt.nodes.new('ShaderNodeMath'); both.operation = 'MULTIPLY'
+        nt.links.new(sr.outputs['Result'], both.inputs[0]); nt.links.new(damp.outputs['Result'], both.inputs[1])
+        wc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(both.outputs[0], wc.inputs[i]) for i in range(3)]
+        wm = nt.nodes.new('ShaderNodeMix'); wm.data_type = 'RGBA'; wm.blend_type = 'MULTIPLY'; wm.inputs['Factor'].default_value = 1
+        nt.links.new(col_out, wm.inputs[6]); nt.links.new(wc.outputs[0], wm.inputs[7]); col_out = wm.outputs[2]
     # Grime: darken crevices and corners the way monsoon damp collects in them.
     ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.35; ao.samples = 8
     aoc = nt.nodes.new('ShaderNodeMapRange'); aoc.inputs['To Min'].default_value = 0.55 if lum > 0.3 else 0.8
@@ -98,7 +142,9 @@ for mat in bpy.data.materials:
 water = bpy.data.materials.get('lake water')
 if water:
     b = water.node_tree.nodes['Principled BSDF']
-    b.inputs['Base Color'].default_value = (0.05, 0.11, 0.06, 1); b.inputs['Roughness'].default_value = 0.04
+    # Algae-laden tank water is opaque: a saturated green body under sharp reflections.
+    b.inputs['Base Color'].default_value = (0.022, 0.085, 0.018, 1); b.inputs['Roughness'].default_value = 0.06
+    if 'IOR' in b.inputs: b.inputs['IOR'].default_value = 1.33
     b.inputs['Specular IOR Level'].default_value = 0.5
 
 scene.view_settings.view_transform = 'AgX'; scene.view_settings.look = 'AgX - Base Contrast'
