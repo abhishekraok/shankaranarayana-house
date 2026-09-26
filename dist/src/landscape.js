@@ -1238,6 +1238,15 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(let j=0;j<3;j++)instance('Front photo small purple flowers',sphere,flowerMat,[x+.07+j*.024,h-j*.13,z],[.034,.045,.035]);
   }
 
+  // 15.28.45: a waist-high bank of leafy balsam with pink flowers grows on the
+  // verge against the tank parapet, just ahead of the house entrance.
+  {let n=81233;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   const pink=new THREE.MeshStandardMaterial({color:'#c07ba8',roughness:1});
+   for(let i=0;i<230;i++){const x=-1.4+r()*4.4,z=-9.4-r()*1.55,h=.3+r()*.85*(1-Math.abs(x-.8)/2.2*.5);
+     segment('Front balsam stems',materials.grass,[x,0,z],[x+r()*.1-.05,h,z],.012);
+     for(let k=0;k<3;k++)instance('Front balsam leaf sprays',spray,sprayMaterial,[x,h*(.4+k*.28),z],[.28+r()*.22,.3+r()*.25,.28+r()*.22],new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.3,r()-.5)),new THREE.Color(leafPalette[(i+k)%5]).multiplyScalar(1.05+r()*.3));
+     if(i%2===0)instance('Front balsam pink flowers',sphere,pink,[x+r()*.12-.06,h*(.55+r()*.4),z+r()*.12-.06],[.04,.05,.04]);}
+  }
   // 15.20.01: one recessed stepped-outline pond, right of the temple entrance.
   // main.js cuts out the ground beneath this basin, so the water is below grade.
   const pondOutline=[[-2,-1],[-.3,-1],[.3,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.3,1],[-.3,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
