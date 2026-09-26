@@ -770,20 +770,87 @@ export function buildHouse(K) {
     const loop=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,16),discRim);loop.name='God room disc suspension loop';loop.rotation.y=-Math.PI/2;loop.position.set(1.843,y+r-.008,z);g.add(loop);
     K.beam(g,'God room disc short hanging wire',[1.85,y+r+.01,z],[1.90,3.44,z],.005,discRim);
   }
-  b('Altar wooden base',0,1.31,9.46,3.42,.46,.75,'wood',true);
-  b('Altar front ledge',0,1.55,9.28,3.7,.10,.86,'wood');
-  const shrineMap=new THREE.TextureLoader().load('/assets/shrine.jpg');
+  // 14.35.26 (shrine.jpg): a low ledge and four white stepped tiers with dark
+  // timber treads carry the brass plates, idols and framed pictures. The
+  // photograph is projected from its estimated camera onto the real tiers and
+  // onto standing frames and plates, so the view from the doorway matches the
+  // photo while other angles keep the depth of the shelves. The camera and
+  // tier sizes were fitted to the photographed tier edges (about 25 px RMS).
+  const shrineMap=new THREE.TextureLoader().load('./assets/shrine.jpg');
   shrineMap.colorSpace=THREE.SRGBColorSpace;
-  const shrineMaterial=new THREE.MeshBasicMaterial({map:shrineMap,side:THREE.DoubleSide});
-  const shrineImage=new THREE.Mesh(new THREE.PlaneGeometry(3.0,2.25),shrineMaterial);
-  shrineImage.name='Family shrine photograph — full uncropped source';
-  shrineImage.position.set(0,2.63,9.90);shrineImage.rotation.y=Math.PI;g.add(shrineImage);
-  for(const x of [-1.78,1.78])column(x,9.54,1.40,2.1,.12);
+  const altarPhoto=new THREE.MeshBasicMaterial({map:shrineMap,side:THREE.DoubleSide});altarPhoto.color.setScalar(1.2);
+  const altarCam=new THREE.PerspectiveCamera(47.1,2048/1536,.05,20);altarCam.position.set(.35,3.0,7.34);altarCam.lookAt(.05,2.01,9.9);altarCam.updateMatrixWorld();
+  const pv=new THREE.Vector3();
+  // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z or height y.
+  const photoRay=(u,v)=>{pv.set(u/1000-1,1-v/750,.5).unproject(altarCam);return pv.clone().sub(altarCam.position).normalize();};
+  const atZ=(u,v,z)=>{const d=photoRay(u,v),o=altarCam.position;return o.clone().addScaledVector(d,(z-o.z)/d.z);};
+  const standZ=(u,v,y)=>{const d=photoRay(u,v),o=altarCam.position;return o.z+d.z*(y-o.y)/d.y;};
+  const projected=(name,geo)=>{const p=geo.attributes.position,uv=geo.attributes.uv;
+    for(let i=0;i<p.count;i++){pv.fromBufferAttribute(p,i).project(altarCam);uv.setXY(i,(pv.x+1)/2,(pv.y+1)/2);}
+    const m=new THREE.Mesh(geo,altarPhoto);m.name=name;m.receiveShadow=true;g.add(m);return m;};
+  // A subdivided quad from a corner and two edge vectors, in world space.
+  const photoQuad=(name,o,a,c)=>{const geo=new THREE.PlaneGeometry(1,1,16,8),p=geo.attributes.position;
+    for(let i=0;i<p.count;i++){const s=p.getX(i)+.5,t=p.getY(i)+.5;p.setXYZ(i,o[0]+a[0]*s+c[0]*t,o[1]+a[1]*s+c[1]*t,o[2]+a[2]*s+c[2]*t);}
+    geo.computeVertexNormals();return projected(name,geo);};
+  const altarY0=1.434,rise=.361,run=.126,ledgeRun=.203,altarBack=9.88,altarFront=altarBack-ledgeRun-4*run;
+  const treadWood=mat('wood').clone();treadWood.color.set('#4a372c');
+  // The niche is only about 1.85 m wide between the two carved pillars.
+  const altarX0=-.83,altarX1=1.02,altarCX=(altarX0+altarX1)/2,altarW=altarX1-altarX0;
+  b('Altar low white ledge',altarCX,(shrineFloor+altarY0)/2,(altarFront+altarBack)/2,altarW,altarY0-shrineFloor,altarBack-altarFront,shrineWhite,true);
+  b('Altar ledge timber top',altarCX,altarY0+.008,(altarFront+altarBack)/2,altarW,.016,altarBack-altarFront+.02,treadWood);
+  for(let k=1;k<=4;k++){
+    const z0=altarFront+ledgeRun+(k-1)*run,top=altarY0+k*rise;
+    b('Altar white stepped tier',altarCX,top-rise/2,(z0+altarBack)/2,altarW,rise,altarBack-z0,shrineWhite);
+    b('Altar dark timber tread',altarCX,top+.008,(z0+altarBack)/2,altarW,.016,altarBack-z0+.02,treadWood);
+  }
+  // Photographed faces stop at the pillars; beyond them the plain tiers continue.
+  const faceX=(v,z)=>[Math.max(altarX0,atZ(1760,v,z).x),Math.min(altarX1,atZ(280,v,z).x)];
+  const vertical=(name,z,y0,y1,v)=>{const [x0,x1]=faceX(v,z);photoQuad(name,[x0,y0,z],[x1-x0,0,0],[0,y1-y0,0]);};
+  const flat=(name,y,z0,z1,v)=>{const [x0,x1]=faceX(v,(z0+z1)/2);photoQuad(name,[x0,y,z1],[x1-x0,0,0],[0,0,z0-z1]);};
+  vertical('Altar photographed ledge front',altarFront-.004,shrineFloor+.02,altarY0+.016,1420);
+  flat('Altar photographed ledge top',altarY0+.018,altarFront,altarFront+ledgeRun,1270);
+  for(let k=1;k<=4;k++){
+    const z0=altarFront+ledgeRun+(k-1)*run,top=altarY0+k*rise,rows=[1130,870,600,320];
+    vertical('Altar photographed tier front',z0-.004,top-rise+.016,top+.016,rows[k-1]);
+    flat('Altar photographed tread',top+.018,z0,k===4?altarBack:z0+run,rows[k-1]-120);
+  }
+  // Standing frames and brass plates, each resting on the tread its base meets.
+  const treadTop=k=>altarY0+k*rise+.018;
+  const treadZ=(k,z)=>{const z0=k===0?altarFront:altarFront+ledgeRun+(k-1)*run,z1=k===4?altarBack:k===0?altarFront+ledgeRun:z0+run;return THREE.MathUtils.clamp(z,z0+.02,z1-.03);};
+  const frameBack=mat('wood').clone();frameBack.color.set('#3a2c24');
+  const frame=(name,u0,v0,u1,v1,k)=>{
+    const z=treadZ(k,standZ((u0+u1)/2,v1,treadTop(k))),a=atZ(u1,v1,z),c=atZ(u0,v0,z);
+    const w=c.x-a.x,h=c.y-a.y;photoQuad(name,[a.x,a.y,z-.012],[w,0,0],[0,h,0]);
+    b(name+' backing',a.x+w/2,a.y+h/2,z,Math.abs(w),h,.018,frameBack);};
+  const brassBack=new THREE.MeshStandardMaterial({color:'#6f5a36',metalness:.4,roughness:.6});
+  const plate=(name,cu,cv,r,k)=>{
+    const z=treadZ(k,standZ(cu,cv+r*.98,treadTop(k))),c=atZ(cu,cv,z),radius=c.distanceTo(atZ(cu+r,cv,z));
+    projected(name,new THREE.CircleGeometry(radius,40).translate(c.x,c.y,z-.01));
+    const back=K.cylinder(g,name+' back',c.x,c.y,z,radius*.98,radius*.98,.012,brassBack,32);back.rotation.x=Math.PI/2;};
+  frame('Altar framed Lakshmi print',510,710,865,1025,1);
+  frame('Altar small framed deity print',1405,780,1600,1080,1);
+  frame('Altar dark framed temple print',1575,845,1740,1090,1);
+  frame('Altar red-framed mirror picture',1310,1085,1690,1360,0);
+  frame('Altar small upper photograph',730,450,880,690,2);
+  frame('Altar white card on upper tier',1465,270,1605,450,3);
+  plate('Altar Krishna brass halo',1062,790,188,1);
+  plate('Altar large scalloped brass plate',1185,555,175,2);
+  plate('Altar upper left brass plate',980,300,112,3);
+  plate('Altar upper right brass plate',1695,290,118,3);
+  {const z=standZ(1062,1110,treadTop(1)),c=atZ(1062,1110,z),r=c.distanceTo(atZ(1250,1110,z)),h=atZ(1062,1000,z).y-c.y;
+    projected('Altar round brass idol pedestal',new THREE.CylinderGeometry(r*.96,r,h,32,1,true).translate(c.x,c.y+h/2,z+r*.6));}
+  // Fluted pillars frame the niche in 14.35.26; dark panels close its sides.
+  const pillarPaint=mat('plaster').clone();pillarPaint.color.set('#8d8b82');
+  for(const x of [altarX0-.02,altarX1+.02]){K.column(g,'Altar pale fluted pillar',x,altarFront-.2,shrineFloor,2.34,.13,pillarPaint);
+    for(let i=0;i<3;i++)b('Altar pillar carved capital ring',x,2.28+i*.09,altarFront-.2,.36-i*.05,.06,.36-i*.05,pillarPaint);}
+  for(const x of [altarX0-.1,altarX1+.1])b('Altar niche dark side panel',x,2.30,(altarFront+altarBack)/2-.1,.06,2.44,altarBack-altarFront+.2,frameBack);
   detail(0,3.38,9.6,3.82,.2,.24,'wood');
   const lampMat=new THREE.MeshStandardMaterial({color:0xffe0a3,emissive:0xffb34a,emissiveIntensity:1.2});
   const lamp=new THREE.Mesh(new THREE.SphereGeometry(.075,10,8),lampMat);
-  lamp.position.set(-1.10,3.2,8.75);lamp.name='Shrine warm bulb';g.add(lamp);
-  K.beam(g,'Shrine bulb cord',[-1.10,3.2,8.75],[-1.10,3.57,8.75],.018,'black');
+  // The bare bulb hangs on the photographed ray, in front of the upper tiers.
+  const bulb=atZ(850,160,8.95);
+  lamp.position.copy(bulb);lamp.name='Shrine warm bulb';g.add(lamp);
+  K.beam(g,'Shrine bulb cord',[bulb.x,bulb.y,bulb.z],[bulb.x,3.57,bulb.z],.018,'black');
   // A small point lamp keeps the source altar visible in the deep veranda.
   const shrineLight=new THREE.PointLight(0xffd49b,2.8,5,2);shrineLight.position.set(0,2.85,7.3);g.add(shrineLight);
   const shrineRoof=K.hipRoof(g,'Small shrine tiled roof',0,8.0,4.9,4.95,3.64,1.0);
