@@ -215,7 +215,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(let i=0;i<14;i++)blob(r()*256,r()*256,10+r()*30,6+r()*18,'128,122,106',.25+r()*.3);
     for(let i=0;i<70;i++){const px=r()*256,py=r()*256,h=16+r()*50;x.fillStyle=`rgba(24,26,20,${.12+r()*.2})`;x.fillRect(px,py,1+r()*3,h);}
     for(let i=0;i<900;i++){x.fillStyle=r()<.5?'rgba(150,140,120,.18)':'rgba(20,22,18,.22)';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}
-    tankWall.map=new THREE.CanvasTexture(c);tankWall.map.colorSpace=THREE.SRGBColorSpace;tankWall.map.wrapS=tankWall.map.wrapT=THREE.RepeatWrapping;tankWall.map.repeat.set(.55,.55);tankWall.color.set('#ffffff');tankWall.userData.worldAnchored=true;
+    tankWall.map=new THREE.CanvasTexture(c);tankWall.map.colorSpace=THREE.SRGBColorSpace;tankWall.map.wrapS=tankWall.map.wrapT=THREE.RepeatWrapping;tankWall.map.repeat.set(.55,.55);tankWall.color.set('#ffffff');K.worldMap(tankWall,.275);
   }
   ringCourse(0, .52, -.08, 1.8, 'upper dark stone retaining course', tankWall);
   ringCourse(.50, .45, -.31, 1.55, 'middle worn stone tread', tankWall);
@@ -254,7 +254,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     }
     for(let i=0;i<160;i++){ctx.fillStyle=`rgba(46,64,31,${.08+noise()*.19})`;ctx.fillRect(noise()*256,165+noise()*91,1+noise()*9,2+noise()*28);}
     const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
-    return new THREE.MeshStandardMaterial({map,roughness:1});
+    map.wrapS=map.wrapT=THREE.RepeatWrapping;
+    return K.worldMap(new THREE.MeshStandardMaterial({map,roughness:1}),.45);
   }
   const fenceStone=agedBoundaryMaterial('#454a41'),fenceWhite=agedBoundaryMaterial('#dbdcd1',true);
   function railRun(x1,z1,x2,z2,name){
@@ -1226,13 +1227,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let y=0;y<256;y++)for(let x=0;x<256;x++){
     const streak=pondNoise(x/9,y/110),patch=pondNoise(x/38,y/25),grain=pondHash(x,y);
     const lime=Math.max(0,Math.min(1,(streak*.20+patch*.62+pondNoise(x/4,y/7)*.18-.48)*4.2));
-    const value=54+lime*111+grain*25;
+    const value=78+patch*34+streak*30+lime*22+grain*12+(y/256)*-18;
     const i=(y*256+x)*4;pondPixels.data[i]=value;pondPixels.data[i+1]=value+2;pondPixels.data[i+2]=value-5;pondPixels.data[i+3]=255;
   }
   pondContext.putImageData(pondPixels,0,0);
   const pondTexture=new THREE.CanvasTexture(pondCanvas);pondTexture.colorSpace=THREE.SRGBColorSpace;pondTexture.wrapS=pondTexture.wrapT=THREE.RepeatWrapping;
   const pondStone=new THREE.MeshStandardMaterial({map:pondTexture,roughness:.97});
-  const pondCoping=K.M.plaster.clone();pondCoping.color.set('#aaa99c');
+  const pondCoping=K.M.plaster.clone();pondCoping.color.set('#9d9d95');
   function pondWallUV(wall){
     const p=wall.geometry.attributes.position,uv=wall.geometry.attributes.uv,n=wall.geometry.attributes.normal;
     for(let i=0;i<p.count;i++)uv.setXY(i,(Math.abs(n.getX(i))>.5?p.getZ(i)+wall.position.z:p.getX(i)+wall.position.x)*.75,(p.getY(i)+wall.position.y+1.05)/1.37);

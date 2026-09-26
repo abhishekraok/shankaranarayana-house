@@ -49,6 +49,22 @@ export function createKit(){
   // Materials flagged userData.worldAnchored (weathering maps) take the box's
   // position into account, so stains run continuously across adjoining boxes.
   function worldUV(geom,ox=0,oy=0,oz=0){const p=geom.attributes.position,n=geom.attributes.normal,uv=geom.attributes.uv;if(!uv||!n)return geom;for(let i=0;i<p.count;i++){const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i)),x=p.getX(i)+ox,y=p.getY(i)+oy,z=p.getZ(i)+oz;if(ny>.5)uv.setXY(i,x*.5,z*.5);else if(nx>.5)uv.setXY(i,z*.5,y*.5);else uv.setXY(i,x*.5,y*.5);}return geom;}
+  // Samples a material's map from world position (per face axis) in the shader, so
+  // scaled instanced cubes and merged batches keep a true metre scale, unstretched.
+  K.worldMap=(material,scale=.5)=>{
+    material.onBeforeCompile=s=>{
+      s.vertexShader='varying vec3 vTpPos;varying vec3 vTpNormal;\n'+s.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+vec4 tpP=vec4(transformed,1.);vec3 tpN=objectNormal;
+#ifdef USE_INSTANCING
+tpP=instanceMatrix*tpP;tpN=mat3(instanceMatrix)*tpN;
+#endif
+vTpPos=(modelMatrix*tpP).xyz;vTpNormal=mat3(modelMatrix)*tpN;`);
+      s.fragmentShader='varying vec3 vTpPos;varying vec3 vTpNormal;\n'+s.fragmentShader.replace('#include <map_fragment>',`vec3 tpA=abs(normalize(vTpNormal));vec2 tpUv=tpA.y>.5?vTpPos.xz:(tpA.x>.5?vTpPos.zy:vTpPos.xy);
+diffuseColor*=texture2D(map,tpUv*${scale.toFixed(4)});`);
+    };
+    material.customProgramCacheKey=()=>'worldMap'+scale;
+    return material;
+  };
   K.blocker=(x,z,w,d,bottom,top)=>K.colliders.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2,bottom,top});
   K.surface=(x,z,w,d,y)=>K.surfaces.push({x,z,w,d,y});
   K.ramp=(x,z,w,d,axis,lowY,highY)=>K.ramps.push({x,z,w,d,axis,lowY,highY});
