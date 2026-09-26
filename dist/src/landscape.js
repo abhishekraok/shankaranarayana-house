@@ -521,7 +521,11 @@ export function buildLandscape(K, {mobile=false}={}) {
   for (const sx of [-1, 1]) box('pavilion roof lip', px + sx * (pw + .39) / 2, 2.36, pz, .08, .1, pd + .54, materials.mortar, false, pavilionRoof);
   K.roofs.push(pavilionRoof);
   const pavilionPlacement=new THREE.Group();pavilionPlacement.name='Panorama near-bank pavilion';
-  const pavilionTransform=new THREE.Matrix4().makeTranslation(34,0,-34).multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2)).multiply(new THREE.Matrix4().makeTranslation(-px,0,-pz));
+  // 14.58.26 (from the lane) and 15.28.26 (from the west wall) both show the pavilion about
+  // 1.4x wider than drawn at the same height, so its plan is widened, growing into the water
+  // while its entry steps still meet the far bank.
+  const PAV_SCALE=1.4;
+  const pavilionTransform=new THREE.Matrix4().makeTranslation(34,0,-32.1).multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2)).multiply(new THREE.Matrix4().makeScale(PAV_SCALE,1,PAV_SCALE)).multiply(new THREE.Matrix4().makeTranslation(-px,0,-pz));
   for(const child of group.children.slice(pavilionChildren))pavilionPlacement.add(child);
   pavilionPlacement.applyMatrix4(pavilionTransform);group.add(pavilionPlacement);
   const mapPoint=(x,z)=>new THREE.Vector3(x,0,z).applyMatrix4(pavilionTransform);
@@ -530,7 +534,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     c.minX=Math.min(a.x,b.x);c.maxX=Math.max(a.x,b.x);c.minZ=Math.min(a.z,b.z);c.maxZ=Math.max(a.z,b.z);
   }
   for(const r of [...K.surfaces.slice(pavilionSurfaces),...K.ramps.slice(pavilionRamps)]){
-    const p=mapPoint(r.x,r.z);r.x=p.x;r.z=p.z;[r.w,r.d]=[r.d,r.w];
+    const p=mapPoint(r.x,r.z);r.x=p.x;r.z=p.z;[r.w,r.d]=[r.d*PAV_SCALE,r.w*PAV_SCALE];
     if(r.axis)r.axis=({'x':'z','-x':'-z','z':'-x','-z':'x'})[r.axis];
   }
   // Broad, gently raised earth bank gives the photographed downward look over
