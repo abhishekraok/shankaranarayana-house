@@ -1,0 +1,107 @@
+"""First look-development pass: overcast HDRI sky, scanned surface relief, bevelled
+edges and occlusion grime over the blockout's own colours.
+
+    blender -b blender/build/blockout.blend -P blender/lookdev.py
+
+Writes blender/build/lookdev.blend. Assets come from Poly Haven (CC0) into
+blender/build/assets/; photographs are never used as textures on 3D forms.
+"""
+import bpy, os, json, math
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+A = os.path.join(HERE, 'build', 'assets')
+def img(name, data=False):
+    im = bpy.data.images.load(os.path.join(A, name), check_existing=True)
+    if data: im.colorspace_settings.name = 'Non-Color'
+    return im
+
+# Sky: an unclipped overcast dome, the flat monsoon light of every 2011 photograph.
+scene = bpy.context.scene
+w = scene.world; nt = w.node_tree; nt.nodes.clear()
+env = nt.nodes.new('ShaderNodeTexEnvironment'); env.image = img('overcast_soil_puresky_4k.hdr')
+bg = nt.nodes.new('ShaderNodeBackground'); bg.inputs['Strength'].default_value = 1.0
+out = nt.nodes.new('ShaderNodeOutputWorld')
+nt.links.new(env.outputs['Color'], bg.inputs['Color']); nt.links.new(bg.outputs['Background'], out.inputs['Surface'])
+
+FLOOR_WORDS = ('paving', 'pavement', 'floor', 'slab', 'platform', 'tread', 'landing', 'courtyard ground', 'walkway', 'forecourt', 'plinth top')
+def is_floor_material(mat):
+    names = [o.name.lower() for o in bpy.data.objects if o.type == 'MESH' and mat.name in o.data.materials]
+    hits = sum(any(wd in n for wd in FLOOR_WORDS) for n in names)
+    return names and hits / len(names) >= 0.5
+
+SETS = {
+    'plaster': ('painted_plaster_wall', 0.9),
+    'granite': ('granite_tile_04', 2.0),
+}
+def surface(nt, key, coord):
+    stem, scale = SETS[key]
+    maps = {}
+    for tag, data in (('diff', False), ('rough', True), ('nor_gl', True)):
+        t = nt.nodes.new('ShaderNodeTexImage'); t.image = img(f'{stem}_{tag}_2k.jpg', data)
+        t.projection = 'BOX'; t.projection_blend = 0.25
+        mp = nt.nodes.new('ShaderNodeMapping'); mp.inputs['Scale'].default_value = (1 / scale,) * 3
+        nt.links.new(coord.outputs['Object'], mp.inputs['Vector']); nt.links.new(mp.outputs['Vector'], t.inputs['Vector'])
+        maps[tag] = t
+    return maps
+
+count = {'plaster': 0, 'granite': 0, 'plain': 0}
+for mat in bpy.data.materials:
+    if not mat.use_nodes or 'web' not in mat: continue
+    web = json.loads(mat['web'])
+    nt = mat.node_tree; bsdf = nt.nodes.get('Principled BSDF')
+    if bsdf is None: continue
+    base = tuple(bsdf.inputs['Base Color'].default_value)
+    lum = 0.2126 * base[0] + 0.7152 * base[1] + 0.0722 * base[2]
+    coord = nt.nodes.new('ShaderNodeTexCoord')
+    # Rounded edges in shading only: every hard box edge catches a little light.
+    # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
+    bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
+    kind = 'plain'
+    if (web['metalness'] or 0) < 0.3 and not web['transparent']:
+        kind = 'granite' if is_floor_material(mat) else ('plaster' if web['roughness'] is None or web['roughness'] > 0.5 else 'plain')
+    rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = base
+    col_out = rgb.outputs[0]
+    if kind != 'plain':
+        maps = surface(nt, kind, coord)
+        # Keep the web colour; borrow the scan's value variation (stains, pits) around it.
+        gray = nt.nodes.new('ShaderNodeRGBToBW'); nt.links.new(maps['diff'].outputs['Color'], gray.inputs['Color'])
+        norm = nt.nodes.new('ShaderNodeMath'); norm.operation = 'MULTIPLY'; norm.inputs[1].default_value = 2.2 if kind == 'plaster' else 1.8
+        nt.links.new(gray.outputs['Val'], norm.inputs[0])
+        mix = nt.nodes.new('ShaderNodeMix'); mix.data_type = 'RGBA'; mix.blend_type = 'MULTIPLY'; mix.inputs['Factor'].default_value = 0.85
+        if kind == 'granite':
+            # Paving canvases were painted as dark grout with slabs drawn over it, so their
+            # recorded base colour is the grout. Stone floors take the scan's own colour.
+            rgb.outputs[0].default_value = (1, 1, 1, 1); norm.inputs[1].default_value = 1.0
+            nt.links.remove(gray.outputs['Val'].links[0]); nt.links.new(maps['diff'].outputs['Color'], mix.inputs[7])
+        nt.links.new(rgb.outputs[0], mix.inputs[6])
+        cr = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(norm.outputs[0], cr.inputs[i]) for i in range(3)]
+        if kind != 'granite': nt.links.new(cr.outputs[0], mix.inputs[7])
+        col_out = mix.outputs[2]
+        nt.links.new(maps['rough'].outputs['Color'], bsdf.inputs['Roughness'])
+        nm = nt.nodes.new('ShaderNodeNormalMap'); nm.inputs['Strength'].default_value = 0.7
+        nt.links.new(maps['nor_gl'].outputs['Color'], nm.inputs['Color'])
+        nt.links.new(nm.outputs['Normal'], bsdf.inputs['Normal'])
+    else:
+        nt.links.new(bev.outputs['Normal'], bsdf.inputs['Normal'])
+    # Grime: darken crevices and corners the way monsoon damp collects in them.
+    ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.35; ao.samples = 8
+    aoc = nt.nodes.new('ShaderNodeMapRange'); aoc.inputs['To Min'].default_value = 0.55 if lum > 0.3 else 0.8
+    nt.links.new(ao.outputs['AO'], aoc.inputs['Value'])
+    dirt = nt.nodes.new('ShaderNodeMix'); dirt.data_type = 'RGBA'; dirt.blend_type = 'MULTIPLY'; dirt.inputs['Factor'].default_value = 1.0
+    nt.links.new(col_out, dirt.inputs[6])
+    aocol = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(aoc.outputs['Result'], aocol.inputs[i]) for i in range(3)]
+    nt.links.new(aocol.outputs[0], dirt.inputs[7])
+    nt.links.new(dirt.outputs[2], bsdf.inputs['Base Color'])
+    count[kind] += 1
+
+# Water: a real dielectric surface over a murky green body instead of a flat colour.
+water = bpy.data.materials.get('lake water')
+if water:
+    b = water.node_tree.nodes['Principled BSDF']
+    b.inputs['Base Color'].default_value = (0.05, 0.11, 0.06, 1); b.inputs['Roughness'].default_value = 0.04
+    b.inputs['Specular IOR Level'].default_value = 0.5
+
+scene.view_settings.view_transform = 'AgX'; scene.view_settings.look = 'AgX - Base Contrast'
+scene.view_settings.exposure = 1.3
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, 'build', 'lookdev.blend'))
+print('lookdev materials', count)

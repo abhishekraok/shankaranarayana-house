@@ -12,8 +12,17 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import * as THREE from '../dist/vendor/three.module.js';
 
-const ctx=new Proxy({getImageData:()=>({data:new Uint8ClampedArray(512*512*4)}),createLinearGradient:()=>({addColorStop(){}}),createRadialGradient:()=>({addColorStop(){}}),createPattern:()=>({}),measureText:()=>({width:0})},{get:(o,k)=>o[k]??(()=>{}),set:(o,k,v)=>(o[k]=v,true)});
-globalThis.document={createElement:()=>({getContext:()=>ctx,width:0,height:0,style:{}}),createElementNS:()=>({addEventListener(){},removeEventListener(){},style:{}})};
+// Each canvas records the colour of its first near-full-size fill: the base paint
+// the web app's procedural textures start from, before grime and pattern strokes.
+function makeCanvas(){
+  const canvas={width:300,height:150,style:{},baseFill:null};
+  const state={fillStyle:'#000'};
+  const base={getImageData:(x,y,w,h)=>({data:new Uint8ClampedArray((w||1)*(h||1)*4)}),createLinearGradient:()=>({addColorStop(){}}),createRadialGradient:()=>({addColorStop(){}}),createPattern:()=>({}),measureText:()=>({width:0}),
+    fillRect(x,y,w,h){if(!canvas.baseFill&&typeof state.fillStyle==='string'&&w*h>=canvas.width*canvas.height*.5)canvas.baseFill=state.fillStyle;}};
+  const ctx=new Proxy(base,{get:(o,k)=>k in o?o[k]:k in state?state[k]:(()=>{}),set:(o,k,v)=>(state[k]=v,true)});
+  canvas.getContext=()=>ctx;return canvas;
+}
+globalThis.document={createElement:()=>makeCanvas(),createElementNS:()=>({addEventListener(){},removeEventListener(){},style:{}})};
 globalThis.Image??=class{addEventListener(){}removeEventListener(){}};
 
 const threeURL=new URL('../dist/vendor/three.module.js',import.meta.url).href;
@@ -48,7 +57,7 @@ function mat(m){
   const i=materials.length;matIndex.set(m,i);
   materials.push({name:kitName.get(m)||m.name||`${m.type}.${i}`,type:m.type,color:hex(m.color),emissive:m.emissive&&m.emissive.getHex()?hex(m.emissive):null,
     roughness:m.roughness??null,metalness:m.metalness??null,opacity:m.opacity,transparent:!!m.transparent,doubleSided:m.side===THREE.DoubleSide,
-    hasMap:!!m.map,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0});
+    hasMap:!!m.map,mapBase:m.map&&m.map.image&&m.map.image.baseFill?new THREE.Color().setStyle(m.map.image.baseFill).getStyle():null,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0});
   return i;
 }
 

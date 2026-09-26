@@ -39,6 +39,9 @@ for m in meta['materials']:
     if m['color']:
         h = m['color'].lstrip('#')
         rgb = [srgb_to_linear(int(h[i:i + 2], 16) / 255) for i in (0, 2, 4)]
+        if m.get('mapBase'):  # the canvas texture's base paint tints the material colour
+            base = [int(v) for v in m['mapBase'][4:-1].split(',')]
+            rgb = [c * srgb_to_linear(b / 255) for c, b in zip(rgb, base)]
         bsdf.inputs['Base Color'].default_value = (*rgb, 1)
         mat.diffuse_color = (*rgb, 1)
     if m['roughness'] is not None: bsdf.inputs['Roughness'].default_value = m['roughness']
