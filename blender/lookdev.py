@@ -29,6 +29,11 @@ def is_floor_material(mat):
     hits = sum(any(wd in n for wd in FLOOR_WORDS) for n in names)
     return names and hits / len(names) >= 0.5
 
+ROOF_WORDS = ('roof', 'mangalore', 'tile course', 'ridge')
+def is_roof_material(mat):
+    names = [o.name.lower() for o in bpy.data.objects if o.type == 'MESH' and mat.name in o.data.materials]
+    return names and sum(any(wd in n for wd in ROOF_WORDS) for n in names) / len(names) >= 0.5
+
 SETS = {
     'plaster': ('painted_plaster_wall', 0.9),
     'granite': ('granite_tile_04', 3.6),  # courtyard slabs read about 0.8-1 m in 15.03.38
@@ -96,7 +101,8 @@ for mat in bpy.data.materials:
             # recorded base colour is the grout. Stone floors take the scan's own colour.
             rgb.outputs[0].default_value = (1, 1, 1, 1); norm.inputs[1].default_value = 1.0
             nt.links.remove(gray.outputs['Val'].links[0]); nt.links.new(maps['diff'].outputs['Color'], mix.inputs[7])
-        nt.links.new(rgb.outputs[0], mix.inputs[6])
+        # Per-vertex / per-instance colours (roof tile courses, stone batches) tint the scan too.
+        nt.links.new(rgb.outputs[0] if kind == 'granite' else col_out, mix.inputs[6])
         cr = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(norm.outputs[0], cr.inputs[i]) for i in range(3)]
         if kind != 'granite': nt.links.new(cr.outputs[0], mix.inputs[7])
         col_out = mix.outputs[2]
@@ -127,6 +133,12 @@ for mat in bpy.data.materials:
         wc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(both.outputs[0], wc.inputs[i]) for i in range(3)]
         wm = nt.nodes.new('ShaderNodeMix'); wm.data_type = 'RGBA'; wm.blend_type = 'MULTIPLY'; wm.inputs['Factor'].default_value = 1
         nt.links.new(col_out, wm.inputs[6]); nt.links.new(wc.outputs[0], wm.inputs[7]); col_out = wm.outputs[2]
+    if kind != 'leaf' and is_roof_material(mat):
+        # Weathered clay tile and old sheet roofs are matte: a glossy scan roughness makes
+        # them mirror the overcast sky at grazing angles and read white from across the tank.
+        for l in list(bsdf.inputs['Roughness'].links): nt.links.remove(l)
+        bsdf.inputs['Roughness'].default_value = 0.93
+        if 'Specular IOR Level' in bsdf.inputs: bsdf.inputs['Specular IOR Level'].default_value = 0.2
     # Grime: darken crevices and corners the way monsoon damp collects in them.
     ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.35; ao.samples = 8
     aoc = nt.nodes.new('ShaderNodeMapRange'); aoc.inputs['To Min'].default_value = 0.55 if lum > 0.3 else 0.8
