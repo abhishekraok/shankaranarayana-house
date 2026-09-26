@@ -92,7 +92,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<40;i++)blob(r()*256,30+r()*196,14+r()*50,6+r()*18,'128,125,120',.25+r()*.25);
    for(let i=0;i<22;i++)blob(r()*256,30+r()*196,8+r()*28,5+r()*12,'50,50,52',.3+r()*.3);
    for(const y of [78,178]){const gr=c.createLinearGradient(0,y-24,0,y+24);gr.addColorStop(0,'rgba(150,146,140,0)');gr.addColorStop(.5,'rgba(150,146,140,.22)');gr.addColorStop(1,'rgba(150,146,140,0)');c.fillStyle=gr;c.fillRect(0,y-24,256,48);}
-   c.strokeStyle='rgba(40,40,42,.55)';c.lineWidth=1;for(let i=0;i<14;i++){let x=r()*256,y=30+r()*196;c.beginPath();c.moveTo(x,y);for(let k=0;k<6;k++){x+=r()*14-4;y+=r()*12-6;c.lineTo(x,y);}c.stroke();}
+   c.strokeStyle='rgba(40,40,42,.22)';c.lineWidth=.7;for(let i=0;i<14;i++){let x=r()*256,y=30+r()*196;c.beginPath();c.moveTo(x,y);for(let k=0;k<6;k++){x+=r()*14-4;y+=r()*12-6;c.lineTo(x,y);}c.stroke();}
    for(const top of [true,false]){c.fillStyle='#8f5f48';c.beginPath();c.moveTo(0,top?0:256);for(let x=0;x<=256;x+=8){const d=3+r()*9+(r()<.15?r()*16:0);c.lineTo(x,top?d:256-d);}c.lineTo(256,top?0:256);c.fill();
     for(let i=0;i<220;i++){c.fillStyle=r()<.5?'rgba(185,132,106,.55)':'rgba(90,60,46,.5)';c.fillRect(r()*256,top?r()*10:246+r()*10,1+r()*2,1+r()*2);}}
   }

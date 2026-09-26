@@ -65,7 +65,11 @@ water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)re
 const hq=highQuality?createHighQualityPipeline({renderer,scene,camera,water,sky}):null;
 if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;
   // Polished oxide and marble surfaces only gain their sheen with the sky environment.
-  scene.traverse(o=>{for(const m of [].concat(o.material||[]))if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;});
+  // Polished surfaces gain sheen; every texture gets full anisotropic filtering
+  // so roads, paving and roof tiles stay crisp at grazing angles.
+  const anisotropy=renderer.capabilities.getMaxAnisotropy();
+  scene.traverse(o=>{for(const m of [].concat(o.material||[])){if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;
+    for(const k of ['map','bumpMap','normalMap','roughnessMap'])if(m[k]&&m[k].anisotropy!==anisotropy){m[k].anisotropy=anisotropy;m[k].needsUpdate=true;}}});
   // Monsoon overcast: wide-kernel filtering gives the soft, diffuse shadows of the photographs.
   renderer.shadowMap.type=THREE.PCFShadowMap;sun.shadow.radius=7;sun.shadow.blurSamples=16;}
 {const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';
