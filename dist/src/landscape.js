@@ -626,6 +626,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const [a,b,c,d] of [[-18,-6,-60,-49],[-1,14,-61,-50],[20,30,-68,-57],[31,46,-68,-54]])if(x>a&&x<b&&z>c&&z<d)return c-3.2;
     return z;
   }
+  // Areca stems read mid grey-green against the forest, not as pale poles.
+  const arecaTrunk = new THREE.MeshStandardMaterial({ color: '#86877a', roughness: 1 });
   function palm(x, z, height, areca = false, reference = null) {
     z=clearOppositeBuildings(x,z);
     let leanX = range(-1.6, 1.6) * (areca ? .38 : 1), leanZ = range(-1.5, 1.5) * (areca ? .38 : 1);
@@ -634,7 +636,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     // Consume the usual seeded draws before applying a photographed tree profile.
     if(reference){leanX=reference.leanX;leanZ=reference.leanZ;radius=reference.radius;}
     const trunkPoint = t => [x + leanX * t * t, height * t, z + leanZ * t * t];
-    for (let i = 0; i < n; i++) segment(areca ? 'areca trunks' : 'curved coconut trunks', materials.trunk, trunkPoint(i / n), trunkPoint((i + 1) / n), radius * (1 - .48 * i / n), radius * (1 - .48 * (i + 1) / n));
+    for (let i = 0; i < n; i++) segment(areca ? 'areca trunks' : 'curved coconut trunks', areca ? arecaTrunk : materials.trunk, trunkPoint(i / n), trunkPoint((i + 1) / n), radius * (1 - .48 * i / n), radius * (1 - .48 * (i + 1) / n));
     const ringCount = Math.floor(height / (areca ? .68 : .36));
     for (let i = 1; i < ringCount; i++) {
       const t = i / ringCount, p = trunkPoint(t), r = radius * (1 - .48 * t) * 1.025;
