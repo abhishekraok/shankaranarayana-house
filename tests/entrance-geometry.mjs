@@ -170,10 +170,10 @@ for(const [i,p] of fenceLandmarks.entries()){
   const expected=[['Shop '],['Adjacent building','Stage '],['Temple road']][i];
   assert.ok(expected.some(n=>hit?.object.name.startsWith(n)),'Lake-fence view landmark visible: '+i+', got '+hit?.object.name);
 }
-assert.ok(collision(-1.49,-9.35,0),'Heavy roadside piers block walking through them');
-for(let x=-4.9;x<=12.2;x+=.2)assert.ok(collision(x,-9.35,0),'Water rail is continuous from the tank corner across the house');
+assert.ok(collision(-1.49,-10.0,0),'Heavy roadside piers block walking through them');
+for(let x=-4.9;x<=12.2;x+=.2)assert.ok(collision(x,-10.0,0),'Water rail is continuous from the tank corner across the house');
 for(let x=12.5;x<=14.2;x+=.2)assert.ok(collision(x,-8.3,0),'Lane-side wall runs from the jog to the gate');
-assert.ok(!collision(5,-8.8,0),'The grass verge behind the water rail is walkable');
+assert.ok(!collision(5,-9.4,0),'The grass verge behind the water rail is walkable');
 assert.ok(!collision(2,-7.6,0),'A verge stays walkable between the lane and the fence');
 assert.ok(!collision(16.4,-9.65,.055),'Rotated bathing gate is clear');
 assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefined,'No extra roofed gatehouse between the entrance and long arcade');
