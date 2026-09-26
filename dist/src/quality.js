@@ -68,8 +68,7 @@ export function overcastEnvironment(renderer,top,bottom){
 // Near crowns and shrubs gain a fringe of the landscape's folded leaf sprays,
 // oriented outward over each crown's upper surface, so silhouettes break into
 // leaves instead of smooth lumps. Distant hill crowns are left as they are.
-export function leafFringe(scene,perCrown=26){
-  const names=/^(layered broadleaf canopies|varied understory shrub clusters)$/;
+export function leafFringe(scene,perCrown=26,names=/^(layered broadleaf canopies|varied understory shrub clusters)$/,sizeScale=.28,maxScale=2.2){
   const source=scene.getObjectByName('small leaves breaking canopy outlines');if(!source)return 0;
   const crowns=[];scene.traverse(o=>{if(o.isInstancedMesh&&names.test(o.name))crowns.push(o);});
   let total=0;
@@ -87,7 +86,7 @@ export function leafFringe(scene,perCrown=26){
       pos.copy(dir).multiply(s).multiplyScalar(.93+r()*.12).applyQuaternion(q).add(p);
       out.copy(dir).applyQuaternion(q).normalize();
       pose.position.copy(pos);pose.quaternion.setFromUnitVectors(up,out);pose.rotateY(r()*6.283);
-      const k2=Math.min(2.2,.5+size*.28)*(.7+r()*.6);pose.scale.setScalar(k2);pose.updateMatrix();
+      const k2=Math.min(maxScale,.5+size*sizeScale)*(.7+r()*.6);pose.scale.setScalar(k2);pose.updateMatrix();
       fringe.setMatrixAt(i,pose.matrix);fringe.setColorAt(i,color.clone().multiplyScalar(.9+r()*.35));i++;}
   }
   fringe.instanceMatrix.needsUpdate=true;fringe.instanceColor.needsUpdate=true;fringe.computeBoundingBox();fringe.computeBoundingSphere();fringe.castShadow=false;fringe.receiveShadow=true;
