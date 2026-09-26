@@ -16,11 +16,20 @@ export function buildHouse(K) {
     timberPaint.strokeStyle=['#292d2918','#a6977b18','#302e2815','#b8aaa510'][i%4];
     timberPaint.lineWidth=.5;timberPaint.beginPath();timberPaint.moveTo(x,y);timberPaint.lineTo(x+Math.sin(i)*2,y+45+i%135);timberPaint.stroke();
   }
+  // 14.56.30: oiled near-black timber, worn to grey-brown where hands and
+  // weather reach, with long vertical checks in the grain.
+  {let n=19391;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};const c=timberPaint;
+   c.fillStyle='rgba(38,32,28,.55)';c.fillRect(0,0,512,512);
+   const soft=(x,y,rx,ry,rgb,a)=>{for(const dx of [-512,0,512])for(const dy of [-512,0,512]){c.save();c.translate(x+dx,y+dy);c.scale(rx,ry);const g=c.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);c.fillStyle=g;c.beginPath();c.arc(0,0,1,0,7);c.fill();c.restore();}};
+   for(let i=0;i<26;i++)soft(r()*512,r()*512,18+r()*50,50+r()*120,'128,116,100',.18+r()*.22);
+   for(let i=0;i<30;i++)soft(r()*512,r()*512,10+r()*30,30+r()*90,'20,17,15',.3+r()*.3);
+   for(let i=0;i<90;i++){const x=r()*512,y=r()*512,h=30+r()*160;c.strokeStyle=`rgba(${r()<.7?'14,12,10':'150,138,118'},${.25+r()*.35})`;c.lineWidth=.6+r()*1.4;c.beginPath();c.moveTo(x,y);c.lineTo(x+r()*4-2,y+h);c.stroke();}
+  }
   const timberMap=new THREE.CanvasTexture(oldTimberCanvas);timberMap.colorSpace=THREE.SRGBColorSpace;timberMap.wrapS=timberMap.wrapT=THREE.RepeatWrapping;
-  const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.0015,roughness:.96});
+  const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.004,roughness:.9});
   // 14.56.30: the veranda lime-wash is a bright mint turquoise.
   const verandaAqua=K.M.aqua.clone();verandaAqua.color.setRGB(.72,1.3,1.18);
-  const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;
+  const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;verandaRed.userData.hqRoughness=.34;
   // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
   // on the rear veranda, rather than oxide floors and turquoise paint.
   let washSeed=4127;const washRand=()=>{washSeed=(Math.imul(washSeed,1664525)+1013904223)>>>0;return washSeed/4294967296;};

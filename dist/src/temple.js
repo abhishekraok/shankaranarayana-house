@@ -29,7 +29,7 @@ export function buildTemple(K) {
   const brass = mat('#8c7142', .49, { metalness: .52 });
   const stoneFloor = mat('#b7b0a0');
   const blackFloor = mat('#38413f', .56);
-  const oxideFloor = mat('#834b3c', .69);
+  const oxideFloor = mat('#834b3c', .69);oxideFloor.userData.hqRoughness=.4;
 
   // Repeatable, geometry-native canvas finishes avoid hundreds of paving meshes.
   // The random sequence is fixed so a regenerated scene keeps the same weathering.
@@ -208,7 +208,7 @@ export function buildTemple(K) {
     c.lineWidth=1;for(let i=0;i<70;i++){c.strokeStyle=`rgba(${r()<.6?'225,232,226':'54,66,58'},${.2+r()*.35})`;let x=0,y=r()*s;c.beginPath();c.moveTo(x,y);while(x<s){x+=8+r()*20;y+=r()*10-5;c.lineTo(x,y);}c.stroke();}
     for(let x=0;x<=s;x+=s/2){c.fillStyle='rgba(40,48,42,.5)';c.fillRect(x-1,0,2,s);}
   });
-  K.worldMap(greenMarble,.3);
+  K.worldMap(greenMarble,.3);greenMarble.userData.hqRoughness=.2;
   for(const x of [33.9,44.1]){
     floor('Entrance raised side marble platform',x,2.1,7.8,8.2,.602,greenMarble);
     box('Entrance side platform laterite riser',x,.35,-1.95,7.8,.48,.24,laterite);
@@ -655,7 +655,7 @@ export function buildTemple(K) {
   // veranda, floral parapet, corrugated shelter and a small tower behind it.
   const innerWhite=K.M.plaster.clone();innerWhite.color.set('#f0f0ff');
   const vividBlue=mat('#087ead'),maroon=mat('#633a38'),pink=mat('#b57d80');
-  const dado=K.M.paleStone.clone();dado.color.set('#c6cbd0');
+  const dado=K.M.paleStone.clone();dado.color.set('#c6cbd0');dado.userData.hqRoughness=.3;
   const greenBand=mat('#435b55'),sheet=mat('#929ea2',.91,{side:THREE.DoubleSide});
   const greySheet=mat('#666d68',.96,{side:THREE.DoubleSide});
   const weathered=K.M.stone.clone();weathered.color.set('#60656a');

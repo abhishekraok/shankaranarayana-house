@@ -62,7 +62,9 @@ water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)re
 // Desktop high quality: ambient occlusion, MSAA and a soft overcast sky for PBR.
 // The image-based sky replaces part of the flat fill so totals stay balanced.
 const hq=highQuality?createHighQualityPipeline({renderer,scene,camera,water,sky}):null;
-if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;}
+if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;
+  // Polished oxide and marble surfaces only gain their sheen with the sky environment.
+  scene.traverse(o=>{for(const m of [].concat(o.material||[]))if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;});}
 {const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';
   button.addEventListener('click',()=>{storeQuality(highQuality?'standard':'high');const url=new URL(window.location.href);url.searchParams.delete('quality');window.location.replace(url.href);});}}
 
