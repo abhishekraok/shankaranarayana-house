@@ -281,14 +281,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   // a grass verge on the lane side. At the bathing gate it jogs about a metre toward
   // the lane: the short run beside the gate's approach is the passage's lane-side wall,
   // and the gap between the two lines opens onto the lake.
-  const houseBankZ=-8.3, waterRailZ=-9.35, bathingGateX=16.4, bathingGateZ=-9.65;
+  const houseBankZ=-8.3, waterRailZ=-10.0, bathingGateX=16.4, bathingGateZ=-9.65;
   for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,14.4,houseBankZ]]){
     for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,.38,fenceStone);
     for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,z,.19,.69,.29);
     K.blocker((a+b)/2,z,b-a,.39,0,1.13);
   }
-  box('House bank grass verge to the water rail',3.65,-.06,-9.2,17.4,.12,.62,materials.grass);
-  K.surface(3.65,-9.2,17.4,.62,0);
+  box('House bank grass verge to the water rail',3.65,-.06,-9.5,17.4,.12,1.0,materials.grass);
+  K.surface(3.65,-9.5,17.4,1.0,0);
+  box('House bank masonry below the verge',3.65,-.72,-9.6,17.4,1.24,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     box('Tank roadside substantial stone pier',x,.63,z,.59,1.26,.59,fenceWhite,true);
     const capGeometry=new THREE.CylinderGeometry(.34,.46,.21,4);capGeometry.rotateY(Math.PI/4);
@@ -306,8 +307,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   const creviceGreen=new THREE.MeshStandardMaterial({color:'#7a9453',roughness:.94,side:THREE.DoubleSide});
   for(let plant=0;plant<17;plant++){
     const x=-4.5+plant*1.12+Math.sin(plant*3.7)*.23;
-    const base=plant%4===0?-.34:.29+(plant%3)*.14;
-    const z=plant%4===0?-9.85:-9.56;
+    const base=plant%4===0?-.5:.29+(plant%3)*.14;
+    const z=plant%4===0?-10.4:-10.21;
     for(let shoot=0;shoot<3;shoot++){
       const dx=Math.sin(plant*2.1+shoot*2.4)*.23;
       const height=.22+((plant*3+shoot*5)%7)*.035;
@@ -334,7 +335,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
   // Long masonry ledges descend lakeward below the house-side water rail.
-  for(const [z,y,d] of [[-9.8,-.34,.5],[-10.2,-.56,.3]]){
+  for(const [z,y,d] of [[-10.4,-.5,.3],[-10.7,-.8,.3]]){
     box('House bank continuous retaining ledge',4.7,y-.10,z,18.8,.20,d,fenceStone);
     K.surface(4.7,z,18.8,d,y);
   }
@@ -402,7 +403,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
   railRun(50.08,-8.32,50.08,-20.8,'east north');
   railRun(50.08,-23.5,50.08,-37.68,'east south');
-  railRun(-5.08,-9.35,-5.08,-37.68,'west bank');
+  railRun(-5.08,-10.0,-5.08,-37.68,'west bank');
 
   function steps(name, x, z, w, d, axis, low, high, count, mat = materials.basalt) {
     const alongX = axis.endsWith('x'), positive = !axis.startsWith('-');
