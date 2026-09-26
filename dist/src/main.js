@@ -99,10 +99,10 @@ photos.templeroad={url:'temple-side-road.jpg',caption:'September 2011 · Small r
 photos.templehouse={url:'temple-towards-house.jpg',caption:'September 2011 · In front of the temple, looking right towards the house',p:[23,.051,-3],target:[-30,1.8,-6],fov:80};
 destinations.templehouse=photos.templehouse;
 // Manual views from the newly identified photos; source images remain local references.
-destinations.templebellreturn={p:[43.4,.1,14.0],target:[36.9,2.8,6.5],fov:80};
-destinations.templebellwide={p:[49.3,.1,16.0],target:[38.0,3.5,7.4],fov:76};
+destinations.templebellreturn={p:[39.3,.1,12.3],target:[36.6,2.2,6.9],fov:72};
+destinations.templebellwide={p:[34.6,.1,13.2],target:[36.8,2.3,7.0],fov:76};
 destinations.templepoles={p:[45.8,.1,14.3],target:[30.5,2.6,10.7],fov:74};
-destinations.templebell={p:[43.85,.1,9.50],target:[43.85,2.05,6.89],fov:66};
+destinations.templebell={p:[39.74,.1,7.78],target:[36.86,1.72,6.97],fov:66};
 
 photos.templeoldwall={url:'temple-old-wall.jpg',caption:'September 2011 · The older inner wall and standing stone',p:[49.9,.1,22.4],target:[46.4,1.85,28.7],fov:76};
 photos.templeoutershrines={url:'temple-outer-shrines.jpg',caption:'September 2011 · The three vaulted shrine bays',p:[46.5,.1,32.7],target:[52.2,2.95,32.2],fov:76};

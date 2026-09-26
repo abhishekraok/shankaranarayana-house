@@ -1221,26 +1221,51 @@ export function buildTemple(K) {
   }
 
 
-  // 15.02.27 / 15.03.51: raised court-facing portico, low central entry,
-  // two small front bells and a much larger bell in the bay behind them.
-  for(const x of [34.10,44.0]){
-    floor('Courtyard portico raised marble platform',x,7.02,7.5,1.62,.602,stoneFloor);
-    box('Courtyard portico dark carved plinth',x,.32,7.80,7.5,.45,.14,oldStone,true);
-    for(let i=0;i<10;i++)panel('Courtyard portico inset relief panel',x-3.34+i*.74,.33,7.88,.60,.31,relief);
-    box('Courtyard portico marble lip',x,.59,7.87,7.6,.10,.18,whiteTrim);
-    steps('Courtyard portico side access',x<39?36.6:46.8,8.19,.90,.85,.1,.602,'-z',3);
+  // 15.02.27 / 15.10.34 / 15.14.44: raised court-facing portico with a low
+  // central entry. West of the entry (to the right on entering) the carved
+  // frieze platform is the narrow great-bell hall; beyond it come the white
+  // stair wall and the blue service bay. The east hall has two smaller bells.
+  for(const [x,w,n] of [[36.525,2.65,3],[44.0,7.5,10]]){
+    floor('Courtyard portico raised marble platform',x,7.02,w,1.62,.602,stoneFloor);
+    box('Courtyard portico dark carved plinth',x,.32,7.80,w,.45,.14,oldStone,true);
+    for(let i=0;i<n;i++)panel('Courtyard portico inset relief panel',x-(n-1)*.37+i*.74,.33,7.88,.60,.31,relief);
+    box('Courtyard portico marble lip',x,.59,7.87,w+.1,.10,.18,whiteTrim);
+    steps('Courtyard portico side access',x<39?35.75:46.8,8.19,.90,.85,.1,.602,'-z',3);
   }
-  for(const x of [40.65,47.3]){
+  for(const x of [35.45,40.65,47.3]){
     box('Courtyard portico square white pier',x,2.14,7.58,.46,3.02,.46,white,true);
     box('Courtyard portico pier red foot',x,.91,7.58,.61,.62,.61,red);
   }
-  for(const x of [42.0,45.5]){
+  for(const x of [37.55,42.0,45.5]){
     carvedColumn('Courtyard bell bay carved column',x,7.57,.602,3.04,.86);
     box('Courtyard bell column red plinth',x,.93,7.57,.74,.66,.74,red);
     panel('Courtyard bell column outward carving',x,1.63,7.87,.40,.62,relief);
   }
-  for(const [x,w] of [[41.33,1.26],[43.75,3.10],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
+  for(const [x,w] of [[36.5,1.72],[41.33,1.26],[43.75,3.10],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
   box('Courtyard portico ceiling slab',44.0,3.94,7.05,7.6,.22,1.85,white);
+  box('Bell hall ceiling slab',36.525,3.94,7.05,2.75,.22,1.85,white);
+  // White wall between the service bay and the bell hall: red dado over the
+  // red-outlined tiled plinth, and a blue-framed door with the gallery stair
+  // rising inside it.
+  {const wallZ=7.45,x0=33.8,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=.62,head=3.07;
+    for(const [a,b] of [[x0,d0],[d1,x1]]){
+      box('Stair door white wall',(a+b)/2,2.0,wallZ,b-a,3.92,.3,white,true);
+      box('Stair door wall red dado',(a+b)/2,.87,wallZ+.155,b-a,.5,.02,red);
+      box('Stair door wall tiled plinth',(a+b)/2,.31,wallZ+.16,b-a,.62,.03,outlinedPlinth);
+    }
+    box('Stair door white lintel wall',dc,(head+3.96)/2,wallZ,d1-d0,3.96-head,.3,white);
+    for(const x of [d0+.04,d1-.04])box('Stair door blue frame jamb',x,(sill+head)/2,wallZ+.16,.08,head-sill,.06,blue);
+    for(const y of [head-.02,head-.36])box('Stair door blue frame head',dc,y,wallZ+.16,d1-d0,.07,.06,blue);
+    box('Stair door pale transom glass',dc,head-.19,wallZ+.13,d1-d0-.16,.26,.02,whiteTrim);
+    box('Stair door dark stairwell back',dc,1.9,wallZ-1.6,d1-d0,2.6,.05,dark);
+    // The bell hall's white west wall closes the stair from the hall side.
+    box('Bell hall white west wall',x1+.05,2.28,6.7,.1,3.36,1.7,white,true);
+    box('Stair enclosure white east wall',d0-.02,2.28,wallZ-.95,.06,3.36,1.3,white);
+    for(let i=0;i<5;i++)box('Gallery stair tread seen through the door',dc,sill+.1+i*.19,wallZ-.35-i*.24,d1-d0-.04,.19,.26,oldStone);
+    K.blocker(dc,wallZ-.4,d1-d0,.9,sill,head);
+    floor('Stair door threshold',dc,wallZ+.1,d1-d0,.5,sill,oldStone);
+    steps('Stair door front steps',dc,wallZ+.75,1.1,.9,.02,sill,'-z',3);
+  }
   // Blue scalloped service bay underneath the left-hand upper windows.
   box('Courtyard left service bay blue back',32.0,2.09,6.28,3.35,2.91,.08,paleBlue);
   box('Courtyard left service bay dark door',32.0,1.88,6.36,1.45,2.45,.06,dark);
@@ -1297,9 +1322,10 @@ export function buildTemple(K) {
   box('Side bay collection box lid',33.0,1.15,7.30,.47,.035,.40,vesselBlue);
   box('Side bay collection slot',33.0,.95,7.49,.17,.023,.008,dark);
   for(const y of [.69,1.02])box('Side bay box hinge',33.19,y,7.495,.025,.08,.014,doorSilver);
-  const bellX=43.65,bellZ=6.89;
-  box('Great bell heavy timber suspension beam',bellX,3.39,bellZ,2.66,.25,.31,K.M.wood);
-  for(const x of [42.35,44.95])box('Great bell white suspension pier',x,1.98,bellZ,.39,2.75,.46,white,true);
+  const bellX=36.55,bellZ=6.8;
+  // 15.14.44, looking west from the entry: white piers flank the bell.
+  box('Great bell heavy timber suspension beam',bellX,3.39,bellZ-.2,.31,.25,1.7,K.M.wood);
+  box('Great bell white suspension pier',bellX,1.98,bellZ-.8,.46,2.75,.36,white,true);
   bell('Great bronze temple bell',bellX,1.19,bellZ,1.10);
   for(const dx of [-.14,.14]){
     const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58,bellZ);handle.rotation.y=dx<0?-.3:.3;
@@ -1317,7 +1343,7 @@ export function buildTemple(K) {
   mesh('Great bell looped clapper rope',new THREE.TubeGeometry(pull,20,.017,6,false),rope);
   K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
   // The suspended drum is beside the large bell, as in the close-up 15.14.44.
-  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(45.20,1.78,6.96);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
+  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(bellX+.3,1.78,bellZ-.62);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
   const shell=mesh('Temple drum wooden shell',new THREE.CylinderGeometry(.45,.31,.65,32),K.M.wood,0,0,0,drum);
   for(const y of [-.325,.325]){
     const radius=y>0?.45:.31;
@@ -1328,7 +1354,7 @@ export function buildTemple(K) {
     const a=i*Math.PI/11,b=a+.15;
     K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
   }
-  K.beam(g,'Temple drum hanging chain',[45.20,3.32,6.96],[45.20,2.18,6.96],.018,dark);
+  K.beam(g,'Temple drum hanging chain',[bellX+.3,3.32,bellZ-.62],[bellX+.3,2.18,bellZ-.62],.018,dark);
   for(const x of [41.5,44.5]){
     bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
