@@ -200,8 +200,17 @@ export function buildTemple(K) {
       for(let i=0;i<40;i++){c.fillStyle=`rgba(${rand()<.5?20:150},${rand()<.5?30:110},25,${.05+rand()*.12})`;c.fillRect(x+7+rand()*(w-20),r*h+7+rand()*(h-20),3+rand()*9,2+rand()*6);}
     }
   },7.8/1.6,1);
+  // 15.15.51: the raised side platforms are polished green-grey veined marble.
+  const greenMarble=mat('#ffffff',.42);
+  greenMarble.map=canvasMap(512,(c,s)=>{let n=5821;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#8f9c93';c.fillRect(0,0,s,s);
+    for(let i=0;i<26;i++){c.fillStyle=`rgba(${r()<.5?'170,182,172':'92,108,98'},${.18+r()*.25})`;c.fillRect(0,r()*s,s,4+r()*26);}
+    c.lineWidth=1;for(let i=0;i<70;i++){c.strokeStyle=`rgba(${r()<.6?'225,232,226':'54,66,58'},${.2+r()*.35})`;let x=0,y=r()*s;c.beginPath();c.moveTo(x,y);while(x<s){x+=8+r()*20;y+=r()*10-5;c.lineTo(x,y);}c.stroke();}
+    for(let x=0;x<=s;x+=s/2){c.fillStyle='rgba(40,48,42,.5)';c.fillRect(x-1,0,2,s);}
+  });
+  K.worldMap(greenMarble,.3);
   for(const x of [33.9,44.1]){
-    floor('Entrance raised side marble platform',x,2.1,7.8,8.2,.602,stoneFloor);
+    floor('Entrance raised side marble platform',x,2.1,7.8,8.2,.602,greenMarble);
     box('Entrance side platform laterite riser',x,.35,-1.95,7.8,.48,.24,laterite);
     box('Entrance side platform white moulding',x,.12,-1.99,7.9,.13,.34,whiteTrim);
   }
@@ -224,7 +233,16 @@ export function buildTemple(K) {
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),silver=mat('#bcc4c6',.63,{metalness:.25});
+  const doorwayBlue=mat('#294c57'),silver=mat('#ffffff',.63,{metalness:.25});
+  // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
+  silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
+    for(let x=6;x<s;x+=16){c.fillStyle='rgba(70,76,78,.35)';c.fillRect(x,0,3,s);c.fillStyle='rgba(245,248,248,.35)';c.fillRect(x+3,0,2,s);}
+    for(let i=0;i<4;i++){const y=i*64+8;
+      for(let k=0;k<30;k++){c.fillStyle=`rgba(${r()<.5?'70,76,78':'240,244,244'},${.08+r()*.12})`;c.beginPath();c.ellipse(40+r()*(s-80),y+10+r()*28,2+r()*7,2+r()*6,r()*3,0,7);c.fill();}}
+    for(let i=0;i<300;i++){c.fillStyle=`rgba(50,56,58,${r()*.2})`;c.fillRect(r()*s,r()*s,1+r()*3,1+r()*3);}
+  });
+  K.worldMap(silver,.5);
   box('Entrance doorway left blue surround',37.48,2.00,5.87,.69,2.80,.23,doorwayBlue);
   box('Entrance doorway right blue surround',40.52,2.00,5.87,.69,2.80,.23,doorwayBlue);
   box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
@@ -234,7 +252,8 @@ export function buildTemple(K) {
     const x=39+side*2.05;
 
     box('Entrance doorway pillar red base',x,1.02,5.36,.58,.72,.58,red,true);
-    cyl('Entrance doorway silver carved shaft',x,2.20,5.36,.19,.24,1.67,silver,12);
+    box('Entrance doorway silver carved shaft',x,2.20,5.36,.40,1.67,.40,silver);
+    box('Entrance doorway silver relief block',x,1.62,5.36,.50,.52,.50,silver);
     for(const y of [1.43,1.88,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
     box('Entrance doorway silver capital',x,3.38,5.36,.72,.18,.66,silver);
     K.blocker(x,5.36,.60,.60,.6,3.5);
@@ -276,6 +295,9 @@ export function buildTemple(K) {
   deityPhoto('Entrance doorway right original painting',35.65,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]]);
   deityPhoto('Entrance Hanuman original painting',33.8,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]]);
   doorPhoto('Entrance doorway original inscription',39,3.18,5.738,3.63,.59,[.306,.133,.690,.283]);
+  // The painted blue marbling and red drapes of the surround, from the same photograph.
+  doorPhoto('Entrance doorway original painted left surround',40.52,1.74,5.745,.69,2.27,[.2975,.27,.395,.70]);
+  doorPhoto('Entrance doorway original painted right surround',37.48,1.74,5.745,.69,2.27,[.6175,.27,.705,.70]);
   const flowers=[];
   for(let i=0;i<=45;i++){
     const t=i/45,x=37.95+2.1*t,y=2.96-.50*Math.sin(t*Math.PI);
@@ -314,6 +336,9 @@ export function buildTemple(K) {
   floor('Upper gallery stair-side strip',47.39,2.08,.87,8.0,4.08,oxideFloor);
   floor('Upper gallery front bridge',46.18,-.42,1.56,3.0,4.08,oxideFloor);
   floor('Upper gallery stair landing',46.18,6.02,1.56,.36,4.08,oxideFloor);
+  // 15.15.51: from the entrance hall the gallery slab reads as a whitewashed ceiling.
+  box('Entrance hall whitewashed ceiling under gallery',37.79,3.892,2.08,15.23,.012,8.0,white);
+  box('Entrance hall whitewashed ceiling under gallery',47.39,3.892,2.08,.87,.012,8.0,white);
   steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
   for(const x of [45.32,47.06])K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.10,5.92],.065,K.M.wood);
   K.railing(g,'Upper stairwell guard',45.33,1.25,45.33,5.35,4.08,.94,paleBlue);
