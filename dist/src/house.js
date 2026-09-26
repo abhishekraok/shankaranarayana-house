@@ -30,7 +30,7 @@ export function buildHouse(K) {
   // 14.56.30: the veranda lime-wash is a bright mint turquoise.
   K.baseGrime(K.M.aqua,{top:1.6,strength:.45,tint:[.7,.66,.58]});
   const verandaAqua=K.M.aqua.clone();K.baseGrime(verandaAqua,{top:1.5,strength:.35,tint:[.7,.66,.58]});verandaAqua.color.setRGB(.72,1.3,1.18);
-  const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;verandaRed.userData.hqRoughness=.34;
+  const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;
   // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
   // on the rear veranda, rather than oxide floors and turquoise paint.
   let washSeed=4127;const washRand=()=>{washSeed=(Math.imul(washSeed,1664525)+1013904223)>>>0;return washSeed/4294967296;};

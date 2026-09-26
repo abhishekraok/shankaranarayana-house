@@ -8,17 +8,15 @@ import {buildHouse} from './house.js';
 import {buildTemple} from './temple.js';
 import {buildLandscape} from './landscape.js';
 import {createPhotoTour} from './tour.js';
-import {readQuality,storeQuality,createHighQualityPipeline,overcastEnvironment,leafFringe} from './quality.js';
 
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
 // Overcast September monsoon light, as in every 2011 photograph.
 scene.background=new THREE.Color(0xc4ccc8);scene.fog=new THREE.FogExp2(0xc4ccc8,.0021);
 const phoneMode=matchMedia('(pointer: coarse)').matches;
-const quality=readQuality(phoneMode),highQuality=quality==='high';
-let renderScale=phoneMode?1:Math.min(devicePixelRatio,highQuality?2:1.6);
+let renderScale=phoneMode?1:Math.min(devicePixelRatio,1.6);
 let renderer;
-try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode&&!highQuality,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
+try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
 renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
 $('world').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3D scene. Click to look around; WASD or arrow keys to walk.');
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-8,4.2,-20);camera.lookAt(1,2.1,5);
@@ -49,7 +47,7 @@ const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:null},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);float c=(sin(dot(q,vec2(6.1,2.9))+time*1.6)+sin(dot(q,vec2(-3.7,7.3))-time*1.3)+sin(dot(q,vec2(4.3,-6.7))+time*1.9))/3.,d=(sin(dot(q,vec2(11.3,5.9))-time*2.1)+sin(dot(q,vec2(-8.9,12.7))+time*1.7)+sin(dot(q,vec2(13.9,-9.1))-time*2.4))/3.;uv.xy+=(vec2(a,b)*.0016+vec2(c,d)*.0022)*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7)+.035*c+.02*d);vec3 lift=max(reflection-lake,0.);gl_FragColor=vec4(lake+lift*(.17+.09*c+grazing*.32)+(reflection-lake)*.03,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x5b8350,textureWidth:phoneMode?384:highQuality?1536:768,textureHeight:phoneMode?384:highQuality?1536:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
+const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x5b8350,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
 // The mirror camera only draws layer 1. It omits enclosed interiors (house rooms
 // behind the front wall, the temple court behind its frontage), ground-level
@@ -60,21 +58,6 @@ const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x5b8350,texture
  water.camera.layers.set(1);}
 const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
 water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)reflectFrame.apply(this,args);};
-// Desktop high quality: ambient occlusion, MSAA and a soft overcast sky for PBR.
-// The image-based sky replaces part of the flat fill so totals stay balanced.
-const hq=highQuality?createHighQualityPipeline({renderer,scene,camera,water,sky}):null;
-if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;
-  // Polished oxide and marble surfaces only gain their sheen with the sky environment.
-  // Polished surfaces gain sheen; every texture gets full anisotropic filtering
-  // so roads, paving and roof tiles stay crisp at grazing angles.
-  const anisotropy=renderer.capabilities.getMaxAnisotropy();
-  scene.traverse(o=>{for(const m of [].concat(o.material||[])){if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;
-    for(const k of ['map','bumpMap','normalMap','roughnessMap'])if(m[k]&&m[k].anisotropy!==anisotropy){m[k].anisotropy=anisotropy;m[k].needsUpdate=true;}}});
-  leafFringe(scene);leafFringe(scene,12,/^Horizon overlapping broadleaf crowns$/,.42,4);
-  // Monsoon overcast: wide-kernel filtering gives the soft, diffuse shadows of the photographs.
-  renderer.shadowMap.type=THREE.PCFShadowMap;sun.shadow.radius=7;sun.shadow.blurSamples=16;}
-{const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';
-  button.addEventListener('click',()=>{storeQuality(highQuality?'standard':'high');const url=new URL(window.location.href);url.searchParams.delete('quality');window.location.replace(url.href);});}}
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
@@ -220,7 +203,7 @@ $('close-photos').onclick=()=>{$('photos').hidden=true;$('photos-btn').setAttrib
 function showPhoto(key){currentPhoto=key;const p=photos[key];$('photo-select').value=key;$('reference-photo').src='./assets/'+p.url;$('reference-photo').alt=p.caption;$('photo-caption').textContent=p.caption;$('photo-view').textContent='Go to a similar viewpoint ↗';}
 $('photo-select').onchange=e=>{if(mode==='tour'){tourPaused=true;updateModeUI();}showPhoto(e.target.value);};
 $('photo-view').onclick=()=>teleport(photos[currentPhoto]);
-const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);hq?.setSize(w,h);},enter:()=>{
+const photoAlignment=installPhotoAlignment({camera,photos,release,setAligning:v=>{aligning=v;},resize:(w,h)=>{camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);},enter:()=>{
  release();keys.clear();wheelTravel=0;mode='fly';orbit.enabled=false;entered=true;
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});
@@ -253,24 +236,22 @@ function location(x,z,y){if(x>-8&&x<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front ve
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){
-  if(!(phoneMode||highQuality)||document.hidden||frameTime>.25)return;
+  if(!phoneMode||document.hidden||frameTime>.25)return;
   if(qualityWarmup<120){qualityWarmup++;return;}
   qualityTime+=frameTime;qualityFrames++;
   if(qualityFrames<120)return;
   const average=qualityTime/qualityFrames;
-  // High quality trades resolution, never the effects, to hold about 40 fps.
-  const floor=phoneMode?.75:1;
-  if(average>(phoneMode?1/32:1/40)&&renderScale>floor){renderScale=Math.max(floor,renderScale-.125);renderer.setPixelRatio(renderScale);hq?.setSize(innerWidth,innerHeight);}
+  if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);if(hq)hq.render();else renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
-addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);hq?.setSize(innerWidth,innerHeight);});
+addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
-window.houseWalk={ready:true,optimization,phoneMode,quality,hq,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
+window.houseWalk={ready:true,optimization,phoneMode,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
 if(document.modelContext?.registerTool){
  const c=document.modelContext;
  try{Promise.resolve(c.registerTool({name:'visit_place',description:'Move to a place in the Shankaranarayana reconstruction, using the same destinations as the Go to menu.',inputSchema:{type:'object',properties:{place:{type:'string',enum:Object.keys(destinations)}},required:['place'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!destinations[input.place]||Object.keys(input).length!==1)throw new Error('Choose a listed place.');teleport(destinations[input.place]);return window.houseWalk.getState();}})).catch(()=>{});}catch{}

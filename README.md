@@ -46,10 +46,6 @@ The public repository begins with a clean snapshot of the approved source and ph
 
 Original code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: [CC BY 4.0](LICENSE-PHOTOS.txt), credited to Abhishek Rao. For photo reuse, credit Abhishek Rao, link to this repository and the license, and indicate any changes. See [reference photographs](REFERENCE-SOURCES.md) for provenance. Vendored Three.js retains its [MIT license](dist/vendor/THREE-LICENSE.txt).
 
-### High quality (desktop)
-
-The **HQ** button beside the info button switches a desktop browser to high quality graphics and remembers the choice; `?quality=high` or `?quality=standard` overrides it for one visit. High quality adds ground-truth ambient occlusion (GTAO), 4x MSAA, a soft overcast sky reflected by the polished floors, soft wide-kernel shadows, full anisotropic filtering, leafy fringes on tree crowns and shrubs, a gentle photographic contrast grade, native pixel density up to 2x and sharper lake reflections. If frames slow below about 40 fps it lowers resolution, never the effects. Phones always use the standard tier. The post-processing add-ons in `dist/vendor/addons/` are unmodified files from Three.js r180.
-
 ### Photo alignment
 
 Open **Photographs → Align photos**. The photo and a live 3D view appear side by side, the 3D view sized to the photo's exact shape. Drag to look, WASD to move, Q/E to lower or raise the camera, Z/X to zoom, Shift for bigger and Alt for finer steps. G overlays the photo on the 3D view; R returns to the starting camera. **Space saves the pose and moves to the next photo still needing work**; N skips and P goes back. The list beside the counter jumps to any photo in queue order (✓ saved, ✕ discarded). **Discard** (or the Delete key) hides a useless photo from the queue; the file is never deleted, and choosing it from the list shows **Restore**.
