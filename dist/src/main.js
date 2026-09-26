@@ -51,10 +51,11 @@ const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THRE
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);uv.xy+=vec2(a,b)*.0016*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7));vec3 lift=max(reflection-lake,0.);gl_FragColor=vec4(lake+lift*(.03+grazing*.28)+(reflection-lake)*.03,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
 const water=new Reflector(new THREE.PlaneGeometry(72,31),{color:0x4f7f45,textureWidth:phoneMode?384:highQuality?1536:768,textureHeight:phoneMode?384:highQuality?1536:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(18,-1.12,-27.5);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
-// The mirror camera only draws layer 1: everything except enclosed interiors
-// (house rooms behind the front wall, the temple court behind its frontage and
-// roof undersides), which the tank never reflects. Reflection cost roughly halves.
-{const box=new THREE.Box3(),hidden=b=>(b.min.x>-12.6&&b.max.x<12.6&&b.min.z>1.9&&b.max.z<19&&b.max.y<3.9)||(b.min.x>20&&b.max.x<58&&b.min.z>6.5&&b.max.z<40&&b.max.y<4.6);
+// The mirror camera only draws layer 1. It omits enclosed interiors (house rooms
+// behind the front wall, the temple court behind its frontage), ground-level
+// surfaces the mirror only sees from below, and detail too small to survive the
+// low-resolution, rippled reflection.
+{const box=new THREE.Box3(),size=new THREE.Vector3(),hidden=b=>(b.min.x>-12.6&&b.max.x<12.6&&b.min.z>1.9&&b.max.z<19&&b.max.y<3.9)||(b.min.x>20&&b.max.x<58&&b.min.z>6.5&&b.max.z<40&&b.max.y<4.6)||b.max.y<.3||b.getSize(size).length()<.9;
  scene.traverse(o=>{if(!(o.isMesh||o.isLine||o.isPoints)||o===water)return;if(o.isInstancedMesh){o.computeBoundingBox();box.copy(o.boundingBox).applyMatrix4(o.matrixWorld);}else box.setFromObject(o);if(!hidden(box))o.layers.enable(1);});
  water.camera.layers.set(1);}
 const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
