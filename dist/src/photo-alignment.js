@@ -17,7 +17,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  <button id="align-ghost" title="Overlay the photo on the 3D view (G)">Ghost</button><button id="align-start" title="Back to this photo's starting camera (R)">Reset</button>
  <input id="align-notes" maxlength="1000" placeholder="Notes: where were you standing? what differs?">
  <button id="align-export">Export JSON</button><label class="align-file">Import<input id="align-import" type="file" accept="application/json,.json"></label><button id="align-close" aria-label="Close photo alignment">Close</button></div>
- <p class="align-help"><b>Drag</b> look · <b>WASD</b> move · <b>Q/E</b> down/up · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <span id="align-status" role="status"></span></p>`;
+ <p class="align-help"><b>Drag</b> look · <b>WASD</b> move (passes through walls) · <b>Q/E</b> down/up · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <span id="align-status" role="status"></span></p>`;
  document.body.append(panel);
  const button=document.createElement('button');button.id='align-photo';button.textContent='Align photos';$('photos').append(button);
  const photo=$('align-photo-view'),overlay=$('alignment-overlay');

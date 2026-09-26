@@ -17,6 +17,9 @@ const rect=(page,sel)=>page.evaluate(s=>document.querySelector(s).getBoundingCli
  assert.ok(Math.abs(await page.evaluate(()=>houseWalk.camera.aspect)-natural)<.01);
  const first=await page.textContent('#align-title');
  const y0=await page.evaluate(()=>houseWalk.camera.position.y);await page.keyboard.press('KeyE');assert.ok(Math.abs(await page.evaluate(()=>houseWalk.camera.position.y)-y0-.05)<1e-6);
+ // Alignment flight passes through the closed God-room gate to reach the altar.
+ const through=await page.evaluate(()=>{const c=houseWalk.camera;const saved=[c.position.clone(),c.quaternion.clone()];c.position.set(0,2.1,5.9);c.lookAt(0,2.1,12);const z=houseWalk.moveFor('KeyW',1.2).position[2];c.position.copy(saved[0]);c.quaternion.copy(saved[1]);return z;});
+ assert.ok(through>7.5,'alignment camera passes the God-room gate');
  const f0=await page.evaluate(()=>houseWalk.camera.fov);await page.keyboard.press('KeyX');assert.ok(Math.abs(await page.evaluate(()=>houseWalk.camera.fov)-f0-.5)<1e-6);
  await page.fill('#align-notes','Standing on the front step.');await page.locator('#align-notes').press('Escape');
  await page.keyboard.press('Space');await page.waitForFunction(t=>document.getElementById('align-title').textContent!==t,first);
