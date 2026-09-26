@@ -20,6 +20,20 @@ export function buildHouse(K) {
   const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.0015,roughness:.96});
   const verandaAqua=K.M.aqua.clone();verandaAqua.color.setRGB(1.12,1.22,1.19);
   const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;
+  // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
+  // on the rear veranda, rather than oxide floors and turquoise paint.
+  let washSeed=4127;const washRand=()=>{washSeed=(Math.imul(washSeed,1664525)+1013904223)>>>0;return washSeed/4294967296;};
+  const paintedMap=(size,paint,repeat)=>{if(typeof document==='undefined')return null;const c=document.createElement('canvas');c.width=c.height=size;paint(c.getContext('2d'),size);
+    const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(repeat,repeat);return t;};
+  const greyCement=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.82,map:paintedMap(256,(c,s)=>{
+    c.fillStyle='#8b8a82';c.fillRect(0,0,s,s);
+    for(let i=0;i<220;i++){const v=washRand()<.5?55:185;c.fillStyle=`rgba(${v},${v},${v-6},${.04+washRand()*.08})`;c.beginPath();c.ellipse(washRand()*s,washRand()*s,2+washRand()*12,1+washRand()*6,washRand()*3,0,Math.PI*2);c.fill();}
+  },.5)});
+  const rearWash=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.95,map:paintedMap(512,(c,s)=>{
+    c.fillStyle='#cddfd6';c.fillRect(0,0,s,s);
+    for(let i=0;i<90;i++){const x=washRand()*s,y=washRand()*s,h=30+washRand()*120;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(58,62,52,${.08+washRand()*.16})`);g.addColorStop(1,'rgba(58,62,52,0)');c.fillStyle=g;c.fillRect(x,y,3+washRand()*18,h);}
+    for(let i=0;i<260;i++){const r=washRand()<.3;c.fillStyle=r?`rgba(150,82,56,${.06+washRand()*.14})`:`rgba(70,72,62,${.05+washRand()*.12})`;c.fillRect(washRand()*s,washRand()*s,1+washRand()*4,1+washRand()*4);}
+  },.3)});
   const batches = new Map();
   const mat = key => typeof key === 'string' ? K.M[key] : key;
   const b = (name,x,y,z,w,h,d,m='plaster',solid=false) => K.box(g,name,x,y,z,w,h,d,m,solid);
@@ -119,7 +133,7 @@ export function buildHouse(K) {
   floor('Front range plinth',0,3,24,6);
   floor('West rooms and passage',-10.2,12,3.6,12);
   floor('East passage and stair base',9.65,12,4.7,12);
-  floor('Rear veranda',-.55,16.25,17.7,3.5);
+  floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
   const dampCourt=mat('earth').clone();dampCourt.color.set('#686653');dampCourt.roughness=.80;
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
   // Lowered central entrance with paired raised sitting platforms.
@@ -133,6 +147,7 @@ export function buildHouse(K) {
     b('Veranda entrance end stone coping',side*1.31,.768,1.15,.16,.045,1.80,'stone');
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
+  floor('Veranda central grey cement walkway',0,1.15,2.52,1.80,F+.004,greyCement,.04);
   floor('Entrance-left lower stone walking strip',4.9,-.31,9.8,1.02,.455,'stone',.05);
   floor('Entrance-right lower stone walking strip',-4.05,-.31,8.1,1.02,.455,'stone',.05);
   floor('Front left access step',-3.1,.04,1.9,.7,.19,'paleStone');
@@ -238,7 +253,7 @@ export function buildHouse(K) {
   // Ground floor enclosing walls. All rooms have usable openings.
   wallZ('West exterior wall',-11.88,1.95,17.85,F,3.02,[{c:8.4,w:1.6,bottom:1.05,top:2.45},{c:15.1,w:1.4,bottom:1.05,top:2.4}]);
   wallZ('East exterior wall',11.88,.15,17.85,F,3.02,[{c:14.75,w:1.7,top:2.55}],'plaster');
-  wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}]);
+  wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}],rearWash);
   doorX(0,17.86,1.9,F,2.5,-1);
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
@@ -374,7 +389,7 @@ export function buildHouse(K) {
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
   doorX(-10.05,12.1,1.55);
-  wallZ('Kitchen to rear veranda',-8.48,12.1,17.8,F,2.9,[{c:16.05,w:1.65,top:2.45}]);
+  wallZ('Kitchen to rear veranda',-8.48,12.1,17.8,F,2.9,[{c:16.05,w:1.65,top:2.45}],rearWash);
   detail(-8.48,F+1.22,15.15,.36,2.45,.13,'wood');
   detail(-8.48,F+1.22,16.95,.36,2.45,.13,'wood');
   detail(-8.48,F+2.5,16.05,.38,.15,1.95,'wood');
