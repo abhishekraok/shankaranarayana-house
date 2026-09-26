@@ -65,6 +65,26 @@ diffuseColor*=texture2D(map,tpUv*${scale.toFixed(4)});`);
     material.customProgramCacheKey=()=>'worldMap'+scale;
     return material;
   };
+  // Monsoon splash-back: whitewash darkens in irregular vertical streaks up to
+  // about a metre above the ground, computed from world height in the shader.
+  K.baseGrime=(material,{top=1.05,strength=.5,tint=[.62,.64,.56]}={})=>{
+    const previous=material.onBeforeCompile;
+    material.onBeforeCompile=(s,r)=>{previous?.call(material,s,r);
+      s.vertexShader='varying vec3 vGrimePos;\n'+s.vertexShader.replace('#include <worldpos_vertex>',`#include <worldpos_vertex>
+vec4 grimeP=vec4(transformed,1.);
+#ifdef USE_INSTANCING
+grimeP=instanceMatrix*grimeP;
+#endif
+vGrimePos=(modelMatrix*grimeP).xyz;`);
+      s.fragmentShader='varying vec3 vGrimePos;\n'+s.fragmentShader.replace('#include <map_fragment>',`#include <map_fragment>
+{float along=vGrimePos.x+vGrimePos.z;float streak=.55+.45*sin(along*5.3+sin(along*1.7)*2.)*sin(along*11.9+1.3);
+ float reach=${top.toFixed(3)}*(.55+.45*streak);float g=(1.-smoothstep(reach*.35,reach,vGrimePos.y))*step(-.2,vGrimePos.y);
+ diffuseColor.rgb*=mix(vec3(1.),vec3(${tint.map(v=>v.toFixed(3)).join(',')}),g*${strength.toFixed(3)});}`);
+    };
+    const key=material.customProgramCacheKey?.bind(material);
+    material.customProgramCacheKey=()=>(key?key():'')+'grime'+top+strength;
+    return material;
+  };
   K.blocker=(x,z,w,d,bottom,top)=>K.colliders.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2,bottom,top});
   K.surface=(x,z,w,d,y)=>K.surfaces.push({x,z,w,d,y});
   K.ramp=(x,z,w,d,axis,lowY,highY)=>K.ramps.push({x,z,w,d,axis,lowY,highY});

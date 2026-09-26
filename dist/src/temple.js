@@ -72,7 +72,7 @@ export function buildTemple(K) {
     for(let i=0;i<40;i++){const x=mildew()*s,y=mildew()*s,r=30+mildew()*100;const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(96,104,84,${.06+mildew()*.10})`);g.addColorStop(1,'rgba(96,104,84,0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);}
     for(let i=0;i<120;i++){const x=mildew()*s,y=mildew()*s,h=20+mildew()*110;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(52,60,46,${.03+mildew()*.07})`);g.addColorStop(1,'rgba(52,60,46,0)');c.fillStyle=g;const dw=4+mildew()*12;c.beginPath();c.moveTo(x,y);c.lineTo(x+dw,y);c.lineTo(x+dw*.62,y+h);c.lineTo(x+dw*.38,y+h);c.fill();}
     for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.015+mildew()*.03})`;c.fillRect(mildew()*s,mildew()*s,2+mildew()*5,2+mildew()*5);}
-  },.35,.35);white.color.set('#ffffff');white.userData.worldAnchored=true;
+  },.35,.35);white.color.set('#ffffff');white.userData.worldAnchored=true;K.baseGrime(white,{top:1.8,strength:.55});
   blackFloor.map = canvasMap(256, (c,s) => {
     c.fillStyle='#3b4442';c.fillRect(0,0,s,s);
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
@@ -196,7 +196,7 @@ export function buildTemple(K) {
     const rows=3,cols=4,h=s/rows,w=s/cols;
     for(let r=0;r<rows;r++)for(let k=-1;k<cols;k++){
       const x=k*w+(r%2)*w/2,v=62+rand()*26|0;
-      c.fillStyle=`rgb(${v},${v-3|0},${v-10|0})`;c.fillRect(x+7,r*h+7,w-14,h-14);
+      c.fillStyle=`rgb(${v},${v-3|0},${v-10|0})`;c.fillRect(x+3,r*h+3,w-6,h-6);
       for(let i=0;i<40;i++){c.fillStyle=`rgba(${rand()<.5?20:150},${rand()<.5?30:110},25,${.05+rand()*.12})`;c.fillRect(x+7+rand()*(w-20),r*h+7+rand()*(h-20),3+rand()*9,2+rand()*6);}
     }
   },7.8/1.6,1);
@@ -658,7 +658,7 @@ export function buildTemple(K) {
   const dado=K.M.paleStone.clone();dado.color.set('#c6cbd0');dado.userData.hqRoughness=.3;
   const greenBand=mat('#435b55'),sheet=mat('#929ea2',.91,{side:THREE.DoubleSide});
   const greySheet=mat('#666d68',.96,{side:THREE.DoubleSide});
-  const weathered=K.M.stone.clone();weathered.color.set('#60656a');
+  const weathered=K.M.stone.clone();weathered.color.set('#83857f');
   const metalPole=mat('#b7af91',.5,{metalness:.45});
   // Ribbons form actual openings in the floral lattice, not an opaque picture.
   function openworkGeometry(){
@@ -810,7 +810,19 @@ export function buildTemple(K) {
       for(let i=0;i<7;i++)cyl('Small unlit rack oil dish',x+side*.30,1.53,z-.46+i*.15,.045,.023,.035,oldStone,8);
     }
   }
-  const oldRoof=K.hipRoof(g,'Old inner shrine deep sloping roof',39,24.85,16.65,11.6,3.13,2.92,darkRoof);
+  // 15.08.04 / old-wall photo: long pale grey stone slabs laid in overlapping
+  // courses down each slope, streaked black with mould below every joint.
+  const slabRoof=mat('#ffffff',.95);
+  slabRoof.map=canvasMap(512,(c,s)=>{let n=90331;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#96968e';c.fillRect(0,0,s,s);
+    for(let col=0;col<8;col++){const x=col*64;
+      for(let y=0;y<s;){const h=40+r()*90,v=r()*26-13|0;c.fillStyle=`rgb(${150+v},${150+v},${142+v})`;c.fillRect(x+2,y+1,60,h-2);
+        const g=c.createLinearGradient(x,0,x+22,0);g.addColorStop(0,'rgba(38,40,36,.55)');g.addColorStop(1,'rgba(38,40,36,0)');c.fillStyle=g;c.fillRect(x+2,y+1,22,h-2);
+        for(let k=0;k<6;k++){c.fillStyle=`rgba(${r()<.6?'40,44,38':'92,104,70'},${.08+r()*.18})`;c.fillRect(x+4+r()*50,y+r()*h,2+r()*6,6+r()*30);}
+        y+=h;}
+      c.fillStyle='rgba(30,32,28,.8)';c.fillRect(x,0,2,s);}
+  },1,1);
+  const oldRoof=K.hipRoof(g,'Old inner shrine deep sloping roof',39,24.85,16.65,11.6,3.13,2.92,slabRoof);
   // 15.08.04 and 15.08.42 show daylight through corrugated translucent
   // strips above the lowered aisles. Cut the opaque roof itself so an extra
   // bright plane cannot leave an invisible solid roof blocking the skylight.
@@ -1125,7 +1137,15 @@ export function buildTemple(K) {
   for(const side of [-1,1])box('Old inner shrine dark drainage channel',39+side*8.05,.105,25,.15,.012,10.8,dark);
   // Weathered upright stone in the circumambulatory passage, as in 15.03.33.
   const stoneShape=new THREE.Shape();stoneShape.moveTo(-.47,0);stoneShape.lineTo(.47,0);stoneShape.lineTo(.47,.80);stoneShape.absarc(0,.80,.47,0,Math.PI,false);stoneShape.closePath();
-  mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),circuitStone,48.9,.10,24.2);
+  // 15.03.33: dark grey granite, pitted and lichen-blotched.
+  const markerGranite=mat('#ffffff',.93);
+  markerGranite.map=canvasMap(256,(c,s)=>{let n=6113;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#6d6c66';c.fillRect(0,0,s,s);
+    for(let i=0;i<2600;i++){c.fillStyle=r()<.5?'rgba(35,35,32,.35)':'rgba(170,168,158,.3)';c.fillRect(r()*s,r()*s,1+r()*2,1+r()*2);}
+    for(let i=0;i<30;i++){c.fillStyle=`rgba(${r()<.5?'150,148,130':'40,44,36'},${.12+r()*.2})`;c.beginPath();c.ellipse(r()*s,r()*s,6+r()*24,4+r()*16,r()*3,0,7);c.fill();}
+  });
+  K.worldMap(markerGranite,1.6);
+  mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
   K.blocker(48.9,24.31,.94,.22,.1,1.37);
 
   // Deepastambha: layered square foot, dark shaft and a vertical series of lamp dishes.
