@@ -191,9 +191,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Tank retaining courses. An unobstructed inset ledge sits just above water.
   // 15.20.13, 14.59.54 and 15.28.26 place the east wall at x 49.4, where the
   // bathing arcade meets the corner, leaving a wide lawn in front of the shop.
-  const lake = { x: 15.7, z: -27.5, w: 67.4, d: 31 };
+  // Satellite imagery of the site (2026) sets the rest: about 43 x 26.5 m of water,
+  // starting at the house's main door (family memory: 14.41.43, 15.28.45, 15.30.09),
+  // with the near bank about 4 m from the lane's centre line.
+  const lake = { x: 24.95, z: -23, w: 48.9, d: 28 };
   box('tank basin floor', lake.x, -2.08, lake.z, lake.w, .18, lake.d, materials.wetStone);
-  K.blocker(lake.x, lake.z, lake.w-3.5, 27.5, -8, -.8);
+  K.blocker(lake.x, lake.z, lake.w-3.5, lake.d-3.5, -8, -.8);
   function ringCourse(inset, thickness, top, height, name, mat) {
     const w = lake.w - 2 * inset, d = lake.d - 2 * inset;
     box(`${name} east`, lake.x + w / 2 - thickness / 2, top - height / 2, lake.z, thickness, height, d, mat);
@@ -223,23 +226,23 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(.50, .45, -.31, 1.55, 'middle worn stone tread', tankWall);
   ringCourse(.93, .48, -.54, 1.30, 'low mossy stone tread', materials.wetStone);
   ringCourse(1.39, .36, -.77, 1.02, 'submerged tank course', materials.wetStone);
-  for(const [a,b] of [[-17.4,16.4],[29.6,48.8]])K.surface((a+b)/2,-12.73,b-a,.40,-.31);
-  for(const [a,b] of [[-17.4,12.10],[14.40,48.8]])K.surface((a+b)/2,-42.27,b-a,.40,-.31);
-  K.surface(-17.27, -27.5, .40, 29.5, -.31);
-  K.surface(48.67, -27.5, .40, 29.5, -.31);
+  for(const [a,b] of [[0.9,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.31);
+  for(const [a,b] of [[0.9,12.10],[14.40,48.8]])K.surface((a+b)/2,-36.27,b-a,.40,-.31);
+  K.surface(0.83, -23, .40, 26.5, -.31);
+  K.surface(48.67, -23, .40, 26.5, -.31);
   // Keep later planting stable when the longer shoreline needs more stones.
   const bankDetailSeed=seed;
   // Faint joints and irregular replacement stones read at human eye height.
   for (const side of [-1, 1]) {
-    for (let i = 0; i < 61; i++) {
-      const x = -17.1 + i * 1.08;
+    for (let i = 0; i < 44; i++) {
+      const x = 1.4 + i * 1.08;
       const stoneColor=new THREE.Color().setScalar(range(.73,1.23));
       // Keep the seeded planting sequence stable while clearing stair masonry.
       if(side<0&&x+.515>12.10&&x-.515<14.40)continue;
-      blockBatch('bank individual masonry', materials.basalt, x, -.34, side < 0 ? -42.985 : -12.015, 1.03, .34, .027, stoneColor);
+      blockBatch('bank individual masonry', materials.basalt, x, -.34, side < 0 ? -36.985 : -9.015, 1.03, .34, .027, stoneColor);
     }
-    for (let i = 0; i < 28; i++) {
-      blockBatch('bank individual masonry', materials.basalt, lake.x + side * (lake.w / 2 - .015), -.34, -42.25 + i * 1.08, .027, .34, 1.03, new THREE.Color().setScalar(range(.73, 1.23)));
+    for (let i = 0; i < 25; i++) {
+      blockBatch('bank individual masonry', materials.basalt, lake.x + side * (lake.w / 2 - .015), -.34, -36.25 + i * 1.08, .027, .34, 1.03, new THREE.Color().setScalar(range(.73, 1.23)));
     }
   }
 
@@ -275,13 +278,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 14.58.02 + 15.23.35: the house-facing parapet sits farther out at the
   // water, continuously across the house. Access is toward the temple (+X).
-  const houseBankZ=-11.3, bathingGateX=16.4, bathingGateZ=-12.65;
-  for(const [a,b] of [[-18.65,14.4]]){
+  const houseBankZ=-8.3, bathingGateX=16.4, bathingGateZ=-9.65;
+  for(const [a,b] of [[0.45,14.4]]){
     for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,houseBankZ,b-a,h,.38,fenceStone);
     for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,houseBankZ,.19,.69,.29);
     K.blocker((a+b)/2,houseBankZ,b-a,.39,0,1.13);
   }
-  for(const x of [-18.55,-12.4,-6.2,0,6.2,12.35]){
+  for(const x of [0.55,4.5,8.45,12.35]){
     box('Tank roadside substantial stone pier',x,.63,houseBankZ,.59,1.26,.59,fenceWhite,true);
     const capGeometry=new THREE.CylinderGeometry(.34,.46,.21,4);capGeometry.rotateY(Math.PI/4);
     const cap=new THREE.Mesh(capGeometry,fenceStone);cap.name='Tank roadside sloped square pier cap';cap.position.set(x,1.33,houseBankZ);group.add(cap);
@@ -296,10 +299,10 @@ export function buildLandscape(K, {mobile=false}={}) {
     .42,.42,0, 0,0,0, 0,.48,.13],3));
   creviceLeaf.computeVertexNormals();
   const creviceGreen=new THREE.MeshStandardMaterial({color:'#7a9453',roughness:.94,side:THREE.DoubleSide});
-  for(let plant=0;plant<27;plant++){
-    const x=-17.1+plant*1.12+Math.sin(plant*3.7)*.23;
+  for(let plant=0;plant<12;plant++){
+    const x=1.0+plant*1.12+Math.sin(plant*3.7)*.23;
     const base=plant%4===0?-.12:.29+(plant%3)*.14;
-    const z=plant%4===0?-12.29:-11.51;
+    const z=plant%4===0?-9.29:-8.51;
     for(let shoot=0;shoot<3;shoot++){
       const dx=Math.sin(plant*2.1+shoot*2.4)*.23;
       const height=.22+((plant*3+shoot*5)%7)*.035;
@@ -314,36 +317,36 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.28.13: the entrance crosses the bank at right angles to the
   // house-facing rail. Descend along +X, then follow the low waterside ledge.
-  for(const z of [-11.25,-14.05]){
+  for(const z of [-8.25,-11.05]){
     for(const [y,w,h] of [[.29,.75,.58],[.77,.62,.38],[1.10,.49,.28],[1.31,.39,.14]])box('Tank gate square stepped stone pier',bathingGateX,y,z,w,h,w,fenceWhite,true);
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
   // Open iron leaf rests along the stair edge; the passage stays clear.
-  for(const x of [16.45,17.27])box('Tank narrow iron gate upright',x,.51,-13.87,.035,.92,.035,'metal');
-  for(const y of [.12,.94])box('Tank narrow iron gate rail',16.86,y,-13.87,.85,.035,.035,'metal');
-  for(let x=16.56;x<17.27;x+=.13)box('Tank metal gate bars',x,.53,-13.87,.017,.82,.022,'metal');
-  box('Bathing gate approach masonry',15.18,-.35,-12.4,2.45,.69,2.85,materials.basalt);
-  box('Bathing gate approach landing',15.18,-.005,-12.4,2.45,.12,2.85,materials.path);
-  K.surface(15.18,-12.4,2.45,2.85,.055);
+  for(const x of [16.45,17.27])box('Tank narrow iron gate upright',x,.51,-10.87,.035,.92,.035,'metal');
+  for(const y of [.12,.94])box('Tank narrow iron gate rail',16.86,y,-10.87,.85,.035,.035,'metal');
+  for(let x=16.56;x<17.27;x+=.13)box('Tank metal gate bars',x,.53,-10.87,.017,.82,.022,'metal');
+  box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
+  box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
+  K.surface(15.18,-9.4,2.45,2.85,.055);
   // Long masonry ledges descend lakeward below the unbroken house-side fence.
-  for(const [z,y,d] of [[-12.05,-.12,.75],[-12.55,-.34,.65],[-13.0,-.56,.55]]){
-    box('House bank continuous retaining ledge',-2.1,y-.10,z,32.4,.20,d,fenceStone);
-    K.surface(-2.1,z,32.4,d,y);
+  for(const [z,y,d] of [[-9.05,-.12,.75],[-9.55,-.34,.65],[-10.0,-.56,.55]]){
+    box('House bank continuous retaining ledge',7.45,y-.10,z,13.3,.20,d,fenceStone);
+    K.surface(7.45,z,13.3,d,y);
   }
   // The panorama shows the bathing shelter parallel to the temple-facing bank.
   // 14.59.39 / 15.14.07: the lake entrance building. A raised slab open to the
   // lane, square stepped white pillars on red-oxide bases about 2.6 m apart,
   // and at the west end a solid whitewashed block with a tiled dado, the
   // orange sign and a tap. The first bay beside it is the way down to the water.
-  box('Bathing arcade raised floor slab',39,-.015,-12.0,19.2,.16,3.1,materials.path);
-  K.surface(39,-12.0,19.2,3.1,.065);
-  box('Bathing arcade slab worn front edge',39,.03,-10.47,19.2,.07,.06,materials.mortar);
+  box('Bathing arcade raised floor slab',39,-.015,-9.0,19.2,.16,3.1,materials.path);
+  K.surface(39,-9.0,19.2,3.1,.065);
+  box('Bathing arcade slab worn front edge',39,.03,-7.47,19.2,.07,.06,materials.mortar);
   const dadoTiles=materials.oldWhite.clone();
   if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
     x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
     dadoTiles.map=new THREE.CanvasTexture(c);dadoTiles.map.colorSpace=THREE.SRGBColorSpace;dadoTiles.map.wrapS=dadoTiles.map.wrapT=THREE.RepeatWrapping;dadoTiles.map.repeat.set(3,3);dadoTiles.color.set('#ffffff');}
   const pillarRed=materials.oldWhite.clone();pillarRed.color.set('#9a4a3a');
-  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6,48.2])for(const z of [-13.24,-10.77]){
+  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6,48.2])for(const z of [-10.24,-7.77]){
     box('Bathing arcade red-oxide pillar base',x,.065+.11,z,.40,.22,.40,pillarRed,true);
     box('Bathing arcade white-tiled pillar foot',x,.065+.61,z,.36,.78,.36,dadoTiles);
     box('Bathing arcade square white pillar',x,.065+1.4,z,.29,1.6,.29,materials.oldWhite,true);
@@ -351,14 +354,14 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('Bathing arcade pillar capital block',x,2.34,z,.36,.14,.36,materials.oldWhite);
   }
   // The block holds the lane-side corner; the way down to the water passes behind it.
-  box('Lake entrance west end block',30.15,1.25,-11.15,1.3,2.5,1.1,materials.oldWhite,true);
-  box('Lake entrance block white tiled dado',30.15,.065+.55,-11.15,1.34,1.1,1.14,dadoTiles);
-  box('Lake entrance orange painted sign',30.15,1.55,-10.585,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
-  K.beam(group,'Lake entrance brass tap pipe',[30.55,.95,-10.58],[30.55,.55,-10.50],.03,'metal');
-  box('Lake entrance yellow notice board',29.2,1.45,-10.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
-  box('Lake entrance notice board post',29.2,.72,-10.15,.06,1.44,.06,'metal');
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-12.0,20.1,3.6,2.57,.93);
-  for(const z of [-13.24,-10.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
+  box('Lake entrance west end block',30.15,1.25,-8.15,1.3,2.5,1.1,materials.oldWhite,true);
+  box('Lake entrance block white tiled dado',30.15,.065+.55,-8.15,1.34,1.1,1.14,dadoTiles);
+  box('Lake entrance orange painted sign',30.15,1.55,-7.585,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
+  K.beam(group,'Lake entrance brass tap pipe',[30.55,.95,-7.58],[30.55,.55,-7.50],.03,'metal');
+  box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
+  box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
+  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,.93);
+  for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
   const arcadeScreen=new THREE.Shape();arcadeScreen.moveTo(-9.10,.20);
@@ -369,32 +372,32 @@ export function buildLandscape(K, {mobile=false}={}) {
     hole.lineTo(x+.058,y+.054);hole.lineTo(x+.058,y-.054);hole.closePath();arcadeScreen.holes.push(hole);
   }
   const arcadeWall=new THREE.Mesh(new THREE.ExtrudeGeometry(arcadeScreen,{depth:.16,bevelEnabled:false}),arcadePlaster);
-  arcadeWall.name='Bathing arcade lake-facing pierced masonry';arcadeWall.position.set(39,0,-13.31);
+  arcadeWall.name='Bathing arcade lake-facing pierced masonry';arcadeWall.position.set(39,0,-10.31);
   arcadeWall.castShadow=arcadeWall.receiveShadow=true;group.add(arcadeWall);
-  box('Bathing arcade lake-facing coping',39,.94,-13.23,18.35,.10,.27,materials.oldWhite);
-  box('Bathing arcade pink lower wall band',39,.30,-13.14,18.35,.2,.02,new THREE.MeshStandardMaterial({color:'#c48b83',roughness:.9}));
-  box('Bathing arcade dark waterline foundation',39,-.20,-13.23,18.35,.68,.27,materials.wetStone);
-  K.blocker(39,-13.23,18.35,.27,-.54,.99);
+  box('Bathing arcade lake-facing coping',39,.94,-10.23,18.35,.10,.27,materials.oldWhite);
+  box('Bathing arcade pink lower wall band',39,.30,-10.14,18.35,.2,.02,new THREE.MeshStandardMaterial({color:'#c48b83',roughness:.9}));
+  box('Bathing arcade dark waterline foundation',39,-.20,-10.23,18.35,.68,.27,materials.wetStone);
+  K.blocker(39,-10.23,18.35,.27,-.54,.99);
 
   // Opposite the mud road, the long low dark wall spans the temple's right wing.
-  box('Temple bank dark retaining parapet',23.2,.42,-11.3,10.8,.84,.26,materials.basalt,true);
-  for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-11.45,.055,.76,.015,materials.oldWhite);
+  box('Temple bank dark retaining parapet',23.2,.42,-8.3,10.8,.84,.26,materials.basalt,true);
+  for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-8.45,.055,.76,.015,materials.oldWhite);
   // 14.58.26: whitewashed pilaster strips about 5.6 m apart run down the full
   // retaining face, and every tier carries a worn white nosing.
-  for(const [a,b] of [[-18.65,-12.1],[-9.5,9.0],[9.7,16.8],[17.5,25.4],[30.6,50.05]]){
-    box('Opposite bank solid weathered parapet',(a+b)/2,.71,-43.68,b-a,1.42,.29,tankWall,true);
-    box('Opposite bank worn white horizontal seam',(a+b)/2,.34,-43.515,b-a,.075,.024,fenceWhite);
-    box('Opposite bank white coping edge',(a+b)/2,1.40,-43.53,b-a,.05,.04,fenceWhite);
+  for(const [a,b] of [[0.45,2.0],[4.4,9.0],[9.7,16.8],[17.5,31.4],[36.6,50.05]]){
+    box('Opposite bank solid weathered parapet',(a+b)/2,.71,-37.68,b-a,1.42,.29,tankWall,true);
+    box('Opposite bank worn white horizontal seam',(a+b)/2,.34,-37.515,b-a,.075,.024,fenceWhite);
+    box('Opposite bank white coping edge',(a+b)/2,1.40,-37.53,b-a,.05,.04,fenceWhite);
     const bays=Math.max(1,Math.round((b-a)/5.6));
     for(let j=0;j<=bays;j++){const x=a+(b-a)*j/bays;
-      box('Opposite bank whitewashed pilaster strip',x,.66,-43.515,.16,1.52,.03,fenceWhite);
-      for(const [top,z] of [[-.08,-42.47],[-.31,-42.04],[-.54,-41.58]])if(x>-17.3&&x<48.7&&!(x>12&&x<14.5))box('Opposite bank tier pilaster strip',x,top-.12,z,.16,.24,.02,fenceWhite);}
+      box('Opposite bank whitewashed pilaster strip',x,.66,-37.515,.16,1.52,.03,fenceWhite);
+      for(const [top,z] of [[-.08,-36.47],[-.31,-36.04],[-.54,-35.58]])if(x>0.9&&x<48.7&&!(x>12&&x<14.5))box('Opposite bank tier pilaster strip',x,top-.12,z,.16,.24,.02,fenceWhite);}
   }
-  for(const [a,b] of [[-17.4,12.10],[14.40,48.8]])for(const [top,z] of [[-.08,-42.47],[-.31,-42.04],[-.54,-41.58]])
+  for(const [a,b] of [[0.9,12.10],[14.40,48.8]])for(const [top,z] of [[-.08,-36.47],[-.31,-36.04],[-.54,-35.58]])
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
-  railRun(50.08,-11.32,50.08,-25.1,'east north');
-  railRun(50.08,-28.0,50.08,-43.68,'east south');
-  railRun(-18.68,-11.32,-18.68,-43.68,'west bank');
+  railRun(50.08,-8.32,50.08,-20.8,'east north');
+  railRun(50.08,-23.5,50.08,-37.68,'east south');
+  railRun(0.42,-8.32,0.42,-37.68,'west bank');
 
   function steps(name, x, z, w, d, axis, low, high, count, mat = materials.basalt) {
     const alongX = axis.endsWith('x'), positive = !axis.startsWith('-');
@@ -412,20 +415,20 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 14.58.26 / house-upper-right: the central descent is two narrow flights laid
   // along the retaining face, meeting at a landing below a central pilaster, then
   // a short flight to the water ledge. White nosings trace their zig-zag profile.
-  const flightZ=-43.2675,flightD=.535,flightRun=3.9,flightSteps=8,flightRise=1.08/flightSteps;
+  const flightZ=-37.2675,flightD=.535,flightRun=3.9,flightSteps=8,flightRise=1.08/flightSteps;
   for(const [x0,axis] of [[12.9,'-x'],[13.6,'x']]){
     const dir=axis==='x'?1:-1,cx=x0+dir*flightRun/2;
     steps('Opposite bank central flight along the face',cx,flightZ,flightRun,flightD,axis,0,1.08,flightSteps);
     for(let i=0;i<flightSteps;i++){const run=flightRun/flightSteps,near=x0+dir*i*run,h=(i+1)*flightRise;
-      box('Opposite bank flight white tread nosing',near+dir*run/2,h-.018,-42.99,run,.036,.02,fenceWhite);
-      box('Opposite bank flight white riser line',near,h-flightRise/2,-42.99,.036,flightRise,.02,fenceWhite);}
+      box('Opposite bank flight white tread nosing',near+dir*run/2,h-.018,-36.99,run,.036,.02,fenceWhite);
+      box('Opposite bank flight white riser line',near,h-flightRise/2,-36.99,.036,flightRise,.02,fenceWhite);}
     const nx=axis==='x'?[17.0,17.5]:[9.0,9.7];
-    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,.54,-43.97,nx[1]-nx[0],1.08,.87,materials.path);K.surface((nx[0]+nx[1])/2,-43.97,nx[1]-nx[0],.87,1.08);
+    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,.54,-37.97,nx[1]-nx[0],1.08,.87,materials.path);K.surface((nx[0]+nx[1])/2,-37.97,nx[1]-nx[0],.87,1.08);
   }
   box('Opposite bank central flight landing',13.25,-.12,flightZ,.72,.24,flightD,materials.basalt);K.surface(13.25,flightZ,.72,flightD,0);
-  box('Opposite bank central tall pilaster',13.25,.66,-43.515,.30,1.52,.035,fenceWhite);
-  steps('Opposite bank short flight to the water ledge',13.25,-42.615,2.30,.77,'-z',-.53,0,3);
-  box('Opposite bank central stair lower landing',13.25,-.59,-42.06,2.30,.12,.34,materials.wetStone);K.surface(13.25,-42.06,2.30,.34,-.53);
+  box('Opposite bank central tall pilaster',13.25,.66,-37.515,.30,1.52,.035,fenceWhite);
+  steps('Opposite bank short flight to the water ledge',13.25,-36.615,2.30,.77,'-z',-.53,0,3);
+  box('Opposite bank central stair lower landing',13.25,-.59,-36.06,2.30,.12,.34,materials.wetStone);K.surface(13.25,-36.06,2.30,.34,-.53);
   // Two opposed flights in 15.28.13: down from the rotated gate and up
   // to the long arcade, joined by the exposed low ledge beside the water.
   steps('near bank bathing steps',17.75,bathingGateZ,2.7,2.1,'-x',-.53,.055,5);
@@ -436,12 +439,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   steps('Bathing arcade approach stair',28.55,bathingGateZ,2.1,2.1,'x',-.53,.065,5);
   box('Bathing arcade stair top landing',29.80,-.005,bathingGateZ,.55,.14,2.1,materials.basalt);
   K.surface(29.80,bathingGateZ,.55,2.1,.065);
-  steps('east bank steps', 49.16, -26.55, 2.3, 2.45, 'x', -.55, .055, 5);
-  box('east bank lower landing', 47.65, -.59, -26.55, .78, .12, 2.45, materials.wetStone);
-  K.surface(47.65, -26.55, .78, 2.45, -.53);
-  steps('far bank corner steps', -10.8, -42.85, 2.25, 2.25, '-z', -.55, .055, 5);
-  box('far bank lower landing', -10.8, -.59, -41.41, 2.25, .12, .76, materials.wetStone);
-  K.surface(-10.8, -41.41, 2.25, .76, -.53);
+  steps('east bank steps', 49.16, -22.15, 2.3, 2.45, 'x', -.55, .055, 5);
+  box('east bank lower landing', 47.65, -.59, -22.15, .78, .12, 2.45, materials.wetStone);
+  K.surface(47.65, -22.15, .78, 2.45, -.53);
+  steps('far bank corner steps', 3.2, -36.85, 2.25, 2.25, '-z', -.55, .055, 5);
+  box('far bank lower landing', 3.2, -.59, -35.41, 2.25, .12, .76, materials.wetStone);
+  K.surface(3.2, -35.41, 2.25, .76, -.53);
 
   // Capture the pavilion and its navigation surfaces so its original detail can
   // be placed on the confirmed near bank, left in the first panorama frame.
@@ -517,7 +520,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for (const sx of [-1, 1]) box('pavilion roof lip', px + sx * (pw + .39) / 2, 2.36, pz, .08, .1, pd + .54, materials.mortar, false, pavilionRoof);
   K.roofs.push(pavilionRoof);
   const pavilionPlacement=new THREE.Group();pavilionPlacement.name='Panorama near-bank pavilion';
-  const pavilionTransform=new THREE.Matrix4().makeTranslation(28,0,-40).multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2)).multiply(new THREE.Matrix4().makeTranslation(-px,0,-pz));
+  const pavilionTransform=new THREE.Matrix4().makeTranslation(34,0,-34).multiply(new THREE.Matrix4().makeRotationY(-Math.PI/2)).multiply(new THREE.Matrix4().makeTranslation(-px,0,-pz));
   for(const child of group.children.slice(pavilionChildren))pavilionPlacement.add(child);
   pavilionPlacement.applyMatrix4(pavilionTransform);group.add(pavilionPlacement);
   const mapPoint=(x,z)=>new THREE.Vector3(x,0,z).applyMatrix4(pavilionTransform);
@@ -531,12 +534,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // Broad, gently raised earth bank gives the photographed downward look over
   // the pavilion roof; the height and bank profile are estimated.
-  for(const [a,b] of [[8.6,25.6]]){box('Panorama opposite bank crest',(a+b)/2,.54,-45.4,b-a,1.08,2,materials.path);K.surface((a+b)/2,-45.4,b-a,2,1.08);}
-  K.ramp(5.9,-45.4,5.4,2.0,'x',.052,1.08);
-  K.ramp(28.3,-45.4,5.4,2.0,'-x',.052,1.08);
+  for(const [a,b] of [[8.6,31.6]]){box('Panorama opposite bank crest',(a+b)/2,.54,-39.4,b-a,1.08,2,materials.path);K.surface((a+b)/2,-39.4,b-a,2,1.08);}
+  K.ramp(5.9,-39.4,5.4,2.0,'x',.052,1.08);
+  K.ramp(34.3,-39.4,5.4,2.0,'-x',.052,1.08);
   for(let i=0;i<18;i++)for(const side of [-1,1]){
-    const x=17.1+side*(8.5+(i+.5)*.30),h=1.08-(i+.5)/18*1.028;
-    box('Panorama sloping earth bank',x,h/2,-45.4,.31,h,2.0,materials.path);
+    const x=20.1+side*(11.5+(i+.5)*.30),h=1.08-(i+.5)/18*1.028;
+    box('Panorama sloping earth bank',x,h/2,-39.4,.31,h,2.0,materials.path);
   }
 
 

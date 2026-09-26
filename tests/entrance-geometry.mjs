@@ -146,14 +146,14 @@ for(const [point,prefixes] of [
   [[60.12,6.7,-5],['Adjacent building']],
   [[25.1,5.5,1.25],['Temple road']],
   [[0,5.5,0],['Upper','House','Pink','Overlapping']],
-  [[28,2.31,-40],['pavilion']],
+  [[34,2.31,-34],['pavilion']],
 ]){
   const ray=new THREE.Raycaster(panoramaEye,new THREE.Vector3(...point).sub(panoramaEye).normalize());
   const hit=ray.intersectObjects([landscape,temple,house],true)[0];
   assert.ok(prefixes.some(prefix=>hit?.object.name.startsWith(prefix)),`Panorama landmark at ${point} must be visible, got ${hit?.object.name}`);
 }
 const panoramaCamera=new THREE.PerspectiveCamera(photos.lakeleft.fov,4/3,.06,400);panoramaCamera.position.copy(panoramaEye);panoramaCamera.lookAt(new THREE.Vector3(...photos.lakeleft.target));panoramaCamera.updateMatrixWorld();
-const pavilionProjection=new THREE.Vector3(28,1,-40).project(panoramaCamera);
+const pavilionProjection=new THREE.Vector3(34,1,-34).project(panoramaCamera);
 assert.ok(pavilionProjection.x<0&&pavilionProjection.x>-1.2,'Pavilion belongs in the near left foreground');
 assert.equal(supportY(38,-25,0),-8,'The tank continues in front of the temple');
 // 14.58.02: view from the house-side lane, with shop, stage and temple in order.
@@ -170,14 +170,14 @@ for(const [i,p] of fenceLandmarks.entries()){
   const expected=[['Shop '],['Adjacent building','Stage '],['Temple road']][i];
   assert.ok(expected.some(n=>hit?.object.name.startsWith(n)),'Lake-fence view landmark visible: '+i+', got '+hit?.object.name);
 }
-assert.ok(collision(6.2,-11.3,0),'Heavy roadside piers block walking through them');
-for(let x=-12;x<=12;x+=.2)assert.ok(collision(x,-11.3,0),'Fence is continuous opposite the house');
-assert.ok(!collision(0,-9.02,0),'Fence sits farther out from the house, leaving a wider verge');
-assert.ok(!collision(16.4,-12.65,.055),'Rotated bathing gate is clear');
+assert.ok(collision(4.5,-8.3,0),'Heavy roadside piers block walking through them');
+for(let x=.6;x<=14.2;x+=.2)assert.ok(collision(x,-8.3,0),'Fence is continuous from the tank corner to the gate');
+assert.ok(!collision(2,-7.6,0),'A verge stays walkable between the lane and the fence');
+assert.ok(!collision(16.4,-9.65,.055),'Rotated bathing gate is clear');
 assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefined,'No extra roofed gatehouse between the entrance and long arcade');
 const gatePiers=landscape.children.filter(o=>o.name==='Tank gate square stepped stone pier');
 assert.ok(gatePiers.every(o=>Math.abs(o.position.x-16.4)<.01),'Gate piers run perpendicular to the house-facing rail');
-assert.ok(!collision(50.08,-26.55,.055),'East bathing stair opening remains clear');
+assert.ok(!collision(50.08,-22.15,.055),'East bathing stair opening remains clear');
 for(const name of ['Stage upper left photographed figure','Stage upper right photographed figure','Stage lower left photographed figure','Stage lower right photographed figure']){
   const figure=landscape.getObjectByName(name),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),figure.position.clone().sub(new THREE.Vector3(51,4,-5)).normalize());
   assert.equal(ray.intersectObject(landscape,true)[0]?.object.name,name,'Decorative figure visible from the forecourt');
@@ -280,12 +280,12 @@ const galleryRoute=[[39,3],[44.6,3],[44.6,1.35],[46.18,1.35],[46.18,5.72],[44.8,
 checkRoute('Temple entrance to upper gallery',galleryRoute,.20,.19);
 checkRoute('Temple gallery return to entrance',[...galleryRoute].reverse(),4.08,.19);
 checkRoute('Lane to adjacent building stair',[[8,-5],[59.9,-5],[62.5,-5]],.051,0);
-checkRoute('Near-bank pavilion entry',[[28,-43.3],[28,-40]],-.29,-.30);
-checkRoute('House front to the wider lake verge',[[0,-5],[0,-10.1]],.051,0);
-const bathingRoute=[[0,-5],[15.2,-5],[15.2,-12.65],[16.4,-12.65],[19.3,-12.65],[27.5,-12.65],[30.7,-12.65]];
+checkRoute('Near-bank pavilion entry',[[34,-37.3],[34,-34]],-.29,-.30);
+checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
+const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
 checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-.55);
 checkRoute('Temple-side bathing gate return',[...bathingRoute].reverse(),.065,-.55);
-assert.equal(supportY(23,-12.65,-.53),-.53,'The path between stairs stays down at the lower bank level');
+assert.equal(supportY(23,-9.65,-.53),-.53,'The path between stairs stays down at the lower bank level');
 checkRoute('Road away from the house',[[-7,-5],[-24,-5.3],[-35,-5.8],[-43,-7.1]],.051,0);
 checkRoute('Downhill return to the house',[[-43,-7.1],[-35,-5.8],[-24,-5.3],[-7,-5]],1.71,0);
 checkRoute('Photo-correct front stair',[[-13.3,.95],[-7.93,.95],[-2.65,.95]]);
@@ -507,11 +507,11 @@ assert.ok(pavilionMiddle.x>0&&pavilionMiddle.x<1,'Pavilion lies right in the mid
 assert.ok(pavilionRight.x<0&&pavilionRight.x>-1,'Pavilion moves left in the far-right view');
 const shopUpper=new THREE.Vector3(62,3,-25).project(upperCameras[2]),stageUpper=new THREE.Vector3(60,5,-5).project(upperCameras[2]);
 assert.ok(shopUpper.x>pavilionRight.x&&stageUpper.x>shopUpper.x,'Final view orders pavilion, shop, stage');
-checkRoute('Opposite-bank path crosses stair landing',[[11.7,-45.4],[14.8,-45.4]],1.08,1.07);
+checkRoute('Opposite-bank path crosses stair landing',[[11.7,-39.4],[14.8,-39.4]],1.08,1.07);
 // 14.58.26: two flights along the retaining face meet at a central landing.
-checkRoute('Opposite-bank left flight descent',[[9.35,-45.4],[9.35,-43.2675],[13.25,-43.2675],[13.25,-42.06]],1.08,-.54);
-checkRoute('Opposite-bank right flight descent',[[17.25,-45.4],[17.25,-43.2675],[13.25,-43.2675],[13.25,-42.06]],1.08,-.54);
-checkRoute('Opposite-bank flight ascent',[[13.25,-42.06],[13.25,-43.2675],[9.35,-43.2675],[9.35,-45.4]],-.53,-.54);
+checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.08,-.54);
+checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.08,-.54);
+checkRoute('Opposite-bank flight ascent',[[13.25,-36.06],[13.25,-37.2675],[9.35,-37.2675],[9.35,-39.4]],-.53,-.54);
 const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sidePlatformHeight:.602,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));

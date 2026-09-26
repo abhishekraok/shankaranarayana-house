@@ -7,7 +7,9 @@ const STORAGE='shankaranarayana.photo-poses.v1',POSITION='shankaranarayana.align
 // Open directly with ?align (resume) or ?align=14.59.54 (first filename match).
 // Discard hides a useless photo from the queue (DIR/align-discarded.json); the
 // file itself is never deleted, and Restore brings it back.
-export function installPhotoAlignment({camera,photos,enter,release,resize,setAligning}){
+export function installPhotoAlignment({camera,photos,enter,release,resize,setAligning,groundY}){
+ // Eye height of the photographer (1.8 m tall), used by the H key and the readout.
+ const EYE=1.68;
  const $=id=>document.getElementById(id);
  let items=[],index=0,active=false,saved=new Map(),discarded=new Set(),ghost=false,diskSync=false;
  const stage=document.createElement('div');stage.id='align-stage';stage.hidden=true;
@@ -16,11 +18,11 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  const panel=document.createElement('section');panel.id='photo-alignment';panel.hidden=true;panel.setAttribute('aria-label','Align photographs');
  panel.innerHTML=`<div class="align-row"><strong id="align-title"></strong><span id="align-reason"></span><span id="align-count"></span><select id="align-jump" aria-label="Go to photo" title="Go to any photo, in queue order"></select></div>
  <div class="align-row"><button id="align-prev" title="Previous photo (P)">‹ Prev</button><button id="align-skip" title="Next photo without saving (N)">Skip ›</button><button id="align-save" class="primary-action" title="Save pose and go to the next photo (Space)">Save &amp; next <kbd>Space</kbd></button><button id="align-discard" title="Useless photo: hide it from the queue (Delete). The file is kept.">Discard <kbd>Del</kbd></button>
- <label class="align-fov">FOV <output id="align-fov-value"></output><input id="align-fov" type="range" min="20" max="110" step=".1"></label>
+ <span id="align-height" title="Camera height above the ground below it (H snaps to 1.68 m standing eye height)"></span><label class="align-fov">FOV <output id="align-fov-value"></output><input id="align-fov" type="range" min="20" max="110" step=".1"></label>
  <button id="align-ghost" title="Overlay the photo on the 3D view (G)">Ghost</button><button id="align-start" title="Back to this photo's starting camera (R)">Reset</button>
  <input id="align-notes" maxlength="1000" placeholder="Notes: where were you standing? what differs?">
  <button id="align-export">Export JSON</button><label class="align-file">Import<input id="align-import" type="file" accept="application/json,.json"></label><button id="align-close" aria-label="Close photo alignment">Close</button></div>
- <p class="align-help"><b>Drag</b> look · <b>WASD</b> move (passes through walls) · <b>Q/E</b> down/up · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <b>Del</b> discard · <span id="align-status" role="status"></span></p>`;
+ <p class="align-help"><b>Drag</b> look · <b>WASD</b> move (passes through walls) · <b>Q/E</b> down/up · <b>H</b> standing eye height · <b>Shift</b> faster, <b>Alt</b> finer · <b>Wheel</b> forward · <b>Z/X</b> zoom · <b>G</b> ghost · <b>Space</b> save &amp; next · <b>Del</b> discard · <b>Gamepad</b> sticks move/look, A save, B skip, X ghost, Y eye height, LB back, D-pad up/down height, LT fine, RT fast · <span id="align-status" role="status"></span></p>`;
  document.body.append(panel);
  const button=document.createElement('button');button.id='align-photo';button.textContent='Align photos';$('photos').append(button);
  const photo=$('align-photo-view'),overlay=$('alignment-overlay');
@@ -58,8 +60,13 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   const world=$('world');Object.assign(world.style,{left:x2+'px',top:y2+'px',width:w+'px',height:h+'px',right:'auto',bottom:'auto'});
   resize(w,h);
  }
+ function snapEye(){if(!groundY)return;camera.position.y=groundY(camera.position.x,camera.position.z,camera.position.y-1.2)+EYE;showHeight();}
+ function showHeight(){if(!groundY)return;const h=camera.position.y-groundY(camera.position.x,camera.position.z,camera.position.y-1.2);const el=$('align-height');el.textContent=`Eye ${h.toFixed(2)} m`;el.classList.toggle('align-height-off',Math.abs(h-EYE)>.25);}
+ setInterval(()=>{if(active)showHeight();},250);
+ // 2011 photos (and the bundled copies of them) share one fixed 3.43 mm lens.
+ const FIXED_FOV=48,fixedLens=it=>it&&(/^2011-/.test(it.filename)||it.id.startsWith('asset:'));
  function lens(){const f=THREE.MathUtils.clamp(camera.fov,20,110);camera.fov=f;camera.updateProjectionMatrix();$('align-fov').value=f;$('align-fov-value').value=f.toFixed(1)+'°';}
- function toStart(){const s=items[index].start;camera.position.set(s.p[0],s.p[1]+1.62,s.p[2]);camera.lookAt(new THREE.Vector3(...s.target));camera.fov=s.fov||48;enter();lens();}
+ function toStart(){const s=items[index].start;camera.position.set(s.p[0],s.p[1]+1.62,s.p[2]);camera.lookAt(new THREE.Vector3(...s.target));camera.fov=fixedLens(items[index])?FIXED_FOV:(s.fov||FIXED_FOV);enter();lens();}
  const mark=it=>discarded.has(it.id)?'✕':saved.has(it.id)?'✓':'·';
  function refreshJump(){
   const jump=$('align-jump');
@@ -69,7 +76,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  }
  function refreshCounts(){
   const item=items[index],done=items.filter(it=>saved.has(it.id)&&!discarded.has(it.id)).length,gone=items.filter(it=>discarded.has(it.id)).length;
-  $('align-count').textContent=`${index+1} / ${items.length} · ${done} saved`+(gone?` · ${gone} discarded`:'');
+  const r=routeAt();$('align-count').textContent=(r>=0?`List ${r+1} / ${route.length} · `:'')+`${index+1} / ${items.length} · ${done} saved`+(gone?` · ${gone} discarded`:'');
   const isGone=discarded.has(item.id);$('align-discard').innerHTML=isGone?'Restore':'Discard <kbd>Del</kbd>';
   $('align-discard').title=isGone?'Put this photo back in the queue':'Useless photo: hide it from the queue (Delete). The file is kept.';
   $('align-title').classList.toggle('discarded',isGone);refreshJump();
@@ -82,12 +89,14 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   refreshCounts();
   $('align-notes').value=record?.notes||'';$('align-save').disabled=true;
   photo.src=overlay.src=item.url;
-  if(record){camera.position.fromArray(record.camera.position);camera.quaternion.fromArray(record.camera.quaternion).normalize();camera.fov=record.camera.verticalFov;enter();lens();status('Saved pose restored.');}
+  if(record){camera.position.fromArray(record.camera.position);camera.quaternion.fromArray(record.camera.quaternion).normalize();camera.fov=fixedLens(item)?FIXED_FOV:record.camera.verticalFov;enter();lens();status('Saved pose restored'+(fixedLens(item)&&Math.abs(record.camera.verticalFov-FIXED_FOV)>.5?` (its saved ${record.camera.verticalFov.toFixed(1)}° FOV reset to ${FIXED_FOV}°).`:'.'));}
   else{toStart();status('Starting camera is a rough guess for this area.');}
   if(discarded.has(item.id))status('This photo is discarded. Press Restore to put it back in the queue.');
  }
  // Prev/Skip step through the live queue, passing over discarded photos.
- function step(dir){if(items.every(it=>discarded.has(it.id))){show(index+dir);return;}let i=index;do{i=(i+dir+items.length)%items.length;}while(discarded.has(items[i].id));show(i);}
+ let route=null;
+ const routeAt=()=>route?route.indexOf(index):-1;
+ function step(dir){if(route){const r=routeAt();show(route[((r<0?(dir>0?-1:0):r)+dir+route.length)%route.length]);return;}if(items.every(it=>discarded.has(it.id))){show(index+dir);return;}let i=index;do{i=(i+dir+items.length)%items.length;}while(discarded.has(items[i].id));show(i);}
  photo.onload=()=>{$('align-save').disabled=false;layout();};
  photo.onerror=()=>status('This photo could not be loaded. Press N to skip it.');
  function save(){
@@ -96,7 +105,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   saved.set(item.id,{id:item.id,filename:item.filename,sha256:null,notes:$('align-notes').value,camera:{position:p.toArray(),quaternion:q.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),verticalFov:camera.fov,aspect:camera.aspect},image:{width:photo.naturalWidth,height:photo.naturalHeight,fit:'exact'},viewport:{width:innerWidth,height:innerHeight},savedAt:new Date().toISOString()});
   if(!persist())status('Browser storage is unavailable; export now to keep poses.');return true;
  }
- function next(){const start=index;for(let k=1;k<=items.length;k++){const i=(start+k)%items.length;if(!saved.has(items[i].id)&&!discarded.has(items[i].id)){show(i);return;}}step(1);}
+ function next(){if(route){const r=routeAt();if(r>=route.length-1){status('That was the last photo in this list. Thank you!');refreshCounts();return;}show(route[r+1]);return;}const start=index;for(let k=1;k<=items.length;k++){const i=(start+k)%items.length;if(!saved.has(items[i].id)&&!discarded.has(items[i].id)){show(i);return;}}step(1);}
  function saveNext(){if(discarded.has(items[index].id)){status('Restore this photo before saving a pose for it.');return;}if(save()){const name=items[index].filename;next();status(`Saved ${name}.`);}}
  function toggleDiscard(){const item=items[index];
   if(discarded.has(item.id)){discarded.delete(item.id);persistDiscarded();refreshCounts();status(`Restored ${item.filename} to the queue.`);return;}
@@ -107,7 +116,10 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   document.body.classList.add('aligning-photo');stage.hidden=false;panel.hidden=false;
   if(!items.length){items=await loadQueue();if(diskSync&&saved.size)persist();}
   let last=null;try{last=localStorage.getItem(POSITION);}catch{}
-  const wanted=find?items.findIndex(it=>it.filename.toLowerCase().includes(find.toLowerCase())):-1;
+  const match=f=>items.findIndex(it=>it.filename.toLowerCase().includes(f.toLowerCase()));
+  const parts=find.split(',').map(f=>f.trim()).filter(Boolean);
+  route=parts.length>1?parts.map(match).filter(i=>i>=0):null;if(route&&!route.length)route=null;
+  const wanted=route?route[0]:find?match(find):-1;
   const at=wanted>=0?wanted:items.findIndex(it=>it.id===last);
   // With no remembered position, start at the first photo still needing work.
   const first=items.findIndex(it=>!saved.has(it.id)&&!discarded.has(it.id));
@@ -134,6 +146,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   else if(e.code==='Delete'){e.preventDefault();if(!e.repeat)toggleDiscard();}
   else if(e.code==='KeyG'){e.preventDefault();setGhost(!ghost);}
   else if(e.code==='KeyR'){e.preventDefault();toStart();}
+  else if(e.code==='KeyH'){e.preventDefault();snapEye();}
   else if(e.code==='KeyQ'||e.code==='KeyE'){e.preventDefault();camera.position.y+=(e.code==='KeyE'?1:-1)*.05*fine;}
   else if(e.code==='KeyZ'||e.code==='KeyX'){e.preventDefault();camera.fov+=(e.code==='KeyZ'?-1:1)*.5*fine;lens();}
   else if(e.altKey&&['KeyW','KeyA','KeyS','KeyD'].includes(e.code)){e.preventDefault();e.stopPropagation();
@@ -141,5 +154,6 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  },true);
  $('align-export').onclick=()=>{const data=exportData();const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='shankaranarayana-photo-poses.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);status(`Exported ${saved.size} saved pose(s).`);};
  $('align-import').onchange=async e=>{try{const file=e.target.files[0];if(!file)return;if(file.size>2*1024*1024)throw Error('Alignment file is too large.');const data=JSON.parse(await file.text());if(data.schema!=='shankaranarayana-photo-poses'||data.version!==1||!Array.isArray(data.poses)||data.poses.length>1000||!data.poses.every(valid))throw Error('This is not a valid photo-alignment export.');for(const r of data.poses)saved.set(r.id,{...r,notes:String(r.notes||'').slice(0,1000)});persist();show(index);status(`Imported ${data.poses.length} poses.`);}catch(err){status(err.message);}finally{e.target.value='';}};
- return {get active(){return active;},open,close,layout,get saved(){return saved;},get items(){return items;},get discarded(){return discarded;}};
+ const commands={saveNext,skip:()=>step(1),prev:()=>step(-1),ghost:()=>setGhost(!ghost),eye:snapEye};
+ return {get active(){return active;},command:name=>{if(active)commands[name]?.();},open,close,layout,get saved(){return saved;},get items(){return items;},get discarded(){return discarded;}};
 }

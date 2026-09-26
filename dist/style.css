@@ -54,3 +54,6 @@ body.aligning-photo #world{z-index:1}
 #photo-alignment .align-help{margin:0;font-size:11px;color:#c3cbb4}
 #align-status{color:#e3cb96}
 body.aligning-photo .toolbar,body.aligning-photo #controls-toggle,body.aligning-photo .location-card,body.aligning-photo #touch-controls,body.aligning-photo .topbar,body.aligning-photo #crosshair{display:none!important}
+
+#align-height{font-variant-numeric:tabular-nums;padding:0 .4em}
+#align-height.align-height-off{color:#e8a13a;font-weight:600}
