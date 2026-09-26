@@ -918,8 +918,10 @@ export function buildTemple(K) {
   // the round veranda columns. Its interior is open, with square blue piers.
   const hallBlue=mat('#98bbc5'),hallFloor=oxideFloor.clone();hallFloor.roughness=.46;
   floor('Covered hall continuous oxide floor',24.35,11.3,8.15,9.8,.60,hallFloor);
-  box('Covered hall rear end wall',24.25,2.03,16.10,8.0,2.86,.20,hallBlue,true);
-  box('Covered hall rear red dado',24.25,.88,15.985,8.0,.56,.025,red);
+  // 15.11.08 is taken from the raised passage just inside this end, so the
+  // wall closes only the hall itself; the passage continues into the circuit.
+  box('Covered hall rear end wall',22.2,2.03,16.10,3.9,2.86,.20,hallBlue,true);
+  box('Covered hall rear red dado',22.2,.88,15.985,3.9,.56,.025,red);
   // Blue-framed daylight windows in the lane-side wall, with solid piers between.
   for(const [z,d] of [[6.85,.9],[9.35,1.1],[12.2,1.8],[15.35,1.5]]){
     box('Covered hall lane-side wall pier',20.30,2.03,z,.20,2.86,d,hallBlue,true);
