@@ -249,7 +249,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const c=document.createElement('canvas');c.width=c.height=256;const ctx=c.getContext('2d');ctx.fillStyle=base;ctx.fillRect(0,0,256,256);
     let n=271;const noise=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     for(let i=0;i<2200;i++){
-      const x=noise()*256,y=noise()*256;ctx.fillStyle=whitewash?`rgba(41,49,39,${.03+noise()*.20})`:`rgba(160,163,137,${.02+noise()*.21})`;
+      const x=noise()*256,y=noise()*256;ctx.fillStyle=whitewash?`rgba(41,49,39,${.02+noise()*.10})`:`rgba(160,163,137,${.02+noise()*.21})`;
       ctx.fillRect(x,y,1+noise()*13,2+noise()*19);
     }
     for(let i=0;i<160;i++){ctx.fillStyle=`rgba(46,64,31,${.08+noise()*.19})`;ctx.fillRect(noise()*256,165+noise()*91,1+noise()*9,2+noise()*28);}
