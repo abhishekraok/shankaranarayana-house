@@ -46,7 +46,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.selectOption('#destination','house');await page.waitForTimeout(200);await page.screenshot({path:'checks/house-lower-attic.png'});
  await page.evaluate(()=>houseWalk.teleport({p:[11.0,.051,-6.9],target:[5.8,.95,-2.35],fov:43}));await page.waitForTimeout(200);await page.screenshot({path:'checks/ritz-rear.png'});
  await page.evaluate(()=>houseWalk.teleport(houseWalk.photos.laneleft));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-front.png'});
- await page.evaluate(()=>houseWalk.teleport({p:[-1.5,.055,-36],target:[28,1.2,-11.7],fov:62}));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-across.png'});
+ await page.evaluate(()=>houseWalk.teleport({p:[-7,.055,-36],target:[28,1.2,-11.7],fov:62}));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-across.png'});
  await page.selectOption('#destination','courtyard');await page.waitForTimeout(200);await page.screenshot({path:'checks/courtyard-final.png'});
  await page.setViewportSize({width:390,height:844});
  await page.waitForFunction(()=>document.getElementById('explore-controls').hidden);

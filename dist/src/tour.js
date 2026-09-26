@@ -80,9 +80,9 @@ export function createPhotoTour(photos, supportY = null) {
     photo('lakeleft'),photo('lakemiddle'),photo('lakehouse'),
     at([8.6,2.7,-39.4],[0,3,1],'The house across the water'),
     at([3.2,1.672,-39.4],[0,3,1],'Down the bank'),
-    at([-1.5,1.671,-39.4],[8,2,-23],'Around the western bank'),
+    at([-7,1.671,-39.4],[8,2,-23],'Around the western bank'),
     photo('shoplake'),
-    at([-1.5,1.671,-8],[0,3,1],'Back towards the house'),
+    at([-7,1.671,-8],[0,3,1],'Back towards the house'),
     at([-7,1.671,-7.8],[0,3,1],'Returning to the house'),
   ];
   const qFor=point=>{const c=new THREE.PerspectiveCamera();c.position.set(...point.p);c.lookAt(new THREE.Vector3(...point.look));return c.quaternion.clone();};

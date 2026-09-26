@@ -170,8 +170,8 @@ for(const [i,p] of fenceLandmarks.entries()){
   const expected=[['Shop '],['Adjacent building','Stage '],['Temple road']][i];
   assert.ok(expected.some(n=>hit?.object.name.startsWith(n)),'Lake-fence view landmark visible: '+i+', got '+hit?.object.name);
 }
-assert.ok(collision(4.5,-8.3,0),'Heavy roadside piers block walking through them');
-for(let x=.6;x<=14.2;x+=.2)assert.ok(collision(x,-8.3,0),'Fence is continuous from the tank corner to the gate');
+assert.ok(collision(-1.49,-8.3,0),'Heavy roadside piers block walking through them');
+for(let x=-4.9;x<=14.2;x+=.2)assert.ok(collision(x,-8.3,0),'Fence is continuous from the tank corner to the gate');
 assert.ok(!collision(2,-7.6,0),'A verge stays walkable between the lane and the fence');
 assert.ok(!collision(16.4,-9.65,.055),'Rotated bathing gate is clear');
 assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefined,'No extra roofed gatehouse between the entrance and long arcade');
@@ -498,11 +498,11 @@ const upperCameras=upperViews.map(v=>{const c=new THREE.PerspectiveCamera(v.fov,
 for(const v of upperViews){assert.deepEqual(v.p,photos.upperahead.p);assert.ok(!collision(v.p[0],v.p[2],v.p[1]));assert.ok(Math.abs(supportY(v.p[0],v.p[2],v.p[1])-v.p[1])<.01);}
 const upperYaw=upperCameras.map(c=>{const d=c.getWorldDirection(new THREE.Vector3());return Math.atan2(d.x,-d.z);});
 assert.ok(upperYaw[0]<upperYaw[1]&&upperYaw[1]<upperYaw[2],'Pan steadily right without moving the photographer');
-for(const [point,prefix] of [[[-9.45,5.15,-51.057],'Opposite bank hall'],[[10,1.92,-52.31],'Opposite bank low house'],[[25,5.3,-59.72],'Opposite bank pink house']]){
+for(const [point,prefix] of [[[-9.45,5.15,-45.057],'Opposite bank hall'],[[10,1.92,-46.31],'Opposite bank low house'],[[25,5.3,-53.72],'Opposite bank pink house']]){
   const ray=new THREE.Raycaster(upperCameras[0].position,new THREE.Vector3(...point).sub(upperCameras[0].position).normalize());
   const hit=ray.intersectObjects([house,landscape,temple],true)[0];assert.ok(hit?.object.name.startsWith(prefix),'Upstairs panorama sees '+prefix+', got '+hit?.object.name);
 }
-const pavilionMiddle=new THREE.Vector3(28,1,-40).project(upperCameras[1]),pavilionRight=new THREE.Vector3(28,1,-40).project(upperCameras[2]);
+const pavilionMiddle=new THREE.Vector3(34,1,-34).project(upperCameras[1]),pavilionRight=new THREE.Vector3(34,1,-34).project(upperCameras[2]);
 assert.ok(pavilionMiddle.x>0&&pavilionMiddle.x<1,'Pavilion lies right in the middle view');
 assert.ok(pavilionRight.x<0&&pavilionRight.x>-1,'Pavilion moves left in the far-right view');
 const shopUpper=new THREE.Vector3(62,3,-25).project(upperCameras[2]),stageUpper=new THREE.Vector3(60,5,-5).project(upperCameras[2]);
