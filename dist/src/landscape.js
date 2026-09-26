@@ -277,18 +277,22 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const [y,h] of [[.15,.20],[.55,.13],[1.10,.16]])blockBatch('Tank dark masonry crossrails',fenceStone,(x1+x2)/2,y,(z1+z2)/2,horizontal?length:.16,h,horizontal?.16:length);
     K.blocker((x1+x2)/2,(z1+z2)/2,horizontal?length+.3:.3,horizontal?.3:length+.3,0,1.59);
   }
-  // 14.58.02 + 15.23.35: the house-facing parapet sits farther out at the
-  // water, continuously across the house. Access is toward the temple (+X).
-  const houseBankZ=-8.3, bathingGateX=16.4, bathingGateZ=-9.65;
-  for(const [a,b] of [[-5.05,14.4]]){
-    for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,houseBankZ,b-a,h,.38,fenceStone);
-    for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,houseBankZ,.19,.69,.29);
-    K.blocker((a+b)/2,houseBankZ,b-a,.39,0,1.13);
+  // 14.58.02 + 15.23.35: across the house the parapet stands at the water's edge with
+  // a grass verge on the lane side. At the bathing gate it jogs about a metre toward
+  // the lane: the short run beside the gate's approach is the passage's lane-side wall,
+  // and the gap between the two lines opens onto the lake.
+  const houseBankZ=-8.3, waterRailZ=-9.35, bathingGateX=16.4, bathingGateZ=-9.65;
+  for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,14.4,houseBankZ]]){
+    for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,.38,fenceStone);
+    for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,z,.19,.69,.29);
+    K.blocker((a+b)/2,z,b-a,.39,0,1.13);
   }
-  for(const x of [-4.95,-1.49,1.97,5.43,8.89,12.35]){
-    box('Tank roadside substantial stone pier',x,.63,houseBankZ,.59,1.26,.59,fenceWhite,true);
+  box('House bank grass verge to the water rail',3.65,-.06,-9.2,17.4,.12,.62,materials.grass);
+  K.surface(3.65,-9.2,17.4,.62,0);
+  for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
+    box('Tank roadside substantial stone pier',x,.63,z,.59,1.26,.59,fenceWhite,true);
     const capGeometry=new THREE.CylinderGeometry(.34,.46,.21,4);capGeometry.rotateY(Math.PI/4);
-    const cap=new THREE.Mesh(capGeometry,fenceStone);cap.name='Tank roadside sloped square pier cap';cap.position.set(x,1.33,houseBankZ);group.add(cap);
+    const cap=new THREE.Mesh(capGeometry,fenceStone);cap.name='Tank roadside sloped square pier cap';cap.position.set(x,1.33,z);group.add(cap);
   }
   // 15.26.49 / 15.26.55: sparse plants emerge through the dark railing
   // and ledge cracks. Independent placement keeps the surrounding grove stable.
@@ -302,8 +306,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   const creviceGreen=new THREE.MeshStandardMaterial({color:'#7a9453',roughness:.94,side:THREE.DoubleSide});
   for(let plant=0;plant<17;plant++){
     const x=-4.5+plant*1.12+Math.sin(plant*3.7)*.23;
-    const base=plant%4===0?-.12:.29+(plant%3)*.14;
-    const z=plant%4===0?-9.29:-8.51;
+    const base=plant%4===0?-.34:.29+(plant%3)*.14;
+    const z=plant%4===0?-9.85:-9.56;
     for(let shoot=0;shoot<3;shoot++){
       const dx=Math.sin(plant*2.1+shoot*2.4)*.23;
       const height=.22+((plant*3+shoot*5)%7)*.035;
@@ -329,8 +333,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
   box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
-  // Long masonry ledges descend lakeward below the unbroken house-side fence.
-  for(const [z,y,d] of [[-9.05,-.12,.75],[-9.55,-.34,.65],[-10.0,-.56,.55]]){
+  // Long masonry ledges descend lakeward below the house-side water rail.
+  for(const [z,y,d] of [[-9.8,-.34,.5],[-10.2,-.56,.3]]){
     box('House bank continuous retaining ledge',4.7,y-.10,z,18.8,.20,d,fenceStone);
     K.surface(4.7,z,18.8,d,y);
   }
@@ -398,7 +402,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
   railRun(50.08,-8.32,50.08,-20.8,'east north');
   railRun(50.08,-23.5,50.08,-37.68,'east south');
-  railRun(-5.08,-8.32,-5.08,-37.68,'west bank');
+  railRun(-5.08,-9.35,-5.08,-37.68,'west bank');
 
   function steps(name, x, z, w, d, axis, low, high, count, mat = materials.basalt) {
     const alongX = axis.endsWith('x'), positive = !axis.startsWith('-');
