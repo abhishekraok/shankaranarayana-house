@@ -17,7 +17,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     oldWhite: new THREE.MeshStandardMaterial({ color: '#e5e2d6', roughness: .95 }),
     roofConcrete: new THREE.MeshStandardMaterial({ color: '#a39986', roughness: 1 }),
     path: new THREE.MeshStandardMaterial({ color: '#958b73', roughness: 1 }),
-    redSoil: new THREE.MeshStandardMaterial({ color: '#a97e57', roughness: 1 }),
+    redSoil: new THREE.MeshStandardMaterial({ color: '#8e604b', roughness: 1 }),
     darkSoil: new THREE.MeshStandardMaterial({ color: '#655c43', roughness: 1 }),
     turf: new THREE.MeshStandardMaterial({ color: '#536f39', roughness: 1 }),
     moss: new THREE.MeshStandardMaterial({ color: '#4a6638', roughness: 1 }),
@@ -142,8 +142,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     [-20.1, -27.5, 2.2, 32.6], [56.1, -27.5, 2.2, 32.6],
     [-20.1, -8.1, 2.2, 2.1], [56.1, -8.1, 2.2, 2.1],
   ];
+  // 14.28.19 / 14.58.02: the house-side strip is worn grass over laterite, not paving.
+  const verge=materials.turf.clone();verge.color.set('#ffffff');
+  if(typeof document!=='undefined'){
+    const c=document.createElement('canvas');c.width=512;c.height=64;const x=c.getContext('2d');
+    x.fillStyle='#5d7a3c';x.fillRect(0,0,512,64);
+    for(let i=0;i<900;i++){const g=random();x.fillStyle=g<.18?`rgba(150,88,58,${.35+random()*.5})`:g<.6?`rgba(112,138,68,${.3+random()*.5})`:`rgba(58,84,40,${.3+random()*.5})`;x.fillRect(random()*512,random()*64,2+random()*(g<.18?26:9),2+random()*(g<.18?9:5));}
+    verge.map=new THREE.CanvasTexture(c);verge.map.colorSpace=THREE.SRGBColorSpace;verge.map.wrapS=verge.map.wrapT=THREE.RepeatWrapping;verge.map.repeat.set(12,1);
+  }
   for (const [i, p] of paths.entries()) {
-    box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], materials.path);
+    box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], i===0?verge:materials.path);
     K.surface(p[0], p[1], p[2], p[3], .052);
   }
   // A little broken paving, inset into rather than blocking the walking route.
@@ -1126,9 +1134,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.blocker(5.8,-2.35,3.85,1.88,.03,1.78);
 
   // Purple roadside plants from the front-of-house photographs.
-  for(let i=0;i<96;i++){
-    const x=5.5+((i*61)%97)/97*4.15,z=-10.8+((i*37)%89)/89*1.2,h=.36+(i%13)*.065;
-    if(i%5===0)shrub(x,z,.36+(i%7)*.06);
+  // Thin stems along the parapet, clear of the grass verge in 14.58.02.
+  for(let i=0;i<60;i++){
+    const x=-5.2+((i*61)%97)/97*3.4,z=-11.05+((i*37)%89)/89*.45,h=.36+(i%13)*.065;
     segment('Front photo tall flowering stem',materials.grass,[x,0,z],[x+.07,h,z],.008);
     for(let j=0;j<3;j++)instance('Front photo small purple flowers',sphere,flowerMat,[x+.07+j*.024,h-j*.13,z],[.034,.045,.035]);
   }
