@@ -225,7 +225,21 @@ function translateFlight(delta){const n=Math.max(1,Math.ceil(delta.length()/.09)
 const hit=!aligning&&K.colliders.some(c=>p.x+.18>c.minX&&p.x-.18<c.maxX&&p.z+.18>c.minZ&&p.z-.18<c.maxZ&&p.y+.18>c.bottom&&p.y-.18<c.top);if(hit)break;camera.position.copy(p);}}
 function moveWheel(dt){if(Math.abs(wheelTravel)<.0001)return;const distance=wheelTravel*(1-Math.exp(-12*dt));wheelTravel-=distance;const direction=camera.getWorldDirection(new THREE.Vector3());if(mode==='walk')translateWalk(-Math.sin(yaw)*distance,-Math.cos(yaw)*distance);else if(mode==='fly')translateFlight(direction.multiplyScalar(distance));else if(mode==='orbit'){const old=camera.position.clone();translateFlight(direction.multiplyScalar(distance));orbit.target.add(camera.position.clone().sub(old));}}
 
-function move(dt){moveWheel(dt);if(!['walk','fly'].includes(mode))return;let forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS')),side=Number(keys.has('KeyD'))-Number(keys.has('KeyA'));
+// Xbox-style gamepad while aligning photos: left stick walks level (eye height stays
+// fixed), right stick looks, D-pad up/down adjusts height, LT finer, RT faster.
+let padPrevious=[];
+function alignPad(dt){
+ const pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected);if(!pad)return;
+ const dz=v=>Math.abs(v)<.15?0:(v-Math.sign(v)*.15)/.85,[lx,ly,rx,ry]=[0,1,2,3].map(i=>dz(pad.axes[i]||0));
+ const held=i=>!!pad.buttons[i]?.pressed,value=i=>pad.buttons[i]?.value||0,rate=(1+value(7)*3)*(1-value(6)*.8);
+ if(lx||ly){const v=2.2*rate*dt;camera.position.x+=(Math.sin(yaw)*ly+Math.cos(yaw)*lx)*v;camera.position.z+=(Math.cos(yaw)*ly-Math.sin(yaw)*lx)*v;}
+ if(rx||ry){const r=1.3*(1-value(6)*.8)*dt;yaw-=rx*r;pitch=THREE.MathUtils.clamp(pitch-ry*r,-1.35,1.35);syncLook();}
+ if(held(12))camera.position.y+=.5*rate*dt;if(held(13))camera.position.y-=.5*rate*dt;
+ const press=i=>held(i)&&!padPrevious[i];
+ for(const [i,name] of [[0,'saveNext'],[1,'skip'],[2,'ghost'],[3,'eye'],[4,'prev'],[5,'skip']])if(press(i))photoAlignment.command(name);
+ padPrevious=pad.buttons.map(b=>b.pressed);
+}
+function move(dt){if(aligning)alignPad(dt);moveWheel(dt);if(!['walk','fly'].includes(mode))return;let forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS')),side=Number(keys.has('KeyD'))-Number(keys.has('KeyA'));
  if(forward||side){const n=Math.hypot(forward,side);forward/=n;side/=n;const v=speed*(keys.has('ShiftLeft')||keys.has('ShiftRight')?1.7:1)*dt;const dx=(-Math.sin(yaw)*forward+Math.cos(yaw)*side)*v,dz=(-Math.cos(yaw)*forward-Math.sin(yaw)*side)*v;
   if(mode==='walk')translateWalk(dx,dz);else{const delta=camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(forward*v);delta.add(new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion).multiplyScalar(side*v));translateFlight(delta);}
  }
