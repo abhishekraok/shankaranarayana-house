@@ -72,7 +72,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       const prev=roadSamples[Math.max(i-1,0)],next=roadSamples[Math.min(i+1,roadSamples.length-1)];
       const dir=next.clone().sub(prev).normalize(),normal=new THREE.Vector3(-dir.z,0,dir.x);
       const width=roadHalfWidth(p)+extra+(extra?Math.sin(i*2.7)*.15:Math.sin(i*1.9)*.035);
-      for(const side of [-1,1]){const v=p.clone().addScaledVector(normal,width*side);positions.push(v.x,p.y+height,v.z);uv.push(i*.22,(side+1)/2);}
+      for(const side of [-1,1]){const v=p.clone().addScaledVector(normal,width*side);positions.push(v.x,p.y+height,v.z);uv.push(i*.11,(side+1)/2);}
       if(i){const j=(i-1)*2;indices.push(j,j+1,j+2,j+1,j+3,j+2);}
       if(!extra&&i){
         const a=roadSamples[i-1];
@@ -84,8 +84,28 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   const laneCanvas=document.createElement('canvas');laneCanvas.width=laneCanvas.height=256;const laneContext=laneCanvas.getContext('2d');laneContext.fillStyle='#716c6c';laneContext.fillRect(0,0,256,256);
   for(let i=0;i<6000;i++){const shade=70+Math.floor(random()*80);laneContext.fillStyle=`rgba(${shade},${shade},${shade},.3)`;laneContext.fillRect(random()*256,random()*256,1,1);}
+  // 14.58.35 / 15.00.01: patched, sun-faded asphalt with crumbling edges that
+  // expose the red laterite. A private PRNG keeps the grove sequence stable.
+  {let n=40417;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};const c=laneContext;
+   // Soft blotches (radial gradients; canvas filters are unavailable on iOS).
+   const blob=(x,y,rx,ry,rgb,a)=>{for(const dx of [-256,0,256]){c.save();c.translate(x+dx,y);c.scale(rx,ry);const g=c.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);c.fillStyle=g;c.beginPath();c.arc(0,0,1,0,7);c.fill();c.restore();}};
+   for(let i=0;i<40;i++)blob(r()*256,30+r()*196,14+r()*50,6+r()*18,'128,125,120',.25+r()*.25);
+   for(let i=0;i<22;i++)blob(r()*256,30+r()*196,8+r()*28,5+r()*12,'50,50,52',.3+r()*.3);
+   for(const y of [78,178]){const gr=c.createLinearGradient(0,y-24,0,y+24);gr.addColorStop(0,'rgba(150,146,140,0)');gr.addColorStop(.5,'rgba(150,146,140,.22)');gr.addColorStop(1,'rgba(150,146,140,0)');c.fillStyle=gr;c.fillRect(0,y-24,256,48);}
+   c.strokeStyle='rgba(40,40,42,.55)';c.lineWidth=1;for(let i=0;i<14;i++){let x=r()*256,y=30+r()*196;c.beginPath();c.moveTo(x,y);for(let k=0;k<6;k++){x+=r()*14-4;y+=r()*12-6;c.lineTo(x,y);}c.stroke();}
+   for(const top of [true,false]){c.fillStyle='#8f5f48';c.beginPath();c.moveTo(0,top?0:256);for(let x=0;x<=256;x+=8){const d=3+r()*9+(r()<.15?r()*16:0);c.lineTo(x,top?d:256-d);}c.lineTo(256,top?0:256);c.fill();
+    for(let i=0;i<220;i++){c.fillStyle=r()<.5?'rgba(185,132,106,.55)':'rgba(90,60,46,.5)';c.fillRect(r()*256,top?r()*10:246+r()*10,1+r()*2,1+r()*2);}}
+  }
   const laneMap=new THREE.CanvasTexture(laneCanvas);laneMap.colorSpace=THREE.SRGBColorSpace;laneMap.wrapS=laneMap.wrapT=THREE.RepeatWrapping;materials.lane.map=laneMap;materials.lane.color.set('#ffffff');
-  roadRibbon('Irregular laterite shoulders of the front lane',.70,.029,materials.redSoil);
+  // Worn laterite shoulders, with grass creeping in from the outer edge.
+  const shoulder=materials.redSoil.clone();
+  {const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');let n=51137;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   x.fillStyle='#96604a';x.fillRect(0,0,256,128);
+   for(let i=0;i<2600;i++){const l=r()>.5;x.fillStyle=l?'rgba(190,138,108,.5)':'rgba(96,62,46,.45)';x.fillRect(r()*256,r()*128,1+r()*2.5,1+r()*2.5);}
+   for(let i=0;i<40;i++){x.fillStyle=`rgba(170,120,90,${.15+r()*.2})`;x.fillRect(r()*256,10+r()*108,10+r()*40,3+r()*10);}
+   for(const top of [true,false])for(let i=0;i<300;i++){const d=Math.pow(r(),2.2)*16;x.fillStyle=r()<.6?`rgba(92,122,56,${.5+r()*.4})`:`rgba(62,88,40,${.5+r()*.4})`;x.fillRect(r()*256,top?d:127-d,1+r()*3,1+r()*4);}
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.anisotropy=4;shoulder.map=m;shoulder.color.set('#ffffff');}
+  roadRibbon('Irregular laterite shoulders of the front lane',.70,.029,shoulder);
   roadRibbon('Narrow asphalt lane curving away from the temple',0,.051,materials.lane);
   // Sloping earth joins the raised asphalt shoulder back to the existing ground.
   for(const side of [-1,1]){
@@ -157,7 +177,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // A little broken paving, inset into rather than blocking the walking route.
   for (let i = 0; i < 68; i++) {
     const north = i % 2 === 0, x = range(-20.3, 56.3), z = north ? -10.1 : -44.9;
-    blockBatch('path paving variation', materials.mortar, x, .057, z + range(-.72, .72), range(.38, 1.0), .012, range(.32, .63), new THREE.Color().setScalar(range(.77, 1.15)));
+    if(!north)blockBatch('path paving variation', materials.mortar, x, .057, z + range(-.72, .72), range(.38, 1.0), .012, range(.32, .63), new THREE.Color().setScalar(range(.77, 1.15)));
   }
 
   // Tank retaining courses. An unobstructed inset ledge sits just above water.

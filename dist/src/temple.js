@@ -70,9 +70,9 @@ export function buildTemple(K) {
   white.map=canvasMap(512,(c,s)=>{
     c.fillStyle='#deded4';c.fillRect(0,0,s,s);
     for(let i=0;i<40;i++){const x=mildew()*s,y=mildew()*s,r=30+mildew()*100;const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(96,104,84,${.06+mildew()*.10})`);g.addColorStop(1,'rgba(96,104,84,0)');c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);}
-    for(let i=0;i<120;i++){const x=mildew()*s,y=mildew()*s,h=20+mildew()*110;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(52,60,46,${.06+mildew()*.14})`);g.addColorStop(1,'rgba(52,60,46,0)');c.fillStyle=g;c.fillRect(x,y,1.5+mildew()*5,h);}
-    for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.03+mildew()*.06})`;c.fillRect(mildew()*s,mildew()*s,1+mildew()*2.5,1+mildew()*2.5);}
-  },.35,.35);white.color.set('#ffffff');
+    for(let i=0;i<120;i++){const x=mildew()*s,y=mildew()*s,h=20+mildew()*110;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(52,60,46,${.03+mildew()*.07})`);g.addColorStop(1,'rgba(52,60,46,0)');c.fillStyle=g;const dw=4+mildew()*12;c.beginPath();c.moveTo(x,y);c.lineTo(x+dw,y);c.lineTo(x+dw*.62,y+h);c.lineTo(x+dw*.38,y+h);c.fill();}
+    for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.015+mildew()*.03})`;c.fillRect(mildew()*s,mildew()*s,2+mildew()*5,2+mildew()*5);}
+  },.35,.35);white.color.set('#ffffff');white.userData.worldAnchored=true;
   blackFloor.map = canvasMap(256, (c,s) => {
     c.fillStyle='#3b4442';c.fillRect(0,0,s,s);
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
@@ -533,11 +533,11 @@ export function buildTemple(K) {
   // joints and mottled weathering, not a regular pale tile grid.
   const flagstones=mat('#ffffff',.9);
   flagstones.map=canvasMap(1024,(c,s)=>{
-    c.fillStyle='#4a4a44';c.fillRect(0,0,s,s);
+    c.fillStyle='#3f3b34';c.fillRect(0,0,s,s);
     let y=0;
     while(y<s){const h=Math.min(s-y,62+rand()*54);let x=-rand()*80;
       while(x<s){const w=62+rand()*82,v=142+rand()*38|0,t=rand()*8-2|0;
-        for(const ox of [0,s])if(x+ox<s+140){c.fillStyle=`rgb(${v+t},${v+t},${v-6})`;c.fillRect(x+ox+2.5,y+2.5,w-5,h-5);}
+        for(const ox of [0,s])if(x+ox<s+140){c.fillStyle=`rgb(${v+t-38},${v+t-46},${v-58})`;c.fillRect(x+ox+1.5,y+1.5,w-3,h-3);}
         for(let k=0;k<5;k++){c.fillStyle=`rgba(${rand()<.3?60:40},${rand()<.3?70:45},40,${.05+rand()*.12})`;c.beginPath();c.ellipse(x+rand()*w,y+rand()*h,4+rand()*20,3+rand()*10,rand()*3,0,Math.PI*2);c.fill();}
         c.fillStyle='rgba(235,232,215,.10)';c.fillRect(x+4,y+4,w-8,2);
         x+=w;}

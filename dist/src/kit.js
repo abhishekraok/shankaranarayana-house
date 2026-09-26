@@ -46,11 +46,13 @@ export function createKit(){
   const K={M,colliders:[],surfaces:[],ramps:[],roofs:[],labels:[]};
   const resolve=m=>typeof m==='string'?M[m]:m;
   function finish(g,geom,mat,name,x=0,y=0,z=0){const mesh=new THREE.Mesh(geom,resolve(mat));mesh.name=name;mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);return mesh;}
-  function worldUV(geom){const p=geom.attributes.position,n=geom.attributes.normal,uv=geom.attributes.uv;if(!uv||!n)return geom;for(let i=0;i<p.count;i++){const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i));if(ny>.5)uv.setXY(i,p.getX(i)*.5,p.getZ(i)*.5);else if(nx>.5)uv.setXY(i,p.getZ(i)*.5,p.getY(i)*.5);else uv.setXY(i,p.getX(i)*.5,p.getY(i)*.5);}return geom;}
+  // Materials flagged userData.worldAnchored (weathering maps) take the box's
+  // position into account, so stains run continuously across adjoining boxes.
+  function worldUV(geom,ox=0,oy=0,oz=0){const p=geom.attributes.position,n=geom.attributes.normal,uv=geom.attributes.uv;if(!uv||!n)return geom;for(let i=0;i<p.count;i++){const nx=Math.abs(n.getX(i)),ny=Math.abs(n.getY(i)),x=p.getX(i)+ox,y=p.getY(i)+oy,z=p.getZ(i)+oz;if(ny>.5)uv.setXY(i,x*.5,z*.5);else if(nx>.5)uv.setXY(i,z*.5,y*.5);else uv.setXY(i,x*.5,y*.5);}return geom;}
   K.blocker=(x,z,w,d,bottom,top)=>K.colliders.push({minX:x-w/2,maxX:x+w/2,minZ:z-d/2,maxZ:z+d/2,bottom,top});
   K.surface=(x,z,w,d,y)=>K.surfaces.push({x,z,w,d,y});
   K.ramp=(x,z,w,d,axis,lowY,highY)=>K.ramps.push({x,z,w,d,axis,lowY,highY});
-  K.box=(g,name,x,y,z,w,h,d,mat,solid=false)=>{const m=finish(g,worldUV(new THREE.BoxGeometry(w,h,d)),mat,name,x,y,z);if(solid)K.blocker(x,z,w,d,y-h/2,y+h/2);return m;};
+  K.box=(g,name,x,y,z,w,h,d,mat,solid=false)=>{const anchored=resolve(mat)?.userData?.worldAnchored;const m=finish(g,anchored?worldUV(new THREE.BoxGeometry(w,h,d),x,y,z):worldUV(new THREE.BoxGeometry(w,h,d)),mat,name,x,y,z);if(solid)K.blocker(x,z,w,d,y-h/2,y+h/2);return m;};
   K.cylinder=(g,name,x,y,z,rt,rb,h,mat,segments=12,solid=false)=>{const m=finish(g,new THREE.CylinderGeometry(rt,rb,h,segments),mat,name,x,y,z);if(solid)K.blocker(x,z,Math.max(rt,rb)*2,Math.max(rt,rb)*2,y-h/2,y+h/2);return m;};
   K.beam=(g,name,a,b,w,mat,d=w)=>{const av=new THREE.Vector3(...a),bv=new THREE.Vector3(...b),delta=bv.clone().sub(av);const m=finish(g,worldUV(new THREE.BoxGeometry(w,delta.length(),d)),mat,name);m.position.copy(av.add(bv).multiplyScalar(.5));m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());return m;};
   K.column=(g,name,x,z,b,h,r=.16,mat='wood')=>{
