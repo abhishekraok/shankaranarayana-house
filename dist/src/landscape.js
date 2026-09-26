@@ -195,8 +195,22 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const [a,b] of [[lake.x-w/2+thickness,12.10],[14.40,lake.x+w/2-thickness]])
       box(`${name} far`,(a+b)/2,top-height/2,lake.z-d/2+thickness/2,b-a,height,thickness,mat);
   }
-  ringCourse(0, .52, -.08, 1.8, 'upper dark stone retaining course', materials.basalt);
-  ringCourse(.50, .45, -.31, 1.55, 'middle worn stone tread', materials.basalt);
+  // 14.57.50 / 14.58.26: the tank masonry is dark brown-grey laterite blotched
+  // with black mould and green moss, brightest along the dry upper edges.
+  const tankWall=materials.basalt.clone();
+  if(typeof document!=='undefined'){
+    const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=77003;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle='#5a554a';x.fillRect(0,0,256,256);
+    const blob=(px,py,rx,ry,rgb,a)=>{for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.save();x.translate(px+dx,py+dy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,7);x.fill();x.restore();}};
+    for(let i=0;i<34;i++)blob(r()*256,r()*256,14+r()*40,10+r()*30,'28,30,24',.35+r()*.35);
+    for(let i=0;i<22;i++)blob(r()*256,r()*256,8+r()*26,6+r()*16,'78,94,48',.3+r()*.35);
+    for(let i=0;i<14;i++)blob(r()*256,r()*256,10+r()*30,6+r()*18,'128,122,106',.25+r()*.3);
+    for(let i=0;i<70;i++){const px=r()*256,py=r()*256,h=16+r()*50;x.fillStyle=`rgba(24,26,20,${.12+r()*.2})`;x.fillRect(px,py,1+r()*3,h);}
+    for(let i=0;i<900;i++){x.fillStyle=r()<.5?'rgba(150,140,120,.18)':'rgba(20,22,18,.22)';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}
+    tankWall.map=new THREE.CanvasTexture(c);tankWall.map.colorSpace=THREE.SRGBColorSpace;tankWall.map.wrapS=tankWall.map.wrapT=THREE.RepeatWrapping;tankWall.map.repeat.set(.55,.55);tankWall.color.set('#ffffff');tankWall.userData.worldAnchored=true;
+  }
+  ringCourse(0, .52, -.08, 1.8, 'upper dark stone retaining course', tankWall);
+  ringCourse(.50, .45, -.31, 1.55, 'middle worn stone tread', tankWall);
   ringCourse(.93, .48, -.54, 1.30, 'low mossy stone tread', materials.wetStone);
   ringCourse(1.39, .36, -.77, 1.02, 'submerged tank course', materials.wetStone);
   for(const [a,b] of [[-17.4,16.4],[29.6,53.4]])K.surface((a+b)/2,-12.73,b-a,.40,-.31);
@@ -336,12 +350,19 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Opposite the mud road, the long low dark wall spans the temple's right wing.
   box('Temple bank dark retaining parapet',23.2,.42,-11.3,10.8,.84,.26,materials.basalt,true);
   for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-11.45,.055,.76,.015,materials.oldWhite);
+  // 14.58.26: whitewashed pilaster strips about 5.6 m apart run down the full
+  // retaining face, and every tier carries a worn white nosing.
   for(const [a,b] of [[-18.65,-12.1],[-9.5,12.0],[14.5,25.4],[30.6,54.65]]){
-    box('Opposite bank solid weathered parapet',(a+b)/2,.71,-43.68,b-a,1.42,.29,fenceStone,true);
+    box('Opposite bank solid weathered parapet',(a+b)/2,.71,-43.68,b-a,1.42,.29,tankWall,true);
     box('Opposite bank worn white horizontal seam',(a+b)/2,.34,-43.515,b-a,.075,.024,fenceWhite);
-    const bays=Math.ceil((b-a)/3.7);
-    for(let j=0;j<=bays;j++)box('Opposite bank narrow white vertical seams',a+(b-a)*j/bays,.75,-43.515,.12,1.41,.027,fenceWhite);
+    box('Opposite bank white coping edge',(a+b)/2,1.40,-43.53,b-a,.05,.04,fenceWhite);
+    const bays=Math.max(1,Math.round((b-a)/5.6));
+    for(let j=0;j<=bays;j++){const x=a+(b-a)*j/bays;
+      box('Opposite bank whitewashed pilaster strip',x,.66,-43.515,.16,1.52,.03,fenceWhite);
+      for(const [top,z] of [[-.08,-42.47],[-.31,-42.04],[-.54,-41.58]])if(x>-17.3&&x<53.3&&!(x>12&&x<14.5))box('Opposite bank tier pilaster strip',x,top-.12,z,.16,.24,.02,fenceWhite);}
   }
+  for(const [a,b] of [[-17.4,12.10],[14.40,53.4]])for(const [top,z] of [[-.08,-42.47],[-.31,-42.04],[-.54,-41.58]])
+    box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
   railRun(54.68,-11.32,54.68,-25.1,'east north');
   railRun(54.68,-28.0,54.68,-43.68,'east south');
   railRun(-18.68,-11.32,-18.68,-43.68,'west bank');
