@@ -1134,6 +1134,13 @@ export function buildLandscape(K, {mobile=false}={}) {
     shrub(p.x,z,range(.4,1.15));
     if(i%3===0)instance('Roadside irregular grass tufts',grassGeometry,materials.grass,[p.x,.02,z],[1,range(.7,1.65),1],new THREE.Quaternion().setFromAxisAngle(up,range(0,6.28)));
   }
+  // 15.28.45 / lane-right: thick weedy undergrowth of leafy sprays lines both
+  // sides of the lane past the house. Private PRNG keeps other planting stable.
+  {let n=70921;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};const weedSun=new THREE.Color('#86a24e');
+   for(let i=0,count=mobile?420:1300;i<count;i++){const t=.02+r()*.615,p=roadCurve.getPoint(t),side=r()<.5?-1:1,off=roadHalfWidth(p)+.75+Math.pow(r(),1.6)*3.6,z=p.z+side*off,h=.25+r()*(off>3.5?1.5:.9),base=roadRise(p.x)*(1-THREE.MathUtils.clamp((off-roadHalfWidth(p)-.65)/4.15,0,1));
+     if(p.x>-14&&z>-2.6)continue;
+     for(let k=0;k<3;k++)instance('Lane weedy leaf undergrowth',spray,sprayMaterial,[p.x+r()*.5-.25,base+h*(.2+k*.35),z+r()*.5-.25],[.7+r()*.7,.6+r()*.6,.7+r()*.7],new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.3,r()-.5)),new THREE.Color(leafPalette[(i+k)%5]).lerp(weedSun,r()*.5).multiplyScalar(1.05+r()*.35));}
+  }
   const flowerMat=new THREE.MeshStandardMaterial({color:'#926d9c',roughness:1});
   for(let i=0;i<190;i++){
     const p=roadCurve.getPoint(range(.20,.62)),side=i%2?1:-1,z=p.z+side*range(2.6,4.0),h=range(.28,.8);

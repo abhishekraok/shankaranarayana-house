@@ -25,7 +25,10 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   }
   const [desktop,mobile]=snapshots;
   assert.equal(desktop.phoneMode,false);assert.equal(mobile.phoneMode,true);
-  const fingerprint=s=>createHash('sha256').update(JSON.stringify(s.fronds.map(({triangles,...f})=>f))).digest('hex');
+  // Phones and desktops batch instances into different spatial cells, so compare
+  // the sorted set of individual instances (matrix + colour), not batch layout.
+  const fingerprint=s=>{const rows=[];for(const f of s.fronds)for(let i=0;i<f.count;i++)rows.push(f.name+':'+f.matrices.slice(i*16,i*16+16).map(v=>v.toFixed(5)).join(',')+':'+(f.colors?f.colors.slice(i*3,i*3+3).map(v=>v.toFixed(5)).join(','):''));
+   return createHash('sha256').update(rows.sort().join('|')).digest('hex');};
   assert.equal(fingerprint(mobile),fingerprint(desktop),'Every palm instance and colour stays fixed');
   assert.deepEqual(mobile.colliders,desktop.colliders,'Vegetation optimisation preserves collision bounds');
   assert.deepEqual(mobile.surfaces,desktop.surfaces,'Walkable surfaces stay fixed');
