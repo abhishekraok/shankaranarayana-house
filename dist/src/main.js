@@ -13,7 +13,7 @@ import {readQuality,storeQuality,createHighQualityPipeline,overcastEnvironment} 
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
 // Overcast September monsoon light, as in every 2011 photograph.
-scene.background=new THREE.Color(0xc4ccc8);scene.fog=new THREE.FogExp2(0xc4ccc8,.005);
+scene.background=new THREE.Color(0xc4ccc8);scene.fog=new THREE.FogExp2(0xc4ccc8,.0021);
 const phoneMode=matchMedia('(pointer: coarse)').matches;
 const quality=readQuality(phoneMode),highQuality=quality==='high';
 let renderScale=phoneMode?1:Math.min(devicePixelRatio,highQuality?2:1.6);
