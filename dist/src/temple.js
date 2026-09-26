@@ -554,21 +554,23 @@ export function buildTemple(K) {
     for(let row=0;row<4;row++)for(let col=-1;col<5;col++)c.strokeRect(col*128+(row%2)*64,128*row,128,128);
     for(let i=0;i<600;i++){c.fillStyle=`rgba(42,56,35,${rand()*.16})`;c.fillRect(rand()*s,rand()*s,2+rand()*8,2+rand()*17);}
   },1.15,1.15);outlinedPlinth.color.set('#ffffff');
-  // 15.01.44–15.02.27: irregular grey flagstones in running rows with dark wet
-  // joints and mottled weathering, not a regular pale tile grid.
+  // 15.01.44–15.03.38: pale grey granite slabs, about 0.5–1 m by 0.4–0.5 m,
+  // laid in running rows across the courtyard with thin dark joints, a faint
+  // warm cast and soft grey-green weathering; not a regular tile grid.
   const flagstones=mat('#ffffff',.9);
   flagstones.map=canvasMap(1024,(c,s)=>{
-    c.fillStyle='#3f3b34';c.fillRect(0,0,s,s);
+    c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
-    while(y<s){const h=Math.min(s-y,62+rand()*54);let x=-rand()*80;
-      while(x<s){const w=62+rand()*82,v=142+rand()*38|0,t=rand()*8-2|0;
-        for(const ox of [0,s])if(x+ox<s+140){c.fillStyle=`rgb(${v+t-38},${v+t-46},${v-58})`;c.fillRect(x+ox+1.5,y+1.5,w-3,h-3);}
-        for(let k=0;k<5;k++){c.fillStyle=`rgba(${rand()<.3?60:40},${rand()<.3?70:45},40,${.05+rand()*.12})`;c.beginPath();c.ellipse(x+rand()*w,y+rand()*h,4+rand()*20,3+rand()*10,rand()*3,0,Math.PI*2);c.fill();}
-        c.fillStyle='rgba(235,232,215,.10)';c.fillRect(x+4,y+4,w-8,2);
+    while(y<s){const h=Math.min(s-y,58+rand()*20);let x=-rand()*120;
+      while(x<s){const w=78+rand()*72,v=168+rand()*30|0,t=rand()*8-3|0;
+        for(const ox of [0,s])if(x+ox<s+160){c.fillStyle=`rgb(${v+t+6},${v+t+2},${v-4})`;c.fillRect(x+ox+1.2,y+1.2,w-2.4,h-2.4);}
+        for(let k=0;k<4;k++){c.fillStyle=`rgba(${rand()<.3?80:60},${rand()<.3?88:66},62,${.04+rand()*.09})`;c.beginPath();c.ellipse(x+rand()*w,y+rand()*h,4+rand()*18,3+rand()*9,rand()*3,0,Math.PI*2);c.fill();}
+        c.fillStyle='rgba(245,242,230,.12)';c.fillRect(x+4,y+3,w-8,2);
+        c.fillStyle='rgba(60,60,52,.10)';c.fillRect(x+3,y+h-5,w-6,3);
         x+=w;}
       y+=h;}
-    for(let i=0;i<60;i++){c.fillStyle=`rgba(30,34,30,${.04+rand()*.07})`;c.beginPath();c.ellipse(rand()*s,rand()*s,20+rand()*70,10+rand()*40,rand()*3,0,Math.PI*2);c.fill();}
-  },.2,.2);
+    for(let i=0;i<70;i++){c.fillStyle=`rgba(52,58,48,${.03+rand()*.06})`;c.beginPath();c.ellipse(rand()*s,rand()*s,20+rand()*70,10+rand()*40,rand()*3,0,Math.PI*2);c.fill();}
+  },.3,.3);
   floor('Courtyard large stone paving',39,22.1,29.5,32,.1,flagstones);
   // Each entry is a continuous veranda section. The broad shaded front hall
   // remains on photo-right; the other stretches have slimmer flat-roof walks.
