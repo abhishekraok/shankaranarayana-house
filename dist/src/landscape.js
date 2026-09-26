@@ -727,11 +727,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   for (let i = 0; i < 14; i++) broadleaf(-49 + i * 7.7 + range(-2.3, 2.3), 65 + range(-4, 14), range(8.5, 18), range(3.7, 7.1));
   for (let i = 0; i < 11; i++) broadleaf(-47 + i * 10 + range(-3, 3), -77 - range(-4, 11), range(8, 17), range(3.4, 6.8));
   for (let i = 0; i < 8; i++) broadleaf(-48 - range(-2, 9), -49 + i * 13 + range(-3, 3), range(8, 17.5), range(3.7, 6.7));
+  const shrubSun=new THREE.Color('#7d9a48');
   function shrub(x, z, size) {
     z=clearOppositeBuildings(x,z);
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(range(-.3, .3), range(0, 6.28), range(-.3, .3)));
-    instance('varied understory shrub clusters', sphere, materials.foliage, [x, .43 * size, z], [size, size * range(.55, .9), size * range(.7, 1.15)], q,
-      foliageColor().multiplyScalar(range(1, 1.13)));
+    instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], [size, size * range(.55, .9), size * range(.7, 1.15)], q,
+      foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3));
   }
   for (let i = 0; i < 220; i++) {
     const zone = i % 4;
@@ -1137,7 +1138,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let i=0;i<190;i++){
     const p=roadCurve.getPoint(range(.20,.62)),side=i%2?1:-1,z=p.z+side*range(2.6,4.0),h=range(.28,.8);
     segment('Fine roadside flowering stems',materials.grass,[p.x,0,z],[p.x+.05,h,z],.008);
-    instance('Small purple roadside flowers',sphere,flowerMat,[p.x+.05,h,z],[.055,.09,.055]);
+    for(let j=0;j<3;j++)instance('Small purple roadside flowers',sphere,flowerMat,[p.x+.05+(j-1)*.035,h-j*.07,z+(j%2)*.03],[.026,.04,.026]);
   }
   // Tall areca stems and dense understory now stand behind the adjacent building, separate from the temple.
   for(let row=0;row<7;row++)for(let col=0;col<14;col++)palm(67+row*2.75+range(-.7,.7),-30+col*3.2+range(-.8,.8),range(22,30),true);
