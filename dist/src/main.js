@@ -8,7 +8,7 @@ import {buildHouse} from './house.js';
 import {buildTemple} from './temple.js';
 import {buildLandscape} from './landscape.js';
 import {createPhotoTour} from './tour.js';
-import {readQuality,storeQuality,createHighQualityPipeline,overcastEnvironment} from './quality.js';
+import {readQuality,storeQuality,createHighQualityPipeline,overcastEnvironment,leafFringe} from './quality.js';
 
 const $=id=>document.getElementById(id);
 const K=createKit(),scene=new THREE.Scene();
@@ -70,6 +70,7 @@ if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e
   const anisotropy=renderer.capabilities.getMaxAnisotropy();
   scene.traverse(o=>{for(const m of [].concat(o.material||[])){if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;
     for(const k of ['map','bumpMap','normalMap','roughnessMap'])if(m[k]&&m[k].anisotropy!==anisotropy){m[k].anisotropy=anisotropy;m[k].needsUpdate=true;}}});
+  leafFringe(scene);
   // Monsoon overcast: wide-kernel filtering gives the soft, diffuse shadows of the photographs.
   renderer.shadowMap.type=THREE.PCFShadowMap;sun.shadow.radius=7;sun.shadow.blurSamples=16;}
 {const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';

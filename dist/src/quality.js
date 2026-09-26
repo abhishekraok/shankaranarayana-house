@@ -64,3 +64,33 @@ export function overcastEnvironment(renderer,top,bottom){
   pmrem.dispose();dome.geometry.dispose();dome.material.dispose();
   return texture;
 }
+
+// Near crowns and shrubs gain a fringe of the landscape's folded leaf sprays,
+// oriented outward over each crown's upper surface, so silhouettes break into
+// leaves instead of smooth lumps. Distant hill crowns are left as they are.
+export function leafFringe(scene,perCrown=26){
+  const names=/^(layered broadleaf canopies|varied understory shrub clusters)$/;
+  const source=scene.getObjectByName('small leaves breaking canopy outlines');if(!source)return 0;
+  const crowns=[];scene.traverse(o=>{if(o.isInstancedMesh&&names.test(o.name))crowns.push(o);});
+  let total=0;
+  let n=77711;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+  const m=new THREE.Matrix4(),p=new THREE.Vector3(),q=new THREE.Quaternion(),s=new THREE.Vector3(),dir=new THREE.Vector3(),pos=new THREE.Vector3(),out=new THREE.Vector3(),up=new THREE.Vector3(0,1,0);
+  const pose=new THREE.Object3D(),color=new THREE.Color();
+  // One fringe per spatially batched crown mesh keeps frustum culling effective.
+  for(const c of crowns){c.updateMatrixWorld();const fringe=new THREE.InstancedMesh(source.geometry,source.material,c.count*perCrown);fringe.name='High quality crown leaf fringe';let i=0;total+=c.count*perCrown;for(let k=0;k<c.count;k++){
+    c.getMatrixAt(k,m);m.premultiply(c.matrixWorld);m.decompose(p,q,s);if(c.instanceColor)c.getColorAt(k,color);else color.set('#4b6937');
+    const size=Math.min(s.x,s.y,s.z);
+    for(let j=0;j<perCrown;j++){
+      // Bias toward the upper and outer surface where silhouettes form.
+      const y=-.35+r()*1.35,a=r()*6.283,h=Math.sqrt(Math.max(0,1-Math.min(1,y*y)));
+      dir.set(Math.cos(a)*h,Math.min(1,y),Math.sin(a)*h).normalize();
+      pos.copy(dir).multiply(s).multiplyScalar(.93+r()*.12).applyQuaternion(q).add(p);
+      out.copy(dir).applyQuaternion(q).normalize();
+      pose.position.copy(pos);pose.quaternion.setFromUnitVectors(up,out);pose.rotateY(r()*6.283);
+      const k2=Math.min(2.2,.5+size*.28)*(.7+r()*.6);pose.scale.setScalar(k2);pose.updateMatrix();
+      fringe.setMatrixAt(i,pose.matrix);fringe.setColorAt(i,color.clone().multiplyScalar(.9+r()*.35));i++;}
+  }
+  fringe.instanceMatrix.needsUpdate=true;fringe.instanceColor.needsUpdate=true;fringe.computeBoundingBox();fringe.computeBoundingSphere();fringe.castShadow=false;fringe.receiveShadow=true;
+  scene.add(fringe);}
+  return total;
+}
