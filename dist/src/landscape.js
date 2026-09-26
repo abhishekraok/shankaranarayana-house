@@ -361,7 +361,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-11.45,.055,.76,.015,materials.oldWhite);
   // 14.58.26: whitewashed pilaster strips about 5.6 m apart run down the full
   // retaining face, and every tier carries a worn white nosing.
-  for(const [a,b] of [[-18.65,-12.1],[-9.5,12.0],[14.5,25.4],[30.6,54.65]]){
+  for(const [a,b] of [[-18.65,-12.1],[-9.5,9.0],[9.7,16.8],[17.5,25.4],[30.6,54.65]]){
     box('Opposite bank solid weathered parapet',(a+b)/2,.71,-43.68,b-a,1.42,.29,tankWall,true);
     box('Opposite bank worn white horizontal seam',(a+b)/2,.34,-43.515,b-a,.075,.024,fenceWhite);
     box('Opposite bank white coping edge',(a+b)/2,1.40,-43.53,b-a,.05,.04,fenceWhite);
@@ -389,10 +389,23 @@ export function buildLandscape(K, {mobile=false}={}) {
     }
     K.ramp(x, z, w, d, axis, low, high);
   }
-  // Additional descent opposite the upstairs view, cut between solid parapets.
-  steps('Opposite bank central white-edged stair',13.25,-43.65,2.30,3.0,'-z',-.53,1.08,10);
+  // 14.58.26 / house-upper-right: the central descent is two narrow flights laid
+  // along the retaining face, meeting at a landing below a central pilaster, then
+  // a short flight to the water ledge. White nosings trace their zig-zag profile.
+  const flightZ=-43.2675,flightD=.535,flightRun=3.9,flightSteps=8,flightRise=1.08/flightSteps;
+  for(const [x0,axis] of [[12.9,'-x'],[13.6,'x']]){
+    const dir=axis==='x'?1:-1,cx=x0+dir*flightRun/2;
+    steps('Opposite bank central flight along the face',cx,flightZ,flightRun,flightD,axis,0,1.08,flightSteps);
+    for(let i=0;i<flightSteps;i++){const run=flightRun/flightSteps,near=x0+dir*i*run,h=(i+1)*flightRise;
+      box('Opposite bank flight white tread nosing',near+dir*run/2,h-.018,-42.99,run,.036,.02,fenceWhite);
+      box('Opposite bank flight white riser line',near,h-flightRise/2,-42.99,.036,flightRise,.02,fenceWhite);}
+    const nx=axis==='x'?[17.0,17.5]:[9.0,9.7];
+    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,.54,-43.97,nx[1]-nx[0],1.08,.87,materials.path);K.surface((nx[0]+nx[1])/2,-43.97,nx[1]-nx[0],.87,1.08);
+  }
+  box('Opposite bank central flight landing',13.25,-.12,flightZ,.72,.24,flightD,materials.basalt);K.surface(13.25,flightZ,.72,flightD,0);
+  box('Opposite bank central tall pilaster',13.25,.66,-43.515,.30,1.52,.035,fenceWhite);
+  steps('Opposite bank short flight to the water ledge',13.25,-42.615,2.30,.77,'-z',-.53,0,3);
   box('Opposite bank central stair lower landing',13.25,-.59,-42.06,2.30,.12,.34,materials.wetStone);K.surface(13.25,-42.06,2.30,.34,-.53);
-  for(const x of [12.07,14.43])for(let i=0;i<10;i++)box('Opposite bank central stair white edge',x,-.53+(i+1)*.161,-42.30-i*.30,.075,.095,.31,fenceWhite);
   // Two opposed flights in 15.28.13: down from the rotated gate and up
   // to the long arcade, joined by the exposed low ledge beside the water.
   steps('near bank bathing steps',17.75,bathingGateZ,2.7,2.1,'-x',-.53,.055,5);
@@ -498,8 +511,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // Broad, gently raised earth bank gives the photographed downward look over
   // the pavilion roof; the height and bank profile are estimated.
-  for(const [a,b] of [[8.6,12],[14.5,25.6]]){box('Panorama opposite bank crest',(a+b)/2,.54,-45.4,b-a,1.08,2,materials.path);K.surface((a+b)/2,-45.4,b-a,2,1.08);}
-  box('Opposite bank central stair top landing',13.25,1.01,-45.75,2.50,.14,1.30,materials.path);K.surface(13.25,-45.75,2.50,1.30,1.08);
+  for(const [a,b] of [[8.6,25.6]]){box('Panorama opposite bank crest',(a+b)/2,.54,-45.4,b-a,1.08,2,materials.path);K.surface((a+b)/2,-45.4,b-a,2,1.08);}
   K.ramp(5.9,-45.4,5.4,2.0,'x',.052,1.08);
   K.ramp(28.3,-45.4,5.4,2.0,'-x',.052,1.08);
   for(let i=0;i<18;i++)for(const side of [-1,1]){
