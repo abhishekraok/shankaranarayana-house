@@ -775,10 +775,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   // facade faces down the lane. The original temple stays in its prior layout.
   const adjacentWhite=new THREE.MeshStandardMaterial({color:'#e8e6df',roughness:.95});
   const adjacentDark=new THREE.MeshStandardMaterial({color:'#383b39',roughness:.95});
+  const stageColumns=[-5.6,-2,2,5.6];
   const ab=(name,a,y,depth,w,h,d,m=adjacentWhite,solid=false)=>box('Adjacent building '+name,60+depth,y,-5-a,d,h,w,m,solid);
   ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,materials.basalt,true);
   ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,'paleStone');K.surface(62.9,-5,5.8,20,1.62);
-  ab('rear wall',0,4.98,5.87,20,6.72,.22,adjacentWhite,true);
+  // 14.59.26: the deep two-level veranda reads as grey shade behind the white
+  // front, under a flat white ceiling rather than the bare tile underside.
+  const adjacentShade=new THREE.MeshStandardMaterial({color:'#aeaca3',roughness:.95});
+  ab('rear wall',0,4.98,5.87,20,6.72,.22,adjacentShade,true);
+  const upperCeiling=ab('upper veranda flat ceiling',0,8.22,2.9,20,.14,6.0,adjacentWhite);K.roofs.push(upperCeiling);
   for(const a of [-9.94,9.94])ab('side wall',a,4.98,3,.20,6.72,6,adjacentWhite,true);
   ab('upper gallery slab',0,4.95,2.9,20,.20,6.0,adjacentWhite);K.surface(62.9,-5,6,20,5.05);
   for(const y of [.19,.49,.80,1.17])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone');
@@ -799,13 +804,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const z of [-7.07,-2.93]){
     K.beam(group,'Stage white stair cheek',[56.80,.34,z],[60.05,1.98,z],.28,adjacentWhite,.35);
   }
-  for(const base of [1.62,5.05])for(const a of [-8,-3,3,8]){
+  for(const base of [1.62,5.05])for(const a of stageColumns){
     ab('square column foot',a,base+.14,.50,.62,.28,.62,adjacentDark);
     ab('white column shaft',a,base+1.50,.50,.30,2.8,.30,adjacentWhite,true);
     ab('column central block',a,base+1.23,.50,.57,.61,.57);
     ab('dark inset column panel',a,base+1.23,.19,.35,.39,.025,adjacentDark);
     for(const y of [.38,.83,1.63,2.70,2.94])ab('projecting column collar',a,base+y,.50,.64,.105,.61);
   }
+  // 14.59.26: statue pillars flank the stair at about ±2 m, with a second pair near ±5.6 m.
   for(const y of [4.67,8.08])ab('plain white lintel',0,y,.51,20,.23,.40);
   for(const y of [2.84,6.27]){
     for(const a of [-8,-5.5,5.5,8])ab('back wall dark window',a,y,5.73,.68,1.08,.04,adjacentDark);
@@ -820,6 +826,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   const adjacentGable=new THREE.Shape();
   adjacentGable.moveTo(-2.6,7.99);adjacentGable.lineTo(-2.6,8.48);adjacentGable.lineTo(0,9.61);adjacentGable.lineTo(2.6,8.48);adjacentGable.lineTo(2.6,7.99);adjacentGable.lineTo(1.40,7.99);adjacentGable.lineTo(1.40,8.39);adjacentGable.quadraticCurveTo(0,9.84,-1.40,8.39);adjacentGable.lineTo(-1.40,7.99);adjacentGable.closePath();
   const gableMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(adjacentGable,{depth:.22,bevelEnabled:false,curveSegments:16}),adjacentWhite);gableMesh.rotation.y=Math.PI/2;gableMesh.position.set(59.65,0,-5);gableMesh.name='Adjacent building central arched gable';group.add(gableMesh);K.roofs.push(gableMesh);
+  // The central gable projects as a porch on its own pair of upper columns.
+  for(const a of [-1.5,1.5]){
+    box('Stage central porch upper column',59.78,6.52,-5-a,.26,2.94,.26,adjacentWhite,true);
+    box('Stage central porch column foot',59.78,5.21,-5-a,.40,.32,.40,adjacentWhite);
+    box('Stage central porch column capital',59.78,7.90,-5-a,.42,.16,.42,adjacentWhite);
+  }
+  box('Stage central porch lintel',59.78,8.07,-5,.30,.20,3.5,adjacentWhite);
   for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[59.62,8.52,-5+side*2.67],[59.62,9.69,-5],.15,'red',.21);
   // Four decorative figures are sampled from the already-approved 15.19.57
   // photograph. Only the architectural figures, not people in its forecourt.
@@ -828,12 +841,12 @@ export function buildLandscape(K, {mobile=false}={}) {
     const [x0,y0,x1,y1]=rect;map.repeat.set((x1-x0)/1824,(y1-y0)/1368);map.offset.set(x0/1824,1-y1/1368);
     const panel=new THREE.Mesh(new THREE.PlaneGeometry(.76,1.80),new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(60.135,y,-5-a);group.add(panel);
   }
-  stageFigure('Stage upper left photographed figure',3,6.68,[696,303,755,462]);
-  stageFigure('Stage upper right photographed figure',-3,6.68,[1000,303,1070,462]);
-  stageFigure('Stage lower left photographed figure',3,2.68,[680,682,758,859]);
-  stageFigure('Stage lower right photographed figure',-3,2.68,[996,685,1072,862]);
+  stageFigure('Stage upper left photographed figure',2,6.68,[696,303,755,462]);
+  stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);
+  stageFigure('Stage lower left photographed figure',2,2.68,[680,682,758,859]);
+  stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
   // Moulded capitals and a shaped white balcony screen replace plain rods.
-  for(const base of [1.62,5.05])for(const a of [-8,-3,3,8]){
+  for(const base of [1.62,5.05])for(const a of stageColumns){
     for(const side of [-1,1]){
       const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.49,0);shape.quadraticCurveTo(.46,-.29,.24,-.32);shape.quadraticCurveTo(.19,-.13,0,-.13);shape.closePath();
       const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60.40,base+2.92,-5-a);group.add(bracket);
