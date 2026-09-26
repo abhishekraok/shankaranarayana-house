@@ -840,7 +840,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,'paleStone');K.surface(62.9,-5,5.8,20,1.62);
   // 14.59.26: the deep two-level veranda reads as grey shade behind the white
   // front, under a flat white ceiling rather than the bare tile underside.
-  const adjacentShade=new THREE.MeshStandardMaterial({color:'#aeaca3',roughness:.95});
+  const adjacentShade=new THREE.MeshStandardMaterial({color:'#cdcbc3',roughness:.95});
   ab('rear wall',0,4.98,5.87,20,6.72,.22,adjacentShade,true);
   const upperCeiling=ab('upper veranda flat ceiling',0,8.22,2.9,20,.14,6.0,adjacentWhite);K.roofs.push(upperCeiling);
   for(const a of [-9.94,9.94])ab('side wall',a,4.98,3,.20,6.72,6,adjacentWhite,true);
@@ -879,6 +879,19 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   for(const y of [5.14,5.89])ab('white balcony rail',0,y,.26,19.5,.12,.24);
 
+  // 15.19.57: a sloping terracotta sunshade with a scalloped lip runs under the
+  // balcony; its centre bay projects farther beneath the gabled porch.
+  const terracotta=new THREE.MeshStandardMaterial({color:'#b8603f',roughness:.9});
+  const chajja=(z0,z1,out,top)=>{const depth=out,drop=.36,len=z1-z0;
+    const slab=new THREE.Mesh(new THREE.BoxGeometry(Math.hypot(depth,drop),.07,len),terracotta);slab.name='Adjacent building terracotta sunshade';
+    slab.rotation.z=Math.atan2(drop,depth);slab.position.set(60.35-depth/2,top-drop/2,(z0+z1)/2);slab.castShadow=slab.receiveShadow=true;group.add(slab);
+    const lip=new THREE.Shape(),n=Math.max(2,Math.round(len/.34)),step=len/n;lip.moveTo(0,0);lip.lineTo(len,0);lip.lineTo(len,-.10);
+    for(let i=n;i>0;i--){const x=i*step;lip.quadraticCurveTo(x-step/2,-.26,x-step,-.10);}lip.closePath();
+    const fascia=new THREE.Mesh(new THREE.ExtrudeGeometry(lip,{depth:.05,bevelEnabled:false,curveSegments:4}),terracotta);fascia.name='Adjacent building scalloped sunshade lip';
+    fascia.rotation.y=Math.PI/2;fascia.position.set(60.35-depth-.02,top-drop+.03,z1);fascia.castShadow=true;group.add(fascia);
+    const ribs=Math.round(len/.62);for(let i=0;i<=ribs;i++)box('Adjacent building sunshade relief rib',60.35-depth/2,top-drop/2+.05,z0+len*i/ribs,Math.hypot(depth,drop)*.9,.04,.05,terracotta).rotation.z=Math.atan2(drop,depth);
+  };
+  chajja(-15.3,-6.8,.95,5.02);chajja(-3.2,5.3,.95,5.02);chajja(-6.8,-3.2,1.45,5.12);
   ab('red balcony cornice',0,4.85,.0,20.65,.17,.9,'red');
   ab('red balcony coping',0,5.97,.26,19.7,.08,.27,'red');
   const adjacentRoof=K.hipRoof(group,'Adjacent building weathered tiled roof',0,0,21.1,7.1,8.35,1.07);adjacentRoof.rotation.y=Math.PI/2;adjacentRoof.position.set(62.9,0,-5);
