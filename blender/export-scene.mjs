@@ -100,3 +100,22 @@ const inst=objects.filter(o=>o.instances).reduce((n,o)=>n+o.instances.length,0);
 console.log(`roots ${roots.map(r=>r.name).join(' | ')}`);
 console.log(`objects ${objects.length} (instanced ${objects.filter(o=>o.instances).length}, ${inst} instances), geometries ${geoms.length}, materials ${materials.length}, bin ${(offset/1e6).toFixed(1)} MB`);
 console.log('skipped',skipped);
+
+// The guided tour, sampled from the web app's own tour code with the same floor
+// following (supportY from main.js), so the Blender tour camera walks the same path.
+{
+  const {createPhotoTour}=await loadModule('../dist/src/tour.js');
+  const navigation=main.slice(main.indexOf('function inside('),main.indexOf('function lookAt('));
+  const {supportY}=new Function('K','THREE',navigation+';return {supportY};')(K,THREE);
+  const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
+  for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
+  const tour=createPhotoTour(photos,supportY);
+  const FPS=24,frames=[];let label=null;const markers=[];
+  for(let f=0;f<=Math.ceil(tour.duration*FPS);f++){
+    const s=tour.sample(f/FPS);
+    frames.push([...s.position.toArray().map(v=>+v.toFixed(4)),...s.quaternion.toArray().map(v=>+v.toFixed(5))]);
+    if(s.label!==label){label=s.label;markers.push([f,label]);}
+  }
+  await fs.writeFile(new URL('tour.json',out),JSON.stringify({fps:FPS,fov:58,duration:tour.duration,frames,markers}));
+  console.log(`tour ${tour.duration.toFixed(0)} s, ${frames.length} frames, ${markers.length} labels`);
+}
