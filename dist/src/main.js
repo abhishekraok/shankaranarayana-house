@@ -64,7 +64,9 @@ water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)re
 const hq=highQuality?createHighQualityPipeline({renderer,scene,camera,water,sky}):null;
 if(highQuality){scene.environment=overcastEnvironment(renderer,'#b4c1c4','#e6e9e3');scene.environmentIntensity=.45;hemiLight.intensity=1.2;ambientLight.intensity=.5;
   // Polished oxide and marble surfaces only gain their sheen with the sky environment.
-  scene.traverse(o=>{for(const m of [].concat(o.material||[]))if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;});}
+  scene.traverse(o=>{for(const m of [].concat(o.material||[]))if(m.userData?.hqRoughness!==undefined)m.roughness=m.userData.hqRoughness;});
+  // Monsoon overcast: wide-kernel filtering gives the soft, diffuse shadows of the photographs.
+  renderer.shadowMap.type=THREE.PCFShadowMap;sun.shadow.radius=7;sun.shadow.blurSamples=16;}
 {const button=$('quality-btn');if(button&&!phoneMode){button.hidden=false;button.setAttribute('aria-pressed',String(highQuality));button.title=highQuality?'High quality graphics are on (click for standard)':'Turn on high quality graphics for this computer';
   button.addEventListener('click',()=>{storeQuality(highQuality?'standard':'high');const url=new URL(window.location.href);url.searchParams.delete('quality');window.location.replace(url.href);});}}
 
