@@ -127,7 +127,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Family correction, 14.58.48: a narrow unpaved road separates the home
   // and the temple's right edge. It branches off the lake-facing asphalt lane.
   const sideRoadSeed=seed; // New grit must not reshuffle the established grove.
-  const sideRoadCurve=new THREE.CatmullRomCurve3([[17,-4.6],[17.2,1],[17.2,8],[16.9,18],[17.2,27],[17.0,34]].map(([x,z])=>new THREE.Vector3(x,.043,z)));
+  const sideRoadCurve=new THREE.CatmullRomCurve3([[18,-4.6],[18.2,1],[18.2,8],[17.4,18],[17.2,27],[17.0,34]].map(([x,z])=>new THREE.Vector3(x,.043,z)));
   const dirtCanvas=document.createElement('canvas');dirtCanvas.width=dirtCanvas.height=256;const dirtContext=dirtCanvas.getContext('2d');
   dirtContext.fillStyle='#98604a';dirtContext.fillRect(0,0,256,256);
   for(let i=0;i<15000;i++){

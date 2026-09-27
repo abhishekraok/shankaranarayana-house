@@ -1735,7 +1735,7 @@ export function buildTemple(K) {
   for(let row=0;row<6;row++)for(let i=0;i<7-row;i++){
     const radius=.075+((i*3+row*5)%5)*.009;
     const x=14.25+i*.235+row*.12,y=.17+row*.17;
-    const z=3.55+Math.sin(i*4+row)*.15,length=4.10+((i*7+row*3)%9)*.13;
+    const z=17.6+Math.sin(i*4+row)*.15,length=4.10+((i*7+row*3)%9)*.13;
     polePoses.push([x,y,z,radius,length,radius,Math.PI/2,0,0]);
     for(const sign of [-1,1])endPoses.push([x,y,z+sign*(length/2+.002),radius*.83,.006,radius*.83,Math.PI/2,0,0]);
   }
@@ -1743,8 +1743,9 @@ export function buildTemple(K) {
   polePoses.forEach((_,i)=>poles.setColorAt(i,new THREE.Color().setHSL(.10+(i%3)*.013,.10+(i%4)*.025,.60+(i%7)*.048)));
   poles.instanceColor.needsUpdate=true;
   instances('Temple lane weathered pole cut ends',new THREE.CylinderGeometry(1,1,1,9),poleEnd,endPoses);
-  K.blocker(14.97,3.55,1.75,5.5,.04,1.20);
-  for(const z of [2.5,5.1])box('Temple lane timber stack stone support',14.95,.09,z,1.85,.14,.26,oldStone);
+  // Past the troughs, clear of the house's long temple-side wing (15.22.40).
+  K.blocker(14.97,17.6,1.75,5.5,.04,1.20);
+  for(const z of [16.55,19.15])box('Temple lane timber stack stone support',14.95,.09,z,1.85,.14,.26,oldStone);
 
   // Folded blue tarpaulin over low stored bundles, not a billboard photograph.
   const coverPos=[];
