@@ -248,8 +248,10 @@ export function buildTemple(K) {
   box('Entrance doorway right blue surround',40.52,2.00,5.87,.69,2.80,.23,doorwayBlue);
   box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
   for(const side of [-1,1]){
-    box('Entrance doorway red inner jamb',39+side*1.16,1.78,5.73,.12,2.36,.17,red);
-    box('Entrance doorway open timber leaf',39+side*1.24,1.78,6.36,.09,2.36,.85,K.M.wood);
+    // 15.15.51 / 15.16.13: the opening is about 1.45 m clear, framed by blue reveals.
+    box('Entrance doorway blue inner reveal',39+side*.99,2.00,5.87,.42,2.80,.23,doorwayBlue,true);
+    box('Entrance doorway red inner jamb',39+side*.78,1.78,5.73,.12,2.36,.17,red);
+    box('Entrance doorway open timber leaf',39+side*.84,1.78,6.1,.09,2.36,.72,K.M.wood);
     const x=39+side*2.05;
 
     box('Entrance doorway pillar red base',x,1.02,5.36,.58,.72,.58,red,true);
@@ -1223,7 +1225,8 @@ export function buildTemple(K) {
   K.beam(g,'Pink pillar rope',[flagX+.31,9.2,flagZ],[flagX+.34,.95,flagZ],.012,K.M.cream);
   K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
   K.blocker(flagX,flagZ,.72,.72,1.0,9.3);
-  cyl('Separate pale metal pole',39.4,5.3,10.35,.115,.15,10.35,metalPole,16,true);
+  // 15.12.56 / 15.13.03: the pole stands just in front of the flagstaff, lashed to it.
+  cyl('Separate pale metal pole',38.0,5.3,12.35,.115,.15,10.35,metalPole,16,true);
   const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.4,.9+i*1.25,10.35,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.

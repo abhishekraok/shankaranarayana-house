@@ -352,7 +352,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
     dadoTiles.map=new THREE.CanvasTexture(c);dadoTiles.map.colorSpace=THREE.SRGBColorSpace;dadoTiles.map.wrapS=dadoTiles.map.wrapT=THREE.RepeatWrapping;dadoTiles.map.repeat.set(3,3);dadoTiles.color.set('#ffffff');}
   const pillarRed=materials.oldWhite.clone();pillarRed.color.set('#9a4a3a');
-  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6,48.2])for(const z of [-10.24,-7.77]){
+  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6])for(const z of [-10.24,-7.77]){
     box('Bathing arcade red-oxide pillar base',x,.065+.11,z,.40,.22,.40,pillarRed,true);
     box('Bathing arcade white-tiled pillar foot',x,.065+.61,z,.36,.78,.36,dadoTiles);
     box('Bathing arcade square white pillar',x,.065+1.4,z,.29,1.6,.29,materials.oldWhite,true);
@@ -360,10 +360,18 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('Bathing arcade pillar capital block',x,2.34,z,.36,.14,.36,materials.oldWhite);
   }
   // The block holds the lane-side corner; the way down to the water passes behind it.
-  box('Lake entrance west end block',30.15,1.25,-8.15,1.3,2.5,1.1,materials.oldWhite,true);
-  box('Lake entrance block white tiled dado',30.15,.065+.55,-8.15,1.34,1.1,1.14,dadoTiles);
-  box('Lake entrance orange painted sign',30.15,1.55,-7.585,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
-  K.beam(group,'Lake entrance brass tap pipe',[30.55,.95,-7.58],[30.55,.55,-7.50],.03,'metal');
+  // 14.59.39 / 15.11.58: the west end is only a tiled pedestal carrying a stepped white
+  // pillar, with a black plaque. 15.14.02 / 15.14.07 / 15.13.26: the east end bay is a
+  // whitewashed room under the roof's gable, with the orange sign and the tap on its lane face.
+  box('Lake entrance west tiled pedestal',30.15,.065+.55,-7.9,.62,1.1,.62,dadoTiles,true);
+  box('Lake entrance west stepped white pillar',30.15,1.85,-7.9,.3,1.5,.3,materials.oldWhite,true);
+  box('Lake entrance west pillar collar',30.15,1.25,-7.9,.38,.16,.38,materials.oldWhite);
+  box('Lake entrance black plaque',30.15,1.3,-7.585,.5,.32,.02,new THREE.MeshStandardMaterial({color:'#1b1b1a',roughness:.5}));
+  box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
+  box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
+  box('Lake entrance east room dark doorway',47.9,1.05,-10.26,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
+  box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
+  K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
   K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,.93);
@@ -401,8 +409,17 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   for(const [a,b] of [[-4.6,12.10],[14.40,48.8]])for(const [top,z] of [[-.08,-36.47],[-.31,-36.04],[-.54,-35.58]])
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
-  railRun(50.08,-8.32,50.08,-20.8,'east north');
-  railRun(50.08,-23.5,50.08,-37.68,'east south');
+  // 15.14.07 / 15.21.47: the temple-side bank has a solid dark masonry parapet with
+  // capped square dark-stone piers, not white piers and crossrails.
+  for(const [z1,z2] of [[-8.32,-20.8],[-23.5,-37.68]]){
+    const len=Math.abs(z2-z1),zc=(z1+z2)/2,n=Math.max(1,Math.round(len/3.7));
+    box('East bank solid dark parapet',50.08,.55,zc,.3,1.1,len,fenceStone);
+    box('East bank parapet coping',50.08,1.13,zc,.38,.07,len,fenceStone);
+    for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
+      box('East bank dark stone pier',50.08,.65,z,.42,1.3,.42,fenceStone);
+      box('East bank pier cap',50.08,1.35,z,.5,.1,.5,fenceStone);}
+    K.blocker(50.08,zc,.45,len+.3,0,1.4);
+  }
   railRun(-5.08,-10.0,-5.08,-37.68,'west bank');
 
   function steps(name, x, z, w, d, axis, low, high, count, mat = materials.basalt) {
@@ -908,8 +925,16 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let i=0;i<10;i++){
     const riser=new THREE.Mesh(new THREE.PlaneGeometry(3.77,.162),stageTileMat);riser.name='Stage blue-white diamond stair riser';riser.rotation.y=-Math.PI/2;riser.position.set(56.897+i*.31,(i+.5)*.162,-5);group.add(riser);
   }
-  for(const z of [-7.07,-2.93]){
-    K.beam(group,'Stage white stair cheek',[56.80,.34,z],[60.05,1.98,z],.28,adjacentWhite,.35);
+  // 15.12.15 / 15.13.30: whitewashed pedestals carrying black stone elephants flank the stair.
+  const elephantStone=new THREE.MeshStandardMaterial({color:'#1c1c1b',roughness:.45});
+  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-2.65,57.2,.9]]){
+    box('Stage stair elephant pedestal',x0,top/2,z,1.3,top,.6,adjacentWhite,true);
+    const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);group.add(el);
+    const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),elephantStone);head.position.set(-.5,.72,0);head.name='Elephant head';el.add(head);
+    for(const s of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),elephantStone);ear.scale.set(.05,.2,.16);ear.position.set(-.42,.72,s*.2);ear.name='Elephant ear';el.add(ear);}
+    const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.05,.08,.55,8),elephantStone);trunk.position.set(-.66,.42,0);trunk.rotation.z=-.25;trunk.name='Elephant trunk';el.add(trunk);
+    for(const dx of [-.3,.3])for(const dz of [-.12,.12]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.4,8),elephantStone);leg.position.set(dx,.2,dz);leg.name='Elephant leg';el.add(leg);}
   }
   for(const base of [1.62,5.05])for(const a of stageColumns){
     ab('square column foot',a,base+.14,.50,.62,.28,.62,adjacentDark);
