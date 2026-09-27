@@ -385,7 +385,7 @@ for(const key of ['templebellreturn','templebellwide','templepoles','templebell'
     assert.ok(pink.x<black.x&&pink.x>-1&&black.x<1,'Side view shows pink left, black right');
   }else{
     const hit=new THREE.Raycaster(eye,bellTarget.clone().sub(eye).normalize()).intersectObject(temple,true)[0];
-    assert.equal(hit?.object,largeBell,key+' must see the great bell through its bay');
+    assert.equal(hit?.object?.uuid,largeBell.uuid,key+' must see the great bell through its bay; hit '+hit?.object?.name);
     const frame=bellTarget.clone().project(c);assert.ok(Math.abs(frame.x)<1&&Math.abs(frame.y)<1,key+' frames the great bell');
   }
 }
