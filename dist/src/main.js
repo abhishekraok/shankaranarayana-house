@@ -41,7 +41,7 @@ ground(-73.5,0,137,240);ground(108,0,108,240);
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(3.55,-77,17.1,80);ground(34.2,-77,39.6,80);ground(13.25,-77.1,2.3,79.8);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
-ground(24.5,-6,59,6);ground(51.7,-23,4.6,28);ground(24.5,60,59,120);ground(9,-1.5,28,3);ground(41,-1.5,26,3);
+ground(24.5,-6,59,6);ground(51.7,-23,4.6,28);ground(24.5,60,59,120);ground(8.1,-1.5,26.2,3);ground(40.1,-1.5,27.8,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
@@ -115,15 +115,15 @@ destinations.templeleft=photos.templeleft;destinations.templecenter=photos.templ
 photos.templedoor={url:'temple-doorway.jpg',caption:'September 2011 · Just before the temple entrance door · 15.15.51',p:[39,.20,3.05],target:[39,2.18,6.1],fov:84};
 photos.adjacent={url:'temple.jpg',caption:'September 2011 · The building adjacent to the temple · 15.19.57',p:[51,.047,-5],target:[60,5,-5],fov:75};
 destinations.temple=photos.temple;destinations.templedoor=photos.templedoor;
-photos.lakeleft={url:'lakeleft.jpg',caption:'September 2011 · Across the lake, left of the temple · 15.22.33',p:[23.1,1.08,-39.4],target:[44, 2.3, -2],fov:60};
-photos.lakemiddle={url:'lakemiddle.jpg',caption:'September 2011 · Across the lake, right side of the temple · 15.22.36',p:[23.1,1.08,-39.4],target:[25, 2.3, -1],fov:54};
-photos.lakehouse={url:'lakehouse.jpg',caption:'September 2011 · Across the lake, the house · 15.22.40',p:[23.1,1.08,-39.4],target:[1, 2.8, 1],fov:50};
+photos.lakeleft={url:'lakeleft.jpg',caption:'September 2011 · Across the lake, left of the temple · 15.22.33',p:[23.1,1.38,-39.4],target:[44, 2.3, -2],fov:60};
+photos.lakemiddle={url:'lakemiddle.jpg',caption:'September 2011 · Across the lake, right side of the temple · 15.22.36',p:[23.1,1.38,-39.4],target:[25, 2.3, -1],fov:54};
+photos.lakehouse={url:'lakehouse.jpg',caption:'September 2011 · Across the lake, the house · 15.22.40',p:[23.1,1.38,-39.4],target:[1, 2.8, 1],fov:50};
 for(const key of ['lakeleft','lakemiddle','lakehouse'])destinations[key]=photos[key];
 photos.templepicturesleft={url:'temple-ganesh-shiva.jpg',caption:'September 2011 · Ganesh and Shiva, left of the entrance · 15.14.30',p:[42.8,.602,3.25],target:[43.3,2,5.82],fov:76};
 photos.templevishnu={url:'temple-vishnu.jpg',caption:'September 2011 · Vishnu, right of the entrance · 15.15.11',p:[35.5,.602,3.25],target:[35.65,2,5.82],fov:58};
 photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuman, far right · 15.15.17',p:[33.8,.602,3.25],target:[33.8,2,5.82],fov:58};
-photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[25.5,.051,-4.1],target:[25.5,-.25,-1.3],fov:78};
-photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,0,-39.4],target:[36,3.6,1],fov:58};
+photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[23.7,.051,-4.1],target:[23.7,-.25,-1.3],fov:78};
+photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,1.38,-39.4],target:[36,3.6,1],fov:58};
 for(const key of ['templepicturesleft','templevishnu','templehanuman','templepond','templeacross'])destinations[key]=photos[key];
 photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.036,-12.6],target:[59.6,2.57,-21.1],fov:60};
 photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-6.3,0,-23],target:[59.8,-.8,-25.4],fov:34};
