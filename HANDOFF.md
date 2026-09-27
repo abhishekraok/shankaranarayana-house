@@ -28,6 +28,9 @@ Later reviews: `checks/fidelity-capitals/REVIEW.md` and
 Also see `checks/fidelity-pedestals/REVIEW.md` and
 `checks/fidelity-window-exposure/REVIEW.md`.
 The cumulative nine-view review is `checks/fidelity-final/REVIEW.md`.
+Final native comparisons: `checks/fidelity-final-native/REVIEW.md`.
+Start the user work with `checks/fidelity-user-decisions/REVIEW.md`; it shows obstructed
+anchor cameras and the remaining layout choices, and links the 47-pose historical queue.
 
 - Sitting window: ochre surround, rounded blue mouldings, exposed recess and oxide sill.
 - Adjacent hall: dark stone with pale inlays; rear dais, central steps and high green vents;
@@ -47,14 +50,18 @@ The cumulative nine-view review is `checks/fidelity-final/REVIEW.md`.
 - Wheel/geometry passed each geometry checkpoint. Final browser verification: 58 destinations,
   60 routes, no failures/errors. Views, lake stairs, shrine platforms, alignment, gamepad,
   mobile landscape and mobile rendering also passed; logs are in `checks/fidelity-session/`.
-- Native hall renders: `blender/build/fidelity-session-hall` in the photoreal worktree;
-  procedural inlays now survive export. Window `fidelity-session-window-exposure` uses a
-  diagnostic exposure of 3.3 stops; it does not change the saved blend. Interiors remain dark.
-  Statue photo cards remain a fidelity limitation, especially in native exports.
-- Native materials (`48c2fc5` on `photoreal`): 56 authored procedural images supply 173
-  material maps, with original UV transforms. Stair diamonds and paint are retained; no photo
-  textures exported. Blender image/link/UV-seam checks passed. Geometry object transforms
-  are unchanged. See the native material review for fixed-camera comparisons and provenance.
+- Native refreshed: eight views in `blender/build/final-integrated-{window,exterior,diagnostic}`
+  on `photoreal`, with source/asset hashes in each `provenance.json`. Saved poses are unchanged;
+  exterior exposure is 1.3, windows use the EXIF profile below. The hall close-up is labelled
+  +1.18 m diagnostic. Browser/native camera transforms and geometry sources were cross-checked.
+- Native photo textures (`a204be1`): 22 material maps from 11 explicitly approved web assets
+  restore the previously blank figure panels. Private reference media remain excluded.
+  `checks/fidelity-native-photo-cards/REVIEW.md`; flat cards remain a limitation.
+- Native surface relief (`5359759`): 127 authored bump maps and one roughness map are retained,
+  including their channels, strength and UV transforms. Image/link/UV checks pass for 197 color
+  maps. Geometry bytes are unchanged. `checks/fidelity-native-relief/REVIEW.md`.
+- Native provenance (`e0ec8fe`): saved blends record export, geometry, pose and build-script
+  hashes; render batches record the blend, renderer, image assets and camera/exposure settings.
 - EXIF exposure (`ec2064f` on `photoreal`): the window photos used 1/14 s, ISO 125 versus
   the exterior reference's 1/203 s, ISO 50, both f/2.6. Their +5.180-stop difference gives
   a useful window render at 6.480 stops. This is a relative estimate, not absolute calibration.
