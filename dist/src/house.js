@@ -279,7 +279,27 @@ export function buildHouse(K) {
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
   // Two shallow front rooms, either side of the central through-entrance.
-  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:2.05,top:2.7},{c:3.0,w:1.30,bottom:.70,top:2.4},{c:7,w:1.5,top:2.5}],verandaAqua);
+  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:2.05,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95},{c:7,w:1.5,top:2.5}],verandaAqua);
+  // 14.56.56 / 14.57.08: only the +x sitting-bay window has this rounded,
+  // splayed plaster recess. Cut the facade rather than laying trim over it.
+  {const cx=3,front=1.925,back=2.105,bottom=1.005,shoulder=3.13,rise=.23,half=.95;
+    const outer=[],inner=[];
+    for(let i=0;i<=24;i++){const a=i/24*Math.PI;outer.push([cx+half*Math.cos(a),shoulder+rise*Math.sin(a)]);inner.push([cx+(half-.08)*Math.cos(a),shoulder-.08+(rise-.015)*Math.sin(a)]);}
+    const cap=new THREE.Shape();cap.moveTo(cx-half,3.40);cap.lineTo(cx+half,3.40);
+    for(const [x,y] of outer)cap.lineTo(x,y);cap.closePath();
+    const head=new THREE.Mesh(new THREE.ExtrudeGeometry(cap,{depth:.25,bevelEnabled:false}),verandaAqua);head.name='Sitting window rounded plaster head';head.position.z=front;head.castShadow=head.receiveShadow=true;g.add(head);
+    const points=[],quad=(a,b,c,d)=>points.push(...a,...b,...c,...a,...c,...d);
+    for(let i=0;i<outer.length-1;i++)quad([...outer[i],front],[...outer[i+1],front],[...inner[i+1],back],[...inner[i],back]);
+    for(const s of [-1,1])quad([cx+s*half,bottom,front],[cx+s*half,shoulder,front],[cx+s*(half-.08),shoulder-.08,back],[cx+s*(half-.08),bottom,back]);
+    quad([cx-half,bottom,front],[cx+half,bottom,front],[cx+half-.08,bottom,back],[cx-half+.08,bottom,back]);
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));geo.computeVertexNormals();
+    const plaster=verandaAqua.clone();plaster.side=THREE.DoubleSide;
+    const reveal=new THREE.Mesh(geo,plaster);reveal.name='Sitting window splayed plaster reveal';reveal.castShadow=reveal.receiveShadow=true;g.add(reveal);
+    const surround=new THREE.Shape();surround.moveTo(cx-half+.08,bottom);surround.lineTo(cx+half-.08,bottom);for(const [x,y] of inner)surround.lineTo(x,y);surround.closePath();
+    const opening=new THREE.Path();opening.moveTo(cx-.65,1.15);opening.lineTo(cx-.65,2.85);opening.lineTo(cx+.65,2.85);opening.lineTo(cx+.65,1.15);opening.closePath();surround.holes.push(opening);
+    const face=new THREE.Mesh(new THREE.ShapeGeometry(surround),plaster);face.name='Sitting window recessed plaster backing';face.position.z=back;face.receiveShadow=true;g.add(face);
+    K.blocker(cx,2.08,1.90,.31,F,3.4);
+  }
   doorX(0,2.03,2.05,F,2.7,1);doorX(7,2.03,1.5,F,2.5,1);
   grilleX(-7.9,1.90,1.7,F+.9,1.5);
   const entranceOchre=new THREE.MeshStandardMaterial({color:0x988258,roughness:.98});
@@ -288,6 +308,7 @@ export function buildHouse(K) {
   const windowIron=new THREE.MeshStandardMaterial({color:'#555852',roughness:.94});
   for(const side of [-1,1]) {
     const x=side*3.0;
+    const windowStart=g.children.length;
     for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,entranceOchre);
     for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,entranceOchre);
     b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,side>0?verandaShutter:'black');
@@ -308,10 +329,14 @@ export function buildHouse(K) {
       for(const y of [1.20,1.99,2.80])b('Veranda blue window rail',x,y,2.02,1.25,.09,.10,'blue');
       for(let dx=-.48;dx<.5;dx+=.098)b('Veranda slender iron window bar',x+dx,2.0,2.02,.020,1.55,.025,verandaIron);
     }
+    if(side>0)for(const part of g.children.slice(windowStart))part.position.z+=.18;
     // The sitting bays end at transverse walls; the lower outer strip continues.
     b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,1.15,.20,2.98,1.80,verandaAqua,true);
     b('Sitting bay end red skirting',side*4.188,1.00,1.15,.026,.49,1.80,verandaRed);
-    b('Sitting bay wall red skirting',side*2.745,1.00,1.907,2.99,.49,.024,verandaRed);
+    if(side>0){
+      for(const [a,z] of [[1.25,2.05],[3.95,4.24]])b('Sitting bay wall red skirting',(a+z)/2,1.00,1.907,z-a,.49,.024,verandaRed);
+      b('Sitting window red sill return',3,.88,1.907,1.9,.25,.024,verandaRed);
+    }else b('Sitting bay wall red skirting',side*2.745,1.00,1.907,2.99,.49,.024,verandaRed);
     b('Sitting bay back corner timber',side*4.12,2.08,1.91,.13,2.96,.14,verandaTimber);
   }
   // Layered main-door jambs sit at the threshold, with the leaves open inward.
@@ -331,11 +356,11 @@ export function buildHouse(K) {
   const cabinetDark=new THREE.MeshStandardMaterial({color:'#423b2e',roughness:1});
   const cabinetBrass=new THREE.MeshStandardMaterial({color:'#9b8564',roughness:.72,metalness:.35});
   for(const x of [2.68,3.32]){
-    b('Right front window closed timber shutter',x,1.98,2.17,.625,1.62,.07,cabinetWood);
-    for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.98,2.215,.046,1.62,.025,cabinetWood);
-    for(const y of [1.22,1.98,2.74])b('Right front shutter crossrail',x,y,2.215,.60,.053,.025,cabinetWood);
+    b('Right front window closed timber shutter',x,1.98,2.35,.625,1.62,.07,cabinetWood);
+    for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.98,2.395,.046,1.62,.025,cabinetWood);
+    for(const y of [1.22,1.98,2.74])b('Right front shutter crossrail',x,y,2.395,.60,.053,.025,cabinetWood);
   }
-  b('Right front window interior timber lintel',3,2.82,2.20,1.47,.13,.15,cabinetWood);
+  b('Right front window interior timber lintel',3,2.82,2.38,1.47,.13,.15,cabinetWood);
   const cabinet=new THREE.Group();cabinet.name='Right front window suspended timber cabinet';g.add(cabinet);
   K.box(cabinet,'Cabinet dark backing',3,3.18,2.23,1.39,.55,.06,cabinetDark);
   for(const y of [2.91,3.48])K.box(cabinet,'Cabinet projecting shelf',3,y,2.35,1.55,.065,.36,cabinetWood);

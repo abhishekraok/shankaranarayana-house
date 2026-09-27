@@ -538,3 +538,20 @@ for(const [prefix,base] of [['Front central stair',0],['Courtyard descending sta
   assert.ok(o.geometry.parameters.height>0,prefix+' has no inverted stair blocks');
  });
 }
+// The photographed sitting-window recess must remove the old flat wall face.
+// Probe the reveal and rounded head beside/above the frame, not its trim.
+for(const [x,y] of [[3.84,2.60],[3,3.25]]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x+K.houseShiftX,y,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
+  assert.ok(hit&&hit.point.z>2.02,'Window reveal is recessed behind the facade');
+}
+{const hit=new THREE.Raycaster(new THREE.Vector3(4.02+K.houseShiftX,2.6,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
+ assert.ok(hit&&hit.point.z<1.94,'Facade remains in front of the window recess');}
+assert.ok(collision(3+K.houseShiftX,2.08,.75),'Closed sitting window cannot be walked through');
+// Both lower column rows are solid, with an open aisle between them; the
+// inner row must not accidentally acquire upper-storey collisions.
+for(const z of [.6,-3,-7,-10.6]){
+  assert.ok(collision(60.5,z,2.82)&&collision(64,z,2.82),'Both lower column rows block walking');
+  assert.ok(!collision(62.2,z,2.82),'Aisle between column rows remains open');
+  assert.ok(!collision(64,z,6.25),'Upper gallery has no invented inner column row');
+  assert.ok(Math.abs(supportY(62.2,z,2.82)-2.82)<.01,'Lower column aisle stays on the raised floor');
+}
