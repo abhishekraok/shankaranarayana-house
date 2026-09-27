@@ -1075,10 +1075,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     const t=i/13;bush.position.set(51.6+t*10.2+Math.sin(i*2.3)*.4,.4+(i%3)*1.2+(i%5)*.3,-46.5-(i%3)*.7);bush.scale.y=.8;bush.castShadow=true;group.add(bush);}
   // Broken grassy edges and the narrow concrete threshold step.
   sb('front entry shallow step',-.8,.075,-.42,2.1,.15,.42,materials.mortar);K.surface(59.58,-24.2,.42,2.1,.15);
-  for(const a of [-8.8,-5.1,-1.7,2.4,6.7,9.0]){
+  for(const a of [-5.1,-1.7,2.4,6.7,9.0]){
     sb('white veranda post',a,1.64,.12,.22,2.68,.24,shopWhite,true);
     sb('black veranda post foot',a,.69,.105,.25,.78,.27,materials.basalt);
   }
+  // 14.59.54 / 15.20.13: the cream end block comes down to the ground on the veranda line,
+  // with a black damp base; the near end has only a thin metal pole for the sheet canopy and sign.
+  sb('cream end lower block',-7,1.55,.95,3.4,3.1,2.5,shopCream,true);
+  sb('cream end lower block damp base',-7,.3,-.32,3.42,.6,.04,materials.basalt);
+  sb('cream end lower window dark opening',-7,1.7,-.33,1.0,1.2,.03,materials.darkSoil);
+  sb('near end thin metal pole',-8.8,1.45,.12,.07,2.9,.07,'metal',true);
   // Weathered wood shutters, a pale-blue surround and barred central bays.
   for(const [a,w] of [[-4.4,3.5],[.4,3.2],[4.4,2.3]]){
     sb('pale shutter surround',a,1.82,2.14,w+.28,2.37,.12,shopBlue);
