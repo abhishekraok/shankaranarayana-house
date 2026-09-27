@@ -285,6 +285,13 @@ const galleryRoute=[[39,3],[44.6,3],[44.6,1.35],[46.18,1.35],[46.18,5.72],[44.8,
 checkRoute('Temple entrance to upper gallery',galleryRoute,.20,.19);
 checkRoute('Temple gallery return to entrance',[...galleryRoute].reverse(),4.08,.19);
 checkRoute('Lane to adjacent building stair',[[8,-5],[59.9,-5],[62.5,-5]],.051,0);
+checkRoute('Adjacent hall rear dais ascent',[[62.1,-5],[64.9,-5],[64.9,-1]],2.82,2.81);
+checkRoute('Adjacent hall rear dais descent',[[64.9,-1],[64.9,-5],[62.1,-5]],3.42,2.81);
+for(const [x,z,height] of [[62.1,-1,2.82],[64.9,-1,3.42],[64.9,-9,3.42]]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x,5.8,z),new THREE.Vector3(0,-1,0)).intersectObject(landscape,true)[0];
+  assert.ok(hit&&Math.abs(hit.point.y-height)<.015,'Hall floor/dais mesh has the expected rise');
+  assert.ok(Math.abs(hit.point.y-supportY(x,z,height))<.015,'Dais walking support agrees with its visible floor');
+}
 checkRoute('Near-bank pavilion entry',[[34,-37.3],[34,-34]],.28,-.30);
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
@@ -566,8 +573,17 @@ assert.ok(collision(3+K.houseShiftX,2.08,.75),'Closed sitting window cannot be w
 // Both lower column rows are solid, with an open aisle between them; the
 // inner row must not accidentally acquire upper-storey collisions.
 for(const z of [.6,-3,-7,-10.6]){
-  assert.ok(collision(60.5,z,2.82)&&collision(64,z,2.82),'Both lower column rows block walking');
+  const frontX=z===-3||z===-7?59.5:60.5;
+  assert.ok(collision(frontX,z,2.82)&&collision(64,z,2.82),'Both lower column rows block walking');
   assert.ok(!collision(62.2,z,2.82),'Aisle between column rows remains open');
   assert.ok(!collision(64,z,6.25),'Upper gallery has no invented inner column row');
   assert.ok(Math.abs(supportY(62.2,z,2.82)-2.82)<.01,'Lower column aisle stays on the raised floor');
 }
+// Two-photo evidence: the centre porch projects in front of the side bays.
+for(const z of [-3,-7]){
+  assert.ok(!collision(60.5,z,2.82),'The former central column position is clear');
+  assert.ok(Math.abs(supportY(59.5,z,2.82)-2.82)<.01,'Projected lower columns stand on masonry landings');
+}
+assert.ok(Math.abs(supportY(59.65,-5,6.25)-6.25)<.01,'Projecting upper balcony has a real supported floor');
+{const hit=new THREE.Raycaster(new THREE.Vector3(50,9.7,-7.2),new THREE.Vector3(1,0,0)).intersectObject(landscape,true)[0];
+ assert.equal(hit?.object.name,'Adjacent building central arched gable','Gable face projects ahead of the main hip roof');}

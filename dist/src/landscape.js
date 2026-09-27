@@ -902,8 +902,19 @@ export function buildLandscape(K, {mobile=false}={}) {
   const adjacentDark=new THREE.MeshStandardMaterial({color:'#383b39',roughness:.95});
   const stageColumns=[-5.6,-2,2,5.6];
   const ab=(name,a,y,depth,w,h,d,m=adjacentWhite,solid=false)=>box('Adjacent building '+name,60+depth,y,-5-a,d,h,w,m,solid);
+  // 15.13.51, corroborated by the dark lower veranda in 15.19.57:
+  // nearly black stone with small pale square inlays, not the generic pale grid.
+  const hallFloorCanvas=document.createElement('canvas');hallFloorCanvas.width=hallFloorCanvas.height=256;
+  const hc=hallFloorCanvas.getContext('2d');hc.fillStyle='#353a38';hc.fillRect(0,0,256,256);
+  for(let i=0;i<300;i++){hc.fillStyle=i%3?'#b3b3a70b':'#0d151317';hc.fillRect((i*83)%256,(i*151)%256,3+i%17,1+i%5);}
+  hc.strokeStyle='#202a2745';hc.lineWidth=1;hc.strokeRect(.5,.5,255,255);
+  hc.fillStyle='#b6b2a0';hc.fillRect(116,116,24,24);
+  const hallFloorMap=new THREE.CanvasTexture(hallFloorCanvas);hallFloorMap.colorSpace=THREE.SRGBColorSpace;
+  // K.box supplies metre-based UVs at 0.5 units/m on every face.
+  hallFloorMap.wrapS=hallFloorMap.wrapT=THREE.RepeatWrapping;hallFloorMap.repeat.set(2/.70,2/.70);
+  const hallFloorStone=new THREE.MeshStandardMaterial({name:'Adjacent hall dark stone with pale inlays',map:hallFloorMap,roughness:.64});
   ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,materials.basalt,true);
-  ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,'paleStone');K.surface(62.9,-5,5.8,20,1.62);
+  ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,hallFloorStone);K.surface(62.9,-5,5.8,20,1.62);
   // 14.59.26: the deep two-level veranda reads as grey shade behind the white
   // front, under a flat white ceiling rather than the bare tile underside.
   const adjacentShade=new THREE.MeshStandardMaterial({color:'#cdcbc3',roughness:.95});
@@ -911,6 +922,16 @@ export function buildLandscape(K, {mobile=false}={}) {
   const upperCeiling=ab('upper veranda flat ceiling',0,8.22,2.9,20,.14,6.0,adjacentWhite);K.roofs.push(upperCeiling);
   for(const a of [-9.94,9.94])ab('side wall',a,4.98,3,.20,6.72,6,adjacentWhite,true);
   ab('upper gallery slab',0,4.95,2.9,20,.20,6.0,adjacentWhite);K.surface(62.9,-5,6,20,5.05);
+  // 14.59.26 / 15.12.15: the statue-bearing centre projects one metre
+  // ahead of the side bays on both levels. Keep the existing central stair
+  // clear between the two lower side landings.
+  for(const a of [-2.05,2.05]){
+    ab('projecting porch raised dark foundation',a,.76,-.45,.90,1.52,1.10,materials.basalt,true);
+    ab('projecting porch lower landing',a,1.56,-.45,.90,.12,1.10,hallFloorStone);
+    K.surface(59.55,-5-a,1.10,.90,1.62);
+  }
+  ab('projecting porch upper slab',0,4.95,-.45,4.8,.20,1.10,adjacentWhite);
+  K.surface(59.55,-5,1.10,4.8,5.05);
   for(const y of [.19,.49,.80,1.17])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone');
   for(let i=0;i<10;i++){
     const x=56.9+(i+.5)*.31,y=(i+1)*.162;
@@ -937,23 +958,31 @@ export function buildLandscape(K, {mobile=false}={}) {
     const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.05,.08,.55,8),elephantStone);trunk.position.set(-.66,.42,0);trunk.rotation.z=-.25;trunk.name='Elephant trunk';el.add(trunk);
     for(const dx of [-.3,.3])for(const dz of [-.12,.12]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.4,8),elephantStone);leg.position.set(dx,.2,dz);leg.name='Elephant leg';el.add(leg);}
   }
-  // 15.13.51 / 15.19.57: the lower hall has two rows of heavy square columns;
+  // 15.13.51 / 15.19.57: the lower hall has two rows of square columns;
   // the upper gallery keeps its lighter front row. Depth 4 puts the inner row
   // 3.5 m behind the front row without changing the building or its plinth.
   const lowerColumnRows=[.50,4.0],columnQuilts=[];
   for(const depth of lowerColumnRows)for(const a of stageColumns){
     const base=1.62;
+    if(depth<1&&Math.abs(a)===2){
+      ab('porch statue column white foot',a,base+.18,-.50,.66,.36,.66);
+      ab('porch statue column shaft',a,base+1.64,-.50,.43,2.76,.43,adjacentWhite,true);
+      for(const [y,w] of [[.40,.64],[2.70,.60],[2.85,.74],[3.02,.88]])ab('porch statue column capital',a,base+y,-.50,w,.13,w);
+      K.blocker(59.5,-5-a,.66,.66,base,base+.40);
+      continue;
+    }
+    const inner=depth>1,panelHeight=inner?1.04:.72;
     ab('lower column dark foot',a,base+.06,depth,.94,.12,.94,adjacentDark);
     ab('lower column carved base',a,base+.48,depth,.84,.72,.84);
     ab('lower column square shaft',a,base+1.86,depth,.54,2.12,.54);
-    ab('lower column panel block',a,base+1.70,depth,.82,.72,.82);
-    for(const [y,w] of [[.84,.94],[.93,.79],[1.30,.91],[1.37,.86],[2.09,.91],[2.17,.79],[2.94,.90],[3.05,1.0]])ab('lower column moulded collar',a,base+y,depth,w,.09,w);
+    ab('lower column panel block',a,base+1.70,depth,.82,panelHeight,.82);
+    for(const [y,w] of [[.84,.94],[.93,.79],[inner?1.14:1.30,.91],[inner?1.21:1.37,.86],[inner?2.25:2.09,.91],[inner?2.33:2.17,.79],[2.94,.90],[3.05,1.0]])ab('lower column moulded collar',a,base+y,depth,w,.09,w);
     for(const side of [-1,1]){
-      ab('lower column dark inset panel',a,base+1.70,depth+side*.414,.58,.55,.014,adjacentDark);
-      ab('lower column dark side panel',a+side*.414,base+1.70,depth,.014,.55,.58,adjacentDark);
+      ab('lower column dark inset panel',a,base+1.70,depth+side*.414,.58,panelHeight-.17,.014,adjacentDark);
+      ab('lower column dark side panel',a+side*.414,base+1.70,depth,.014,panelHeight-.17,.58,adjacentDark);
     }
     // Low-relief diamond facets are shared instances, not individual draw calls.
-    for(const y of [1.05,1.22,2.31,2.48,2.65,2.82])for(const u of [-.135,.135])for(let face=0;face<4;face++){
+    for(const y of inner?[1.04,2.46,2.63,2.80]:[1.05,1.22,2.31,2.48,2.65,2.82])for(const u of [-.135,.135])for(let face=0;face<4;face++){
       const angle=face*Math.PI/2;
       columnQuilts.push([60+depth+.274*Math.cos(angle)-u*Math.sin(angle),base+y,-5-a+.274*Math.sin(angle)+u*Math.cos(angle),angle]);
     }
@@ -963,6 +992,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   {const facets=new THREE.InstancedMesh(new THREE.OctahedronGeometry(1),adjacentWhite,columnQuilts.length),pose=new THREE.Object3D();facets.name='Adjacent building lower column diamond relief';
     columnQuilts.forEach(([x,y,z,a],i)=>{pose.position.set(x,y,z);pose.rotation.set(0,-a,0);pose.scale.set(.022,.084,.13);pose.updateMatrix();facets.setMatrixAt(i,pose.matrix);});facets.instanceMatrix.needsUpdate=true;facets.castShadow=facets.receiveShadow=true;group.add(facets);}
   for(const base of [5.05])for(const a of stageColumns){
+    if(Math.abs(a)===2){
+      ab('upper porch statue column foot',a,base+.17,-.50,.61,.34,.61);
+      ab('upper porch statue column shaft',a,base+1.64,-.50,.40,2.78,.40,adjacentWhite,true);
+      for(const [y,w] of [[.40,.59],[2.72,.59],[2.88,.74]])ab('upper porch statue column collar',a,base+y,-.50,w,.12,w);
+      continue;
+    }
     ab('square column foot',a,base+.14,.50,.62,.28,.62,adjacentDark);
     ab('white column shaft',a,base+1.50,.50,.30,2.8,.30,adjacentWhite,true);
     ab('column central block',a,base+1.23,.50,.57,.61,.57);
@@ -971,12 +1006,48 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 14.59.26: statue pillars flank the stair at about ±2 m, with a second pair near ±5.6 m.
   for(const y of [4.67,8.08])ab('plain white lintel',0,y,.51,20,.23,.40);
-  for(const y of [2.84,6.27]){
+  ab('projecting porch lower lintel',0,4.67,-.50,4.70,.23,.43);
+  for(const y of [6.27]){
     for(const a of [-8,-5.5,5.5,8])ab('back wall dark window',a,y,5.73,.68,1.08,.04,adjacentDark);
     for(const a of [-2.4,0,2.4])ab('recessed back door',a,y-.10,5.70,1.02,2.13,.06,adjacentDark);
     ab('dark horizontal wall band',0,y+1.03,5.73,19.8,.22,.04,adjacentDark);
   }
-  for(const y of [5.14,5.89])ab('white balcony rail',0,y,.26,19.5,.12,.24);
+  // 15.13.51 / 15.12.15 / 14.59.26: the inner columns stand beside a
+  // whitewashed rear dais, with three central steps and high green vents.
+  // The 0.60 m rise is estimated from the three risers; the building/plinth
+  // and existing saved photo poses are unchanged.
+  const daisFront=3.60,daisBack=5.75,daisTop=2.22;
+  ab('rear dais white masonry',0,1.905,(daisFront+daisBack)/2,19.8,.57,daisBack-daisFront,adjacentWhite,true);
+  ab('rear dais dark stone top',0,2.205,(daisFront+daisBack)/2,19.8,.03,daisBack-daisFront,hallFloorStone);
+  K.surface(60+(daisFront+daisBack)/2,-5,daisBack-daisFront,19.8,daisTop);
+  ab('rear dais dark foot',0,1.675,daisFront-.012,19.8,.11,.026,adjacentDark);
+  for(let i=0;i<3;i++){
+    const top=1.62+(i+1)*.20,depth=2.4+(i+.5)*.4;
+    ab('rear dais access stair',0,(1.62+top)/2,depth,1.90,top-1.62,.405,adjacentDark);
+    ab('rear dais stair worn nosing',0,top+.006,depth-.19,1.92,.012,.025,materials.mortar);
+  }
+  K.ramp(63.0,-5,1.20,1.90,'x',1.62,daisTop);
+  // A closed dark rear panel and smaller wall pictures are visible below the
+  // vents; do not invent three full-height entrances behind the raised floor.
+  const rearPanel=new THREE.MeshStandardMaterial({color:'#493c38',roughness:.92});
+  ab('lower hall rear dark panel',0,2.88,5.735,1.02,1.31,.028,rearPanel);
+  for(const a of [-7.1,-4.7,4.7,7.1])ab('lower hall small wall panel',a,3.13,5.735,.58,.83,.028,adjacentDark);
+  const ventTimber=new THREE.MeshStandardMaterial({color:'#685848',roughness:.9});
+  const ventGlass=new THREE.MeshStandardMaterial({color:'#708276',roughness:.56});
+  for(const a of [-6.3,-2.1,2.1,6.3]){
+    ab('lower hall clerestory dark recess',a,4.27,5.735,2.34,.48,.035,adjacentDark);
+    ab('lower hall green vent glass',a,4.27,5.707,2.18,.36,.025,ventGlass);
+    for(const dy of [-.215,.215])ab('lower hall vent timber frame',a,4.27+dy,5.68,2.34,.055,.07,ventTimber);
+    for(const da of [-1.14,-.38,.38,1.14])ab('lower hall vent timber mullion',a+da,4.27,5.68,.048,.43,.07,ventTimber);
+    for(const dy of [-.12,0,.12])ab('lower hall horizontal vent bars',a,4.27+dy,5.66,2.26,.022,.036,adjacentDark);
+  }
+  for(const y of [5.14,5.89]){
+    for(const a of [-5.875,5.875])ab('white balcony rail',a,y,.26,7.75,.12,.24);
+    ab('central projecting balcony rail',0,y,-.90,4.0,.12,.24);
+    for(const a of [-2,2])ab('projecting balcony return rail',a,y,-.32,.24,.12,1.16);
+  }
+  K.blocker(59.10,-5,.24,4,5.05,5.97);
+  for(const a of [-2,2])K.blocker(59.68,-5-a,1.16,.24,5.05,5.97);
 
   // 15.19.57: a sloping terracotta sunshade with a scalloped lip runs under the
   // balcony; its centre bay projects farther beneath the gabled porch.
@@ -990,27 +1061,31 @@ export function buildLandscape(K, {mobile=false}={}) {
     fascia.rotation.y=Math.PI/2;fascia.position.set(60.35-depth-.02,top-drop+.03,z1);fascia.castShadow=true;group.add(fascia);
     const ribs=Math.round(len/.62);for(let i=0;i<=ribs;i++)box('Adjacent building sunshade relief rib',60.35-depth/2,top-drop/2+.05,z0+len*i/ribs,Math.hypot(depth,drop)*.9,.04,.05,terracotta).rotation.z=Math.atan2(drop,depth);
   };
-  chajja(-15.3,-6.8,.95,5.02);chajja(-3.2,5.3,.95,5.02);chajja(-6.8,-3.2,1.45,5.12);
+  chajja(-15.3,-7.4,.95,5.02);chajja(-2.6,5.3,.95,5.02);chajja(-7.4,-2.6,1.70,5.12);
   ab('red balcony cornice',0,4.85,.0,20.65,.17,.9,'red');
-  ab('red balcony coping',0,5.97,.26,19.7,.08,.27,'red');
+  for(const a of [-5.925,5.925])ab('red balcony coping',a,5.97,.26,7.85,.08,.27,'red');
+  ab('projecting balcony red coping',0,5.97,-.90,4.0,.08,.27,'red');
+  for(const a of [-2,2])ab('projecting balcony red return coping',a,5.97,-.32,.27,.08,1.16,'red');
   const adjacentRoof=K.hipRoof(group,'Adjacent building weathered tiled roof',0,0,21.1,7.1,8.35,1.07);adjacentRoof.rotation.y=Math.PI/2;adjacentRoof.position.set(62.9,0,-5);
   const adjacentGable=new THREE.Shape();
   adjacentGable.moveTo(-2.6,7.99);adjacentGable.lineTo(-2.6,8.48);adjacentGable.lineTo(0,9.61);adjacentGable.lineTo(2.6,8.48);adjacentGable.lineTo(2.6,7.99);adjacentGable.lineTo(1.40,7.99);adjacentGable.lineTo(1.40,8.39);adjacentGable.quadraticCurveTo(0,9.84,-1.40,8.39);adjacentGable.lineTo(-1.40,7.99);adjacentGable.closePath();
-  const gableMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(adjacentGable,{depth:.22,bevelEnabled:false,curveSegments:16}),adjacentWhite);gableMesh.rotation.y=Math.PI/2;gableMesh.position.set(59.65,0,-5);gableMesh.name='Adjacent building central arched gable';group.add(gableMesh);K.roofs.push(gableMesh);
-  // The central gable projects as a porch on its own pair of upper columns.
-  for(const a of [-1.5,1.5]){
-    box('Stage central porch upper column',59.78,6.52,-5-a,.26,2.94,.26,adjacentWhite,true);
-    box('Stage central porch column foot',59.78,5.21,-5-a,.40,.32,.40,adjacentWhite);
-    box('Stage central porch column capital',59.78,7.90,-5-a,.42,.16,.42,adjacentWhite);
-  }
-  box('Stage central porch lintel',59.78,8.07,-5,.30,.20,3.5,adjacentWhite);
-  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[59.62,8.52,-5+side*2.67],[59.62,9.69,-5],.15,'red',.21);
+  const gableMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(adjacentGable,{depth:.22,bevelEnabled:false,curveSegments:16}),adjacentWhite);gableMesh.rotation.y=Math.PI/2;gableMesh.position.set(59.0,0,-5);gableMesh.name='Adjacent building central arched gable';group.add(gableMesh);K.roofs.push(gableMesh);
+  box('Stage central porch lintel',59.50,8.07,-5,.43,.20,4.70,adjacentWhite);
+  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[58.96,8.52,-5+side*2.67],[58.96,9.69,-5],.15,'red',.21);
+  // Two roof slopes, open at the ends so the arched white gable is not
+  // filled with the helper roof's triangular tile end-cap.
+  {const positions=[],uv=[];
+   for(const side of [-1,1]){const corners=[[58.92,8.53,-5+side*2.72],[62.4,8.53,-5+side*2.72],[62.4,9.72,-5],[58.92,9.72,-5]];
+    for(const i of [0,1,2,0,2,3]){positions.push(...corners[i]);uv.push(corners[i][0]*.5,corners[i][2]*.5);}}
+   const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
+   const roofMat=K.M.tile.clone();roofMat.side=THREE.DoubleSide;
+   const roof=new THREE.Mesh(geom,roofMat);roof.name='Stage projecting gable roof slopes';roof.castShadow=roof.receiveShadow=true;group.add(roof);K.roofs.push(roof);}
   // Four decorative figures are sampled from the already-approved 15.19.57
   // photograph. Only the architectural figures, not people in its forecourt.
   function stageFigure(name,a,y,rect){
     const map=new THREE.TextureLoader().load('./assets/temple.jpg');map.colorSpace=THREE.SRGBColorSpace;
     const [x0,y0,x1,y1]=rect;map.repeat.set((x1-x0)/1824,(y1-y0)/1368);map.offset.set(x0/1824,1-y1/1368);
-    const panel=new THREE.Mesh(new THREE.PlaneGeometry(.76,1.80),new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(60.135,y,-5-a);group.add(panel);
+    const panel=new THREE.Mesh(new THREE.PlaneGeometry(.76,1.80),new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(59.135,y,-5-a);group.add(panel);
   }
   stageFigure('Stage upper left photographed figure',2,6.68,[696,303,755,462]);
   stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);
@@ -1018,14 +1093,17 @@ export function buildLandscape(K, {mobile=false}={}) {
   stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
   // Moulded capitals and a shaped white balcony screen replace plain rods.
   for(const [base,depth] of [[1.62,.50],[1.62,4.0],[5.05,.50]])for(const a of stageColumns){
+    const front=depth<1&&Math.abs(a)===2?-.50:depth;
     for(const side of [-1,1]){
       const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.49,0);shape.quadraticCurveTo(.46,-.29,.24,-.32);shape.quadraticCurveTo(.19,-.13,0,-.13);shape.closePath();
-      const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60+depth-.10,base+2.92,-5-a);group.add(bracket);
+      const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60+front-.10,base+2.92,-5-a);group.add(bracket);
     }
   }
   const spindleProfile=[[.073,0],[.073,.09],[.031,.18],[.035,.36],[.084,.44],[.038,.53],[.07,.66]].map(p=>new THREE.Vector2(...p));
-  const stageSpindles=new THREE.InstancedMesh(new THREE.LatheGeometry(spindleProfile,8),adjacentWhite,77);stageSpindles.name='Stage shaped white balcony balusters';
-  const stagePose=new THREE.Object3D();for(let i=0;i<77;i++){stagePose.position.set(60.255,5.18,-14.5+i*.25);stagePose.updateMatrix();stageSpindles.setMatrixAt(i,stagePose.matrix);}stageSpindles.instanceMatrix.needsUpdate=true;group.add(stageSpindles);
+  const spindlePositions=[];for(let i=0;i<77;i++){const z=-14.5+i*.25;spindlePositions.push([z>-7&&z<-3?59.10:60.255,5.18,z]);}
+  for(const z of [-7,-3])for(let i=1;i<=4;i++)spindlePositions.push([59.1+i*.23,5.18,z]);
+  const stageSpindles=new THREE.InstancedMesh(new THREE.LatheGeometry(spindleProfile,8),adjacentWhite,spindlePositions.length);stageSpindles.name='Stage shaped white balcony balusters';
+  const stagePose=new THREE.Object3D();spindlePositions.forEach((p,i)=>{stagePose.position.set(...p);stagePose.updateMatrix();stageSpindles.setMatrixAt(i,stagePose.matrix);});stageSpindles.instanceMatrix.needsUpdate=true;group.add(stageSpindles);
   // Tile relief follows the existing hipped roof, keeping its profile and alignment.
   const roofCourses=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),K.M.tile,25*65);roofCourses.name='Stage overlapping roof tile courses';
   for(let i=0;i<25;i++)for(let j=0;j<65;j++){
@@ -1043,7 +1121,9 @@ export function buildLandscape(K, {mobile=false}={}) {
      if(/central stair|diamond stair riser/.test(o.name)||b3.min.y>.3)o.position.y+=ADY;}
    for(const c of K.colliders.slice(adjacentStart.colliders)){if(c.bottom>.3){c.bottom+=ADY;c.top+=ADY;}else if(c.top>1.4&&c.top<1.7)c.top+=ADY;}
    for(const r of K.surfaces.slice(adjacentStart.surfaces))if(r.y>1)r.y+=ADY;
-   K.ramps.splice(adjacentStart.ramps).length;
+   // Replace the original outside stair ramp, preserving raised interior stairs.
+   K.ramps.splice(adjacentStart.ramps,1);
+   for(const r of K.ramps.slice(adjacentStart.ramps)){r.lowY+=ADY;r.highY+=ADY;}
    box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,'paleStone');
    const n=7,run=.314,x0=56.9-n*run;
    for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;

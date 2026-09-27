@@ -296,29 +296,47 @@ export function buildHouse(K) {
     const plaster=verandaAqua.clone();plaster.side=THREE.DoubleSide;
     const reveal=new THREE.Mesh(geo,plaster);reveal.name='Sitting window splayed plaster reveal';reveal.castShadow=reveal.receiveShadow=true;g.add(reveal);
     const surround=new THREE.Shape();surround.moveTo(cx-half+.08,bottom);surround.lineTo(cx+half-.08,bottom);for(const [x,y] of inner)surround.lineTo(x,y);surround.closePath();
-    const opening=new THREE.Path();opening.moveTo(cx-.65,1.15);opening.lineTo(cx-.65,2.85);opening.lineTo(cx+.65,2.85);opening.lineTo(cx+.65,1.15);opening.closePath();surround.holes.push(opening);
+    // The plaster backing stops outside the whole timber frame: cutting only
+    // the grille aperture masks the recessed outer mouldings from oblique views.
+    const opening=new THREE.Path();opening.moveTo(cx-.79,1.025);opening.lineTo(cx-.79,2.975);opening.lineTo(cx+.79,2.975);opening.lineTo(cx+.79,1.025);opening.closePath();surround.holes.push(opening);
     const face=new THREE.Mesh(new THREE.ShapeGeometry(surround),plaster);face.name='Sitting window recessed plaster backing';face.position.z=back;face.receiveShadow=true;g.add(face);
+    b('Sitting window oxide sill surface',cx,bottom+.003,(front+back)/2,1.90,.012,back-front,verandaRed);
     K.blocker(cx,2.08,1.90,.31,F,3.4);
   }
   doorX(0,2.03,2.05,F,2.7,1);doorX(7,2.03,1.5,F,2.5,1);
   grilleX(-7.9,1.90,1.7,F+.9,1.5);
   const entranceOchre=new THREE.MeshStandardMaterial({color:0x988258,roughness:.98});
+  // 14.56.56 / 14.57.08: warm worn ochre and rounded blue mouldings on
+  // the sitting window. Procedural paint keeps the private photos out of assets.
+  const sittingOchre=new THREE.MeshStandardMaterial({roughness:.91,map:paintedMap(256,(c,n)=>{
+    c.fillStyle='#b57c4c';c.fillRect(0,0,n,n);
+    for(let i=0;i<140;i++){const x=(i*83)%n,y=(i*149)%n;c.strokeStyle=i%3?'#6b49341b':'#e4b07630';c.lineWidth=.7;c.beginPath();c.moveTo(x,y);c.lineTo(x+Math.sin(i)*2,y+20+i%90);c.stroke();}
+    for(let i=0;i<20;i++){c.fillStyle='#543a2b24';c.fillRect((i*71)%n,(i*47)%n,1+i%3,5+i%13);}
+  },1)});
+  const sittingBlue=new THREE.MeshStandardMaterial({roughness:.78,map:paintedMap(256,(c,n)=>{
+    c.fillStyle='#438398';c.fillRect(0,0,n,n);
+    for(let i=0;i<95;i++){c.strokeStyle=i%3?'#153e491a':'#bdd0c827';c.lineWidth=.6;c.beginPath();const x=(i*73)%n,y=(i*137)%n;c.moveTo(x,y);c.lineTo(x+1,y+25+i%65);c.stroke();}
+    for(let i=0;i<26;i++){c.fillStyle='#ab79544a';c.fillRect((i*97)%n,(i*113)%n,1+i%3,2+i%8);}
+  },1)});
   const verandaIron=new THREE.MeshStandardMaterial({color:0x96968e,roughness:.86});
   const verandaShutter=new THREE.MeshStandardMaterial({color:'#94584a',bumpMap:timberMap,bumpScale:.002,roughness:.98});
   const windowIron=new THREE.MeshStandardMaterial({color:'#555852',roughness:.94});
   for(const side of [-1,1]) {
     const x=side*3.0;
     const windowStart=g.children.length;
-    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,entranceOchre);
-    for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,entranceOchre);
+    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,side>0?sittingOchre:entranceOchre);
+    for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
     b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,side>0?verandaShutter:'black');
     if(side>0){
       // 14.56.56 / 14.57.08 / 14.57.13: closed red-brown shutters
       // behind a dense grille, with stepped blue mouldings and a grey crossrail.
       for(let layer=0;layer<3;layer++){
-        const w=1.17+layer*.073,h=1.61+layer*.073,z=2.01-layer*.030;
-        for(const dx of [-w/2,w/2])b('Veranda window nested blue side moulding',x+dx,2,z,.055,h+.055,.06,'blue');
-        for(const dy of [-h/2,h/2])b('Veranda window nested blue horizontal moulding',x,2+dy,z,w,.055,.06,'blue');
+        const w=1.12+layer*.073,h=1.61+layer*.073,z=2.01-layer*.030;
+        const ring=new THREE.Shape(),hole=new THREE.Path();
+        ring.moveTo(-w/2-.0275,-h/2-.0275);ring.lineTo(w/2+.0275,-h/2-.0275);ring.lineTo(w/2+.0275,h/2+.0275);ring.lineTo(-w/2-.0275,h/2+.0275);ring.closePath();
+        hole.moveTo(-w/2+.0275,-h/2+.0275);hole.lineTo(-w/2+.0275,h/2-.0275);hole.lineTo(w/2-.0275,h/2-.0275);hole.lineTo(w/2-.0275,-h/2+.0275);hole.closePath();ring.holes.push(hole);
+        const moulding=new THREE.Mesh(new THREE.ExtrudeGeometry(ring,{depth:.035,bevelEnabled:true,bevelThickness:.010,bevelSize:.009,bevelSegments:3,steps:1}),sittingBlue);
+        moulding.name='Veranda window rounded blue moulding';moulding.position.set(x,2,z-.020);moulding.castShadow=moulding.receiveShadow=true;g.add(moulding);
       }
       b('Veranda window grey middle crossrail',x,1.99,1.985,1.13,.065,.045,verandaIron);
       for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,2,2.023,.014,1.54,.018,windowIron);
