@@ -246,10 +246,18 @@ Implemented (`git log d7f1b8f..HEAD`) wherever two or more photos agreed:
 ## Preserving poses when geometry moves
 
 Poses in `align-poses.json` are absolute world coordinates, fitted to the model as it was when
-saved. Before a layout change, copy `align-poses.json` to a dated backup in the same folder, and
-record in the commit message the model commit the poses were fitted to. When a change moves a
-region (e.g. the east range +2.5 m in x), apply the same transform to the poses taken in that
-region with a small script, and note it in the commit message.
+saved.
+- **Model stamp:** each pose saved since 2026-09-27 carries
+  `model: {commit, uncommittedEdits}`, from the server's `/model-version` endpoint (HEAD, and
+  whether `dist/src` has uncommitted edits). Poses saved earlier were fitted to the model at or
+  before `3f46126`. Render a pose's own geometry with `FIDELITY_BASELINE=<commit>`.
+- **Pose history:** `F:\Shankaranarayana` is a local-only git repository that tracks only
+  `align-*.json` and its `.gitignore`; photos are ignored, and it has no remote. Never add a remote
+  or track photos there. `server.mjs` commits each saved file there with the model commit in the
+  message; `git -C F:/Shankaranarayana log -p -- align-poses.json` recovers any earlier pose.
+- **Migrating:** when a change moves a region (e.g. the east range +2.5 m in x), apply the same
+  transform to the poses taken in that region with a small script, commit the result in the pose
+  repository, and name the transform in both commit messages.
 
 ## Remaining findings that could be done without the user
 
