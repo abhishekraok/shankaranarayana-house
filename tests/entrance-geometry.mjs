@@ -51,12 +51,12 @@ assert.ok(Math.abs(new THREE.Box3().setFromObject(temple.getObjectByName('Entran
 const frontPier=temple.getObjectByName('Entrance square white pier');
 assert.ok(frontPier.position.z<-1,'Entrance columns project ahead of the right wing');
 assert.ok(new THREE.Box3().setFromObject(landscape.getObjectByName('Adjacent building central stair dark tread')).getSize(new THREE.Vector3()).z<4,'Stage stair width is reduced');
-const washTapRay=new THREE.Raycaster(new THREE.Vector3(28.7,1.04,-.39),new THREE.Vector3(1,0,0));
+const washTapRay=new THREE.Raycaster(new THREE.Vector3(33.6,1.04,-.39),new THREE.Vector3(1,0,0));
 assert.equal(washTapRay.intersectObject(temple,true)[0]?.object.name,'Entrance wash tap spout','Wash taps face right from the temple front');
-assert.ok(collision(30.1,-.8,0),'Front-to-back wash screen has matching collision bounds');
+assert.ok(collision(35.0,-.8,0),'Front-to-back wash screen has matching collision bounds');
 // Closed upper frontage and the dead-end service corner in the new references.
-assert.ok(collision(34.2,-.22,4.08),'Upper entrance storey is enclosed behind the balcony');
-const upperWallRay=new THREE.Raycaster(new THREE.Vector3(34.2,5.7,-4),new THREE.Vector3(0,0,1));
+assert.ok(collision(44.0,-.22,4.08),'Upper entrance storey is enclosed behind the balcony');
+const upperWallRay=new THREE.Raycaster(new THREE.Vector3(44.0,5.7,-4),new THREE.Vector3(0,0,1));
 assert.equal(upperWallRay.intersectObject(temple,true)[0]?.object.name,'Entrance upper enclosed room wall');
 assert.ok(collision(49.8,6.38,.1),'Back-left entry corner cannot lead outside');
 const returnWallRay=new THREE.Raycaster(new THREE.Vector3(49.8,1.8,10),new THREE.Vector3(0,0,-1));
@@ -132,7 +132,7 @@ for(const key of ['templepond','templeacross']){
   assert.ok(Math.abs(supportY(p[0],p[2],p[1])-p[1])<.06,key+' viewpoint is supported');
 }
 assert.ok(temple.getObjectByName('Entrance weathered flat canopy').position.y<temple.getObjectByName('Temple road corner flat roof').position.y,'The entry canopy is below the right wing roof');
-assert.equal(temple.children.filter(o=>o.name==='Temple road upper closed timber shutter').length,4);
+assert.equal(temple.children.filter(o=>o.name==='Temple road upper closed timber shutter').length,6); // 15.22.36: six upper windows along the frontage
 assert.ok(temple.getObjectByName('Temple road white front balcony balusters').count>=38);
 // The three lake photographs are a stationary left-to-right pan opposite the mud road.
 const panoramaKeys=['lakeleft','lakemiddle','lakehouse'];

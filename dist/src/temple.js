@@ -465,7 +465,7 @@ export function buildTemple(K) {
   // Tubular crossed legs and curved metal back distinguish folding chairs
   // from the plastic stacks in the downstairs hall.
   for(let i=0;i<17;i++){
-    const x=32.0+i*.67,z=1.61;if(x>36.9&&x<41)continue; // Clear walkway behind the stair well.
+    const x=32.0+i*.67,z=1.61;if(x<36||(x>36.9&&x<41))continue; // Clear walkway behind the stair well; the corner block's upper front stands west of x 36.
     box('Upper hall folding chair seat',x,4.53,z,.49,.045,.43,galleryChair);
     const back=mesh('Upper hall folding chair rounded blue back',chairBackGeometry,galleryChair,x,4.84,z+.23);back.rotation.x=-.12;
     for(const dx of [-.225,.225]){
@@ -474,7 +474,7 @@ export function buildTemple(K) {
     }
     K.blocker(x,z,.53,.62,4.08,5.07);
   }
-  for(const x of [33.3,43.0]){
+  for(const x of [43.0]){
     box('Upper hall narrow folding tabletop',x,4.81,.88,2.38,.045,.48,galleryTable);
     for(const dx of [-.82,.82]){
       K.beam(g,'Upper hall table folding leg',[x+dx-.20,4.1,.63],[x+dx+.20,4.79,1.08],.027,dark);
@@ -1911,5 +1911,48 @@ export function buildTemple(K) {
    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,zc,x1-x0+.6,.16,len+.4,white);K.roofs.push(roof);
    box('East range upper slab red edge',x0-.3,y1+.08,zc,.1,.18,len+.4,red);
    for(const z of [8.3,11.2,14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
+  // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
+  // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
+  // projecting portico front starts there. The entrance hall and its paintings stay behind.
+  {const W0=30.1,W1=35.0,DX=W1-W0,b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
+   g.updateMatrixWorld(true);
+   const front=n=>/^(Entrance|First storey cornice|Front flat)/.test(n);
+   const side=n=>/^Entrance (projecting (corner|upper side|balcony side|side)|wash)/.test(n);
+   for(const o of [...g.children]){
+     if(!front(o.name))continue;
+     if(o.isInstancedMesh){let hit=false;for(let k=0;k<o.count;k++){o.getMatrixAt(k,m);p.setFromMatrixPosition(m);
+       if(p.x<W1&&p.x>29.5&&p.z<.5){m.makeScale(0,0,0);o.setMatrixAt(k,m);hit=true;}}
+       if(hit){o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();}continue;}
+     b3.setFromObject(o);if(b3.isEmpty())continue;
+     if(side(o.name)&&b3.max.x<30.5){o.position.x+=DX;continue;}
+     const upper=/^Entrance upper/.test(o.name);
+     if(b3.min.x>=29.5&&b3.max.x<=(upper?36.05:W1+.05)&&b3.max.z<=(upper?-.05:-.2)){g.remove(o);continue;}
+     if(o.isMesh&&!o.rotation.y&&b3.min.x<W1-.1&&b3.max.x>W1+.1&&b3.max.z<=2.8&&b3.min.z<-.3){
+       const f=(b3.max.x-W1)/(b3.max.x-b3.min.x);o.scale.x*=f;o.position.x=W1+(o.position.x-b3.min.x)*f;}
+   }
+   for(const o of [...g.children])if(/^Upper hall (pale interior wall face|red interior wall skirt)/.test(o.name)){b3.setFromObject(o);if(b3.max.x<36.1)g.remove(o);}
+   for(let i=K.colliders.length-1;i>=navStart.colliders;i--){const c=K.colliders[i];
+     if(c.minX>29.2&&c.maxX<30.5&&c.minZ>-2.6&&c.maxZ<2.1){c.minX+=DX;c.maxX+=DX;continue;}
+     if(c.minX>=29.5&&c.maxX<=36.05&&c.maxZ<=-.05&&c.bottom<6){K.colliders.splice(i,1);continue;}
+     if(c.minX<W1-.1&&c.maxX>W1+.1&&c.maxZ<=2.8&&c.minZ<-.3)c.minX=W1;}
+   // Road-corner frontage carried across W0..W1: porch piers, balcony, roof and parapet,
+   // and an upper front wall set back behind the balcony with shuttered windows.
+   const xm=(W0+W1)/2,w=W1-W0;
+   for(const x of [32.55,W1-.12]){box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);}
+   box('Temple road corner lower frontage',xm,1.91,1.3,w,3.38,.24,edgeWhite,true);
+   for(const x of [31.3,33.8]){box('Temple road blue window frame',x,1.95,1.17,1.3,1.5,.08,blue);box('Temple road dark window opening',x,1.95,1.12,1.1,1.3,.03,dark);}
+   box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
+   box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
+   floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
+   for(const y of [3.63,4.4])box('Temple road balcony front rail',xm,y,-.25,w,.15,.19,balconyRed);
+   for(const x of [32.55,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
+   for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road white front balcony baluster',x,4.0,-.25,.07,.62,.07,whiteTrim);
+   K.blocker(xm,-.25,w,.25,3.46,4.5);
+   box('Temple road upper front wall',xm,5.15,1.1,w,2.9,.24,edgeWhite,true);
+   for(const x of [31.3,33.8]){box('Temple road upper shutter frame',x,5.23,.97,1.26,2.02,.1,whiteTrim);box('Temple road upper closed timber shutter',x,5.23,.93,1.1,1.85,.05,K.M.wood);}
+   const ext=box('Temple road corner flat roof',xm,6.72,1.2,w,.21,3.1,edgeWhite);K.roofs.push(ext);
+   for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
+   for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
+   for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road rooftop red baluster',x,7.25,-.25,.07,.6,.07,balconyRed);}
   return g;
 }
