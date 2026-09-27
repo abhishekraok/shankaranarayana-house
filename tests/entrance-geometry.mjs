@@ -363,10 +363,26 @@ for(const key of ['templeleft','templecenter','templeright']){
 const templeCamera=new THREE.PerspectiveCamera(photos.templecenter.fov,4/3,.06,400);
 const templeEye=new THREE.Vector3(39,5.7,5.4);templeCamera.position.copy(templeEye);templeCamera.lookAt(new THREE.Vector3(...photos.templecenter.target));templeCamera.updateMatrixWorld();
 const lampPosition=temple.getObjectByName('Lamp stone foot').position.clone();
-assert.ok(lampPosition.clone().setY(4).project(templeCamera).x<0,'Black lamp is on photo-left');
+assert.ok(Math.abs(lampPosition.clone().setY(4).project(templeCamera).x)<.18,'Gallery view places the lamp near the doorway axis');
 const flagPosition=temple.getObjectByName('Flagstaff stone foot').position.clone();
 assert.ok(flagPosition.clone().setY(4).project(templeCamera).x>0,'Pink pillar is on photo-right');
-assert.ok(flagPosition.z-lampPosition.z>2&&lampPosition.x-flagPosition.x>2,'Poles are staggered in both axes, pink behind black');
+assert.ok(flagPosition.z-lampPosition.z>1.5&&lampPosition.x-flagPosition.x>1,'Poles remain staggered, pink behind and right of black');
+{const c=new THREE.PerspectiveCamera(48,4/3,.06,400);c.position.set(39.0585,1.82,-.8753);c.quaternion.set(.00007123,.99989968,-.01307484,.00544731);c.updateMatrixWorld();
+ assert.ok(Math.abs(lampPosition.clone().setY(2).project(c).x)<.07,'Entry photo frames the lamp within the doorway');}
+assert.ok(collision(lampPosition.x,lampPosition.z,.1),'Relocated lamp base blocks walking');
+assert.ok(!collision(40.3,10.5,.1),'Old lamp position is clear');
+// The deep service porch has a usable inner step and a genuinely open west
+// arch. Neither the old portico wall nor the street-front block may fill it.
+for(const [x,z,y] of [[30.5,7.1,.613],[30.5,5.7,.823],[29.2,5.7,.823],[28.64,7.1,.613]]){
+  assert.ok(Math.abs(supportY(x,z,y)-y)<.015,'Service porch floors support both levels and the hall connection');
+  assert.ok(!collision(x,z,y),'Service porch interior is clear');
+}
+assert.ok(collision(30.5,4.9,.823),'Service porch rear wall stays closed');
+{const ray=new THREE.Raycaster(new THREE.Vector3(28.3,1.8,6.8),new THREE.Vector3(1,0,0)),hit=ray.intersectObject(temple,true)[0];
+ assert.equal(hit?.object?.name,'Service bay east return wall','West scalloped opening sees through the porch');}
+{const eye=new THREE.Vector3(32.827,1.78,14.622),target=new THREE.Vector3(29.6,1.8,5.2);
+ const hit=new THREE.Raycaster(eye,target.sub(eye).normalize()).intersectObject(temple,true)[0];
+ assert.equal(hit?.object?.name,'Courtyard left service bay blue back','Street-front mass does not intersect the porch');}
 const largeBell=temple.getObjectByName('Great bronze temple bell');
 const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.getSize(new THREE.Vector3());
 assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
@@ -381,7 +397,7 @@ for(const key of ['templebellreturn','templebellwide','templepoles','templebell'
     assert.ok(pink.x<black.x&&pink.x>-1&&black.x<1,'Side view shows pink left, black right');
   }else{
     const hit=new THREE.Raycaster(eye,bellTarget.clone().sub(eye).normalize()).intersectObject(temple,true)[0];
-    assert.equal(hit?.object,largeBell,key+' must see the great bell through its bay');
+    assert.equal(hit?.object?.uuid,largeBell.uuid,key+' must see the great bell through its bay; hit '+hit?.object?.name);
     const frame=bellTarget.clone().project(c);assert.ok(Math.abs(frame.x)<1&&Math.abs(frame.y)<1,key+' frames the great bell');
   }
 }
@@ -537,4 +553,21 @@ for(const [prefix,base] of [['Front central stair',0],['Courtyard descending sta
   assert.ok(box.min.y>=base-.001,prefix+' masonry stays above its lower landing');
   assert.ok(o.geometry.parameters.height>0,prefix+' has no inverted stair blocks');
  });
+}
+// The photographed sitting-window recess must remove the old flat wall face.
+// Probe the reveal and rounded head beside/above the frame, not its trim.
+for(const [x,y] of [[3.84,2.60],[3,3.25]]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x+K.houseShiftX,y,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
+  assert.ok(hit&&hit.point.z>2.02,'Window reveal is recessed behind the facade');
+}
+{const hit=new THREE.Raycaster(new THREE.Vector3(4.02+K.houseShiftX,2.6,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
+ assert.ok(hit&&hit.point.z<1.94,'Facade remains in front of the window recess');}
+assert.ok(collision(3+K.houseShiftX,2.08,.75),'Closed sitting window cannot be walked through');
+// Both lower column rows are solid, with an open aisle between them; the
+// inner row must not accidentally acquire upper-storey collisions.
+for(const z of [.6,-3,-7,-10.6]){
+  assert.ok(collision(60.5,z,2.82)&&collision(64,z,2.82),'Both lower column rows block walking');
+  assert.ok(!collision(62.2,z,2.82),'Aisle between column rows remains open');
+  assert.ok(!collision(64,z,6.25),'Upper gallery has no invented inner column row');
+  assert.ok(Math.abs(supportY(62.2,z,2.82)-2.82)<.01,'Lower column aisle stays on the raised floor');
 }

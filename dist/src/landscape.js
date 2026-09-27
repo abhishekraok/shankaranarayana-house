@@ -937,7 +937,32 @@ export function buildLandscape(K, {mobile=false}={}) {
     const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.05,.08,.55,8),elephantStone);trunk.position.set(-.66,.42,0);trunk.rotation.z=-.25;trunk.name='Elephant trunk';el.add(trunk);
     for(const dx of [-.3,.3])for(const dz of [-.12,.12]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.4,8),elephantStone);leg.position.set(dx,.2,dz);leg.name='Elephant leg';el.add(leg);}
   }
-  for(const base of [1.62,5.05])for(const a of stageColumns){
+  // 15.13.51 / 15.19.57: the lower hall has two rows of heavy square columns;
+  // the upper gallery keeps its lighter front row. Depth 4 puts the inner row
+  // 3.5 m behind the front row without changing the building or its plinth.
+  const lowerColumnRows=[.50,4.0],columnQuilts=[];
+  for(const depth of lowerColumnRows)for(const a of stageColumns){
+    const base=1.62;
+    ab('lower column dark foot',a,base+.06,depth,.94,.12,.94,adjacentDark);
+    ab('lower column carved base',a,base+.48,depth,.84,.72,.84);
+    ab('lower column square shaft',a,base+1.86,depth,.54,2.12,.54);
+    ab('lower column panel block',a,base+1.70,depth,.82,.72,.82);
+    for(const [y,w] of [[.84,.94],[.93,.79],[1.30,.91],[1.37,.86],[2.09,.91],[2.17,.79],[2.94,.90],[3.05,1.0]])ab('lower column moulded collar',a,base+y,depth,w,.09,w);
+    for(const side of [-1,1]){
+      ab('lower column dark inset panel',a,base+1.70,depth+side*.414,.58,.55,.014,adjacentDark);
+      ab('lower column dark side panel',a+side*.414,base+1.70,depth,.014,.55,.58,adjacentDark);
+    }
+    // Low-relief diamond facets are shared instances, not individual draw calls.
+    for(const y of [1.05,1.22,2.31,2.48,2.65,2.82])for(const u of [-.135,.135])for(let face=0;face<4;face++){
+      const angle=face*Math.PI/2;
+      columnQuilts.push([60+depth+.274*Math.cos(angle)-u*Math.sin(angle),base+y,-5-a+.274*Math.sin(angle)+u*Math.cos(angle),angle]);
+    }
+    K.blocker(60+depth,-5-a,.94,.94,base,base+.98);
+    K.blocker(60+depth,-5-a,.82,.82,base+.98,base+3.14);
+  }
+  {const facets=new THREE.InstancedMesh(new THREE.OctahedronGeometry(1),adjacentWhite,columnQuilts.length),pose=new THREE.Object3D();facets.name='Adjacent building lower column diamond relief';
+    columnQuilts.forEach(([x,y,z,a],i)=>{pose.position.set(x,y,z);pose.rotation.set(0,-a,0);pose.scale.set(.022,.084,.13);pose.updateMatrix();facets.setMatrixAt(i,pose.matrix);});facets.instanceMatrix.needsUpdate=true;facets.castShadow=facets.receiveShadow=true;group.add(facets);}
+  for(const base of [5.05])for(const a of stageColumns){
     ab('square column foot',a,base+.14,.50,.62,.28,.62,adjacentDark);
     ab('white column shaft',a,base+1.50,.50,.30,2.8,.30,adjacentWhite,true);
     ab('column central block',a,base+1.23,.50,.57,.61,.57);
@@ -992,10 +1017,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   stageFigure('Stage lower left photographed figure',2,2.68,[680,682,758,859]);
   stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
   // Moulded capitals and a shaped white balcony screen replace plain rods.
-  for(const base of [1.62,5.05])for(const a of stageColumns){
+  for(const [base,depth] of [[1.62,.50],[1.62,4.0],[5.05,.50]])for(const a of stageColumns){
     for(const side of [-1,1]){
       const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.49,0);shape.quadraticCurveTo(.46,-.29,.24,-.32);shape.quadraticCurveTo(.19,-.13,0,-.13);shape.closePath();
-      const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60.40,base+2.92,-5-a);group.add(bracket);
+      const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60+depth-.10,base+2.92,-5-a);group.add(bracket);
     }
   }
   const spindleProfile=[[.073,0],[.073,.09],[.031,.18],[.035,.36],[.084,.44],[.038,.53],[.07,.66]].map(p=>new THREE.Vector2(...p));

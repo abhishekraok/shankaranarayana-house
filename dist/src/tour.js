@@ -54,6 +54,8 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0) {
     at([42.8,2.17,20.2],[39,2,20.2],'Returning to the courtyard'),
     at([39,2.17,20.2],[39,2,13.6],'Leaving the inner sanctum'),
     at([39,1.72,13.6],[39,2,8],'The front courtyard'),
+    at([40.4,1.72,13.6],[38.7,2.5,11.2],'Around the lamp plinth'),
+    at([40.4,1.72,9.2],[39,2,6],'Back towards the entrance'),
     at([39,1.72,8.2],[39,2,3],'Returning inside'),
     at([39,1.82,3],[44.6,2,3],'Towards the upper gallery'),
     at([44.6,2.22,3],[46.18,3,2],'Towards the upper gallery'),
