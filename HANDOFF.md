@@ -212,23 +212,44 @@ Implemented (`git log d7f1b8f..HEAD`) wherever two or more photos agreed:
   - The grinding bowl is in the rear strip.
 - **Unreal:** the black view was an exposure setup problem; also fixed white foliage and the lake water.
 
-## Decisions only the user can make (don't guess)
+## User decisions (2026-09-27)
 
-1. **15.03.38 / 15.04.55.** The red old-shrine east wall was brought out to the white front
-   block at x 48.1. The other reading of the note is to cut the white block back to about 46.2
-   instead. Renders suggest the passage is now narrower than in the photo. Ask the user which
-   they meant.
-2. **15.03.33, "path extend farther".** Should the courtyard's far end (the rear range, z about
-   35–38) move back 5–10 m? Two nearby photos disagree on the distance.
-3. **Water level.** 15.23.25 and 15.23.32 show the house-side tank wall 2–2.4 m above the water;
-   the model has about 1.1 m. Lowering the water about 1 m means reworking every tier, ledge and
-   bathing step. The far bank would then total about 3.5 m, which also matches its photos better.
-4. **47 poorly aligned poses need re-saving by the user.** They are the photos marked
-   `"alignment":"poor"` in `docs/photo-findings.json`, which includes a suggested correction for
-   each. The far-bank poses (15.21.53, 15.21.56, 15.22.03, 15.23.02, 15.23.05) now sit below
-   the raised ground.
-5. **The user's 15.30.09 note** says the far bank is closer at the lake's west end. That
-   conflicts with the satellite-derived tank outline (z -9..-37), so it's unresolved.
+1. **Passages must not get narrower: expand everything around them.** Keep the old shrine's red
+   east wall flush with the white front block at x 48.1, and widen the courtyard so every passage
+   gets back at least its photographed width.
+   - East: 15.03.33 and 15.04.55 show about 6–7 m between the shrine plinth and the east veranda
+     edge; the model has about 4.3 m (x 48.3 → 52.55). Raise `DX` in the east-range pass at the
+     end of temple.js by about 2.5 m. That pass already shifts the range, stretches the paving and
+     rear range, and moves navigation. Check the outer wall (it would pass x 57) and the east
+     garden (low wall at x 59.5).
+   - West: apply the same check to the west corridor (15.11.08: the shrine's west face reads too
+     far west; 15.13.11: the west veranda edge sits further out).
+   - Rear: 15.03.33's "extend farther" reads the same way. Move the rear range back (5–10 m),
+     which also lengthens the side passages.
+   - Size each step by re-rendering 15.03.33, 15.03.38, 15.04.55 and 15.11.08 until the passages
+     match the photos.
+2. **Lower the lake water.** Target the house-side wall about 2.2 m above the water (15.23.25,
+   15.23.32), i.e. water from -1.12 to about -2.1.
+   - Move the water plane in main.js and any lake-level test; extend the ring courses down; re-cut
+     the tiers so the lowest meets the water.
+   - Extend the bathing steps, the far-bank short flight and the pavilion base and entry down to
+     the new level.
+   - The far bank then totals about 3.5 m above the water, which matches its photos.
+   - Tests to update: lake-stairs, entrance-geometry lake routes, and anything near the water.
+3. **Poses.** The user re-saved all 46 flagged poses on 2026-09-27 (the 47th, lane-left.jpg, has
+   no file). The `"alignment":"poor"` marks in `docs/photo-findings.json` are now out of date.
+   Decisions 1 and 2 move geometry the user aligned against, so poses in the moved regions will
+   need the same transform (see "Preserving poses" below) or re-saving.
+4. **Still open: the user's 15.30.09 note** says the far bank is closer at the lake's west end.
+   That conflicts with the satellite-derived tank outline (z -9..-37).
+
+## Preserving poses when geometry moves
+
+Poses in `align-poses.json` are absolute world coordinates, fitted to the model as it was when
+saved. Before a layout change, copy `align-poses.json` to a dated backup in the same folder, and
+record in the commit message the model commit the poses were fitted to. When a change moves a
+region (e.g. the east range +2.5 m in x), apply the same transform to the poses taken in that
+region with a small script, and note it in the commit message.
 
 ## Remaining findings that could be done without the user
 
