@@ -37,17 +37,17 @@ const groundMat=K.M.earth.clone();{const c=document.createElement('canvas');c.wi
  for(let i=0;i<16000;i++){const v=r();x.fillStyle=v<.18?'rgba(110,140,66,.5)':v<.32?'rgba(70,94,44,.45)':v<.75?'rgba(176,128,98,.45)':'rgba(70,44,34,.45)';x.fillRect(r()*512,r()*512,1+r()*1.5,1+r()*2.5);}
  groundMat.map=new THREE.CanvasTexture(c);groundMat.map.colorSpace=THREE.SRGBColorSpace;groundMat.map.wrapS=groundMat.map.wrapT=THREE.RepeatWrapping;groundMat.map.repeat.set(.2,.2);groundMat.map.anisotropy=4;groundMat.bumpMap=null;groundMat.color.set('#ffffff');}
 function ground(x,z,w,d){const m=K.box(terrain,'Earth',x,-.22,z,w,.44,d,groundMat);m.receiveShadow=true;}
-ground(-73.5,0,137,240);ground(108,0,108,240);
+ground(-73.675,0,136.65,240);ground(-5.175,-72.6,.35,94.8);ground(-5.175,48.6,.35,142.8);ground(108,0,108,240);
 // Shallow notch below the far-bank stair's first below-grade risers.
-ground(3.55,-77,17.1,80);ground(34.2,-77,39.6,80);ground(13.25,-77.1,2.3,79.8);
+ground(-4.25,-77,1.5,80);ground(5.5,-77,13.2,80);ground(-2.3,-77.7,2.4,78.6);ground(23.65,-77,18.5,80);ground(44.55,-77,18.9,80);ground(34,-79.4,2.2,81.2);ground(13.25,-77.1,2.3,79.8);
 // Leave an actual opening under the small forecourt pond (23..28, -3..0).
-ground(24.5,-6,59,6);ground(51.7,-23,4.6,28);ground(24.5,60,59,120);ground(8.1,-1.5,26.2,3);ground(40.1,-1.5,27.8,3);
+ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);ground(24.5,60,59,120);ground(8.1,-1.5,26.2,3);ground(40.1,-1.5,27.8,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
 const waterShader={uniforms:{tDiffuse:{value:null},textureMatrix:{value:new THREE.Matrix4()},color:{value:null},time:{value:0},eye:{value:camera.position}},vertexShader:'uniform mat4 textureMatrix;varying vec4 vUv;varying vec3 wp;void main(){vUv=textureMatrix*vec4(position,1.);vec4 w=modelMatrix*vec4(position,1.);wp=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}',fragmentShader:`uniform sampler2D tDiffuse;uniform float time;uniform vec3 eye;uniform vec3 color;varying vec4 vUv;varying vec3 wp;
 void main(){vec2 q=wp.xz;vec4 uv=vUv;float a=sin(q.x*1.8+q.y*.4+time*.7),b=cos(q.y*2.5-q.x*.5+time*.5);float c=(sin(dot(q,vec2(6.1,2.9))+time*1.6)+sin(dot(q,vec2(-3.7,7.3))-time*1.3)+sin(dot(q,vec2(4.3,-6.7))+time*1.9))/3.,d=(sin(dot(q,vec2(11.3,5.9))-time*2.1)+sin(dot(q,vec2(-8.9,12.7))+time*1.7)+sin(dot(q,vec2(13.9,-9.1))-time*2.4))/3.;uv.xy+=(vec2(a,b)*.0016+vec2(c,d)*.0022)*uv.w;vec3 reflection=texture2DProj(tDiffuse,uv).rgb;float grazing=pow(1.-max(normalize(eye-wp).y,0.),2.);vec3 lake=color*(.82+.12*sin(q.x*.3+q.y*.7)+.035*c+.02*d);vec3 lift=max(reflection-lake,0.);gl_FragColor=vec4(lake+lift*(.17+.09*c+grazing*.32)+(reflection-lake)*.03,1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}`};
-const water=new Reflector(new THREE.PlaneGeometry(54.4,28),{color:0x5b8350,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(22.2,-1.12,-23);water.name='Reflective lake water';scene.add(water);
+const water=new Reflector(new THREE.PlaneGeometry(54.4,28),{color:0x5b8350,textureWidth:phoneMode?384:768,textureHeight:phoneMode?384:768,multisample:0,clipBias:.004,shader:waterShader});const waterMat=water.material;water.rotation.x=-Math.PI/2;water.position.set(22.2,-2.1,-23);water.name='Reflective lake water';scene.add(water);
 // Phone reflections update every other frame; ripples still animate each frame.
 // The mirror camera only draws layer 1. It omits enclosed interiors (house rooms
 // behind the front wall, the temple court behind its frontage), ground-level
@@ -65,7 +65,7 @@ const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,last
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
- front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-.29,-37.3],target:[34,1,-34]},temple:{p:[39,0,-6.5],target:[39,3.7,5]},templecourt:{p:[30,.1,14],target:[41,2,17]}
+ front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-34],target:[34,.02,-30.6]},temple:{p:[39,0,-6.5],target:[39,3.7,5]},templecourt:{p:[30,.1,14],target:[41,2,17]}
 
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
@@ -145,7 +145,7 @@ function lakeCameraLift(x,z){
 }
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
-function terrainY(x,z){if(x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
+function terrainY(x,z){if(x>32.9&&x<35.1&&z>-38.8&&z<=-37)return -8;if(x>-5.35&&x<=-5&&z>-25.2&&z<-22.8||x>=49.4&&x<50.35&&z>-23.5&&z<-20.8||x>-3.5&&x<-1.1&&z>-38.4&&z<=-37||x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
 function supportY(x,z,previous){let best=terrainY(x,z);for(const s of K.surfaces){if(inside(x,z,s)&&s.y<=previous+.38&&s.y>best)best=s.y;}
  for(const r of K.ramps)if(inside(x,z,r)){let t=r.axis.endsWith('x')?(x-(r.x-r.w/2))/r.w:(z-(r.z-r.d/2))/r.d;if(r.axis.startsWith('-'))t=1-t;const h=THREE.MathUtils.lerp(r.lowY,r.highY,THREE.MathUtils.clamp(t,0,1));if(h<=previous+.38&&h>best)best=h;}
  return best;
