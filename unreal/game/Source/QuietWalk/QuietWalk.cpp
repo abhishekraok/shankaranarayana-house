@@ -337,6 +337,7 @@ void AWalkController::SmokeTick() {
     }
     switch(SmokeStep++) {
     case 0: {
+        Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.ResidentGeometryMemoryPoolSizeInMB"))->GetInt()==1024,TEXT("ray-tracing geometry pool configured for this scene"));
         Check(Page=="home"&&IsMoveInputIgnored()&&Menu.IsValid()&&bShowMouseCursor,TEXT("title blocks movement with cursor and native UI"));
         Check(Menu&&Menu->Buttons[0]->HasKeyboardFocus(),TEXT("title primary action has keyboard focus"));
         FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(EKeys::Down,FModifierKeysState(),0,false,0,0));

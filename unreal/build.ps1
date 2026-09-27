@@ -3,6 +3,11 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 Push-Location $taskRoot
 try {
+    if ((git branch --show-current) -ne 'photoreal') { throw 'Run this from the photoreal branch.' }
+    git merge main
+    if ($LASTEXITCODE) { throw 'Resolve the merge first; use main for conflicts in dist/ and tests/.' }
+    python unreal/scripts/check_model_source.py
+    if ($LASTEXITCODE) { throw 'Refresh the generated scene before building.' }
     python unreal/scripts/install_game.py
     if ($LASTEXITCODE) { throw 'Game source installation failed' }
     $taskProject = Join-Path $PSScriptRoot 'Shankaranarayana/Shankaranarayana.uproject'

@@ -43,3 +43,26 @@ noise and tones; it is atmospheric, not a recording of the actual site.
 `unreal/build.ps1 -Package` builds the runtime and cooks a standalone Windows copy
 under ignored `unreal/build/Windows`. It uses the existing generated scene; rebuild
 that scene separately when geometry changes. Keep the whole Windows folder together.
+
+## Full-pose reviews
+
+Run `unreal/review-poses.ps1` after every merge of main and every major improvement.
+It merges main first, checks the exported model source, snapshots the poses read-only,
+captures every alignment in Unreal, then pairs each with its reference photograph.
+Results are local under `blender/build/sheets-<main hash>/unreal-<timestamp>/index.html`.
+The overview supports filename search and reports missing photos without dropping poses.
+Saved position, roll and FOV are preserved, including the full-image extent of older
+cover-cropped alignments. No level or pose changes are saved during capture.
+
+When model source changes, refresh export, Blender scene, Unreal imports and level
+before capture; the review script deliberately rejects a stale model export.
+Record model mismatches in `PHOTOREAL-NOTES.md`; model fixes belong to Claude on main.
+
+The native exporter partitions each scene part into at most 48 material sections
+(`blender/build/unreal/parts.json`). Unreal's Nanite limit is 64; the former monolithic
+meshes exceeded it. Import, material assignment and level construction consume this
+manifest. Face counts are checked during export, and Nanite fallback geometry keeps
+all original triangles for collision. The ray-tracing geometry pool is 1024 MB.
+After a scene refresh, run `scripts/verify_scene.py` through the Python commandlet;
+it checks every group, material assignment and persisted collision setting, writing
+`Shankaranarayana/Saved/native-scene-audit.json`. Then run the walking smoke checks.

@@ -7,6 +7,7 @@ No photos are copied. Generated binaries, saves and imported audio stay ignored.
 """
 from pathlib import Path
 import json
+import re
 import shutil
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -15,11 +16,35 @@ PROJECT = ROOT / 'Shankaranarayana'
 def managed(path, content):
     start, end = '; BEGIN QUIET WALK', '; END QUIET WALK'
     old = path.read_text(encoding='utf-8-sig') if path.exists() else ''
-    if start in old:
-        a, rest = old.split(start, 1)
-        _, b = rest.split(end, 1)
-        old = a.rstrip() + b
-    path.write_text(old.rstrip() + '\n\n' + start + '\n' + content.strip() + '\n' + end + '\n', encoding='utf-8')
+    if start in old and end in old.split(start, 1)[1]:
+        before, rest = old.split(start, 1)
+        _, after = rest.split(end, 1)
+        old = before.rstrip() + after
+    # Unreal rewrites/merges INI sections and can discard the closing comment.
+    # Replace only our scalar keys and named array entries, wherever they moved.
+    owned = {}; section = ''
+    for line in content.strip().splitlines():
+        if line.startswith('['):
+            section = line
+        elif '=' in line:
+            key, value = line.split('=', 1)
+            identity = re.search(r'(\w+)="([^"]*)"', value) if key.startswith('+') else None
+            owned.setdefault((section, key), []).append(identity.groups() if identity else None)
+    kept = []; section = ''
+    for line in old.splitlines():
+        stripped = line.strip()
+        if stripped in (start, end):
+            continue
+        if stripped.startswith('['):
+            section = stripped
+        if '=' in stripped:
+            key, value = stripped.split('=', 1)
+            identities = owned.get((section, key), [])
+            if any(identity is None or re.search(r'\b'+re.escape(identity[0])+r'="'+re.escape(identity[1])+r'"', value)
+                   for identity in identities):
+                continue
+        kept.append(line)
+    path.write_text('\n'.join(kept).rstrip() + '\n\n' + start + '\n' + content.strip() + '\n' + end + '\n', encoding='utf-8')
 
 def main():
     project_file = PROJECT / 'Shankaranarayana.uproject'
@@ -37,6 +62,9 @@ bUseSplitscreen=False
 
 [/Script/Engine.UserInterfaceSettings]
 ApplicationScale=1.0
+
+[SystemSettings]
+r.RayTracing.ResidentGeometryMemoryPoolSizeInMB=1024
 ''')
     managed(PROJECT / 'Config/DefaultInput.ini', '''
 [/Script/Engine.InputSettings]

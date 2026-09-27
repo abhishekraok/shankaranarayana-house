@@ -101,7 +101,11 @@ def lookup(slot):
 missing = set()
 import sys
 argv = sys.argv[1:]
-PARTS = argv[argv.index('--parts') + 1].split(',') if '--parts' in argv else ['ground', 'water', 'house', 'temple', 'landscape']
+manifest = os.path.join(HERE, '..', '..', 'blender', 'build', 'unreal', 'parts.json')
+parts = json.load(open(manifest)) if os.path.exists(manifest) else [{'name': p, 'kind': p} for p in ['ground', 'water', 'house', 'temple', 'landscape']]
+requested = argv[argv.index('--parts') + 1].split(',') if '--parts' in argv else None
+PARTS = [p['name'] for p in parts if not requested or p['name'] in requested or p['kind'] in requested]
+if not PARTS: raise ValueError('No native mesh groups matched --parts')
 for part in PARTS:
     mesh = unreal.load_asset(f'/Game/Scene/{part}/{part}/StaticMeshes/{part}.{part}')
     slots = list(mesh.static_materials)

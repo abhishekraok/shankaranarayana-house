@@ -6,13 +6,15 @@ $taskStandalone = Join-Path $PSScriptRoot 'build/Windows/QuietWalk.exe'
 if (Test-Path $taskStandalone) {
     $taskLaunchArgs = @('-windowed', '-ResX=1600', '-ResY=900')
     if ($Smoke) { $taskLaunchArgs += '-WalkSmoke'; $taskLaunchArgs += '-unattended' }
-    Start-Process $taskStandalone -ArgumentList $taskLaunchArgs
+    if ($Smoke) { Start-Process $taskStandalone -ArgumentList $taskLaunchArgs -WindowStyle Hidden }
+    else { Start-Process $taskStandalone -ArgumentList $taskLaunchArgs }
     return
 }
 if (!(Test-Path (Join-Path $PSScriptRoot 'Shankaranarayana/Binaries/Win64/UnrealEditor-QuietWalk.dll'))) {
     throw 'Build QuietWalkEditor first. See unreal/README.md.'
 }
-$taskArguments = @(('"' + $taskProject + '"'), '-game', '-windowed', '-ResX=1600', '-ResY=900', '-ExecCmds="DisableAllScreenMessages"')
+$taskArguments = @(('"' + $taskProject + '"'), '-game', '-windowed', '-ResX=1600', '-ResY=900')
 if ($Smoke) { $taskArguments += '-WalkSmoke'; $taskArguments += '-unattended' }
 # This is the requested interactive game; the user needs its window.
-Start-Process $taskEditor -ArgumentList $taskArguments
+if ($Smoke) { Start-Process $taskEditor -ArgumentList $taskArguments -WindowStyle Hidden }
+else { Start-Process $taskEditor -ArgumentList $taskArguments }

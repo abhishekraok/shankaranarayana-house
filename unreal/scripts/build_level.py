@@ -29,15 +29,18 @@ def spawn(cls, loc=(0, 0, 0), rot=(0, 0, 0), label=None):
     return a
 
 # Meshes: per-triangle collision so stairs, ramps and walls behave like the web walker's.
-for part in ('ground', 'house', 'temple', 'landscape', 'water'):
+manifest = os.path.join(SRC, 'parts.json')
+parts = json.load(open(manifest)) if os.path.exists(manifest) else [{'name': p, 'kind': p} for p in ('ground', 'house', 'temple', 'landscape', 'water')]
+for entry in parts:
+    part, kind = entry['name'], entry['kind']
     mesh = unreal.load_asset(f'/Game/Scene/{part}/{part}/StaticMeshes/{part}.{part}')
     bs = mesh.get_editor_property('body_setup')
     bs.set_editor_property('collision_trace_flag',
-        unreal.CollisionTraceFlag.CTF_USE_SIMPLE_AS_COMPLEX if part == 'water' else unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
+        unreal.CollisionTraceFlag.CTF_USE_SIMPLE_AS_COMPLEX if kind == 'water' else unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE)
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
     a = spawn(unreal.StaticMeshActor, label=part)
     c = a.static_mesh_component; c.set_static_mesh(mesh)
-    if part == 'water': c.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+    if kind == 'water': c.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
 
 # Overcast monsoon afternoon, lit by the same Poly Haven sky as the Blender renders: the HDRI
 # backdrop supplies both the visible sky and the sky light; a weak, very soft sun adds shape.
