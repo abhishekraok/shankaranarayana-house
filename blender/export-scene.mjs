@@ -1,26 +1,32 @@
 // Exports the web app's authored scene as a Blender blockout, without a browser.
 // Runs the production builders (house, temple, landscape, ground and lake from
-// main.js) under the same canvas shims as tests/entrance-geometry.mjs, before
+// main.js) with a local Canvas 2D implementation, before
 // optimizeStaticScene merges anything, so every mesh keeps its authored name.
 //
 // Output (blender/build/, ignored by git):
 //   scene.json  meshes, materials and transforms in three.js world space (metres, +Y up)
 //   nav.json    colliders, walkable surfaces and ramps from the kit
 //   scene.bin   float32 positions and normals, uint32 indices, per shared geometry
+//   textures/   authored procedural CanvasTextures only; never photo textures
 //
 // Usage: node blender/export-scene.mjs
+// Requires @napi-rs/canvas; CANVAS_MODULE may point to an existing installation.
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import {createRequire} from 'node:module';
+import {createHash} from 'node:crypto';
 import * as THREE from '../dist/vendor/three.module.js';
+const {createCanvas}=createRequire(import.meta.url)(process.env.CANVAS_MODULE||'@napi-rs/canvas');
 
 // Each canvas records the colour of its first near-full-size fill: the base paint
 // the web app's procedural textures start from, before grime and pattern strokes.
 function makeCanvas(){
-  const canvas={width:300,height:150,style:{},baseFill:null};
-  const state={fillStyle:'#000'};
-  const base={getImageData:(x,y,w,h)=>({data:new Uint8ClampedArray((w||1)*(h||1)*4)}),createLinearGradient:()=>({addColorStop(){}}),createRadialGradient:()=>({addColorStop(){}}),createPattern:()=>({}),measureText:()=>({width:0}),
-    fillRect(x,y,w,h){if(!canvas.baseFill&&typeof state.fillStyle==='string'&&w*h>=canvas.width*canvas.height*.5)canvas.baseFill=state.fillStyle;}};
-  const ctx=new Proxy(base,{get:(o,k)=>k in o?o[k]:k in state?state[k]:(()=>{}),set:(o,k,v)=>(state[k]=v,true)});
+  const canvas=createCanvas(300,150);canvas.style={};canvas.baseFill=null;
+  const native=canvas.getContext('2d');
+  const ctx=new Proxy(native,{get:(o,k)=>{
+    if(k==='fillRect')return (x,y,w,h)=>{if(!canvas.baseFill&&typeof o.fillStyle==='string'&&w*h>=canvas.width*canvas.height*.5)canvas.baseFill=o.fillStyle;o.fillRect(x,y,w,h);};
+    const v=Reflect.get(o,k,o);return typeof v==='function'?v.bind(o):v;
+  },set:(o,k,v)=>Reflect.set(o,k,v,o)});
   canvas.getContext=()=>ctx;return canvas;
 }
 globalThis.document={createElement:()=>makeCanvas(),createElementNS:()=>({addEventListener(){},removeEventListener(){},style:{}})};
@@ -52,13 +58,27 @@ for(const r of roots)r.updateMatrixWorld(true);
 // Name shared kit materials by their key; others by their own name or a stable index.
 const kitName=new Map(Object.entries(K.M).map(([k,m])=>[m,k]));
 const materials=[],matIndex=new Map();
+const textureImages=new Map();
+function proceduralMap(t){
+  if(!t?.isCanvasTexture)return null;
+  const canvas=t.image;
+  if(!canvas||typeof canvas.toBuffer!=='function')throw Error('Canvas texture has no local PNG encoder');
+  if(!textureImages.has(canvas)){
+    const png=canvas.toBuffer('image/png'),sha256=createHash('sha256').update(png).digest('hex');
+    textureImages.set(canvas,{file:'textures/'+sha256+'.png',sha256,png});
+  }
+  const {file,sha256}=textureImages.get(canvas);t.updateMatrix();
+  return {file,sha256,width:canvas.width,height:canvas.height,matrix:t.matrix.elements,
+    wrapS:t.wrapS,wrapT:t.wrapT,flipY:t.flipY,colorSpace:t.colorSpace};
+}
 const hex=c=>c?'#'+c.getHexString():null;
 function mat(m){
   if(matIndex.has(m))return matIndex.get(m);
   const i=materials.length;matIndex.set(m,i);
   materials.push({name:kitName.get(m)||m.name||`${m.type}.${i}`,type:m.type,color:hex(m.color),emissive:m.emissive&&m.emissive.getHex()?hex(m.emissive):null,
     roughness:m.roughness??null,metalness:m.metalness??null,opacity:m.opacity,transparent:!!m.transparent,doubleSided:m.side===THREE.DoubleSide,
-    hasMap:!!m.map,mapBase:m.map&&m.map.image&&m.map.image.baseFill?new THREE.Color().setStyle(m.map.image.baseFill).getStyle():null,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0,vertexColors:!!m.vertexColors});
+    hasMap:!!m.map,mapBase:m.map&&m.map.image&&m.map.image.baseFill?new THREE.Color().setStyle(m.map.image.baseFill).getStyle():null,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0,vertexColors:!!m.vertexColors,
+    proceduralMap:proceduralMap(m.map)});
   return i;
 }
 
@@ -94,8 +114,14 @@ for(const root of roots)root.traverse(o=>{
 });
 
 const out=new URL('./build/',import.meta.url);await fs.mkdir(out,{recursive:true});
+await fs.mkdir(new URL('textures/',out),{recursive:true});
+for(const {file,png} of textureImages.values())await fs.writeFile(new URL(file,out),png);
 await fs.writeFile(new URL('scene.bin',out),Buffer.concat(chunks));
-const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null},materials,geometries:geoms,objects};
+const sourceFiles={};
+for(const file of ['blender/export-scene.mjs','dist/src/kit.js','dist/src/house.js','dist/src/temple.js','dist/src/landscape.js','dist/src/main.js','dist/src/tour.js','dist/vendor/three.module.js']){
+  sourceFiles[file]=createHash('sha256').update(await fs.readFile(new URL('../'+file,import.meta.url))).digest('hex');
+}
+const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null,sha256:sourceFiles},materials,geometries:geoms,objects};
 await fs.writeFile(new URL('scene.json',out),JSON.stringify(meta));
 // Navigation the web walker uses: solid boxes, walkable slabs and stair/ramp slopes.
 // A native build rebuilds collision from these rather than from render geometry.
@@ -105,6 +131,7 @@ const inst=objects.filter(o=>o.instances).reduce((n,o)=>n+o.instances.length,0);
 console.log(`roots ${roots.map(r=>r.name).join(' | ')}`);
 console.log(`objects ${objects.length} (instanced ${objects.filter(o=>o.instances).length}, ${inst} instances), geometries ${geoms.length}, materials ${materials.length}, bin ${(offset/1e6).toFixed(1)} MB`);
 console.log('skipped',skipped);
+console.log('procedural texture images',textureImages.size,'(photo textures omitted)');
 
 // The guided tour, sampled from the web app's own tour code with the same floor
 // following (supportY from main.js), so the Blender tour camera walks the same path.

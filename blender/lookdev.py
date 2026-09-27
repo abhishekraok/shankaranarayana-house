@@ -96,15 +96,16 @@ for mat in bpy.data.materials:
     # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
     bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
     kind = 'plain'
-    inlaid_hall = mat.name == 'Adjacent hall dark stone with pale inlays'
+    authored = bool(mat.get('authored_map'))
+    inlaid_hall = not authored and mat.name == 'Adjacent hall dark stone with pale inlays'
     if is_vegetation(mat):
         kind = 'leaf'
-    elif not inlaid_hall and (web['metalness'] or 0) < 0.3 and not web['transparent']:
+    elif not authored and not inlaid_hall and (web['metalness'] or 0) < 0.3 and not web['transparent']:
         kind = 'granite' if is_floor_material(mat) else ('plaster' if web['roughness'] is None or web['roughness'] > 0.5 else 'plain')
     rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = base
     col_out = rgb.outputs[0]
-    if mat.get('vertex_colour') and bsdf.inputs['Base Color'].links:
-        # Keep the per-vertex / per-instance colour the importer wired in.
+    if (authored or mat.get('vertex_colour')) and bsdf.inputs['Base Color'].links:
+        # Keep the authored texture and per-vertex / per-instance tint chain.
         col_out = bsdf.inputs['Base Color'].links[0].from_socket
     if inlaid_hall:
         # Generic granite used to turn this explicitly dark floor pale grey.

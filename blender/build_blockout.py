@@ -31,6 +31,41 @@ scene.collection.objects.link(root)
 # Materials: plain Principled BSDF placeholders carrying the web colours.
 def srgb_to_linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
+
+def authored_map(mat, record, tint):
+    """Reproduce Three.js UV transforms for generated canvases, not photographs."""
+    nt = mat.node_tree
+    tex = nt.nodes.new('ShaderNodeTexImage')
+    tex.image = bpy.data.images.load(os.path.join(BUILD, record['file']), check_existing=True)
+    tex.image.colorspace_settings.name = 'sRGB' if record['colorSpace'] == 'srgb' else 'Non-Color'
+    tex.extension = 'REPEAT'
+    uv = nt.nodes.new('ShaderNodeTexCoord')
+    sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(uv.outputs['UV'], sep.inputs[0])
+    def math_node(operation, a, b):
+        n = nt.nodes.new('ShaderNodeMath'); n.operation = operation
+        for i, v in enumerate((a, b)):
+            if isinstance(v, (int, float)): n.inputs[i].default_value = v
+            else: nt.links.new(v, n.inputs[i])
+        return n.outputs[0]
+    matrix = record['matrix']
+    axes = []
+    for row, wrap in enumerate((record['wrapS'], record['wrapT'])):
+        value = math_node('ADD', math_node('ADD',
+            math_node('MULTIPLY', sep.outputs['X'], matrix[row]),
+            math_node('MULTIPLY', sep.outputs['Y'], matrix[row + 3])), matrix[row + 6])
+        if row == 1 and not record['flipY']: value = math_node('SUBTRACT', 1, value)
+        if wrap == 1001:  # ClampToEdgeWrapping; avoid cycling an unrepeated axis.
+            value = math_node('MINIMUM', math_node('MAXIMUM', value, .000001), .999999)
+        elif wrap == 1002:  # MirroredRepeatWrapping
+            value = math_node('PINGPONG', value, 1)
+        axes.append(value)
+    vector = nt.nodes.new('ShaderNodeCombineXYZ')
+    for i, value in enumerate(axes): nt.links.new(value, vector.inputs[i])
+    nt.links.new(vector.outputs[0], tex.inputs['Vector'])
+    mix = nt.nodes.new('ShaderNodeMixRGB'); mix.blend_type = 'MULTIPLY'; mix.inputs[0].default_value = 1
+    mix.inputs[1].default_value = tint; nt.links.new(tex.outputs['Color'], mix.inputs[2])
+    return mix.outputs[0], tex.outputs['Alpha'], math_node
+
 mats = []
 for m in meta['materials']:
     mat = bpy.data.materials.new(m['name'])
@@ -39,7 +74,7 @@ for m in meta['materials']:
     if m['color']:
         h = m['color'].lstrip('#')
         rgb = [srgb_to_linear(int(h[i:i + 2], 16) / 255) for i in (0, 2, 4)]
-        if m.get('mapBase'):  # the canvas texture's base paint tints the material colour
+        if m.get('mapBase') and not m.get('proceduralMap'):  # Compatibility with older flat exports.
             base = [int(v) for v in m['mapBase'][4:-1].split(',')]
             rgb = [c * srgb_to_linear(b / 255) for c, b in zip(rgb, base)]
         bsdf.inputs['Base Color'].default_value = (*rgb, 1)
@@ -47,6 +82,16 @@ for m in meta['materials']:
     if m['roughness'] is not None: bsdf.inputs['Roughness'].default_value = m['roughness']
     if m['metalness'] is not None: bsdf.inputs['Metallic'].default_value = m['metalness']
     if m['transparent'] and m['opacity'] < 1: bsdf.inputs['Alpha'].default_value = m['opacity']
+    if m.get('proceduralMap'):
+        color, alpha, math_node = authored_map(mat, m['proceduralMap'], tuple(bsdf.inputs['Base Color'].default_value))
+        mat.node_tree.links.new(color, bsdf.inputs['Base Color'])
+        if m['transparent'] or m.get('alphaTest'):
+            alpha = math_node('MULTIPLY', alpha, m['opacity'])
+            if m.get('alphaTest'):
+                keep = math_node('SUBTRACT', 1, math_node('LESS_THAN', alpha, m['alphaTest']))
+                alpha = math_node('MULTIPLY', alpha, keep)
+            mat.node_tree.links.new(alpha, bsdf.inputs['Alpha'])
+        mat['authored_map'] = True
     mat['web'] = json.dumps(m)
     mats.append(mat)
 
@@ -65,6 +110,7 @@ def mesh_from(gi, mat_ids, transforms=None, name='mesh', inst_colors=None):
     # three.js multiplies vertex colours and per-instance colours into the material
     # colour; foliage relies on both, so carry them into a linear 'Col' attribute.
     VC = arr(g['color'], np.float32).reshape(-1, 3) if g.get('color') else None
+    UV = arr(g['uv'], np.float32).reshape(-1, 2) if g.get('uv') else None
     groups = g['groups']
     tri_mat = np.zeros(len(I), dtype=np.int32)
     for start, count, mi in groups:
@@ -79,6 +125,7 @@ def mesh_from(gi, mat_ids, transforms=None, name='mesh', inst_colors=None):
                 Cs.append(c * (np.array(inst_colors[k]) if inst_colors else 1))
         P, I, tri_mat = np.vstack(Ps), np.vstack(Is), np.concatenate(Ms)
         VC = np.vstack(Cs) if Cs else None
+        if UV is not None: UV = np.tile(UV, (len(transforms), 1))
     me = bpy.data.meshes.new(name)
     me.vertices.add(len(P)); me.vertices.foreach_set('co', P.astype(np.float32).ravel())
     me.loops.add(len(I) * 3); me.loops.foreach_set('vertex_index', I.astype(np.int32).ravel())
@@ -87,6 +134,9 @@ def mesh_from(gi, mat_ids, transforms=None, name='mesh', inst_colors=None):
     me.polygons.foreach_set('material_index', tri_mat)
     for mi in mat_ids: me.materials.append(mats[mi])
     me.update(calc_edges=True)
+    if UV is not None:
+        uv_layer = me.uv_layers.new(name='UVMap')
+        uv_layer.data.foreach_set('uv', UV[I.ravel()].astype(np.float32).ravel())
     if VC is not None:
         a = me.color_attributes.new('Col', 'FLOAT_COLOR', 'POINT')
         a.data.foreach_set('color', np.c_[VC, np.ones(len(VC))].astype(np.float32).ravel())
@@ -126,7 +176,8 @@ for mi in COLOURED:
     attr = nt.nodes.new('ShaderNodeAttribute'); attr.attribute_name = 'Col'
     rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = tuple(bsdf.inputs['Base Color'].default_value)
     mul = nt.nodes.new('ShaderNodeMix'); mul.data_type = 'RGBA'; mul.blend_type = 'MULTIPLY'; mul.inputs['Factor'].default_value = 1
-    nt.links.new(rgb.outputs[0], mul.inputs[6]); nt.links.new(attr.outputs['Color'], mul.inputs[7])
+    color = bsdf.inputs['Base Color'].links[0].from_socket if bsdf.inputs['Base Color'].links else rgb.outputs[0]
+    nt.links.new(color, mul.inputs[6]); nt.links.new(attr.outputs['Color'], mul.inputs[7])
     nt.links.new(mul.outputs[2], bsdf.inputs['Base Color'])
     mat['vertex_colour'] = True
 print(f'objects {count}, meshes {len(bpy.data.meshes)}, materials {len(mats)}, coloured materials {len(COLOURED)}')
