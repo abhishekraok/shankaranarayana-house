@@ -70,3 +70,4 @@ checks/*.png
 
 # Blender pipeline outputs (renders and sheets include private photo pixels)
 /blender/build/
+__pycache__/
