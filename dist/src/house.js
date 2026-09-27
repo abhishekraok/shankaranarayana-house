@@ -357,6 +357,15 @@ export function buildHouse(K) {
     }else b('Sitting bay wall red skirting',side*2.745,1.00,1.907,2.99,.49,.024,verandaRed);
     b('Sitting bay back corner timber',side*4.12,2.08,1.91,.13,2.96,.14,verandaTimber);
   }
+  // 14.56.22 / 14.56.30 / 14.56.56 / 14.57.08: a thin old cable hangs
+  // from above the sitting window and loops down across its upper grille.
+  // Keep the wire in front of the recessed frame; its exact attachment is hidden.
+  {const curve=new THREE.CatmullRomCurve3([
+    [3.60,3.57,1.90],[3.48,3.04,2.04],[3.30,2.60,2.05],
+    [3.04,2.42,2.05],[2.78,2.52,2.05],[2.61,2.80,2.13]
+  ].map(p=>new THREE.Vector3(...p)));
+   const cable=new THREE.Mesh(new THREE.TubeGeometry(curve,64,.0028,5,false),new THREE.MeshStandardMaterial({name:'Sitting window faded red wire',color:'#a66c70',roughness:.95}));
+   cable.name='Sitting window hanging wire';g.add(cable);}
   // Layered main-door jambs sit at the threshold, with the leaves open inward.
   for(const s of [-1,1]) {
     for(let j=0;j<4;j++)b('Main door carved nested jamb',s*(1.08+j*.067),1.84,1.95-j*.039,.055,2.78+j*.09,.10,verandaTimber);
@@ -1419,18 +1428,19 @@ export function buildHouse(K) {
   chair(-5.1,4.48,Math.PI);chair(4.0,4.48,Math.PI);
   chair(-6.7,16.95,Math.PI);chair(-5.5,16.95,Math.PI);
   // In the left bay the bench and chair stand against the transverse end wall.
-  // The chair in these photos has two uprights but no broad back panel.
+  // 14.56.22 / 14.56.30: seat ~0.46 m above the bay, arms ~0.71 m,
+  // exposed back uprights ~1.0 m; no broad back panel. Keep its placement.
   b('Entrance-left wooden bench',3.82,1.22,.86,.37,.07,1.28,verandaTimber);
   for(const z of [.35,1.36])b('Entrance-left bench leg',3.82,.98,z,.26,.44,.065,verandaTimber);
   b('Entrance-left chair seat',3.78,1.25,1.67,.62,.075,.57,verandaTimber);
   for(const x of [3.52,4.04])for(const z of [1.43,1.91])b('Entrance-left chair leg',x,1.0,z,.061,.51,.061,verandaTimber);
   for(const z of [1.42,1.92]){
-    b('Entrance-left chair tall back upright',4.06,1.59,z,.055,.98,.055,verandaTimber);
-    b('Entrance-left chair arm',3.74,1.60,z,.69,.06,.075,verandaTimber);
-    b('Entrance-left chair front arm support',3.48,1.45,z,.05,.28,.05,verandaTimber);
+    b('Entrance-left chair tall back upright',4.06,1.455,z,.055,.69,.055,verandaTimber);
+    b('Entrance-left chair arm',3.74,1.50,z,.69,.06,.075,verandaTimber);
+    b('Entrance-left chair front arm support',3.48,1.38,z,.05,.21,.05,verandaTimber);
     b('Entrance-left chair lower stretcher',3.78,.91,z,.55,.045,.045,verandaTimber);
   }
-  K.blocker(3.80,1.67,.75,.64,.75,2.12);
+  K.blocker(3.80,1.67,.75,.64,.75,1.84);
   K.blocker(3.82,.86,.38,1.28,.75,1.25);
   // Open pale wall cupboard at the end of the sitting bay, beyond the posts.
   b('Veranda open pale cupboard back',4.90,2.12,.18,.045,1.78,.44,'paleStone');

@@ -1146,11 +1146,22 @@ export function buildLandscape(K, {mobile=false}={}) {
       bracket.castShadow=bracket.receiveShadow=true;group.add(bracket);
     }
   }
-  const spindleProfile=[[.073,0],[.073,.09],[.031,.18],[.035,.36],[.084,.44],[.038,.53],[.07,.66]].map(p=>new THREE.Vector2(...p));
-  const spindlePositions=[];for(let i=0;i<77;i++){const z=-14.5+i*.25;spindlePositions.push([z>-7&&z<-3?59.10:60.255,5.18,z]);}
-  for(const z of [-7,-3])for(let i=1;i<=4;i++)spindlePositions.push([59.1+i*.23,5.18,z]);
-  const stageSpindles=new THREE.InstancedMesh(new THREE.LatheGeometry(spindleProfile,8),adjacentWhite,spindlePositions.length);stageSpindles.name='Stage shaped white balcony balusters';
-  const stagePose=new THREE.Object3D();spindlePositions.forEach((p,i)=>{stagePose.position.set(...p);stagePose.updateMatrix();stageSpindles.setMatrixAt(i,stagePose.matrix);});stageSpindles.instanceMatrix.needsUpdate=true;group.add(stageSpindles);
+  // 15.12.15 / 14.59.26 / 15.19.57: a flat pierced screen with slender
+  // stems and forked shoulders, rather than round hourglass spindles.
+  const baluster=new THREE.Shape();baluster.moveTo(-.062,0);baluster.lineTo(.062,0);
+  baluster.lineTo(.062,.054);baluster.lineTo(.035,.095);baluster.lineTo(.035,.365);
+  baluster.lineTo(.052,.401);baluster.lineTo(.052,.434);baluster.lineTo(.026,.463);
+  baluster.lineTo(.026,.505);baluster.quadraticCurveTo(.054,.55,.108,.582);
+  baluster.quadraticCurveTo(.066,.598,.087,.66);baluster.quadraticCurveTo(.024,.655,0,.584);
+  baluster.quadraticCurveTo(-.024,.655,-.087,.66);baluster.quadraticCurveTo(-.066,.598,-.108,.582);
+  baluster.quadraticCurveTo(-.054,.55,-.026,.505);baluster.lineTo(-.026,.463);
+  baluster.lineTo(-.052,.434);baluster.lineTo(-.052,.401);baluster.lineTo(-.035,.365);
+  baluster.lineTo(-.035,.095);baluster.lineTo(-.062,.054);baluster.closePath();
+  const screenGeometry=new THREE.ExtrudeGeometry(baluster,{depth:.09,bevelEnabled:true,bevelSize:.003,bevelThickness:.003,bevelSegments:1,curveSegments:8});screenGeometry.translate(0,0,-.045);
+  const spindlePositions=[];for(let i=0;i<77;i++){const z=-14.5+i*.25;spindlePositions.push([z>-7&&z<-3?59.10:60.255,5.18,z,Math.PI/2]);}
+  for(const z of [-7,-3])for(let i=1;i<=4;i++)spindlePositions.push([59.1+i*.23,5.18,z,0]);
+  const stageSpindles=new THREE.InstancedMesh(screenGeometry,adjacentWhite,spindlePositions.length);stageSpindles.name='Adjacent building shaped white balcony balusters';
+  const stagePose=new THREE.Object3D();spindlePositions.forEach(([x,y,z,angle],i)=>{stagePose.position.set(x,y,z);stagePose.rotation.set(0,angle,0);stagePose.updateMatrix();stageSpindles.setMatrixAt(i,stagePose.matrix);});stageSpindles.instanceMatrix.needsUpdate=true;stageSpindles.castShadow=stageSpindles.receiveShadow=true;group.add(stageSpindles);
   // Tile relief follows the existing hipped roof, keeping its profile and alignment.
   const roofCourses=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),K.M.tile,25*65);roofCourses.name='Stage overlapping roof tile courses';
   for(let i=0;i<25;i++)for(let j=0;j<65;j++){
