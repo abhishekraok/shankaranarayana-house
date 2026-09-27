@@ -305,32 +305,15 @@ Implemented (`git log d7f1b8f..HEAD`) wherever two or more photos agreed:
 
 ## User decisions (2026-09-27)
 
-1. **Passages must not get narrower: expand everything around them.** Keep the old shrine's red
-   east wall flush with the white front block at x 48.1, and widen the courtyard so every passage
-   gets back at least its photographed width.
-   - East: 15.03.33 and 15.04.55 show about 6–7 m between the shrine plinth and the east veranda
-     edge; the model has about 4.3 m (x 48.3 → 52.55). Raise `DX` in the east-range pass at the
-     end of temple.js by about 2.5 m. That pass already shifts the range, stretches the paving and
-     rear range, and moves navigation. Check the outer wall (it would pass x 57) and the east
-     garden (low wall at x 59.5).
-   - West: apply the same check to the west corridor (15.11.08: the shrine's west face reads too
-     far west; 15.13.11: the west veranda edge sits further out).
-   - Rear: 15.03.33's "extend farther" reads the same way. Move the rear range back (5–10 m),
-     which also lengthens the side passages.
-   - Size each step by re-rendering 15.03.33, 15.03.38, 15.04.55 and 15.11.08 until the passages
-     match the photos.
-2. **Lower the lake water.** Target the house-side wall about 2.2 m above the water (15.23.25,
-   15.23.32), i.e. water from -1.12 to about -2.1.
-   - Move the water plane in main.js and any lake-level test; extend the ring courses down; re-cut
-     the tiers so the lowest meets the water.
-   - Extend the bathing steps, the far-bank short flight and the pavilion base and entry down to
-     the new level.
-   - The far bank then totals about 3.5 m above the water, which matches its photos.
-   - Tests to update: lake-stairs, entrance-geometry lake routes, and anything near the water.
+1. **Passages must not get narrower: expand everything around them.** Done in `45eec44`:
+   east range +2.5 m (`DX=4` in the east-range pass), west hall and stair -1.5 m, rear range
+   back 7.5 m. Recheck against 15.03.33, 15.03.38, 15.04.55 and 15.11.08 in the full sheets.
+2. **Lower the lake water.** Done in `6254cc5`: water at -2.1, tiers, steps and descents
+   rebuilt, lake tests updated.
 3. **Poses.** The user re-saved all 46 flagged poses on 2026-09-27 (the 47th, lane-left.jpg, has
    no file). The `"alignment":"poor"` marks in `docs/photo-findings.json` are now out of date.
-   Decisions 1 and 2 move geometry the user aligned against, so poses in the moved regions will
-   need the same transform (see "Preserving poses" below) or re-saving.
+   Decisions 1 and 2 moved geometry after most poses were saved (pose repo `84ce6ee`, model
+   `3f46126`); poses in the moved regions were not transformed and may need re-saving.
 4. **Still open: the user's 15.30.09 note** says the far bank is closer at the lake's west end.
    That conflicts with the satellite-derived tank outline (z -9..-37).
 
