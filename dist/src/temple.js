@@ -1328,7 +1328,7 @@ export function buildTemple(K) {
     box('Tulsi top blue rim',31.8+d,1.01,10.2,.05,.055,.55,blue);
     box('Tulsi top blue rim',31.8,1.01,10.2+d,.45,.055,.05,blue);
   }
-  moveAssembly(tulsiStart,-.5,-1.55);
+  moveAssembly(tulsiStart,-.5,-1.90);
 
   // 15.02.27 / 15.10.34 / 15.14.44: raised court-facing portico with a low
   // central entry. West of the entry (to the right on entering) the carved

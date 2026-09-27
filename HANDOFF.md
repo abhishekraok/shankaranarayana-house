@@ -15,7 +15,8 @@ speculative corner-arch connection. Local review: `checks/fidelity-nw-layout/REV
   building is hollowed there. A level connection joins the raised chair platform.
 - Removed the invented projecting corner arch. The barred window now occupies
   the white wall between the blue bay and stair wall.
-- Tulsi moves 0.50 m along -X and 1.55 m along -Z, opening the court and placing it
+- Tulsi moves 0.50 m along -X and 1.90 m along -Z (including the user-requested
+  additional 0.35 m northward nudge), opening the court and placing it
   farther right in the entrance view. The rest of the temple was not translated.
 - Distances are estimates. The foreground column, roof proportions and lighting
   still differ from the photos. No claim of a fully matched corner.
