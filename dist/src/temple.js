@@ -626,6 +626,7 @@ export function buildTemple(K) {
       const z=r.a+.2+(d-.4)*i/count;
       if(r.side>0&&[16.2,21.4].some(center=>Math.abs(z-center)<2.5))continue;
       if(r.side>0&&z>28.2&&z<36.2)continue; // Four shared piers frame the three vaulted bays below.
+      if(r.side>0&&z<16)continue; // 15.01.44 / 15.02.23: only the shutter bay's own piers stand here.
       if(r.round&&z>8&&z<12)continue; // 15.13.11: one column mid-span under the lean-to.
       if(r.round){cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
@@ -1228,9 +1229,9 @@ export function buildTemple(K) {
   K.beam(g,'Pink pillar rope',[flagX+.22,18.5,flagZ],[flagX+.3,.95,flagZ],.012,K.M.cream);
   K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
   K.blocker(flagX,flagZ,.6,.6,1.0,18.7);
-  // 15.12.56 / 15.13.03: the pole stands just in front of the flagstaff, lashed to it.
-  cyl('Separate pale metal pole',38.0,5.3,12.35,.115,.15,10.35,metalPole,16,true);
-  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.4,.9+i*1.25,10.35,1,1,1]);
+  // 15.02.27 / 15.15.51: the pale pole with iron pegs rises from the rear corner of the lamp plinth.
+  cyl('Separate pale metal pole',39.75,5.3,10.15,.115,.15,10.35,metalPole,16,true);
+  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.75,.9+i*1.25,10.15,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.
   box('Tulsi lower blue course',31.8,.17,10.2,.85,.12,.85,blue);
