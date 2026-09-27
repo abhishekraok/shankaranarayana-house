@@ -225,13 +225,17 @@ export function buildTemple(K) {
   // Two shallow transverse steps keep both platforms and gallery accessible.
   steps('Entrance right platform access',37.55,3,1.0,1.15,.20,.602,'-x',2);
   steps('Entrance left platform access',40.45,3,1.0,1.15,.20,.602,'x',2);
-  box('Portico west wall',30.1,3.70,4.23,.24,6.2,4.74,white,true);
+  // The deeper service porch occupies the rear corner below the gallery.
+  // Keep the upper wall but open its lower rear section into the porch.
+  box('Portico west wall',30.1,3.70,3.355,.24,6.2,2.99,white,true);
+  box('Portico west wall above service porch',30.1,5.275,5.725,.24,3.05,1.75,white,true);
   box('Portico east wall',47.9,3.70,2.3,.24,6.2,8.6,white,true);
   for(const x of [33.72,44.28]){
-    box('Ground rear wall',x,2.26,6.1,7.15,3.32,.24,white,true);
+    const w=x<39?4.995:7.15,cx=x<39?34.7975:x;
+    box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
-    box('Rear grey marble dado',x,.80,5.955,7.15,.40,.05,mat('#9a9a92',.4));
-    box('Black upper wall band',x,3.62,5.955,7.15,.19,.05,dark);
+    box('Rear grey marble dado',cx,.80,5.955,w,.40,.05,mat('#9a9a92',.4));
+    box('Black upper wall band',cx,3.62,5.955,w,.19,.05,dark);
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
@@ -1304,12 +1308,22 @@ export function buildTemple(K) {
   // White wall between the service bay and the bell hall: red dado over the
   // red-outlined tiled plinth, and a blue-framed door with the gallery stair
   // rising inside it.
-  {const wallZ=7.45,x0=33.8,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=.62,head=3.07;
-    for(const [a,b] of [[x0,d0],[d1,x1]]){
+  {const wallZ=7.45,x0=32.3,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=.62,head=3.07;
+    for(const [a,b] of [[x0,32.5],[33.5,d0],[d1,x1]]){
       box('Stair door white wall',(a+b)/2,2.0,wallZ,b-a,3.92,.3,white,true);
       box('Stair door wall red dado',(a+b)/2,.87,wallZ+.155,b-a,.5,.02,red);
       box('Stair door wall tiled plinth',(a+b)/2,.31,wallZ+.16,b-a,.62,.03,outlinedPlinth);
     }
+    // 15.10.30 / 15.10.34: a white wall and blue barred window separate
+    // the service porch from the gallery stair door.
+    box('Service porch adjoining window sill',33,.675,wallZ,1,1.35,.3,white,true);
+    box('Service porch adjoining window lintel',33,3.43,wallZ,1,1.06,.3,white,true);
+    box('Service porch adjoining window dado',33,.87,wallZ+.155,1,.5,.02,red);
+    box('Service porch adjoining window plinth',33,.31,wallZ+.16,1,.62,.03,outlinedPlinth);
+    for(const x of [32.53,33,33.47])box('Service porch blue window upright',x,2.125,wallZ+.16,.065,1.55,.09,blue);
+    for(const y of [1.38,2.12,2.87])box('Service porch blue window rail',33,y,wallZ+.16,1,.065,.09,blue);
+    for(let y=1.5;y<2.83;y+=.14)box('Service porch window horizontal bar',33,y,wallZ+.14,.9,.017,.018,whiteTrim);
+    K.blocker(33,wallZ,1,.3,1.35,2.9);
     box('Stair door white lintel wall',dc,(head+3.96)/2,wallZ,d1-d0,3.96-head,.3,white);
     for(const x of [d0+.04,d1-.04])box('Stair door blue frame jamb',x,(sill+head)/2,wallZ+.16,.08,head-sill,.06,blue);
     for(const y of [head-.02,head-.36])box('Stair door blue frame head',dc,y,wallZ+.16,d1-d0,.07,.06,blue);
@@ -1325,8 +1339,12 @@ export function buildTemple(K) {
     steps('Stair door front steps',dc,wallZ+.75,1.1,.9,.02,sill,'-z',3);
   }
   // Blue scalloped service bay underneath the left-hand upper windows.
-  box('Courtyard left service bay blue back',32.0,2.09,6.28,3.35,2.91,.08,paleBlue);
-  box('Courtyard left service bay dark door',32.0,1.88,6.36,1.45,2.45,.06,dark);
+  const serviceStart={children:g.children.length,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length};
+  // 15.10.30 / 15.10.43: a 2.7 m deep porch with an open scalloped west
+  // side and one raised inner step. Rear wall and door are behind that step.
+  box('Courtyard left service bay blue back',32.0,2.195,4.90,3.35,2.70,.14,paleBlue,true);
+  box('Courtyard left service bay dark door',32.0,2.09,4.98,1.45,2.45,.06,dark);
+  box('Service bay east return wall',33.68,2.195,6.245,.14,2.70,2.69,paleBlue,true);
   for(const x of [30.35,33.65]){
     cyl('Courtyard service bay round blue pier',x,2.35,7.59,.145,.145,2.52,paleBlue,20);
     cyl('Courtyard service bay red column foot',x,.90,7.59,.151,.151,.60,red,20);
@@ -1337,7 +1355,14 @@ export function buildTemple(K) {
     const t=i/112;bayArchShape.lineTo(1.625-t*3.25,2.90+.60*Math.sin(t*Math.PI)+.10*Math.abs(Math.sin(t*Math.PI*7)));
   }
   bayArchShape.closePath();mesh('Courtyard left service bay scalloped arch',new THREE.ExtrudeGeometry(bayArchShape,{depth:.20,bevelEnabled:false}),paleBlue,32,0,7.50);
-  floor('Side bay red oxide platform',32,7.12,3.34,1.63,.613,oxideFloor);
+  const sideArch=mesh('Service bay west side scalloped arch',new THREE.ExtrudeGeometry(bayArchShape,{depth:.18,bevelEnabled:false}),paleBlue,30.35,0,6.245);sideArch.rotation.y=Math.PI/2;sideArch.scale.x=2.69/3.25;
+  cyl('Service bay rear blue pier',30.35,2.35,4.98,.145,.145,2.52,paleBlue,20);
+  K.blocker(30.35,4.98,.32,.32,.823,3.61);
+  const bayCeiling=box('Service bay flat porch ceiling',32,3.77,6.40,3.65,.12,3.3,white);K.roofs.push(bayCeiling);
+  floor('Side bay red oxide platform',32,6.44,3.34,3.08,.613,oxideFloor);
+  floor('Service bay west hall connection',30.14,7.10,.45,1.4,.613,oxideFloor);
+  floor('Service bay raised inner floor',32,5.62,3.34,1.44,.823,oxideFloor,.21);
+  box('Service bay inner step riser',32,.718,6.335,3.34,.21,.03,red);
   box('Side bay red platform edge',32,.59,7.98,3.35,.09,.04,red);
   box('Side bay pale masonry plinth',32,.32,7.97,3.35,.43,.035,outlinedPlinth);
   steps('Side bay central approach steps',32,8.24,1.04,.92,.1,.613,'-z',3);
@@ -1357,15 +1382,15 @@ export function buildTemple(K) {
   }
   // 15.10.43: metal-faced double door in the blue recessed bay.
   const doorSilver=mat('#aeb5af',.42,{metalness:.62});
-  for(const x of [31.32,32.0,32.68])box('Side bay metal door stile',x,1.84,6.42,.045,2.32,.055,doorSilver);
-  for(const y of [.69,1.55,2.12,2.96])box('Side bay metal door crossrail',32,y,6.42,1.40,.045,.055,doorSilver);
+  for(const x of [31.32,32.0,32.68])box('Side bay metal door stile',x,2.05,5.04,.045,2.32,.055,doorSilver);
+  for(const y of [.90,1.76,2.33,3.17])box('Side bay metal door crossrail',32,y,5.04,1.40,.045,.055,doorSilver);
   for(const x of [31.66,32.34]){
     for(const [y,h] of [[1.11,.74],[2.48,.61]]){
-      box('Side bay silver door panel',x,y,6.43,.53,h,.026,doorSilver);
+      box('Side bay silver door panel',x,y+.21,5.05,.53,h,.026,doorSilver);
       // The relief is unresolved in the photograph: retain panel depth without invented figures.
-      box('Side bay inset door panel',x,y,6.45,.40,h-.12,.015,oldStone);
+      box('Side bay inset door panel',x,y+.21,5.07,.40,h-.12,.015,oldStone);
     }
-    for(let j=0;j<6;j++)box('Side bay door grille bar',x-.25+j*.10,1.83,6.44,.013,.51,.021,doorSilver);
+    for(let j=0;j<6;j++)box('Side bay door grille bar',x-.25+j*.10,2.04,5.06,.013,.51,.021,doorSilver);
   }
   for(const [x,z,y] of [[30.72,7.0,2.71],[31.35,6.68,2.98],[33.0,6.68,2.96]]){
     bell('Side bay small suspended bell',x,y,z,.20);
@@ -1380,6 +1405,11 @@ export function buildTemple(K) {
   box('Side bay collection box lid',33.0,1.15,7.30,.47,.035,.40,vesselBlue);
   box('Side bay collection slot',33.0,.95,7.49,.17,.023,.008,dark);
   for(const y of [.69,1.02])box('Side bay box hinge',33.19,y,7.495,.025,.08,.014,doorSilver);
+  // 15.10.34 leaves plain wall beside the stair door; 15.10.30 independently
+  // places the porch west of the Tulsi. Move the complete bay 1.5 m west.
+  for(const o of g.children.slice(serviceStart.children))o.position.x-=1.5;
+  for(const c of K.colliders.slice(serviceStart.colliders)){c.minX-=1.5;c.maxX-=1.5;}
+  for(const r of [...K.surfaces.slice(serviceStart.surfaces),...K.ramps.slice(serviceStart.ramps)])r.x-=1.5;
   const bellX=36.55,bellZ=6.8;
   // 15.14.44, looking west from the entry: white piers flank the bell.
   box('Great bell heavy timber suspension beam',bellX,3.39,bellZ-.2,.31,.25,1.7,K.M.wood);
@@ -1738,7 +1768,10 @@ export function buildTemple(K) {
   const balconyRed=mat('#b65f61'),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
   floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,stoneFloor);
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
-  box('Temple road corner lower frontage',25.15,1.91,3.925,9.7,3.38,4.95,edgeWhite,true);
+  // Leave the service porch's rear-west corner hollow; this frontage used
+  // to be one solid block intersecting its newly recovered interior.
+  box('Temple road corner lower frontage',25.15,1.91,3.14,9.7,3.38,3.38,edgeWhite,true);
+  box('Temple road corner lower frontage rear',24.5,1.91,5.615,8.4,3.38,1.57,edgeWhite,true);
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);

@@ -371,6 +371,18 @@ assert.ok(flagPosition.z-lampPosition.z>1.5&&lampPosition.x-flagPosition.x>1,'Po
  assert.ok(Math.abs(lampPosition.clone().setY(2).project(c).x)<.07,'Entry photo frames the lamp within the doorway');}
 assert.ok(collision(lampPosition.x,lampPosition.z,.1),'Relocated lamp base blocks walking');
 assert.ok(!collision(40.3,10.5,.1),'Old lamp position is clear');
+// The deep service porch has a usable inner step and a genuinely open west
+// arch. Neither the old portico wall nor the street-front block may fill it.
+for(const [x,z,y] of [[30.5,7.1,.613],[30.5,5.7,.823],[29.2,5.7,.823],[28.64,7.1,.613]]){
+  assert.ok(Math.abs(supportY(x,z,y)-y)<.015,'Service porch floors support both levels and the hall connection');
+  assert.ok(!collision(x,z,y),'Service porch interior is clear');
+}
+assert.ok(collision(30.5,4.9,.823),'Service porch rear wall stays closed');
+{const ray=new THREE.Raycaster(new THREE.Vector3(28.3,1.8,6.8),new THREE.Vector3(1,0,0)),hit=ray.intersectObject(temple,true)[0];
+ assert.equal(hit?.object?.name,'Service bay east return wall','West scalloped opening sees through the porch');}
+{const eye=new THREE.Vector3(32.827,1.78,14.622),target=new THREE.Vector3(29.6,1.8,5.2);
+ const hit=new THREE.Raycaster(eye,target.sub(eye).normalize()).intersectObject(temple,true)[0];
+ assert.equal(hit?.object?.name,'Courtyard left service bay blue back','Street-front mass does not intersect the porch');}
 const largeBell=temple.getObjectByName('Great bronze temple bell');
 const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.getSize(new THREE.Vector3());
 assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
