@@ -80,11 +80,11 @@ def instance(i):
     mi = unreal.load_asset(path) if EAL.does_asset_exist(path) else         AT.create_asset(name, f'{DIR}/Web', unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     MEL.set_material_instance_parent(mi, masters[kind])
     c = colour(web)
-    if kind == 'water': c = unreal.LinearColor(0.012, 0.05, 0.012, 1)
+    if kind == 'water': c = unreal.LinearColor(0.05, 0.13, 0.04, 1)  # opaque algae green (the 2011 photos)
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
-    if kind != 'water': MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', float(web['roughness'] if web['roughness'] is not None else 0.85))
+    MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.3 if kind == 'water' else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', float(web['metalness'] or 0))
     EAL.save_loaded_asset(mi); made[i] = mi; return mi
 
