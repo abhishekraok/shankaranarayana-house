@@ -61,6 +61,28 @@ def is_vegetation(mat):
     u = veg_users.get(mat.name, [])
     return bool(u) and sum(u) / len(u) >= 0.5
 
+def hall_inlays(nt, coord, base_color):
+    """Match the authored 0.70 m dark floor pattern without photo textures."""
+    axes = nt.nodes.new('ShaderNodeSeparateXYZ')
+    nt.links.new(coord.outputs['Object'], axes.inputs[0])
+    masks = []
+    # Imported mesh-local X/Z are the original three.js horizontal axes.
+    for axis in ('X', 'Z'):
+        value = axes.outputs[axis]
+        for operation, operand in [('MULTIPLY', 1 / .70), ('FRACT', 0),
+                                   ('SUBTRACT', .5), ('ABSOLUTE', 0),
+                                   ('LESS_THAN', 24 / 256 / 2)]:
+            node = nt.nodes.new('ShaderNodeMath'); node.operation = operation
+            nt.links.new(value, node.inputs[0]); node.inputs[1].default_value = operand
+            value = node.outputs[0]
+        masks.append(value)
+    mask = nt.nodes.new('ShaderNodeMath'); mask.operation = 'MULTIPLY'
+    for i, value in enumerate(masks): nt.links.new(value, mask.inputs[i])
+    mix = nt.nodes.new('ShaderNodeMixRGB'); mix.blend_type = 'MIX'
+    nt.links.new(mask.outputs[0], mix.inputs[0]); nt.links.new(base_color, mix.inputs[1])
+    mix.inputs[2].default_value = tuple(((c / 255 + .055) / 1.055) ** 2.4 for c in (182, 178, 160)) + (1,)
+    return mix.outputs[0]
+
 count = {'plaster': 0, 'granite': 0, 'plain': 0, 'leaf': 0}
 for mat in bpy.data.materials:
     if not mat.use_nodes or 'web' not in mat or mat.name == 'lake water': continue
@@ -74,15 +96,19 @@ for mat in bpy.data.materials:
     # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
     bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
     kind = 'plain'
+    inlaid_hall = mat.name == 'Adjacent hall dark stone with pale inlays'
     if is_vegetation(mat):
         kind = 'leaf'
-    elif (web['metalness'] or 0) < 0.3 and not web['transparent']:
+    elif not inlaid_hall and (web['metalness'] or 0) < 0.3 and not web['transparent']:
         kind = 'granite' if is_floor_material(mat) else ('plaster' if web['roughness'] is None or web['roughness'] > 0.5 else 'plain')
     rgb = nt.nodes.new('ShaderNodeRGB'); rgb.outputs[0].default_value = base
     col_out = rgb.outputs[0]
     if mat.get('vertex_colour') and bsdf.inputs['Base Color'].links:
         # Keep the per-vertex / per-instance colour the importer wired in.
         col_out = bsdf.inputs['Base Color'].links[0].from_socket
+    if inlaid_hall:
+        # Generic granite used to turn this explicitly dark floor pale grey.
+        col_out = hall_inlays(nt, coord, col_out)
     if kind == 'leaf':
         # Thin leaves: soft sheen, a little light through them, and both sides shaded.
         bsdf.inputs['Roughness'].default_value = 0.55
