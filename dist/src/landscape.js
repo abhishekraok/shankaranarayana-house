@@ -962,6 +962,35 @@ export function buildLandscape(K, {mobile=false}={}) {
   // the upper gallery keeps its lighter front row. Depth 4 puts the inner row
   // 3.5 m behind the front row without changing the building or its plinth.
   const lowerColumnRows=[.50,4.0],columnQuilts=[];
+  // 15.13.51, also visible in 15.12.15: shallow floral carving on the
+  // outer front pedestals. Draw an approximate palmette/scroll pattern rather
+  // than copying a private photograph or inventing the deity engravings.
+  function pedestalFloral(kind){
+    const canvas=document.createElement('canvas');canvas.width=canvas.height=512;
+    const c=canvas.getContext('2d');c.fillStyle='#e8e6df';c.fillRect(0,0,512,512);
+    c.strokeStyle='#c5bfb3';c.lineWidth=2;c.strokeRect(19,19,474,474);
+    const stroke=(start,curves)=>{c.beginPath();c.moveTo(...start);for(const curve of curves)c.bezierCurveTo(...curve);c.stroke();};
+    for(const side of [-1,1]){
+      c.save();c.translate(256,477);c.scale(side*470,-450);c.strokeStyle='#a58c75';c.lineWidth=.0065;
+      if(kind==='palmette'){
+        stroke([.015,.29],[[.025,.48,.10,.73,.38,.81],[.28,.69,.31,.65,.42,.64],[.27,.61,.26,.57,.36,.53],[.19,.53,.14,.43,.07,.30]]);
+        stroke([.045,.34],[[.11,.48,.29,.50,.29,.39],[.29,.28,.13,.27,.13,.36],[.13,.43,.22,.43,.22,.36]]);
+        stroke([0,.38],[[0,.65,.035,.78,.13,.83],[.06,.86,.05,.91,0,.97]]);
+        stroke([.03,.75],[[.045,.81,.06,.83,.075,.84]]);
+        stroke([.025,.29],[[.17,.34,.22,.25,.16,.20],[.08,.15,.10,.12,.13,.13]]);
+      }else{
+        stroke([0,.11],[[.13,.28,.02,.42,.12,.56],[.21,.69,.36,.76,.29,.87],[.24,.96,.10,.92,.14,.84],[.17,.78,.24,.82,.22,.86]]);
+        stroke([.055,.21],[[.27,.18,.39,.33,.31,.46],[.23,.56,.11,.47,.16,.39],[.21,.32,.29,.37,.24,.41]]);
+        stroke([.08,.53],[[.02,.65,.04,.76,.10,.82]]);
+        stroke([.31,.55],[[.42,.67,.37,.74,.33,.73]]);
+      }
+      stroke([0,.09],[[.10,.22,.33,.18,.31,.06],[.29,-.01,.11,.00,.10,.08],[.10,.15,.23,.14,.21,.08]]);
+      c.restore();
+    }
+    const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;
+    return new THREE.MeshStandardMaterial({name:'Adjacent pedestal '+kind+' carving',map,bumpMap:map,bumpScale:.004,roughness:.92});
+  }
+  const pedestalPalmette=pedestalFloral('palmette'),pedestalScroll=pedestalFloral('scroll');
   for(const depth of lowerColumnRows)for(const a of stageColumns){
     const base=1.62;
     if(depth<1&&Math.abs(a)===2){
@@ -974,6 +1003,14 @@ export function buildLandscape(K, {mobile=false}={}) {
     const inner=depth>1,panelHeight=inner?1.04:.72;
     ab('lower column dark foot',a,base+.06,depth,.94,.12,.94,adjacentDark);
     ab('lower column carved base',a,base+.48,depth,.84,.72,.84);
+    if(!inner){
+      const front=new THREE.Mesh(new THREE.PlaneGeometry(.69,.61),pedestalPalmette);
+      front.name='Adjacent front pedestal floral face';front.rotation.y=-Math.PI/2;
+      front.position.set(60+depth-.423,base+.48,-5-a);front.receiveShadow=true;group.add(front);
+      const side=new THREE.Mesh(new THREE.PlaneGeometry(.69,.61),pedestalScroll);
+      side.name='Adjacent front pedestal outer scroll face';side.rotation.y=a>0?Math.PI:0;
+      side.position.set(60+depth,base+.48,-5-a-Math.sign(a)*.423);side.receiveShadow=true;group.add(side);
+    }
     ab('lower column square shaft',a,base+1.86,depth,.54,2.12,.54);
     ab('lower column panel block',a,base+1.70,depth,.82,panelHeight,.82);
     for(const [y,w] of [[.84,.94],[.93,.79],[inner?1.14:1.30,.91],[inner?1.21:1.37,.86],[inner?2.25:2.09,.91],[inner?2.33:2.17,.79],[2.94,.90],[3.05,1.0]])ab('lower column moulded collar',a,base+y,depth,w,.09,w);
