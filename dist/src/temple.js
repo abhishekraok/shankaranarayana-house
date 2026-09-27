@@ -1213,15 +1213,25 @@ export function buildTemple(K) {
   box('Lamp stone foot',lampX,.26,lampZ,1.45,.32,1.45,oldStone,true);
   box('Lamp dark lower plinth',lampX,.48,lampZ,1.6,.13,1.6,dark);
   box('Lamp upper plinth',lampX,.67,lampZ,1.03,.22,1.03,dark);
-  box('Lamp square shaft',lampX,1.66,lampZ,.49,1.83,.49,dark);
+  const lampShaftStone=mat('#4b4a42',.88);
+  box('Lamp square shaft',lampX,1.66,lampZ,.49,1.83,.49,lampShaftStone);
   for(const y of [.85,1.0,2.45,2.60])box('Lamp square collar',lampX,y,lampZ,.68,.12,.68,dark);
   // 15.03.47 / 15.13.03: slim shaft; dishes little wider than the shaft.
   cyl('Lamp round shaft',lampX,5.73,lampZ,.16,.2,6.5,dark,16);
+  const lampCups=[],lampTurnedBands=[];
   for(let i=0;i<15;i++){
     const y=2.62+i*.44;
     cyl('Lamp wide dish',lampX,y,lampZ,.30-i*.004,.21-i*.003,.08,dark,32);
     cyl('Lamp small rim',lampX,y+.045,lampZ,.31-i*.004,.31-i*.004,.022,dark,32);
+    // 15.13.03 / 15.02.27: each tray ends in a ring of small open oil cups.
+    // One shared lathe mesh retains the scalloped silhouette at close range.
+    const scale=1-i*.012,radius=.288-i*.004;
+    for(let j=0;j<20;j++){const angle=j*Math.PI/10;lampCups.push([lampX+radius*Math.cos(angle),y+.041,lampZ+radius*Math.sin(angle),scale,scale,scale]);}
+    if(i<14)lampTurnedBands.push([lampX,y+.23,lampZ,.206-i*.0027,1,.206-i*.0027]);
   }
+  const cupProfile=[[0,0],[.024,0],[.040,.016],[.042,.027],[.033,.029],[.029,.017],[.020,.010],[0,.010]].map(([r,y])=>new THREE.Vector2(r,y));
+  instances('Lamp scalloped open oil cups',new THREE.LatheGeometry(cupProfile,10),dark,lampCups);
+  instances('Lamp fine turned shaft bands',new THREE.CylinderGeometry(1,1,.022,20),lampShaftStone,lampTurnedBands);
   cyl('Lamp finial',lampX,9.12,lampZ,.018,.13,.42,dark,12);
   K.blocker(lampX,lampZ,1.6,1.6,.1,1.0);
   K.blocker(lampX,lampZ,1.02,1.02,1.0,9.35);
@@ -1245,6 +1255,9 @@ export function buildTemple(K) {
   cyl('Separate pale metal pole',poleX,5.3,poleZ,.115,.15,10.35,metalPole,16,true);
   const poleBands=[];for(let i=0;i<7;i++)poleBands.push([poleX,.9+i*1.25,poleZ,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
+  // Iron climbing pegs are visible on the same pole in 15.02.27 / 15.13.03.
+  for(let i=0;i<16;i++){const side=i%2?1:-1,y=1.3+i*.52;
+    K.beam(g,'Pale pole iron climbing peg',[poleX+side*.10,y,poleZ],[poleX+side*.39,y+.025,poleZ],.014,dark);}
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.
   box('Tulsi lower blue course',31.8,.17,10.2,.85,.12,.85,blue);
   box('Tulsi red pedestal',31.8,.49,10.2,.60,.56,.60,red,true);
