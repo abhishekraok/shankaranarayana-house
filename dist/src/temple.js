@@ -1220,12 +1220,14 @@ export function buildTemple(K) {
   for(const y of [.38,.51,.64,.77])box('Flagstaff blue stepped base course',flagX,y,flagZ,1.38,.07,1.38,blue);
   box('Flagstaff broad pale coping',flagX,.89,flagZ,1.68,.17,1.68,stoneFloor);
   box('Flagstaff dark rounded shoulder',flagX,1.09,flagZ,.80,.26,.80,oldStone);
-  cyl('Tall pink banded pillar',flagX,5.30,flagZ,.24,.34,8.20,pink,8);
-  const bands=[];for(let i=0;i<18;i++)bands.push([flagX,1.2+i*.46,flagZ,1-i*.01,1,1-i*.01]);
+  // 15.21.50 / 15.22.33 / 15.22.36: the flagstaff rises about 18-19 m, above the temple roofs;
+  // 15.03.47: a slimmer shaft.
+  cyl('Tall pink banded pillar',flagX,9.95,flagZ,.15,.25,17.5,pink,8);
+  const bands=[];for(let i=0;i<38;i++)bands.push([flagX,1.2+i*.46,flagZ,.72-i*.012,1,.72-i*.012]);
   instances('Pink pillar pale bands',new THREE.CylinderGeometry(.355,.355,.044,8),dado,bands);
-  K.beam(g,'Pink pillar rope',[flagX+.31,9.2,flagZ],[flagX+.34,.95,flagZ],.012,K.M.cream);
+  K.beam(g,'Pink pillar rope',[flagX+.22,18.5,flagZ],[flagX+.3,.95,flagZ],.012,K.M.cream);
   K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
-  K.blocker(flagX,flagZ,.72,.72,1.0,9.3);
+  K.blocker(flagX,flagZ,.6,.6,1.0,18.7);
   // 15.12.56 / 15.13.03: the pole stands just in front of the flagstaff, lashed to it.
   cyl('Separate pale metal pole',38.0,5.3,12.35,.115,.15,10.35,metalPole,16,true);
   const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.4,.9+i*1.25,10.35,1,1,1]);
