@@ -286,7 +286,29 @@ for(let x=-6.8;x<8.3;x+=.12){
   const ray=new THREE.Raycaster(HV(x,.55,-.31),new THREE.Vector3(0,1,0),0,1.7);
   assert.equal(ray.intersectObject(house,true).length,0,'Lower veranda strip has physical head clearance');
 }
-houseRoute('Inner hall around the photographed desk',[[0,5.15],[0,4.55],[-2.9,4.55],[-2.9,5.15],[-4.9,5.15]]);
+houseRoute('Right entrance platform through north-south steps',[[0,5.15],[-4.9,5.15]],.45,.07);
+houseRoute('Right entrance steps down into courtyard',[[-4.9,5.15],[-2.7,5.15],[-2.7,7]],.45,.03);
+houseRoute('Courtyard back to right entrance platform',[[-2.7,7],[-2.7,5.15],[-4.9,5.15]],.035,.03);
+// User-confirmed 175312 alignment: no camera refit to conceal layout errors.
+const rightEntryCamera=new THREE.PerspectiveCamera(48,4/3,.06,400);
+rightEntryCamera.position.set(-4.2075343063,2.5453056424,6.6058722911);
+rightEntryCamera.quaternion.set(-.12448210896,.42775757941,.05960876957,.89329415782);rightEntryCamera.updateMatrixWorld();
+for(const [name,x,z,min,max] of [['Entrance court peach round column',-4.6,4.3,-.45,-.1],['Courtyard octagonal timber post with turned capital',-4.6,3.5,-.2,.1]]){
+  const target=HV(x,1.8,z),screen=target.clone().project(rightEntryCamera);
+  assert.ok(screen.x>min&&screen.x<max,'Both entrance supports occupy the middle of the fixed photo');
+  const hit=new THREE.Raycaster(rightEntryCamera.position,target.sub(rightEntryCamera.position).normalize()).intersectObject(house,true)[0];
+  assert.equal(hit?.object.name,name,'Central pillar must be visible, not hidden by the old partition');
+}
+const pyramid=house.children.filter(o=>o.name==='Entrance three-tier pale pedestal');
+assert.equal(pyramid.length,3);
+const pyramidTarget=new THREE.Box3().setFromObject(pyramid[2]).getCenter(new THREE.Vector3());
+assert.ok(pyramidTarget.z<4.3,'Rectangular stepped pedestal moved east, toward the front');
+assert.ok(pyramidTarget.clone().project(rightEntryCamera).x>0,'Pedestal appears right of the central pillars');
+const entryTreads=house.children.filter(o=>o.name==='Pedestal-side red courtyard stair');
+assert.equal(entryTreads.length,3);
+assert.ok(entryTreads.every(o=>o.geometry.parameters.depth>o.geometry.parameters.width*4),'Tread lengths run east-west, with ascent along north-south');
+assert.ok(Math.abs(supportY(HX-2.7,5.2,.075)-.075)<.001,'Old front slab does not fill the lower entry pocket');
+assert.ok(collision(HX-2.9,4.18,.45),'Moved pedestal blocker follows the raised ledge');
 houseRoute('Three steps to the God room gate',[[0,5.15],[0,6.5]]);
 checkRoute('Lane to original temple entrance',[[20,-5],[39,-5],[39,3],[39,9]],0,0);
 checkRoute('Temple photo shoulder to house entrance',[[23,-3],[23,-5],[HX,-5],[HX,-2]],.051,0);

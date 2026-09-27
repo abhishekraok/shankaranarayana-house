@@ -4,6 +4,22 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## House right entrance repair (2026-09-27)
+
+Reference: `IMG_20130720_175312.jpg`; user-confirmed pose saved at 20:39:15 UTC.
+Use it unchanged. Earlier `175312-pose-height` advice is superseded.
+
+- Assuming the house faces east (-Z), moved the stepped pedestal 1.65 m east
+  and 0.50 m south onto the entrance ledge; used the pale 2013 finish.
+- Peach round and octagonal timber pillars now sit near the frame center. Removed
+  the intervening narrow partition and connected the supports with a ceiling bearer.
+- Three red treads ascend northward (-X). Cut a genuine lower floor pocket in the
+  old solid front slab; preserve access to the inner sitting platform.
+- Desk moved to the north platform edge; its viewpoint and the walking tour follow
+  the corrected layout. Placement distances and unseen connections remain estimates.
+- Local original/before/after: `checks/fidelity-house-right/REVIEW.md`.
+  Photos and user poses unchanged; no media added to Git. Rear temple draft separate.
+
 ## Northwest layout follow-up (2026-09-27)
 
 User references: `15.10.34`, then `15.10.30` from the same place turned left

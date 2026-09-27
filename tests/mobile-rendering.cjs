@@ -16,7 +16,7 @@ const assert=require('node:assert/strict');
   for(const x of [25,30,35,39,43,47,51])for(const z of [1.017,7.017,12.017,18.017,24.017,28.017])for(const direction of [new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0)])rays.push([new THREE.Vector3(x+.023,2.23,z),direction]);
   const hits=()=>rays.map(([origin,direction])=>{const hit=new THREE.Raycaster(origin,direction,.01,30).intersectObject(fixture,true)[0];return hit?{distance:hit.distance,name:hit.object.name,color:hit.object.material.color?.getHex()}:null;});
   const before=hits(),trianglesBefore=count(),roofParents=kit.roofs.map(r=>r.parent);
-  const pedestal=house.getObjectByName('Entrance three-tier turquoise pedestal').position.x;
+  const pedestal=house.getObjectByName('Entrance three-tier pale pedestal').position.x;
   const clock=house.getObjectByName('Ivory wall clock face').position.x;
   const roofHit=new THREE.Raycaster(new THREE.Vector3(10.6+kit.houseShiftX,2.1,10),new THREE.Vector3(0,1,0),0,8).intersectObject(house,true)[0]?.object.name;
   const stats=optimizeStaticScene(fixture,kit.roofs);fixture.updateMatrixWorld(true);const after=hits();
