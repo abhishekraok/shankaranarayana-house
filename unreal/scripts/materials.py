@@ -26,7 +26,9 @@ def param(m, cls, name, x, y, default):
 
 def master(name, tint=False, two_sided=False, water=False, emissive=False):
     path = f'{DIR}/{name}'
-    if EAL.does_asset_exist(path) and '--rebuild' not in __import__('sys').argv:
+    existing = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
+    water_upgrade = water and existing and 'WaterSpecular' not in [str(n) for n in MEL.get_scalar_parameter_names(existing)]
+    if existing and '--rebuild' not in __import__('sys').argv and not water_upgrade:
         m = unreal.load_asset(path)
         # Nanite meshes fall back to the default material unless the master allows Nanite.
         if not m.get_editor_property('used_with_nanite'):
@@ -51,6 +53,9 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False):
     MEL.connect_material_property(r, '', unreal.MaterialProperty.MP_ROUGHNESS)
     mt = param(m, unreal.MaterialExpressionScalarParameter, 'Metallic', -700, 500, 0.0)
     MEL.connect_material_property(mt, '', unreal.MaterialProperty.MP_METALLIC)
+    if water:
+        spec = param(m, unreal.MaterialExpressionScalarParameter, 'WaterSpecular', -700, 600, 0.04)
+        MEL.connect_material_property(spec, '', unreal.MaterialProperty.MP_SPECULAR)
     MEL.recompile_material(m); EAL.save_loaded_asset(m)
     return m
 
@@ -84,7 +89,7 @@ def instance(i):
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
-    MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.3 if kind == 'water' else float(web['roughness'] if web['roughness'] is not None else 0.85))
+    MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.92 if kind == 'water' else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', float(web['metalness'] or 0))
     EAL.save_loaded_asset(mi); made[i] = mi; return mi
 

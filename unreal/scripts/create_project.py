@@ -34,18 +34,16 @@ json.dump({
 }, open(uproject, 'w'), indent='\t')
 # Hardware ray-traced Lumen on the RTX card, and the site as the startup map.
 with open(os.path.join(PROJ, 'Config', 'DefaultEngine.ini'), 'a') as f:
-    f.write('
+    f.write("""
 [/Script/Engine.RendererSettings]
 r.RayTracing=True
 r.SkinCache.CompileShaders=True
-'
-            'r.Lumen.HardwareRayTracing=True
+r.Lumen.HardwareRayTracing=True
 r.Lumen.TraceMeshSDFs=0
 r.Nanite.ProjectEnabled=True
-'
-            '
+
 [/Script/EngineSettings.GameMapsSettings]
 EditorStartupMap=/Game/Maps/Site.Site
 GameDefaultMap=/Game/Maps/Site.Site
-')
+""")
 print('created', os.path.abspath(uproject))
