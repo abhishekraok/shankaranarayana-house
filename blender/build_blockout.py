@@ -32,12 +32,18 @@ scene.collection.objects.link(root)
 def srgb_to_linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
-def authored_map(mat, record, tint):
+def authored_texture(mat, record):
     """Reproduce Three.js UV transforms, including approved photo-card crops."""
     nt = mat.node_tree
     tex = nt.nodes.new('ShaderNodeTexImage')
-    tex.image = bpy.data.images.load(os.path.join(BUILD, record['file']), check_existing=True)
-    tex.image.colorspace_settings.name = 'sRGB' if record['colorSpace'] == 'srgb' else 'Non-Color'
+    color_space = 'sRGB' if record['colorSpace'] == 'srgb' else 'Non-Color'
+    image_name = record['sha256'] + ':' + color_space
+    image = bpy.data.images.get(image_name)
+    if image is None:
+        image = bpy.data.images.load(os.path.join(BUILD, record['file']), check_existing=False)
+        image.name = image_name
+        image.colorspace_settings.name = color_space
+    tex.image = image
     tex.extension = 'REPEAT'
     uv = nt.nodes.new('ShaderNodeTexCoord')
     sep = nt.nodes.new('ShaderNodeSeparateXYZ'); nt.links.new(uv.outputs['UV'], sep.inputs[0])
@@ -62,6 +68,11 @@ def authored_map(mat, record, tint):
     vector = nt.nodes.new('ShaderNodeCombineXYZ')
     for i, value in enumerate(axes): nt.links.new(value, vector.inputs[i])
     nt.links.new(vector.outputs[0], tex.inputs['Vector'])
+    return tex, math_node
+
+def authored_map(mat, record, tint):
+    nt = mat.node_tree
+    tex, math_node = authored_texture(mat, record)
     mix = nt.nodes.new('ShaderNodeMixRGB'); mix.blend_type = 'MULTIPLY'; mix.inputs[0].default_value = 1
     mix.inputs[1].default_value = tint; nt.links.new(tex.outputs['Color'], mix.inputs[2])
     return mix.outputs[0], tex.outputs['Alpha'], math_node
@@ -93,6 +104,25 @@ for m in meta['materials']:
                 alpha = math_node('MULTIPLY', alpha, keep)
             mat.node_tree.links.new(alpha, bsdf.inputs['Alpha'])
         mat['authored_map'] = True
+    if m.get('bumpMap'):
+        tex, _ = authored_texture(mat, m['bumpMap'])
+        channels = mat.node_tree.nodes.new('ShaderNodeSeparateColor')
+        mat.node_tree.links.new(tex.outputs['Color'], channels.inputs['Color'])
+        bump = mat.node_tree.nodes.new('ShaderNodeBump')
+        bump.label = 'Authored Three.js bump (red channel)'
+        bump.inputs['Strength'].default_value = 1
+        bump.inputs['Distance'].default_value = abs(m['bumpScale'])
+        bump.invert = m['bumpScale'] < 0
+        mat.node_tree.links.new(channels.outputs['Red'], bump.inputs['Height'])
+        mat.node_tree.links.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
+        mat['authored_bump'] = True
+    if m.get('roughnessMap'):
+        tex, math_node = authored_texture(mat, m['roughnessMap'])
+        channels = mat.node_tree.nodes.new('ShaderNodeSeparateColor')
+        mat.node_tree.links.new(tex.outputs['Color'], channels.inputs['Color'])
+        roughness = math_node('MULTIPLY', channels.outputs['Green'], m['roughness'])
+        mat.node_tree.links.new(roughness, bsdf.inputs['Roughness'])
+        mat['authored_roughness'] = True
     mat['web'] = json.dumps(m)
     mats.append(mat)
 

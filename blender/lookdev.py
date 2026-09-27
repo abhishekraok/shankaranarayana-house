@@ -4,7 +4,7 @@ edges and occlusion grime over the blockout's own colours.
     blender -b blender/build/blockout.blend -P blender/lookdev.py
 
 Writes blender/build/lookdev.blend. Assets come from Poly Haven (CC0) into
-blender/build/assets/; photographs are never used as textures on 3D forms.
+blender/build/assets/. Existing approved photo cards and procedural maps are preserved.
 """
 import bpy, os, json, math
 
@@ -96,7 +96,7 @@ for mat in bpy.data.materials:
     # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
     bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
     kind = 'plain'
-    authored = bool(mat.get('authored_map'))
+    authored = any(mat.get(key) for key in ('authored_map', 'authored_bump', 'authored_roughness'))
     inlaid_hall = not authored and mat.name == 'Adjacent hall dark stone with pale inlays'
     if is_vegetation(mat):
         kind = 'leaf'
@@ -160,7 +160,12 @@ for mat in bpy.data.materials:
         wc = nt.nodes.new('ShaderNodeCombineColor'); [nt.links.new(both.outputs[0], wc.inputs[i]) for i in range(3)]
         wm = nt.nodes.new('ShaderNodeMix'); wm.data_type = 'RGBA'; wm.blend_type = 'MULTIPLY'; wm.inputs['Factor'].default_value = 1
         nt.links.new(col_out, wm.inputs[6]); nt.links.new(wc.outputs[0], wm.inputs[7]); col_out = wm.outputs[2]
-    if kind != 'leaf' and is_roof_material(mat):
+    # Retain the web's height relief on top of native edge bevel shading.
+    if mat.get('authored_bump'):
+        bump = next(n for n in nt.nodes if n.type == 'BUMP' and n.label.startswith('Authored Three.js'))
+        nt.links.new(bev.outputs['Normal'], bump.inputs['Normal'])
+        nt.links.new(bump.outputs['Normal'], bsdf.inputs['Normal'])
+    if kind != 'leaf' and not mat.get('authored_roughness') and is_roof_material(mat):
         # Weathered clay tile and old sheet roofs are matte: a glossy scan roughness makes
         # them mirror the overcast sky at grazing angles and read white from across the tank.
         for l in list(bsdf.inputs['Roughness'].links): nt.links.remove(l)

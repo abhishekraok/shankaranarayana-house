@@ -38,6 +38,31 @@ for record in mapped:
     assert any(Path(bpy.path.abspath(im.filepath)).name == Path(source['file']).name for im in images), record['name']
     assert mat.node_tree.nodes['Principled BSDF'].inputs['Base Color'].is_linked
 
+scalar_counts = {'bumpMap': 0, 'roughnessMap': 0}
+for record in meta['materials']:
+    mat = bpy.data.materials[record['name']]
+    bsdf = mat.node_tree.nodes['Principled BSDF']
+    for key, socket in [('bumpMap', 'Normal'), ('roughnessMap', 'Roughness')]:
+        source = record.get(key)
+        if not source: continue
+        scalar_counts[key] += 1
+        assert hashlib.sha256((build / source['file']).read_bytes()).hexdigest() == source['sha256']
+        if source.get('sourceFile'): assert source['sourceFile'] in approved
+        expected_space = 'sRGB' if source['colorSpace'] == 'srgb' else 'Non-Color'
+        assert any(n.type == 'TEX_IMAGE' and n.image and
+                   Path(bpy.path.abspath(n.image.filepath)).name == Path(source['file']).name and
+                   n.image.colorspace_settings.name == expected_space for n in mat.node_tree.nodes)
+        assert bsdf.inputs[socket].is_linked, (record['name'], key)
+        upstream = bsdf.inputs[socket].links[0].from_node
+        if key == 'bumpMap':
+            assert mat.get('authored_bump') and upstream.type == 'BUMP'
+            assert abs(upstream.inputs['Distance'].default_value - abs(record['bumpScale'])) < 1e-7
+            assert upstream.inputs['Height'].links[0].from_socket.name == 'Red'
+        else:
+            assert mat.get('authored_roughness') and upstream.type == 'MATH' and upstream.operation == 'MULTIPLY'
+            assert upstream.inputs[0].links[0].from_socket.name == 'Green'
+            assert abs(upstream.inputs[1].default_value - record['roughness']) < 1e-7
+
 # BMesh welding and triangle joining must preserve face-corner UVs. Matching
 # actual (position, UV) sets detects collapsed seams and accidentally using
 # one UV for a welded vertex, which would smear the risers and window paint.
@@ -59,4 +84,4 @@ for name in ['Stage blue-white diamond stair riser', 'Adjacent building ground v
 
 assert len(mapped) > 0
 print(json.dumps({'passed': True, 'mapped_materials': len(mapped), 'photo_materials': photo_count,
-                  'uv_seams_verified': checked}))
+                  'scalar_maps': scalar_counts, 'uv_seams_verified': checked}))
