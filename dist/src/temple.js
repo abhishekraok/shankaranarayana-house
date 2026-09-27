@@ -1203,7 +1203,9 @@ export function buildTemple(K) {
   K.blocker(48.9,24.31,.94,.22,.1,1.37);
 
   // Deepastambha: layered square foot, dark shaft and a vertical series of lamp dishes.
-  const lampX=40.3,lampZ=10.50;
+  // 15.13.03 (gallery) and 15.15.51 (entry): the lamp lies on the doorway
+  // sightline, rather than in front of the facade window to its east.
+  const lampX=38.7,lampZ=11.20;
   box('Lamp stone foot',lampX,.26,lampZ,1.45,.32,1.45,oldStone,true);
   box('Lamp dark lower plinth',lampX,.48,lampZ,1.6,.13,1.6,dark);
   box('Lamp upper plinth',lampX,.67,lampZ,1.03,.22,1.03,dark);
@@ -1235,8 +1237,9 @@ export function buildTemple(K) {
   K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
   K.blocker(flagX,flagZ,.6,.6,1.0,18.7);
   // 15.02.27 / 15.15.51: the pale pole with iron pegs rises from the rear corner of the lamp plinth.
-  cyl('Separate pale metal pole',39.75,5.3,10.15,.115,.15,10.35,metalPole,16,true);
-  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([39.75,.9+i*1.25,10.15,1,1,1]);
+  const poleX=lampX-.55,poleZ=lampZ-.35;
+  cyl('Separate pale metal pole',poleX,5.3,poleZ,.115,.15,10.35,metalPole,16,true);
+  const poleBands=[];for(let i=0;i<7;i++)poleBands.push([poleX,.9+i*1.25,poleZ,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.
   box('Tulsi lower blue course',31.8,.17,10.2,.85,.12,.85,blue);

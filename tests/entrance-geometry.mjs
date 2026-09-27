@@ -363,10 +363,14 @@ for(const key of ['templeleft','templecenter','templeright']){
 const templeCamera=new THREE.PerspectiveCamera(photos.templecenter.fov,4/3,.06,400);
 const templeEye=new THREE.Vector3(39,5.7,5.4);templeCamera.position.copy(templeEye);templeCamera.lookAt(new THREE.Vector3(...photos.templecenter.target));templeCamera.updateMatrixWorld();
 const lampPosition=temple.getObjectByName('Lamp stone foot').position.clone();
-assert.ok(lampPosition.clone().setY(4).project(templeCamera).x<0,'Black lamp is on photo-left');
+assert.ok(Math.abs(lampPosition.clone().setY(4).project(templeCamera).x)<.18,'Gallery view places the lamp near the doorway axis');
 const flagPosition=temple.getObjectByName('Flagstaff stone foot').position.clone();
 assert.ok(flagPosition.clone().setY(4).project(templeCamera).x>0,'Pink pillar is on photo-right');
-assert.ok(flagPosition.z-lampPosition.z>2&&lampPosition.x-flagPosition.x>2,'Poles are staggered in both axes, pink behind black');
+assert.ok(flagPosition.z-lampPosition.z>1.5&&lampPosition.x-flagPosition.x>1,'Poles remain staggered, pink behind and right of black');
+{const c=new THREE.PerspectiveCamera(48,4/3,.06,400);c.position.set(39.0585,1.82,-.8753);c.quaternion.set(.00007123,.99989968,-.01307484,.00544731);c.updateMatrixWorld();
+ assert.ok(Math.abs(lampPosition.clone().setY(2).project(c).x)<.07,'Entry photo frames the lamp within the doorway');}
+assert.ok(collision(lampPosition.x,lampPosition.z,.1),'Relocated lamp base blocks walking');
+assert.ok(!collision(40.3,10.5,.1),'Old lamp position is clear');
 const largeBell=temple.getObjectByName('Great bronze temple bell');
 const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.getSize(new THREE.Vector3());
 assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
