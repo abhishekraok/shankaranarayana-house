@@ -627,11 +627,12 @@ export function buildTemple(K) {
       if(r.side>0&&[16.2,21.4].some(center=>Math.abs(z-center)<2.5))continue;
       if(r.side>0&&z>28.2&&z<36.2)continue; // Four shared piers frame the three vaulted bays below.
       if(r.side>0&&z<16)continue; // 15.01.44 / 15.02.23: only the shutter bay's own piers stand here.
-      if(r.round&&z>8&&z<12)continue; // 15.13.11: one column mid-span under the lean-to.
+      if(r.round&&z>8&&z<15)continue; // 15.02.00 / IMG_20130720_180653: the mid-span column stands at z 10.1 (added below).
       if(r.round){cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
       if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.23,1.13,z,.37,.35,.38,blue);
     }
+    if(r.round){const z=10.1;cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
     if(r.side>0)for(const center of [16.2,21.4])for(const side of [-1,1])
       blueColumn('Outer shrine flanking pale blue pier',r.edge,center+side*1.25,.6,2.85);
     for(const z of r.stairs){
@@ -1049,24 +1050,26 @@ export function buildTemple(K) {
   box('Covered hall small square wall clock frame',20.47,3.18,14.80,.08,.27,.25,clockWood);
   box('Covered hall small clock pale face',20.516,3.18,14.80,.014,.22,.20,clockIvory);
   K.beam(g,'Covered hall small clock hand',[20.526,3.18,14.8],[20.526,3.25,14.78],.009,dark);
-  // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay.
+  // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay, against the
+  // hall's far (+z) end wall, not the entrance end (15.11.00, IMG_20130720_180653 and the
+  // family's 'temple right side' photos).
   const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
   const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,1),cp=curtainGeometry.attributes.position;
   for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
-  mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,26.25,1.9,6.70);
-  for(const x of [24.55,27.95]){
-    box('Covered hall ceremonial bay decorated upright',x,1.95,6.92,.18,2.70,.20,blue);
-    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,7.04,.23,.07,.025,brass);
+  mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,22.2,1.9,15.93);
+  for(const x of [20.6,23.8]){
+    box('Covered hall ceremonial bay decorated upright',x,1.95,15.75,.18,2.70,.20,blue);
+    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,15.63,.23,.07,.025,brass);
   }
   const parasolColors=[mat('#c5b99d'),mat('#c28b27'),mat('#a74f37')];
   for(let tier=0;tier<3;tier++){
     const radius=1.05-tier*.27,y=2.78+tier*.20;
     for(let j=0;j<18;j++){
       const segment=new THREE.ConeGeometry(radius,.26,2,1,true,j*Math.PI/9,Math.PI/9);
-      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],26.25,y,7.6);
+      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],22.2,y,14.9);
     }
   }
-  K.beam(g,'Covered hall parasol suspension',[26.25,3.54,7.6],[26.25,3.21,7.6],.014,dark);
+  K.beam(g,'Covered hall parasol suspension',[22.2,3.54,14.9],[22.2,3.21,14.9],.014,dark);
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
   for(const z of [10.0,23.2]){
     box('Left pavilion upper white back',53.65,4.59,z,.18,1.6,3.65,agedWhite);
