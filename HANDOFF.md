@@ -4,6 +4,19 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Rear temple range completed (2026-09-27)
+
+References: `15.11.08`, `15.11.17`, `15.05.42`, with the dome checked in `15.12.56`.
+Review: `checks/fidelity-rear-range/REVIEW.md`. The earlier rear-room draft is now
+completed and verified: supported upper room, open bay and jali, roof-mounted dome,
+usable stairwell, enclosed lower door/window bay and paired stones. West-veranda
+scallops and pierced parapet replace the solid rail; the unsupported z=22 stair is gone.
+
+The saved `15.05.42` pose faces a different section; it was not refitted. Dimensions
+and stair direction remain estimates. Wheel/geometry, full circuit, physical stair
+clearance and browser checks pass. Older notes below about an unfinished rear draft
+are historical. No private media was committed.
+
 ## House right entrance repair (2026-09-27)
 
 Reference: `IMG_20130720_175312.jpg`; user-confirmed pose saved at 20:39:15 UTC.
