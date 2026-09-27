@@ -902,8 +902,19 @@ export function buildLandscape(K, {mobile=false}={}) {
   const adjacentDark=new THREE.MeshStandardMaterial({color:'#383b39',roughness:.95});
   const stageColumns=[-5.6,-2,2,5.6];
   const ab=(name,a,y,depth,w,h,d,m=adjacentWhite,solid=false)=>box('Adjacent building '+name,60+depth,y,-5-a,d,h,w,m,solid);
+  // 15.13.51, corroborated by the dark lower veranda in 15.19.57:
+  // nearly black stone with small pale square inlays, not the generic pale grid.
+  const hallFloorCanvas=document.createElement('canvas');hallFloorCanvas.width=hallFloorCanvas.height=256;
+  const hc=hallFloorCanvas.getContext('2d');hc.fillStyle='#353a38';hc.fillRect(0,0,256,256);
+  for(let i=0;i<300;i++){hc.fillStyle=i%3?'#b3b3a70b':'#0d151317';hc.fillRect((i*83)%256,(i*151)%256,3+i%17,1+i%5);}
+  hc.strokeStyle='#202a2745';hc.lineWidth=1;hc.strokeRect(.5,.5,255,255);
+  hc.fillStyle='#b6b2a0';hc.fillRect(116,116,24,24);
+  const hallFloorMap=new THREE.CanvasTexture(hallFloorCanvas);hallFloorMap.colorSpace=THREE.SRGBColorSpace;
+  // K.box supplies metre-based UVs at 0.5 units/m on every face.
+  hallFloorMap.wrapS=hallFloorMap.wrapT=THREE.RepeatWrapping;hallFloorMap.repeat.set(2/.70,2/.70);
+  const hallFloorStone=new THREE.MeshStandardMaterial({map:hallFloorMap,roughness:.64});
   ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,materials.basalt,true);
-  ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,'paleStone');K.surface(62.9,-5,5.8,20,1.62);
+  ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,hallFloorStone);K.surface(62.9,-5,5.8,20,1.62);
   // 14.59.26: the deep two-level veranda reads as grey shade behind the white
   // front, under a flat white ceiling rather than the bare tile underside.
   const adjacentShade=new THREE.MeshStandardMaterial({color:'#cdcbc3',roughness:.95});
