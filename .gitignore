@@ -67,3 +67,8 @@ checks/*.png
 /PHOTO-REVIEW.md
 /.openai/
 /.claude/
+
+# Images explicitly approved for the blog.
+!/docs/images/blog/floor-plan.png
+!/docs/images/blog/window-comparison.jpg
+!/docs/images/blog/temple-porch-comparison.jpg
