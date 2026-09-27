@@ -33,7 +33,7 @@ def srgb_to_linear(c):
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
 
 def authored_map(mat, record, tint):
-    """Reproduce Three.js UV transforms for generated canvases, not photographs."""
+    """Reproduce Three.js UV transforms, including approved photo-card crops."""
     nt = mat.node_tree
     tex = nt.nodes.new('ShaderNodeTexImage')
     tex.image = bpy.data.images.load(os.path.join(BUILD, record['file']), check_existing=True)
@@ -82,8 +82,9 @@ for m in meta['materials']:
     if m['roughness'] is not None: bsdf.inputs['Roughness'].default_value = m['roughness']
     if m['metalness'] is not None: bsdf.inputs['Metallic'].default_value = m['metalness']
     if m['transparent'] and m['opacity'] < 1: bsdf.inputs['Alpha'].default_value = m['opacity']
-    if m.get('proceduralMap'):
-        color, alpha, math_node = authored_map(mat, m['proceduralMap'], tuple(bsdf.inputs['Base Color'].default_value))
+    source_map = m.get('proceduralMap') or m.get('photoMap')
+    if source_map:
+        color, alpha, math_node = authored_map(mat, source_map, tuple(bsdf.inputs['Base Color'].default_value))
         mat.node_tree.links.new(color, bsdf.inputs['Base Color'])
         if m['transparent'] or m.get('alphaTest'):
             alpha = math_node('MULTIPLY', alpha, m['opacity'])

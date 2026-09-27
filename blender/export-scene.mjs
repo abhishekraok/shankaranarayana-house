@@ -7,7 +7,7 @@
 //   scene.json  meshes, materials and transforms in three.js world space (metres, +Y up)
 //   nav.json    colliders, walkable surfaces and ramps from the kit
 //   scene.bin   float32 positions and normals, uint32 indices, per shared geometry
-//   textures/   authored procedural CanvasTextures only; never photo textures
+//   textures/   procedural canvases and explicitly approved web photo assets
 //
 // Usage: node blender/export-scene.mjs
 // Requires @napi-rs/canvas; CANVAS_MODULE may point to an existing installation.
@@ -15,8 +15,35 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
+import {fileURLToPath} from 'node:url';
 import * as THREE from '../dist/vendor/three.module.js';
-const {createCanvas}=createRequire(import.meta.url)(process.env.CANVAS_MODULE||'@napi-rs/canvas');
+const {createCanvas,loadImage}=createRequire(import.meta.url)(process.env.CANVAS_MODULE||'@napi-rs/canvas');
+
+// Only the already-approved repository photographs can become native textures.
+// This loader never reads the private reference folder or fetches a URL.
+const allowlist=new Set((await fs.readFile(new URL('../.gitignore',import.meta.url),'utf8'))
+  .split(/\r?\n/).filter(line=>/^!\/dist\/assets\/[\w-]+\.(jpg|jpeg|png)$/i.test(line))
+  .map(line=>line.slice(2)));
+const photoAssets=new Map(),photoLoads=[];
+THREE.TextureLoader.prototype.load=function(url,onLoad){
+  if(!/^(\.\/)?assets\/[\w-]+\.(jpg|jpeg|png)$/i.test(url))throw Error('Nonlocal photo texture rejected: '+url);
+  const sourceFile='dist/'+url.replace(/^\.\//,'');
+  if(!allowlist.has(sourceFile))throw Error('Unapproved photo texture rejected: '+sourceFile);
+  const texture=new THREE.Texture();texture.userData.photoSource=sourceFile;
+  if(!photoAssets.has(sourceFile))photoAssets.set(sourceFile,(async()=>{
+    const fileURL=new URL('../'+sourceFile,import.meta.url);
+    // A redirected/symlinked asset must not turn an approved name into another file.
+    if(path.resolve(await fs.realpath(fileURL))!==path.resolve(fileURLToPath(fileURL)))
+      throw Error('Redirected photo asset rejected: '+sourceFile);
+    const bytes=await fs.readFile(fileURL),image=await loadImage(bytes);
+    const sha256=createHash('sha256').update(bytes).digest('hex');
+    return {sourceFile,bytes,image,sha256,file:'textures/photo-'+sha256+path.extname(sourceFile).toLowerCase()};
+  })());
+  photoLoads.push(photoAssets.get(sourceFile).then(asset=>{
+    texture.image=asset.image;texture.needsUpdate=true;if(onLoad)onLoad(texture);
+  }));
+  return texture;
+};
 
 // Each canvas records the colour of its first near-full-size fill: the base paint
 // the web app's procedural textures start from, before grime and pattern strokes.
@@ -41,6 +68,8 @@ const {buildLandscape}=await loadModule('../dist/src/landscape.js');
 
 const K=createKit();
 const roots=[buildLandscape(K,{mobile:false}),buildHouse(K),buildTemple(K)];
+await Promise.all(photoLoads);
+for(const [file,promise] of photoAssets)photoAssets.set(file,await promise);
 
 // Ground slabs and the lake plane are authored inline in main.js; replay those lines.
 const main=await fs.readFile(new URL('../dist/src/main.js',import.meta.url),'utf8');
@@ -71,6 +100,13 @@ function proceduralMap(t){
   return {file,sha256,width:canvas.width,height:canvas.height,matrix:t.matrix.elements,
     wrapS:t.wrapS,wrapT:t.wrapT,flipY:t.flipY,colorSpace:t.colorSpace};
 }
+function photoMap(t){
+  if(!t?.userData.photoSource)return null;
+  const asset=photoAssets.get(t.userData.photoSource);t.updateMatrix();
+  return {file:asset.file,sha256:asset.sha256,sourceFile:asset.sourceFile,
+    width:asset.image.width,height:asset.image.height,matrix:t.matrix.elements,
+    wrapS:t.wrapS,wrapT:t.wrapT,flipY:t.flipY,colorSpace:t.colorSpace};
+}
 const hex=c=>c?'#'+c.getHexString():null;
 function mat(m){
   if(matIndex.has(m))return matIndex.get(m);
@@ -78,7 +114,7 @@ function mat(m){
   materials.push({name:kitName.get(m)||m.name||`${m.type}.${i}`,type:m.type,color:hex(m.color),emissive:m.emissive&&m.emissive.getHex()?hex(m.emissive):null,
     roughness:m.roughness??null,metalness:m.metalness??null,opacity:m.opacity,transparent:!!m.transparent,doubleSided:m.side===THREE.DoubleSide,
     hasMap:!!m.map,mapBase:m.map&&m.map.image&&m.map.image.baseFill?new THREE.Color().setStyle(m.map.image.baseFill).getStyle():null,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0,vertexColors:!!m.vertexColors,
-    proceduralMap:proceduralMap(m.map)});
+    proceduralMap:proceduralMap(m.map),photoMap:photoMap(m.map)});
   return i;
 }
 
@@ -116,11 +152,13 @@ for(const root of roots)root.traverse(o=>{
 const out=new URL('./build/',import.meta.url);await fs.mkdir(out,{recursive:true});
 await fs.mkdir(new URL('textures/',out),{recursive:true});
 for(const {file,png} of textureImages.values())await fs.writeFile(new URL(file,out),png);
+for(const {file,bytes} of photoAssets.values())await fs.writeFile(new URL(file,out),bytes);
 await fs.writeFile(new URL('scene.bin',out),Buffer.concat(chunks));
 const sourceFiles={};
-for(const file of ['blender/export-scene.mjs','dist/src/kit.js','dist/src/house.js','dist/src/temple.js','dist/src/landscape.js','dist/src/main.js','dist/src/tour.js','dist/vendor/three.module.js']){
+for(const file of ['.gitignore','blender/export-scene.mjs','dist/src/kit.js','dist/src/house.js','dist/src/temple.js','dist/src/landscape.js','dist/src/main.js','dist/src/tour.js','dist/vendor/three.module.js']){
   sourceFiles[file]=createHash('sha256').update(await fs.readFile(new URL('../'+file,import.meta.url))).digest('hex');
 }
+for(const asset of photoAssets.values())sourceFiles[asset.sourceFile]=asset.sha256;
 const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null,sha256:sourceFiles},materials,geometries:geoms,objects};
 await fs.writeFile(new URL('scene.json',out),JSON.stringify(meta));
 // Navigation the web walker uses: solid boxes, walkable slabs and stair/ramp slopes.
@@ -131,7 +169,7 @@ const inst=objects.filter(o=>o.instances).reduce((n,o)=>n+o.instances.length,0);
 console.log(`roots ${roots.map(r=>r.name).join(' | ')}`);
 console.log(`objects ${objects.length} (instanced ${objects.filter(o=>o.instances).length}, ${inst} instances), geometries ${geoms.length}, materials ${materials.length}, bin ${(offset/1e6).toFixed(1)} MB`);
 console.log('skipped',skipped);
-console.log('procedural texture images',textureImages.size,'(photo textures omitted)');
+console.log('procedural texture images',textureImages.size,'; approved web photo assets',photoAssets.size);
 
 // The guided tour, sampled from the web app's own tour code with the same floor
 // following (supportY from main.js), so the Blender tour camera walks the same path.

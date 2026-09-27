@@ -4,6 +4,7 @@
 """
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import bpy
@@ -17,10 +18,19 @@ def array(ref, dtype, width):
     offset, size = ref
     return np.frombuffer(blob, dtype=dtype, count=size, offset=offset).reshape(-1, width)
 
-mapped = [m for m in meta['materials'] if m.get('proceduralMap')]
+repo = build.parents[1]
+approved = {line[2:] for line in (repo / '.gitignore').read_text().splitlines()
+            if re.fullmatch(r'!/dist/assets/[\w-]+\.(jpg|jpeg|png)', line, re.IGNORECASE)}
+mapped = [m for m in meta['materials'] if m.get('proceduralMap') or m.get('photoMap')]
+photo_count = 0
 for record in mapped:
-    source = record['proceduralMap']
-    assert not record['mapIsPhoto'], 'Photo pixels must not enter the procedural export'
+    source = record.get('proceduralMap') or record['photoMap']
+    if record.get('photoMap'):
+        photo_count += 1
+        assert record['mapIsPhoto'] and source['sourceFile'] in approved
+        assert hashlib.sha256((repo / source['sourceFile']).read_bytes()).hexdigest() == source['sha256']
+    else:
+        assert not record['mapIsPhoto'], 'Photo pixels must not enter the procedural export'
     assert hashlib.sha256((build / source['file']).read_bytes()).hexdigest() == source['sha256']
     mat = bpy.data.materials[record['name']]
     assert mat.get('authored_map'), record['name']
@@ -33,7 +43,7 @@ for record in mapped:
 # one UV for a welded vertex, which would smear the risers and window paint.
 checked = []
 for name in ['Stage blue-white diamond stair riser', 'Adjacent building ground veranda floor',
-             'Veranda window ochre horizontal reveal']:
+             'Veranda window ochre horizontal reveal', 'Stage lower left photographed figure']:
     record = next(o for o in meta['objects'] if o['name'] == name and not o.get('instances'))
     geometry = meta['geometries'][record['geometry']]
     positions = array(geometry['positions'], np.float32, 3)
@@ -48,4 +58,5 @@ for name in ['Stage blue-white diamond stair riser', 'Adjacent building ground v
     checked.append(name)
 
 assert len(mapped) > 0
-print(json.dumps({'passed': True, 'mapped_materials': len(mapped), 'uv_seams_verified': checked}))
+print(json.dumps({'passed': True, 'mapped_materials': len(mapped), 'photo_materials': photo_count,
+                  'uv_seams_verified': checked}))
