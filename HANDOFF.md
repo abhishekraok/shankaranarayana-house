@@ -11,6 +11,7 @@ images from matching cameras, source revisions, and short notes on changes and u
 Preserve earlier reviews; label diagnostic camera or lighting adjustments. Keep photo-bearing
 reviews ignored and local, block source-file writes during capture, and link the new review
 in the progress update. This is the user's preferred review format.
+The local index is `checks/REVIEW.md`.
 
 Use `tools/capture-fidelity.cjs <new-batch-name>` with `PHOTO_TIMES=HH.MM.SS,...`,
 `PLAYWRIGHT_MODULE` and `BROWSER_CHANNEL` from the test setup below. Outputs go under
@@ -51,8 +52,9 @@ anchor cameras and the remaining layout choices, and links the 47-pose historica
   60 routes, no failures/errors. Views, lake stairs, shrine platforms, alignment, gamepad,
   mobile landscape and mobile rendering also passed; logs are in `checks/fidelity-session/`.
 - Native refreshed: eight views in `blender/build/final-integrated-{window,exterior,diagnostic}`
-  on `photoreal`, with source/asset hashes in each `provenance.json`. Saved poses are unchanged;
-  exterior exposure is 1.3, windows use the EXIF profile below. The hall close-up is labelled
+  on `photoreal`, with source/asset hashes in each `provenance.json`. They use the audited
+  `f58176b1...` pose-file snapshot; later alignment updates are noted below.
+  Exterior exposure is 1.3, windows use the EXIF profile below. The hall close-up is labelled
   +1.18 m diagnostic. Browser/native camera transforms and geometry sources were cross-checked.
 - Native photo textures (`a204be1`): 22 material maps from 11 explicitly approved web assets
   restore the previously blank figure panels. Private reference media remain excluded.
@@ -73,6 +75,15 @@ timestamp. All paired review cameras match, but full historical file equality is
 The capture harness now blocks writes and checks the source hash before/after. The viewer
 now caches loaded poses without writing the source; explicit Save/Import still persist.
 Photographs and `docs/photo-findings.json` are untouched. User-only layout decisions remain open.
+
+**Later alignment updates:** at 17:05 UTC the source pose file began changing after the
+captures had finished. A read-only comparison at 17:05:59 found 12 changed cameras; the newer
+file was preserved. `blender/build/pose-change-audit.json` records that comparison. The user
+decision review is an earlier snapshot, especially 15.04.55 / 15.21.56; recheck their newer
+poses before following its camera suggestions. The writer has not yet been identified.
+At 17:07:02, the nine-view cumulative review still matched the current saved cameras except
+15.10.43, which had also changed. Preserve the review snapshots; refresh only after the
+ongoing alignment edits settle.
 
 ## Initial Codex fidelity pass (2026-09-27)
 
