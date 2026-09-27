@@ -43,7 +43,9 @@ export function createKit(){
   }
   M.tile.color.setRGB(.87,.85,.80);
   Object.assign(M,{gold:new THREE.MeshStandardMaterial({color:0xb99548,metalness:.66,roughness:.38}),leaf:new THREE.MeshStandardMaterial({color:0x4f6b31,roughness:.86,side:THREE.DoubleSide}),metal:new THREE.MeshStandardMaterial({color:0x616258,metalness:.65,roughness:.6}),black:new THREE.MeshStandardMaterial({color:0x242b25,roughness:.84}),glass:new THREE.MeshStandardMaterial({color:0xa0b6aa,roughness:.15,transparent:true,opacity:.4}),water:new THREE.MeshStandardMaterial({color:0x377651,roughness:.2,metalness:.28})});
-  const K={M,colliders:[],surfaces:[],ramps:[],roofs:[],labels:[]};
+  // The razed house sat about 3.8 m further from the temple than first modelled (15.22.40:
+  // its long temple-side wing and the side road). House geometry is authored at x=0.
+  const K={M,colliders:[],surfaces:[],ramps:[],roofs:[],labels:[],houseShiftX:-3.8};
   const resolve=m=>typeof m==='string'?M[m]:m;
   function finish(g,geom,mat,name,x=0,y=0,z=0){const mesh=new THREE.Mesh(geom,resolve(mat));mesh.name=name;mesh.position.set(x,y,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);return mesh;}
   // Materials flagged userData.worldAnchored (weathering maps) take the box's

@@ -4,6 +4,7 @@ import * as THREE from 'three';
 // Dimensions and unseen upper rooms are estimates; source photographs control
 // the characteristic timber, turquoise plaster, oxide floors and roof forms.
 export function buildHouse(K) {
+  const navStart={colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,labels:K.labels.length};
   const g = new THREE.Group();
   g.name = 'Grandparents house — courtyard plan';
   const F = .45, U = 3.85, E = 3.55;
@@ -1289,10 +1290,10 @@ export function buildHouse(K) {
 
   K.hipRoof(g,'East rear service roof',10.1,15.8,4.2,5.25,3.62,.85);
   // 15.22.40: a long whitewashed single-storey wing with a black dado runs on from the
-  // veranda's far door, under the upper enclosed room and some 4 m past the upper
+  // veranda's far door, under the upper enclosed room and some 7.5 m past the upper
   // storey, its hipped tile roof taking over from the veranda awning. Solid: its rooms
-  // are not photographed. Length from the photo, bounded by the 4 m side road.
-  const wingX0=9.2,wingX1=16.4,wingZ0=-.9,wingZ1=4.9,wingCx=(wingX0+wingX1)/2,wingCz=(wingZ0+wingZ1)/2;
+  // are not photographed. About three car lengths (the Ritz in 15.22.40), ending at the side road.
+  const wingX0=9.2,wingX1=16.4-(K.houseShiftX||0),wingZ0=-.9,wingZ1=4.9,wingCx=(wingX0+wingX1)/2,wingCz=(wingZ0+wingZ1)/2;
   const endWhite=mat('plaster').clone();endWhite.color.set('#f1eced');
   const dampBase=new THREE.MeshStandardMaterial({color:'#2f302c',roughness:1});
   b('Temple-side long white wing',wingCx,1.36,wingCz,wingX1-wingX0,2.42,wingZ1-wingZ0,endWhite,true);
@@ -1300,6 +1301,8 @@ export function buildHouse(K) {
   b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
+  b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
+  for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',wingCx-.05,wingCz,wingX1-wingX0+2.1,wingZ1-wingZ0+1.9,2.42,1.3);
   wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
@@ -1314,7 +1317,7 @@ export function buildHouse(K) {
     const x=tp.getX(i),y=tp.getY(i),fold=.12*Math.sin(x*8+y*2)+.045*Math.sin(y*14);
     tp.setXYZ(i,x,y-.15*Math.cos(x*2.4),fold);
   }
-  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(16.47,1.9,3.6);g.add(tarpSheet);
+  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(wingX1+.07,1.9,3.6);g.add(tarpSheet);
   // Roof framing is grouped with the cutaway roofs.
   const roofTimber=new THREE.Group();roofTimber.name='Exposed veranda roof rafters';g.add(roofTimber);K.roofs.push(roofTimber);
   for(let z=6.3;z<17.8;z+=.55) {
@@ -1493,5 +1496,10 @@ export function buildHouse(K) {
   }
   g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   K.labels.push({text:'Grandparents’ house',position:[0,7.8,2.5]},{text:'Open courtyard',position:[-3.2,1.0,11.8]},{text:'Family shrine',position:[0,3.9,8.0]},{text:'Tulsi',position:[-5.2,2.2,8]},{text:'Kitchen',position:[-10.2,3.25,15.2]});
+  // Place the house (authored with its front door at x=0) at K.houseShiftX, with its navigation.
+  const hs=K.houseShiftX||0;g.position.x+=hs;
+  for(const c of K.colliders.slice(navStart.colliders)){c.minX+=hs;c.maxX+=hs;}
+  for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)])r.x+=hs;
+  for(const l of K.labels.slice(navStart.labels))l.position=[l.position[0]+hs,l.position[1],l.position[2]];
   return g;
 }
