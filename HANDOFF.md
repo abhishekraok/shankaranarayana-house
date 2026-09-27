@@ -25,7 +25,7 @@ committed) still apply.
   - Unreal: `export_unreal.py` → `unreal/scripts/import_scene.py` → `materials.py` →
     `build_level.py`, each run with `UnrealEditor-Cmd.exe <uproject> -run=pythonscript -script=...`.
   - Copy `nav.json`, `tour.json` and `views.json` into `blender/build/unreal/` after the export.
-  - A scripted end-to-end run is sketched in `unreal/scripts/*.py`. UE is at `I:\Epic\UE_5.8`, and the
+  - Run those steps in that order; each takes a few minutes. UE is at `I:\Epic\UE_5.8`, and the
     project lives at `unreal/Shankaranarayana` (gitignored).
   - To play: `UnrealEditor.exe <uproject> -game -ExecCmds="DisableAllScreenMessages"`.
   - In-game screenshot: add `py unreal/scripts/game_shot.py OUT.png 900` to `-ExecCmds`.
