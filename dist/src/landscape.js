@@ -1350,6 +1350,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.20.01: one recessed stepped-outline pond, right of the temple entrance.
   // main.js cuts out the ground beneath this basin, so the water is below grade.
+  // 14.59.21 / 14.59.36 / 15.00.01: the pond sits about 1.8 m further west than first placed.
+  const PX=23.7;
   const pondOutline=[[-2,-1],[-.3,-1],[.3,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.3,1],[-.3,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
   // Reusable procedural finish: mineral patches interrupted by long wet streaks.
   const pondCanvas=document.createElement('canvas');pondCanvas.width=256;pondCanvas.height=256;
@@ -1376,21 +1378,21 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   const pondShape=new THREE.Shape(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z)));
   const water=new THREE.Mesh(new THREE.ShapeGeometry(pondShape),new THREE.MeshStandardMaterial({color:'#354d31',roughness:.26,metalness:.16}));
-  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(25.5,-.94,-1.5);group.add(water);
+  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(PX,-.94,-1.5);group.add(water);
   const soil=new THREE.Shape([new THREE.Vector2(-2.5,-1.5),new THREE.Vector2(2.5,-1.5),new THREE.Vector2(2.5,1.5),new THREE.Vector2(-2.5,1.5)]);
   soil.holes.push(new THREE.Path(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z))));
-  const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(25.5,0,-1.5);group.add(surround);
-  box('Temple small pond deep bottom',25.5,-1.11,-1.5,4.98,.12,2.98,materials.wetStone);
+  const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(PX,0,-1.5);group.add(surround);
+  box('Temple small pond deep bottom',PX,-1.11,-1.5,4.98,.12,2.98,materials.wetStone);
   for(let i=0;i<pondOutline.length;i++){
-    const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=25.5+(a[0]+b[0])/2,z=-1.5+(a[1]+b[1])/2;
+    const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=PX+(a[0]+b[0])/2,z=-1.5+(a[1]+b[1])/2;
     const w=Math.abs(a[0]-b[0])+.15,d=Math.abs(a[1]-b[1])+.15;
-    const notch=Math.abs(x-25.5)<.01&&Math.abs(z+1.5)>.95,top=notch?.10:.32;
+    const notch=Math.abs(x-PX)<.01&&Math.abs(z+1.5)>.95,top=notch?.10:.32;
     pondWallUV(box('Temple small pond weathered retaining wall',x,(top-1.05)/2,z,w,top+1.05,d,pondStone,true));
     box('Temple small pond worn pale coping',x,top,z,w+.035,.07,d+.035,pondCoping);
     box('Temple small pond algae waterline',x,-.94,z,w+.006,.08,d+.006,materials.wetStone);
   }
   // Prevent walking into the open water while retaining the visible depth.
-  K.blocker(25.5,-1.5,4.2,2.2,-1.1,.35);
+  K.blocker(PX,-1.5,4.2,2.2,-1.1,.35);
 
   // Overlapping distant belts close the horizon when panning from the house.
   // Planting is inferred, beyond the photographed buildings and walking routes.

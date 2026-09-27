@@ -229,7 +229,8 @@ export function buildTemple(K) {
   box('Portico east wall',47.9,3.70,2.3,.24,6.2,8.6,white,true);
   for(const x of [33.72,44.28]){
     box('Ground rear wall',x,2.26,6.1,7.15,3.32,.24,white,true);
-    box('Rear red skirting',x,.84,5.955,7.15,.48,.05,red);
+    // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
+    box('Rear grey marble dado',x,.80,5.955,7.15,.40,.05,mat('#9a9a92',.4));
     box('Black upper wall band',x,3.62,5.955,7.15,.19,.05,dark);
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
@@ -1302,7 +1303,8 @@ export function buildTemple(K) {
     for(const x of [d0+.04,d1-.04])box('Stair door blue frame jamb',x,(sill+head)/2,wallZ+.16,.08,head-sill,.06,blue);
     for(const y of [head-.02,head-.36])box('Stair door blue frame head',dc,y,wallZ+.16,d1-d0,.07,.06,blue);
     box('Stair door pale transom glass',dc,head-.19,wallZ+.13,d1-d0-.16,.26,.02,whiteTrim);
-    box('Stair door dark stairwell back',dc,1.9,wallZ-1.6,d1-d0,2.6,.05,dark);
+    // (15.15.11) The stairwell back sat in front of the portico wall as a dark strip; set it behind the wall face.
+    box('Stair door dark stairwell back',dc,1.9,Math.max(wallZ-1.6,6.25),d1-d0,2.6,.05,dark);
     // The bell hall's white west wall closes the stair from the hall side.
     box('Bell hall white west wall',x1+.05,2.28,6.7,.1,3.36,1.7,white,true);
     box('Stair enclosure white east wall',d0-.02,2.28,wallZ-.95,.06,3.36,1.3,white);

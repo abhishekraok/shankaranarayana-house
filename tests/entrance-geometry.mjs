@@ -122,7 +122,7 @@ for(const m of main.matchAll(/ground\(([-.\d]+),([-.\d]+),([-.\d]+),([-.\d]+)\)/
   const [x,z,w,d]=m.slice(1).map(Number);K.box(soilGroup,'Actual terrain',x,-.22,z,w,.44,d,'earth');
 }
 soilGroup.updateMatrixWorld(true);
-for(const [x,z] of [[25.5,-1.5],[24.2,-1.5],[26.8,-1.5]]){
+for(const [x,z] of [[23.7,-1.5],[22.4,-1.5],[25.0,-1.5]]){
   const hits=new THREE.Raycaster(new THREE.Vector3(x,2,z),new THREE.Vector3(0,-1,0)).intersectObjects([landscape,soilGroup,temple],true);
   assert.equal(hits[0]?.object.name,'Temple small pond recessed water','The pond is open, with no soil or road covering the water');
   assert.ok(hits[0].point.y<-.7,'Water lies below ground level');
