@@ -900,18 +900,20 @@ export function buildTemple(K) {
   }
   for(const side of [-1,1])for(let z=19.6;z<30.3;z+=.48)K.beam(oldRoof,'Old inner shrine dark exposed rafters',[SX+side*(7.2+SE),3.1,z],[SX+side*(8.43+SE),2.96,z],.08,K.M.wood,.12);
   // Compact weathered tower rises behind the sheet shelter, rather than replacing it.
+  // 15.26.55 / 15.27.07: the dark spire rises to about 11.5 m, above the road wing's parapet.
   for(let i=0;i<5;i++){
-    const w=3.45-i*.49,y=4.82+i*.58;
-    box('Inner tower dark tier',39,y,23.1,w,.46,w,weathered);
-    box('Inner tower projecting course',39,y-.22,23.1,w+.19,.12,w+.19,oldStone);
+    const w=3.45-i*.49,y=4.82+i*1.0;
+    box('Inner tower dark tier',39,y,23.1,w,1.0,w,weathered);
+    box('Inner tower projecting course',39,y-.49,23.1,w+.19,.12,w+.19,oldStone);
     for(const sx of [-1,1])for(const dx of [-.29,.29]){
       const figure=mesh('Inner tower weathered relief',new THREE.SphereGeometry(1,7,5),weathered,39+dx*w,y,23.1+sx*(w/2+.025));figure.scale.set(.12,.23,.08);
       box('Tower faded white streak',39+dx*w,y-.15,23.1+sx*(w/2+.065),.038,.23,.018,whiteTrim);
     }
   }
-  cyl('Inner tower finial stem',39,7.65,23.1,.09,.15,.45,brass);
-  const finial=mesh('Inner tower gold bulb',new THREE.SphereGeometry(1,12,9),brass,39,7.93,23.1);finial.scale.set(.19,.25,.19);
-  cyl('Inner tower finial tip',39,8.23,23.1,.012,.1,.31,brass);
+  mesh('Inner tower dark rounded cap',new THREE.SphereGeometry(.62,14,9,0,Math.PI*2,0,Math.PI/2),weathered,39,9.05,23.1);
+  cyl('Inner tower finial stem',39,9.85,23.1,.09,.15,.45,brass);
+  const finial=mesh('Inner tower gold bulb',new THREE.SphereGeometry(1,12,9),brass,39,10.13,23.1);finial.scale.set(.19,.25,.19);
+  cyl('Inner tower finial tip',39,10.43,23.1,.012,.1,.31,brass);
   // Photo-right is world -X when looking into the courtyard (+Z).
   // Upper hall stands behind the veranda roof, leaving its broad lean-to exposed.
   // 15.13.11: the tall hall is three windows long (z 6.4-19.4); beyond it stands a lower
@@ -1678,11 +1680,21 @@ export function buildTemple(K) {
     const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,24.05);boss.scale.z=.38;
     mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,24.02);
   }
-  for(let j=0;j<6;j++){
-    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.32+j*.27,3.21,24.05);boss.scale.z=.38;
+  // "Temple inner sanctum, God room" photos: nine bosses span the whole lintel with a row of
+  // coloured bulbs below, and two tall blue barred gate leaves stand open at the frame.
+  for(let j=0;j<9;j++){
+    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.0+j*.25,3.36,24.05);boss.scale.z=.38;
   }
-  for(let j=0;j<9;j++)box('Inner sanctum closed gate bar',38.4+j*.15,1.83,23.99,.026,1.38,.045,dark);
-  box('Inner sanctum gate crossrail',39,2.43,23.97,1.32,.05,.05,dark);
+  for(let j=0;j<8;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),38.37+j*.18,3.08,24.02);
+  const gateBlue=mat('#1b8fb8',.6);
+  for(const side of [-1,1]){
+    const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.95);leaf.rotation.y=side*1.2;g.add(leaf);
+    const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
+    const lw=-side*.9;
+    for(const y of [.62,1.9,3.35])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
+    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.0,.1,2.9,gateBlue);
+    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.0,.045,2.7,whiteTrim);
+  }
   // User-labelled right side of inner sanctum: large horizontal drum,
   // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
   {
