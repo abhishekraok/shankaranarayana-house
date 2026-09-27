@@ -897,6 +897,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // It is modeled in temple.js; the former estimated annex crossed the side road.
   // Family-identified adjacent building, NOT the temple: its two-level white
   // facade faces down the lane. The original temple stays in its prior layout.
+  const adjacentStart={children:group.children.length,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length};
   const adjacentWhite=new THREE.MeshStandardMaterial({color:'#e8e6df',roughness:.95});
   const adjacentDark=new THREE.MeshStandardMaterial({color:'#383b39',roughness:.95});
   const stageColumns=[-5.6,-2,2,5.6];
@@ -1007,7 +1008,23 @@ export function buildLandscape(K, {mobile=false}={}) {
     const h=1.07*Math.max(0,Math.min(fx,fz,1));stagePose.position.set(62.9+x,8.39+h,-5+z);stagePose.rotation.set(fz<fx?Math.sign(z)*.32:0,0,fz<fx?0:-Math.sign(x)*.293);stagePose.scale.set(.30,.048,.34);stagePose.updateMatrix();roofCourses.setMatrixAt(i*65+j,stagePose.matrix);
   }
   roofCourses.instanceMatrix.needsUpdate=true;group.add(roofCourses);K.roofs.push(roofCourses);
-  K.labels.push({text:'Adjacent building',position:[60,10.5,-5]});
+  // 14.28.15 / 14.28.19 / 15.28.45: the building stands on a plinth about 2.8 m high, not
+  // 1.6 m, and 15.13.30 shows plain treads below the tiled flight. Everything above the
+  // plinth rises by ADY, the foundation grows, and a plain lower flight is added.
+  {const ADY=1.2,b3=new THREE.Box3(),kids=group.children.slice(adjacentStart.children);group.updateMatrixWorld(true);
+   for(const o of kids){b3.setFromObject(o);if(b3.isEmpty())continue;
+     if(/raised dark foundation/.test(o.name)){o.scale.y*=(1.52+ADY)/1.52;o.position.y=(1.52+ADY)/2;continue;}
+     if(/worn foundation course|elephant|Elephant/.test(o.name))continue;
+     if(/central stair|diamond stair riser/.test(o.name)||b3.min.y>.3)o.position.y+=ADY;}
+   for(const c of K.colliders.slice(adjacentStart.colliders)){if(c.bottom>.3){c.bottom+=ADY;c.top+=ADY;}else if(c.top>1.4&&c.top<1.7)c.top+=ADY;}
+   for(const r of K.surfaces.slice(adjacentStart.surfaces))if(r.y>1)r.y+=ADY;
+   K.ramps.splice(adjacentStart.ramps).length;
+   box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,'paleStone');
+   const n=7,run=.314,x0=56.9-n*run;
+   for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;
+     box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,3.8,materials.basalt);}
+   K.ramp(x0+n*run/2,-5,n*run,3.8,'x',0,ADY);K.ramp(58.45,-5,3.1,3.8,'x',ADY,1.62+ADY);}
+  K.labels.push({text:'Adjacent building',position:[60,11.7,-5]});
   // 15.20.13 and 15.28.26: the same shop, beside the adjacent two-storey
   // building, on the lake's eastern edge. The frontage faces -X, like its neighbor.
   // In the across-lake view, the shop is left of the adjacent building (-Z).
