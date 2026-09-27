@@ -10,6 +10,7 @@ import * as THREE from 'three';
  */
 export function buildTemple(K) {
   const g = new THREE.Group();
+  const navStart={colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,labels:K.labels.length};
   g.name = 'Shankaranarayana temple — 2011–2013';
   g.userData.notes = [
     'Estimated dimensions; courtyard arrangement and the connection behind the portico are inferred from the photo sequence.',
@@ -723,7 +724,8 @@ export function buildTemple(K) {
     frontEdge=right;
   }
   box('Inner doorway overhead wall',39,3.21,16.57,1.76,.84,.20,innerWhite,true);
-  for(const x of [29.9,48.1])box('Inner front side wall',x,2.09,18.35,.20,3.08,3.65,innerWhite,true);
+  // 15.11.08: the west end is open to the corridor; only the east end has a side wall.
+  box('Inner front side wall',48.1,2.09,18.35,.20,3.08,3.65,innerWhite,true);
   for(const x of [33.96,44.04])box('Inner facade gray marble dado',x,.86,16.47,8.32,.58,.10,dado);
   for(const x of [33.96,44.04])box('Inner facade green dado cap',x,1.19,16.40,8.32,.10,.10,greenBand);
   // Openings are layered on the enclosed facade; the unseen sanctuary stays dark.
@@ -793,11 +795,14 @@ export function buildTemple(K) {
     c.fillStyle='#995346';c.fillRect(0,0,s,s);
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
-  floor('Old inner shrine black stone platform',39,24.73,15.7,10.6,.54,weathered);
-  for(const x of [31.82,46.18])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
-  box('Old inner shrine red rear wall',39,1.83,29.58,14.6,2.57,.24,wornRed,true);
+  // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
+  // shrine is wider on the east than the sanctum's axis; SX/SH are its centre and half-width.
+  const SX=39.96,SH=8.14,SE=SH-7.18;
+  floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
+  for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
+  box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
   for(const side of [-1,1]){
-    const x=39+side*7.34;
+    const x=SX+side*(7.34+SE);
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
     for(let i=0;i<7;i++){
       const z=20.45+i*1.39,shape=new THREE.Shape();
@@ -824,14 +829,14 @@ export function buildTemple(K) {
         y+=h;}
       c.fillStyle='rgba(30,32,28,.8)';c.fillRect(x,0,2,s);}
   },1,1);
-  const oldRoof=K.hipRoof(g,'Old inner shrine deep sloping roof',39,24.85,16.65,11.6,3.13,2.92,slabRoof);
+  const oldRoof=K.hipRoof(g,'Old inner shrine deep sloping roof',SX,24.85,16.65+2*SE,11.6,3.13,2.92,slabRoof);
   // 15.08.04 and 15.08.42 show daylight through corrugated translucent
   // strips above the lowered aisles. Cut the opaque roof itself so an extra
   // bright plane cannot leave an invisible solid roof blocking the skylight.
   const lightWells=[[34.4,36.1],[41.9,43.6]],wellFront=21,wellBack=28.2;
-  const roofHeight=(x,z)=>3.13+2.92*Math.max(0,Math.min(1,(8.325-Math.abs(x-39))/5.22,(5.8-Math.abs(z-24.85))/5.8));
+  const roofHeight=(x,z)=>3.13+2.92*Math.max(0,Math.min(1,(8.325+SE-Math.abs(x-SX))/5.22,(5.8-Math.abs(z-24.85))/5.8));
   const opaque=[],clear=[],roofUV=[];
-  const xs=[30.675,34.4,36.1,41.9,43.6,47.325],zs=[19.05,21,28.2,30.65];
+  const xs=[SX-8.325-SE,34.4,36.1,41.9,43.6,SX+8.325+SE],zs=[19.05,21,28.2,30.65];
   for(let xi=0;xi<xs.length-1;xi++)for(let zi=0;zi<zs.length-1;zi++){
     const left=xs[xi],right=xs[xi+1],front=zs[zi],back=zs[zi+1];
     const translucent=zi===1&&(xi===1||xi===3);
@@ -858,10 +863,10 @@ export function buildTemple(K) {
     K.beam(oldRoof,'Inner aisle pale drain pipe',[left,3.55,21],[left,3.55,28.2],.085,whiteTrim);
   }
   for(const side of [-1,1])for(let j=0;j<5;j++){
-    const t=j/6,xx=39+side*(8.28-t*4.65),yy=3.18+t*2.57;
+    const t=j/6,xx=SX+side*(8.28+SE-t*4.65),yy=3.18+t*2.57;
     const course=K.box(oldRoof,'Old inner shrine overlapping gray roof course',xx,yy,24.85,.89,.12,10.9-j*.32,weathered);course.rotation.z=-side*.51;
   }
-  for(const side of [-1,1])for(let z=19.6;z<30.3;z+=.48)K.beam(oldRoof,'Old inner shrine dark exposed rafters',[39+side*7.2,3.1,z],[39+side*8.43,2.96,z],.08,K.M.wood,.12);
+  for(const side of [-1,1])for(let z=19.6;z<30.3;z+=.48)K.beam(oldRoof,'Old inner shrine dark exposed rafters',[SX+side*(7.2+SE),3.1,z],[SX+side*(8.43+SE),2.96,z],.08,K.M.wood,.12);
   // Compact weathered tower rises behind the sheet shelter, rather than replacing it.
   for(let i=0;i<5;i++){
     const w=3.45-i*.49,y=4.82+i*.58;
@@ -1803,5 +1808,25 @@ export function buildTemple(K) {
 
   K.labels?.push({text:'Temple entrance',position:[39,2,-1.5]},{text:'Temple courtyard',position:[39,1,10]},{text:'Inner temple building',position:[39,4.7,21.4]},{text:'Road between house and temple',position:[17,1.2,5]});
   g.traverse(o=>{if(o.isMesh){o.castShadow=!o.userData.noShadow;o.receiveShadow=true;}});
+  // 15.03.33 / 15.03.38 (user notes): the passage east of the old shrine is wider, so the
+  // east range stands 1.5 m further east. Wholly-east objects move; long pieces that run
+  // across the courtyard (paving, rear circuit, entrance return) stretch to meet it.
+  {const DX=1.5,EDGE=49.5,Z0=5.5,Z1=39,b=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
+   g.updateMatrixWorld(true);
+   const inZ=(a,c)=>a>=Z0&&c<=Z1;
+   for(const o of [...g.children]){
+     if(o.isInstancedMesh){let moved=false;for(let k=0;k<o.count;k++){o.getMatrixAt(k,m);p.setFromMatrixPosition(m);
+       if(p.x>=EDGE&&p.z>=Z0&&p.z<=Z1){m.elements[12]+=DX;o.setMatrixAt(k,m);moved=true;}}
+       if(moved){o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();}continue;}
+     if(!o.isMesh&&!o.isGroup&&!o.isLight)continue;
+     if(o.isLight){if(o.position.x>=EDGE&&inZ(o.position.z,o.position.z))o.position.x+=DX;continue;}
+     b.setFromObject(o);if(b.isEmpty()||!inZ(b.min.z,b.max.z))continue;
+     if(b.min.x>=EDGE)o.position.x+=DX;
+     else if(o.isMesh&&b.max.x>53.3&&b.min.x<EDGE&&!o.rotation.y){const w=b.max.x-b.min.x,f=(w+DX)/w;o.scale.x*=f;o.position.x=b.min.x+(o.position.x-b.min.x)*f;}
+   }
+   for(const c of K.colliders.slice(navStart.colliders)){if(c.minZ<Z0||c.maxZ>Z1)continue;if(c.minX>=EDGE){c.minX+=DX;c.maxX+=DX;}else if(c.maxX>53.3)c.maxX+=DX;}
+   for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const x0=r.x-r.w/2,x1=r.x+r.w/2;if(r.z-r.d/2<Z0||r.z+r.d/2>Z1)continue;
+     if(x0>=EDGE)r.x+=DX;else if(x1>53.3){r.w+=DX;r.x+=DX/2;}}
+   for(const l of K.labels.slice(navStart.labels))if(l.position[0]>=EDGE&&l.position[2]>=Z0&&l.position[2]<=Z1)l.position=[l.position[0]+DX,l.position[1],l.position[2]];}
   return g;
 }
