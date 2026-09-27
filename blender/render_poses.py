@@ -1,9 +1,11 @@
 """Renders every photo camera in a .blend for side-by-side comparison with the photographs.
 
-    blender -b blender/build/blockout.blend -P blender/render_poses.py -- [--out DIR] [--width 768] [--samples 32] [--only 14.28.19,15.28.26] [--fov 48]
+    blender -b blender/build/blockout.blend -P blender/render_poses.py -- [--out DIR] [--width 768] [--samples 32] [--only 14.28.19,15.28.26] [--fov 48] [--exposure 3.3]
 
 --fov forces one vertical field of view on every camera (the 2011 phone had a fixed lens),
 so poses that were zoomed to hide a layout error show that error again.
+--exposure overrides view exposure in stops for this render only, useful for
+dark interior diagnostics. It is recorded in index.json and never saves the blend.
 """
 import bpy, sys, os, math, json, time
 
@@ -21,6 +23,7 @@ prefs = bpy.context.preferences.addons['cycles'].preferences
 prefs.compute_device_type = 'OPTIX'; prefs.get_devices()
 for d in prefs.devices: d.use = d.type == 'OPTIX'
 s = bpy.context.scene
+if '--exposure' in argv: s.view_settings.exposure = float(opt('--exposure', 0))
 s.render.engine = 'CYCLES'; s.cycles.device = 'GPU'
 s.cycles.samples = SAMPLES; s.cycles.use_denoising = True; s.cycles.denoiser = 'OPTIX'
 s.cycles.use_adaptive_sampling = True
@@ -37,6 +40,7 @@ for cam in sorted(cams, key=lambda o: o.name):
     t = time.time(); bpy.ops.render.render(write_still=True)
     index.append({'camera': cam.name, 'photo': cam.get('photo'), 'render': s.render.filepath,
                   'fov': round(math.degrees(cam.data.angle_y), 1), 'saved_fov': cam.get('saved_fov'),
-                  'notes': cam.get('notes', ''), 'seconds': round(time.time() - t, 1)})
+                  'notes': cam.get('notes', ''), 'exposure': s.view_settings.exposure,
+                  'seconds': round(time.time() - t, 1)})
     print(f"rendered {cam.name} fov {index[-1]['fov']} in {index[-1]['seconds']}s")
 json.dump(index, open(os.path.join(OUT, 'index.json'), 'w'), indent=1)
