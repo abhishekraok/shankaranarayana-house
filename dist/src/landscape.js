@@ -982,10 +982,39 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 14.59.26: statue pillars flank the stair at about ±2 m, with a second pair near ±5.6 m.
   for(const y of [4.67,8.08])ab('plain white lintel',0,y,.51,20,.23,.40);
-  for(const y of [2.84,6.27]){
+  for(const y of [6.27]){
     for(const a of [-8,-5.5,5.5,8])ab('back wall dark window',a,y,5.73,.68,1.08,.04,adjacentDark);
     for(const a of [-2.4,0,2.4])ab('recessed back door',a,y-.10,5.70,1.02,2.13,.06,adjacentDark);
     ab('dark horizontal wall band',0,y+1.03,5.73,19.8,.22,.04,adjacentDark);
+  }
+  // 15.13.51 / 15.12.15 / 14.59.26: the inner columns stand beside a
+  // whitewashed rear dais, with three central steps and high green vents.
+  // The 0.60 m rise is estimated from the three risers; the building/plinth
+  // and existing saved photo poses are unchanged.
+  const daisFront=3.60,daisBack=5.75,daisTop=2.22;
+  ab('rear dais white masonry',0,1.905,(daisFront+daisBack)/2,19.8,.57,daisBack-daisFront,adjacentWhite,true);
+  ab('rear dais dark stone top',0,2.205,(daisFront+daisBack)/2,19.8,.03,daisBack-daisFront,hallFloorStone);
+  K.surface(60+(daisFront+daisBack)/2,-5,daisBack-daisFront,19.8,daisTop);
+  ab('rear dais dark foot',0,1.675,daisFront-.012,19.8,.11,.026,adjacentDark);
+  for(let i=0;i<3;i++){
+    const top=1.62+(i+1)*.20,depth=2.4+(i+.5)*.4;
+    ab('rear dais access stair',0,(1.62+top)/2,depth,1.90,top-1.62,.405,adjacentDark);
+    ab('rear dais stair worn nosing',0,top+.006,depth-.19,1.92,.012,.025,materials.mortar);
+  }
+  K.ramp(63.0,-5,1.20,1.90,'x',1.62,daisTop);
+  // A closed dark rear panel and smaller wall pictures are visible below the
+  // vents; do not invent three full-height entrances behind the raised floor.
+  const rearPanel=new THREE.MeshStandardMaterial({color:'#493c38',roughness:.92});
+  ab('lower hall rear dark panel',0,2.88,5.735,1.02,1.31,.028,rearPanel);
+  for(const a of [-7.1,-4.7,4.7,7.1])ab('lower hall small wall panel',a,3.13,5.735,.58,.83,.028,adjacentDark);
+  const ventTimber=new THREE.MeshStandardMaterial({color:'#685848',roughness:.9});
+  const ventGlass=new THREE.MeshStandardMaterial({color:'#708276',roughness:.56});
+  for(const a of [-6.3,-2.1,2.1,6.3]){
+    ab('lower hall clerestory dark recess',a,4.27,5.735,2.34,.48,.035,adjacentDark);
+    ab('lower hall green vent glass',a,4.27,5.707,2.18,.36,.025,ventGlass);
+    for(const dy of [-.215,.215])ab('lower hall vent timber frame',a,4.27+dy,5.68,2.34,.055,.07,ventTimber);
+    for(const da of [-1.14,-.38,.38,1.14])ab('lower hall vent timber mullion',a+da,4.27,5.68,.048,.43,.07,ventTimber);
+    for(const dy of [-.12,0,.12])ab('lower hall horizontal vent bars',a,4.27+dy,5.66,2.26,.022,.036,adjacentDark);
   }
   for(const y of [5.14,5.89])ab('white balcony rail',0,y,.26,19.5,.12,.24);
 
@@ -1054,7 +1083,9 @@ export function buildLandscape(K, {mobile=false}={}) {
      if(/central stair|diamond stair riser/.test(o.name)||b3.min.y>.3)o.position.y+=ADY;}
    for(const c of K.colliders.slice(adjacentStart.colliders)){if(c.bottom>.3){c.bottom+=ADY;c.top+=ADY;}else if(c.top>1.4&&c.top<1.7)c.top+=ADY;}
    for(const r of K.surfaces.slice(adjacentStart.surfaces))if(r.y>1)r.y+=ADY;
-   K.ramps.splice(adjacentStart.ramps).length;
+   // Replace the original outside stair ramp, preserving raised interior stairs.
+   K.ramps.splice(adjacentStart.ramps,1);
+   for(const r of K.ramps.slice(adjacentStart.ramps)){r.lowY+=ADY;r.highY+=ADY;}
    box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,'paleStone');
    const n=7,run=.314,x0=56.9-n*run;
    for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;
