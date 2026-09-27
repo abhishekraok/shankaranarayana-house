@@ -1604,10 +1604,11 @@ export function buildTemple(K) {
   instances('Inner left row of upright offering stones',new THREE.CylinderGeometry(1,1,1,10),aisleOfferingStone,leftOfferingStones);
   for(const z of [23.70,24.60])box('Inner left offering slab end block',35.97,.695,z,.13,.11,.15,aisleOfferingStone);
   cyl('Inner left low rear offering disc',35.85,.585,25.30,.15,.18,.07,aisleOfferingStone,12);
-  // The God room (garbhagriha) is a closed cella inside the grilled enclosure: the blue
-  // doorway opens into a deep, dim chamber rather than onto a painted panel. Photography
-  // inside was not possible, so the idol is a generic oiled dark-stone form with a brass
-  // arch, lit only by two oil lamps.
+  // The God room (garbhagriha) is a closed cella inside the grilled enclosure. The family's
+  // "Temple inner sanctum, God room" photos: a lit shelf with a small framed image and brass
+  // bosses crosses the top of the blue doorway; below it a dark passage between carved
+  // guardian figures leads to an inner barred gate, with the lamps and deity behind it.
+  // The deity itself is not visible in the photos, so it stays a simple dark-stone form.
   {const cellaStone=sanctumStone.clone();cellaStone.color.set('#8f8a78');
   const cellaDark=mat('#3a332b',.96),idolStone=mat('#151412',.32),flame=new THREE.MeshStandardMaterial({color:'#ffd27a',emissive:'#ff9a2e',emissiveIntensity:3.2,roughness:.6});
   const cF=1.06,cTop=3.5,cz0=24.2,cz1=27.05,cx0=37.2,cx1=40.8;
@@ -1627,11 +1628,36 @@ export function buildTemple(K) {
   mesh('Sanctum idol brass crown',new THREE.ConeGeometry(.15,.32,12),brass,39,cF+1.55,26.45);
   const prabhavali=mesh('Sanctum brass prabhavali arch',new THREE.TorusGeometry(.58,.045,8,28,Math.PI),brass,39,cF+1.0,26.78);prabhavali.scale.y=1.25;
   const garland=mesh('Sanctum marigold garland',new THREE.TorusGeometry(.2,.04,6,18),mat('#e0891e',.9),39,cF+.95,26.3);garland.rotation.x=1.2;garland.scale.x=1.1;
-  for(const x of [38.25,39.75]){
-    cyl('Sanctum brass oil lamp stand',x,cF+.45,25.7,.035,.05,.9,brass,10);
-    cyl('Sanctum brass oil lamp dish',x,cF+.92,25.7,.12,.07,.05,brass,14);
-    const f=mesh('Sanctum oil lamp flame',new THREE.SphereGeometry(.04,8,6),flame,x,cF+1.0,25.7);f.scale.y=2.1;
+  for(const x of [38.45,39.55]){
+    cyl('Sanctum brass oil lamp stand',x,cF+.45,26.1,.035,.05,.9,brass,10);
+    cyl('Sanctum brass oil lamp dish',x,cF+.92,26.1,.12,.07,.05,brass,14);
+    const f=mesh('Sanctum oil lamp flame',new THREE.SphereGeometry(.04,8,6),flame,x,cF+1.0,26.1);f.scale.y=2.1;
   }
+  // Inner barred gate across the passage, in front of the lamps.
+  const gateIron=mat('#1d2a2e',.5,{metalness:.35}),gz=25.8;
+  for(const y of [cF+.08,cF+.95,cF+1.85])box('Sanctum inner gate rail',39,y,gz,1.5,.06,.05,gateIron);
+  for(let i=0;i<=10;i++)box('Sanctum inner gate bar',38.25+i*.15,cF+.97,gz,.025,1.8,.025,gateIron);
+  for(const x of [38.2,39.8])box('Sanctum inner gate post',x,cF+.97,gz,.08,1.9,.08,gateIron);
+  K.blocker(39,gz,1.7,.1,cF,cF+2);
+  // Carved dark-stone guardian figures flank the passage just inside the doorway.
+  const guardStone=mat('#2e2a25',.9);
+  for(const x of [38.3,39.7]){
+    box('Sanctum passage guardian plinth',x,cF+.2,24.75,.34,.4,.5,guardStone);
+    const body=mesh('Sanctum passage carved guardian figure',new THREE.CapsuleGeometry(.13,.55,5,10),guardStone,x,cF+.78,24.75);body.scale.set(1,1,.7);
+    mesh('Sanctum guardian carved head',new THREE.SphereGeometry(.11,10,8),guardStone,x,cF+1.28,24.75);
+  }
+  // The lit shelf across the top of the doorway: brass-bossed side panels, a framed
+  // image, a small brass pot, and the lamp that makes it glow in the photographs.
+  const shelfY=2.62,shelfWood=mat('#2c2419',.8);
+  box('Sanctum doorway lit shelf board',39,shelfY,24.5,1.56,.06,.55,shelfWood);
+  box('Sanctum doorway shelf front beam',39,shelfY-.09,24.28,1.56,.12,.08,shelfWood);
+  for(const x of [38.34,39.66])for(let j=0;j<3;j++){
+    box('Sanctum shelf brass tile',x,shelfY+.16+j*.17,24.62,.2,.16,.03,brass);
+    const b2=mesh('Sanctum shelf brass boss',new THREE.SphereGeometry(.07,10,7),brass,x,shelfY+.16+j*.17,24.6);b2.scale.z=.45;}
+  box('Sanctum shelf framed image frame',39,shelfY+.26,24.66,.52,.44,.03,shelfWood);
+  box('Sanctum shelf framed image',39,shelfY+.26,24.645,.44,.36,.01,mat('#efe6d2',.6,{emissive:'#fff1d0',emissiveIntensity:.25}));
+  cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
+  const shelfLight=new THREE.PointLight('#fff0c8',3,1.6,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
   const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
   }
