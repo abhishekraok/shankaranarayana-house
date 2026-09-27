@@ -81,6 +81,13 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   $('align-discard').title=isGone?'Put this photo back in the queue':'Useless photo: hide it from the queue (Delete). The file is kept.';
   $('align-title').classList.toggle('discarded',isGone);refreshJump();
  }
+ // Photos taken minutes apart were usually taken a few steps apart, so an unsaved photo
+ // starts from the saved pose nearest to it in time rather than the area's rough guess.
+ const shotTime=name=>{const m=/(\d{4})-(\d\d)-(\d\d) (\d\d)\.(\d\d)\.(\d\d)/.exec(name||'');return m?Date.UTC(+m[1],m[2]-1,+m[3],+m[4],+m[5],+m[6])/1000:null;};
+ function nearestSaved(item){const t=shotTime(item.filename);if(t===null)return null;let best=null;
+  for(const record of saved.values()){if(record.id===item.id||discarded.has(record.id))continue;const u=shotTime(record.filename);if(u===null)continue;const seconds=Math.abs(u-t);
+   if(seconds<=600&&(!best||seconds<best.seconds))best={record,seconds,after:u>t};}
+  return best;}
  function show(i){
   index=(i+items.length)%items.length;const item=items[index];
   try{localStorage.setItem(POSITION,item.id);}catch{}
@@ -90,7 +97,10 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   $('align-notes').value=record?.notes||'';$('align-save').disabled=true;
   photo.src=overlay.src=item.url;
   if(record){camera.position.fromArray(record.camera.position);camera.quaternion.fromArray(record.camera.quaternion).normalize();camera.fov=fixedLens(item)?FIXED_FOV:record.camera.verticalFov;enter();lens();status('Saved pose restored'+(fixedLens(item)&&Math.abs(record.camera.verticalFov-FIXED_FOV)>.5?` (its saved ${record.camera.verticalFov.toFixed(1)}° FOV reset to ${FIXED_FOV}°).`:'.'));}
-  else{toStart();status('Starting camera is a rough guess for this area.');}
+  else{const near=nearestSaved(item);
+   if(near){camera.position.fromArray(near.record.camera.position);camera.quaternion.fromArray(near.record.camera.quaternion).normalize();camera.fov=fixedLens(item)?FIXED_FOV:near.record.camera.verticalFov;enter();lens();
+    status(`Starting from your pose for ${near.record.filename}, taken ${near.seconds<60?Math.round(near.seconds)+' s':Math.round(near.seconds/60)+' min'} ${near.after?'later':'earlier'}.`);}
+   else{toStart();status('Starting camera is a rough guess for this area.');}}
   if(discarded.has(item.id))status('This photo is discarded. Press Restore to put it back in the queue.');
  }
  // Prev/Skip step through the live queue, passing over discarded photos.
