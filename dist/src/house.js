@@ -213,12 +213,12 @@ export function buildHouse(K) {
   K.cylinder(g,'Entrance court round column base rim',-5.73,.469,5.68,.178,.178,.038,verandaRed,20);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
-  function stairSideFence(a,end){
-    b('Stair-side railing continuous masonry plinth',-8.35,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,'paleStone');
-    for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',-8.35,y,(a+end)/2,.11,.105,end-a,courtBlue);
-    for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',-8.35,F+.63,z,.068,1.10,.052,courtBlue);
-    for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',-8.35,F+.66,z,.115,1.32,.115,courtBlue);
-    K.blocker(-8.35,(a+end)/2,.12,end-a,F,F+1.22);
+  function stairSideFence(a,end,x=-8.35){
+    b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,'paleStone');
+    for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',x,y,(a+end)/2,.11,.105,end-a,courtBlue);
+    for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',x,F+.63,z,.068,1.10,.052,courtBlue);
+    for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',x,F+.66,z,.115,1.32,.115,courtBlue);
+    K.blocker(x,(a+end)/2,.12,end-a,F,F+1.22);
   }
   stairSideFence(6.15,10.0);stairSideFence(11.65,14.5);
   // User-identified 14.33.49: a short ladder is stored on its side
@@ -232,16 +232,18 @@ export function buildHouse(K) {
   }
 
   const courtSupport=K.M.plaster.clone();courtSupport.color.set('#898576');courtSupport.roughness=1;
-  for(const z of [6.19,9.86,14.42]){
-    b('Courtyard rough stone outer support',-8.28,1.84,z,.24,3.55,.26,courtSupport,true);
-    b('Courtyard outer support beam pad',-8.28,3.61,z,.36,.14,.34,courtSupport);
+  // 14.31.01 / 14.44.09 / 14.44.43: the east veranda edge matches the west one.
+  for(const [sx,z] of [[-8.28,6.19],[-8.28,9.86],[-8.28,14.42],[7.18,6.19],[7.18,9.86],[7.18,14.42]]){
+    const sd=sx<0?1:-1;
+    b('Courtyard rough stone outer support',sx,1.84,z,.24,3.55,.26,courtSupport,true);
+    b('Courtyard outer support beam pad',sx,3.61,z,.36,.14,.34,courtSupport);
     // Irregular shallow chips break the smooth pillar silhouette.
     for(let j=0;j<15;j++){
-      const chip=b('Courtyard support weathered edge',-8.147,.18+j*.22,z+Math.sin(j*2.8)*.09,.016,.045+(j%3)*.019,.042,courtSupport);
+      const chip=b('Courtyard support weathered edge',sx+sd*.133,.18+j*.22,z+Math.sin(j*2.8)*.09,.016,.045+(j%3)*.019,.042,courtSupport);
       chip.rotation.x=Math.sin(j)*.3;
     }
   }
-  fenceZ(7.25,6.1,9.3); fenceZ(7.25,11.0,14.5);
+  stairSideFence(6.35,9.3,7.3);stairSideFence(11.0,14.25,7.3);
   // 14.46.04: the rear veranda is screened by weathered horizontal boards.
   for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
     for(let row=0;row<7;row++) {
@@ -494,7 +496,7 @@ export function buildHouse(K) {
     const mesh=new THREE.Mesh(bracketGeom,verandaTimber);mesh.name='Veranda carved transverse bracket';mesh.rotation.y=-Math.PI/2;mesh.position.set(x+.095,3.45,.36);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
   }
   for(const x of [-8.2,-4.3,4.1,7.15])courtyardPost(x,5.7);
-  for(const z of [9.0,13.9]){courtyardPost(-8.5,z);courtyardPost(7.4,z);}
+  for(const z of [9.0,13.9])courtyardPost(-8.5,z);
   for(const x of [-6.1,-1.8,2.8,7.2])courtyardPost(x,14.7);
   b('Front timber crossbeam',1.15,2.885,-.88,15.65,.21,.24,verandaTimber);
   b('Inner front crossbeam',-.5,3.51,5.7,16.6,.23,.27,'wood');
@@ -721,8 +723,8 @@ export function buildHouse(K) {
     const z=6.43+(i*1.317)%3.55;
     b('Shrine west plinth damp streak',-2.575,.61+(i%4)*.023,z,.008,.035+(i%5)*.021,.045+(i%3)*.047,moss);
   }
-  // 14.44.09/14: rough freestanding stone uprights and a rounded pole
-  // follow the shrine-side edge of the narrow planted courtyard strip.
+  // 14.44.09/14, 14.44.19, 14.44.48, 14.30.57: rough freestanding stone uprights and a
+  // rounded pole follow the God room's east side, along the planted strip toward the east veranda.
   const roughSupport=K.M.plaster.clone();roughSupport.color.set('#8c887b');roughSupport.roughness=1;
   for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
     const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position;
@@ -730,19 +732,19 @@ export function buildHouse(K) {
       const x=p.getX(i),y=p.getY(i),zz=p.getZ(i),wear=.008*Math.sin(y*17+zz*11+j);
       p.setXYZ(i,x*(1-.10*(y+1.22)/2.44)+wear,y,zz+.007*Math.sin(y*13+x*19+j));
     }
-    geo.computeVertexNormals();const post=new THREE.Mesh(geo,roughSupport);post.name='Shrine-side rough stone pole support';post.position.set(-2.96,1.255,z);post.castShadow=post.receiveShadow=true;g.add(post);
-    K.blocker(-2.96,z,.26,.27,.035,2.475);
+    geo.computeVertexNormals();const post=new THREE.Mesh(geo,roughSupport);post.name='Shrine-side rough stone pole support';post.position.set(2.96,1.255,z);post.castShadow=post.receiveShadow=true;g.add(post);
+    K.blocker(2.96,z,.26,.27,.035,2.475);
   }
-  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',-2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
+  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
   // 14.30.57: pale pipe lies on the soil beside the shrine-side supports.
   const courtPipe=K.M.plaster.clone();courtPipe.color.set('#d0d2bc');
-  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',-2.78,.075,8.53,.034,.034,5.10,courtPipe,8);groundPipe.rotation.x=Math.PI/2;
+  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.78,.075,8.53,.034,.034,5.10,courtPipe,8);groundPipe.rotation.x=Math.PI/2;
   for(const z of [6.03,8.12,10.98]){
-    const joint=K.cylinder(g,'Courtyard ground pipe coupling',-2.78,.075,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
+    const joint=K.cylinder(g,'Courtyard ground pipe coupling',2.78,.075,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
   }
   const poleStain=new THREE.MeshStandardMaterial({color:'#696c4c',roughness:1});
   for(const z of [7.46,8.55,10.02,10.85]){
-    const collar=K.cylinder(g,'Round courtyard pole weathered band',-2.96,2.51,z,.087,.087,.055,poleStain,12);collar.rotation.x=Math.PI/2;
+    const collar=K.cylinder(g,'Round courtyard pole weathered band',2.96,2.51,z,.087,.087,.055,poleStain,12);collar.rotation.x=Math.PI/2;
   }
   // Surface fissure, not an opening through the wall: the crack meets the
   // upper edge of the west window reveal in the close-up.
