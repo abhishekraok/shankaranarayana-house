@@ -11,6 +11,8 @@ SRC = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'unrea
 nav = json.load(open(os.path.join(SRC, 'nav.json')))
 def ue(p): return unreal.Vector(p[0] * 100, p[2] * 100, p[1] * 100)
 
+import sys
+EXPOSURE = float(sys.argv[sys.argv.index('--exposure') + 1]) if '--exposure' in sys.argv else 1.0
 les = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 eas = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 MAP = '/Game/Maps/Site'
@@ -37,23 +39,34 @@ for part in ('ground', 'house', 'temple', 'landscape', 'water'):
     c = a.static_mesh_component; c.set_static_mesh(mesh)
     if part == 'water': c.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
 
-# Overcast monsoon afternoon: a high, soft sun from the south-west, thick sky light.
-sun = spawn(unreal.DirectionalLight, (0, 0, 5000), (0, -38, 200), 'Sun')
+# Overcast monsoon afternoon, lit by the same Poly Haven sky as the Blender renders: the HDRI
+# backdrop supplies both the visible sky and the sky light; a weak, very soft sun adds shape.
+HDR = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'assets', 'overcast_soil_puresky_4k.hdr'))
+if not unreal.EditorAssetLibrary.does_asset_exist('/Game/Sky/overcast_soil_puresky_4k'):
+    t = unreal.AssetImportTask(); t.filename = HDR; t.destination_path = '/Game/Sky'; t.automated = True; t.save = True
+    unreal.AssetToolsHelpers.get_asset_tools().import_asset_tasks([t])
+cube = unreal.load_asset('/Game/Sky/overcast_soil_puresky_4k')
+backdrop = spawn(unreal.EditorAssetLibrary.load_blueprint_class('/HDRIBackdrop/Blueprints/HDRIBackdrop'), (0, 0, 0), label='Overcast sky')
+def bp_set(actor, names, value):  # Blueprint variables may carry display-name spacing
+    for n in names:
+        try: actor.set_editor_property(n, value); return True
+        except Exception: pass
+    print('BACKDROP could not set', names[0]); return False
+bp_set(backdrop, ('Cubemap', 'cubemap'), cube)
+bp_set(backdrop, ('Intensity', 'intensity'), 1.0)
+bp_set(backdrop, ('Size', 'size'), 30000.0)
+bp_set(backdrop, ('LightingDistanceFactor', 'Lighting Distance Factor', 'lighting_distance_factor'), 0.1)
+bp_set(backdrop, ('UseCameraProjection', 'Use Camera Projection', 'use_camera_projection'), True)
+sun = spawn(unreal.DirectionalLight, (0, 0, 5000), (0, -55, 200), 'Soft sun')
 sc = sun.light_component
-sc.set_editor_property('intensity', 6.0); sc.set_editor_property('atmosphere_sun_light', True)
-sc.set_editor_property('light_source_angle', 6.0)
-spawn(unreal.SkyAtmosphere, label='Sky atmosphere')
-sky = spawn(unreal.SkyLight, (0, 0, 1000), label='Sky light')
-sky.light_component.set_editor_property('real_time_capture', True)
-sky.light_component.set_editor_property('intensity', 1.4)
-spawn(unreal.VolumetricCloud, label='Clouds')
+sc.set_editor_property('intensity', 1.2); sc.set_editor_property('light_source_angle', 12.0)
 fog = spawn(unreal.ExponentialHeightFog, (0, 0, -200), label='Humid haze')
-fog.component.set_editor_property('fog_density', 0.03)
+fog.component.set_editor_property('fog_density', 0.02)
 pp = spawn(unreal.PostProcessVolume, label='Exposure')
 pp.set_editor_property('unbound', True)
 s = pp.settings
 s.set_editor_property('override_auto_exposure_method', True); s.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
-s.set_editor_property('override_auto_exposure_bias', True); s.set_editor_property('auto_exposure_bias', 11.0)
+s.set_editor_property('override_auto_exposure_bias', True); s.set_editor_property('auto_exposure_bias', EXPOSURE)
 pp.set_editor_property('settings', s)
 
 sp = nav['spawn']

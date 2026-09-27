@@ -30,7 +30,7 @@ json.dump({
     'FileVersion': 3, 'EngineAssociation': '5.8', 'Category': '',
     'Description': 'Shankaranarayana, Udupi: native walkthrough of the house, tank and temple',
     'Plugins': [{'Name': n, 'Enabled': True} for n in
-                ('PythonScriptPlugin', 'EditorScriptingUtilities', 'GameplayStateTree', 'Interchange')],
+                ('PythonScriptPlugin', 'EditorScriptingUtilities', 'GameplayStateTree', 'Interchange', 'HDRIBackdrop')],
 }, open(uproject, 'w'), indent='\t')
 # Hardware ray-traced Lumen on the RTX card, and the site as the startup map.
 with open(os.path.join(PROJ, 'Config', 'DefaultEngine.ini'), 'a') as f:
