@@ -4,6 +4,20 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Final native refresh and verification (2026-09-27)
+
+Native Blender output now includes the house, northwest/Tulsi and rear-range repairs
+through web commit `16b7691`. Local review: `checks/fidelity-native-final-followup/REVIEW.md`.
+Three saved camera transforms and FOVs match; source hashes and photo/UV materials
+verify. Reduced native shading edge radius from 12 mm to 3 mm.
+
+Web wheel/geometry, 58 destinations and 60 route segments, views, lake stairs,
+shrine platforms, gamepad, mobile and photo-alignment checks pass. No new binaries
+entered Git. Older notes saying native output is stale are historical.
+Remaining large mismatches: house background objects and lighting, temple proportions
+and ornament; rear close-up `15.05.42` needs user alignment. The timed pass is complete,
+not the entire reconstruction.
+
 ## Rear temple range completed (2026-09-27)
 
 References: `15.11.08`, `15.11.17`, `15.05.42`, with the dome checked in `15.12.56`.
