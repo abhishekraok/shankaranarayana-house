@@ -243,7 +243,15 @@ export function buildHouse(K) {
       chip.rotation.x=Math.sin(j)*.3;
     }
   }
-  stairSideFence(6.35,9.3,7.3);stairSideFence(11.0,14.25,7.3);
+  stairSideFence(6.35,9.3,7.3);
+  // 14.48.11: behind the God room the east side is a plastered aqua wall on a dark plinth
+  // with a small timber-barred window, not railing.
+  b('East rear strip aqua wall',7.3,(F+2.95)/2,12.75,.22,F+2.95,3.5,verandaAqua,true);
+  b('East rear strip wall dark plinth',7.18,.3,12.75,.04,.6,3.5,'stone');
+  b('East rear strip small window dark opening',7.18,1.6,12.6,.03,1.2,.9,'black');
+  for(let k=0;k<6;k++)b('East rear strip window timber bar',7.16,1.6,12.2+k*.16,.04,1.2,.04,'wood');
+  for(const y of [.98,2.22])b('East rear strip window timber frame',7.16,y,12.6,.05,.08,1.02,'wood');
+  for(const z of [12.13,13.07])b('East rear strip window timber frame',7.16,1.6,z,.05,1.3,.08,'wood');
   // 14.46.04: the rear veranda is screened by weathered horizontal boards.
   for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
     for(let row=0;row<7;row++) {
@@ -1086,19 +1094,19 @@ export function buildHouse(K) {
   const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
   rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
   rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-2.80,.43,8.65);g.add(rustySheet);
-  // 14.48.07: thick hollow stone basin with rainwater and a handled roller.
+  // 14.48.07 / 14.48.11 / 14.48.31: in the rear strip past the God room's NW corner, a thick hollow stone basin with rainwater and a handled roller.
   const bowlStone=mat('plaster').clone();bowlStone.color.set('#8b8c83');bowlStone.roughness=.94;
   const bowlProfile=[[0,0],[.25,0],[.29,.035],[.325,.12],[.34,.27],[.337,.305],
     [.315,.32],[.284,.302],[.277,.25],[.251,.09],[.20,.065],[0,.065]];
   const grindingBowl=new THREE.Mesh(new THREE.LatheGeometry(bowlProfile.map(([r,y])=>new THREE.Vector2(r,y)),36),bowlStone);
-  grindingBowl.name='Courtyard hollow stone grinding bowl';grindingBowl.position.set(-3.72,.035,8.73);grindingBowl.castShadow=grindingBowl.receiveShadow=true;g.add(grindingBowl);
+  grindingBowl.name='Courtyard hollow stone grinding bowl';grindingBowl.position.set(-2.82,.035,11.33);grindingBowl.castShadow=grindingBowl.receiveShadow=true;g.add(grindingBowl);
   const bowlWater=new THREE.Mesh(new THREE.CircleGeometry(.277,36),new THREE.MeshStandardMaterial({color:'#666b50',roughness:.18,metalness:.18}));
-  bowlWater.name='Courtyard grinding bowl standing water';bowlWater.rotation.x=-Math.PI/2;bowlWater.position.set(-3.72,.289,8.73);g.add(bowlWater);
+  bowlWater.name='Courtyard grinding bowl standing water';bowlWater.rotation.x=-Math.PI/2;bowlWater.position.set(-2.82,.289,11.33);g.add(bowlWater);
   const handStone=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),bowlStone);
-  handStone.name='Courtyard elongated grinding roller';handStone.scale.set(.105,.095,.225);handStone.rotation.y=-.35;handStone.position.set(-3.72,.322,8.73);handStone.castShadow=true;g.add(handStone);
-  K.beam(g,'Courtyard grinding roller wooden handle',[-3.655,.322,8.555],[-3.596,.316,8.391],.038,verandaTimber);
+  handStone.name='Courtyard elongated grinding roller';handStone.scale.set(.105,.095,.225);handStone.rotation.y=-.35;handStone.position.set(-2.82,.322,11.33);handStone.castShadow=true;g.add(handStone);
+  K.beam(g,'Courtyard grinding roller wooden handle',[-2.755,.322,11.155],[-2.696,.316,10.991],.038,verandaTimber);
   const smallStone=new THREE.Mesh(new THREE.SphereGeometry(.057,12,8),mat('stone'));
-  smallStone.name='Courtyard bowl small dark rounded stone';smallStone.position.set(-3.91,.299,8.69);smallStone.scale.y=.75;g.add(smallStone);
+  smallStone.name='Courtyard bowl small dark rounded stone';smallStone.position.set(-3.01,.299,11.29);smallStone.scale.y=.75;g.add(smallStone);
 
 
   // Upper front range with airy perforated pink balcony.
