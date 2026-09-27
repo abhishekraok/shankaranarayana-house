@@ -32,7 +32,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  const exportData=()=>({schema:'shankaranarayana-photo-poses',version:1,coordinates:'Three.js world metres; Y up; camera position is eye position (not feet)',exportedAt:new Date().toISOString(),poses:[...saved.values()]});
  // With a local photo queue, every save is also written to the photo folder by server.mjs.
  const sync=()=>{if(diskSync)fetch('./local-photos/align-poses.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(exportData())}).then(r=>{if(!r.ok)status('Could not write poses to the photo folder; use Export.');}).catch(()=>status('Could not write poses to the photo folder; use Export.'));};
- const persist=()=>{sync();try{localStorage.setItem(STORAGE,JSON.stringify([...saved.values()]));return true;}catch{return false;}};
+ const persist=(writeDisk=true)=>{if(writeDisk)sync();try{localStorage.setItem(STORAGE,JSON.stringify([...saved.values()]));return true;}catch{return false;}};
  try{const list=JSON.parse(localStorage.getItem(DISCARDED)||'[]');if(Array.isArray(list))for(const id of list)if(typeof id==='string')discarded.add(id);}catch{}
  const persistDiscarded=()=>{try{localStorage.setItem(DISCARDED,JSON.stringify([...discarded]));}catch{}
   if(diskSync)fetch('./local-photos/align-discarded.json',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({schema:'shankaranarayana-align-discarded',version:1,files:[...discarded].filter(id=>id.startsWith('file:')).map(id=>id.slice(5))})}).then(r=>{if(!r.ok)status('Could not write the discard list to the photo folder.');}).catch(()=>status('Could not write the discard list to the photo folder.'));};
@@ -124,7 +124,9 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  async function open(find=''){
   active=true;setAligning(true);release();$('photos').hidden=true;$('settings').hidden=true;
   document.body.classList.add('aligning-photo');stage.hidden=false;panel.hidden=false;
-  if(!items.length){items=await loadQueue();if(diskSync&&saved.size)persist();}
+  // Opening the viewer may refresh the browser cache, but must not rewrite the
+  // source pose file. Disk writes belong to explicit Save or Import actions.
+  if(!items.length){items=await loadQueue();if(diskSync&&saved.size)persist(false);}
   let last=null;try{last=localStorage.getItem(POSITION);}catch{}
   const match=f=>items.findIndex(it=>it.filename.toLowerCase().includes(f.toLowerCase()));
   const parts=find.split(',').map(f=>f.trim()).filter(Boolean);

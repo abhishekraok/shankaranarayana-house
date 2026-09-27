@@ -30,7 +30,10 @@ const rect=(page,sel)=>page.evaluate(s=>document.querySelector(s).getBoundingCli
  assert.deepEqual(await page.evaluate(()=>houseWalk.camera.position.toArray()),saved[0].camera.position);
  const downloadPromise=page.waitForEvent('download');await page.click('#align-export');const exported=JSON.parse(fs.readFileSync(await(await downloadPromise).path(),'utf8'));assert.equal(exported.poses.length,1);assert.ok(!JSON.stringify(exported).includes('data:image'));
  // Reload resumes at the same photo with its saved pose.
+ const writesBeforeReload=diskWrites;
  await page.reload();await page.waitForFunction(()=>window.houseWalk?.ready);await page.click('#photos-btn');await page.click('#align-photo');await page.waitForFunction(t=>document.getElementById('align-title').textContent===t,first);
+ await page.waitForFunction(()=>document.getElementById('align-photo-view').naturalWidth>0);
+ assert.equal(diskWrites,writesBeforeReload,'Opening alignment must not rewrite the source pose file');
  assert.deepEqual(await page.evaluate(()=>houseWalk.camera.position.toArray()),saved[0].camera.position);
  const old=await page.evaluate(k=>localStorage.getItem(k),KEY);
  await page.setInputFiles('#align-import',{name:'bad.json',mimeType:'application/json',buffer:Buffer.from('{"version":1,"poses":[{}]}')});await page.waitForFunction(()=>document.getElementById('align-status').textContent.includes('not a valid'));assert.equal(await page.evaluate(k=>localStorage.getItem(k),KEY),old);
@@ -62,5 +65,5 @@ const rect=(page,sel)=>page.evaluate(s=>document.querySelector(s).getBoundingCli
  await mobile.click('#controls-toggle');await mobile.click('#photos-btn');await mobile.click('#align-photo');await mobile.waitForFunction(()=>document.getElementById('align-photo-view').naturalWidth>0);
  const mp=await rect(mobile,'#align-photo-view'),mw=await rect(mobile,'#world');assert.ok(mw.top>=mp.bottom&&mw.bottom<=(await rect(mobile,'#photo-alignment')).top+1);
  assert.ok(await mobile.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
- assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['side-by-side aspect match','keyboard height and zoom','space saves and advances','previous restores pose','JSON export','reload resumes','invalid import rejection','close restores view','tour restart','discard and restore','direct ?align link','portrait stacking'],errors}));
+ assert.deepEqual(errors,[]);console.log(JSON.stringify({passed:true,checks:['side-by-side aspect match','keyboard height and zoom','space saves and advances','previous restores pose','JSON export','reload resumes without writing source poses','invalid import rejection','close restores view','tour restart','discard and restore','direct ?align link','portrait stacking'],errors}));
 }finally{await browser.close();}})().catch(e=>{console.error(e);process.exit(1);});

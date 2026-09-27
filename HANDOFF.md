@@ -4,7 +4,33 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
-## Codex fidelity pass (2026-09-27)
+## Continued fidelity session (2026-09-27, ongoing)
+
+Geometry through `779bf66`, starting from `2ea3ff9`; local only. Review:
+`checks/fidelity-session/REVIEW.md` (original / session start / current).
+
+- Sitting window: ochre surround, rounded blue mouldings, exposed recess and oxide sill.
+- Adjacent hall: dark stone with pale inlays; rear dais, central steps and high green vents;
+  projecting two-storey centre porch, floor and rail returns. Wider 14.59.26 and 15.12.15
+  corroborate the close-ups. Dimensions remain estimates from photographs.
+- Service porch: curled arch cusps and pale edges. Lamp: scalloped oil cups, turned bands
+  and alternating pegs on the pale pole.
+- Porch-side blue window **is confirmed** by 15.02.27, 15.03.47 and 15.10.30. The plain-wall
+  15.10.34 view likely crops it out. Placement relative to the stair door still needs alignment.
+- Wheel/geometry passed each geometry checkpoint. Browser verification after the hall
+  changes: 58 destinations, 60 routes, no failures/errors. Final integration checks pending.
+- Native hall renders: `blender/build/fidelity-session-hall` in the photoreal worktree;
+  procedural inlays now survive export. Window `fidelity-session-window-exposure` uses a
+  diagnostic exposure of 3.3 stops; it does not change the saved blend. Interiors remain dark.
+  Statue photo cards remain a fidelity limitation, especially in native exports.
+
+**Pose-file audit:** opening alignment auto-synced `align-poses.json`, refreshing its export
+timestamp. All paired review cameras match, but full historical file equality is unverified.
+The capture harness now blocks writes and checks the source hash before/after. The viewer
+now caches loaded poses without writing the source; explicit Save/Import still persist.
+Photographs and `docs/photo-findings.json` are untouched. User-only layout decisions remain open.
+
+## Initial Codex fidelity pass (2026-09-27)
 
 Geometry checkpoint: `03d5fba` on `main`, merged into `photoreal`. Nothing pushed or deployed.
 
@@ -17,13 +43,13 @@ Geometry checkpoint: `03d5fba` on `main`, merged into `photoreal`. Nothing pushe
   tour now go around it. The pole's exact relation to the flagstaff remains approximate.
 - **Service porch:** moved 1.5 m west, deepened to 2.7 m behind the front piers, with a west
   scalloped arch and a 0.21 m inner step. Removed intersecting portico/frontage solids and
-  connected the floor to the hall. The adjoining blue window is deferred: the position inferred
-  from 15.10.30 conflicts with the plain wall in 15.10.34. 15.10.43 still needs re-alignment.
+  connected the floor to the hall. The adjoining blue window was deferred; see the updated
+  evidence above. 15.10.43 still needs re-alignment.
 
 Local review: `checks/fidelity/REVIEW.md` and its four photo/before/after sheets. Cameras stay
 fixed between renders. The 15.13.51 close-up uses a labelled +1.18 m diagnostic eye height in
-both versions; its saved pose is at the raised floor and needs re-saving. Original pose files
-and `docs/photo-findings.json` were not modified.
+both versions; its saved pose is at the raised floor and needs re-saving. See the pose-file
+audit above for the automatic metadata rewrite discovered later.
 
 Blender: rebuilt from this checkpoint; nine saved-camera renders and sheets are under
 `D:\repos\shankaranarayana-photoreal\blender\build\fidelity-20260927` (ignored). The render
