@@ -13,7 +13,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  const restart=await page.evaluate(()=>houseWalk.getState());
  assert.ok(Math.abs(restart.position[0])<.01&&restart.position[2]<-5,'Restart uses the lane just outside the house');
  const bank=await page.evaluate(()=>{
-  houseWalk.teleport({p:[23.1,1.08,-39.4],target:[25,2,-1]});
+  houseWalk.teleport({p:[23.1,1.38,-39.4],target:[25,2,-1]});
   const before=houseWalk.getState();houseWalk.moveFor('KeyD',.3);const moved=houseWalk.getState();
   houseWalk.setMode('orbit');houseWalk.setMode('walk');const returned=houseWalk.getState();
   houseWalk.teleport(houseWalk.destinations.front);const front=houseWalk.getState();

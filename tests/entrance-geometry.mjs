@@ -285,7 +285,7 @@ const galleryRoute=[[39,3],[44.6,3],[44.6,1.35],[46.18,1.35],[46.18,5.72],[44.8,
 checkRoute('Temple entrance to upper gallery',galleryRoute,.20,.19);
 checkRoute('Temple gallery return to entrance',[...galleryRoute].reverse(),4.08,.19);
 checkRoute('Lane to adjacent building stair',[[8,-5],[59.9,-5],[62.5,-5]],.051,0);
-checkRoute('Near-bank pavilion entry',[[34,-37.3],[34,-34]],-.29,-.30);
+checkRoute('Near-bank pavilion entry',[[34,-37.3],[34,-34]],.28,-.30);
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
 checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-.55);
@@ -512,10 +512,10 @@ assert.ok(pavilionMiddle.x>0&&pavilionMiddle.x<1,'Pavilion lies right in the mid
 assert.ok(pavilionRight.x<0&&pavilionRight.x>-1,'Pavilion moves left in the far-right view');
 const shopUpper=new THREE.Vector3(62,3,-25).project(upperCameras[2]),stageUpper=new THREE.Vector3(60,5,-5).project(upperCameras[2]);
 assert.ok(shopUpper.x>pavilionRight.x&&stageUpper.x>shopUpper.x,'Final view orders pavilion, shop, stage');
-checkRoute('Opposite-bank path crosses stair landing',[[11.7,-39.4],[14.8,-39.4]],1.08,1.07);
+checkRoute('Opposite-bank path crosses stair landing',[[11.7,-39.4],[14.8,-39.4]],1.38,1.37);
 // 14.58.26: two flights along the retaining face meet at a central landing.
-checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.08,-.54);
-checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.08,-.54);
+checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.38,-.54);
+checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.38,-.54);
 checkRoute('Opposite-bank flight ascent',[[13.25,-36.06],[13.25,-37.2675],[9.35,-37.2675],[9.35,-39.4]],-.53,-.54);
 const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sidePlatformHeight:.602,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
