@@ -1309,21 +1309,13 @@ export function buildTemple(K) {
   // red-outlined tiled plinth, and a blue-framed door with the gallery stair
   // rising inside it.
   {const wallZ=7.45,x0=32.3,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=.62,head=3.07;
-    for(const [a,b] of [[x0,32.5],[33.5,d0],[d1,x1]]){
+    for(const [a,b] of [[x0,d0],[d1,x1]]){
       box('Stair door white wall',(a+b)/2,2.0,wallZ,b-a,3.92,.3,white,true);
       box('Stair door wall red dado',(a+b)/2,.87,wallZ+.155,b-a,.5,.02,red);
       box('Stair door wall tiled plinth',(a+b)/2,.31,wallZ+.16,b-a,.62,.03,outlinedPlinth);
     }
-    // 15.10.30 / 15.10.34: a white wall and blue barred window separate
-    // the service porch from the gallery stair door.
-    box('Service porch adjoining window sill',33,.675,wallZ,1,1.35,.3,white,true);
-    box('Service porch adjoining window lintel',33,3.43,wallZ,1,1.06,.3,white,true);
-    box('Service porch adjoining window dado',33,.87,wallZ+.155,1,.5,.02,red);
-    box('Service porch adjoining window plinth',33,.31,wallZ+.16,1,.62,.03,outlinedPlinth);
-    for(const x of [32.53,33,33.47])box('Service porch blue window upright',x,2.125,wallZ+.16,.065,1.55,.09,blue);
-    for(const y of [1.38,2.12,2.87])box('Service porch blue window rail',33,y,wallZ+.16,1,.065,.09,blue);
-    for(let y=1.5;y<2.83;y+=.14)box('Service porch window horizontal bar',33,y,wallZ+.14,.9,.017,.018,whiteTrim);
-    K.blocker(33,wallZ,1,.3,1.35,2.9);
+    // 15.10.34 shows plain wall here. The blue window visible in 15.10.30
+    // needs a re-aligned view before its position relative to this wall is fixed.
     box('Stair door white lintel wall',dc,(head+3.96)/2,wallZ,d1-d0,3.96-head,.3,white);
     for(const x of [d0+.04,d1-.04])box('Stair door blue frame jamb',x,(sill+head)/2,wallZ+.16,.08,head-sill,.06,blue);
     for(const y of [head-.02,head-.36])box('Stair door blue frame head',dc,y,wallZ+.16,d1-d0,.07,.06,blue);
