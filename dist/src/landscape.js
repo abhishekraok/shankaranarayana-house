@@ -412,18 +412,18 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   for(const [a,b] of [[-4.6,12.10],[14.40,48.8]])for(const [top,z] of [[FAR_LEDGE,-36.47],[-.17,-36.04],[-.62,-35.58]])
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
-  // 15.14.07 / 15.21.47: the temple-side bank has a solid dark masonry parapet with
-  // capped square dark-stone piers, not white piers and crossrails.
-  for(const [z1,z2] of [[-8.32,-20.8],[-23.5,-37.68]]){
+  // 15.14.07 / 15.21.47 / 15.23.25 / 15.23.35 / 15.23.38 / 15.25.52 / 15.25.55 / 14.57.50: both side
+  // banks have a solid dark masonry parapet with tall, capped whitewashed square posts
+  // about 3.7 m apart, not open crossrails.
+  for(const [x,z1,z2,name] of [[50.08,-8.32,-20.8,'East'],[50.08,-23.5,-37.68,'East'],[-5.08,-10.0,-37.68,'West']]){
     const len=Math.abs(z2-z1),zc=(z1+z2)/2,n=Math.max(1,Math.round(len/3.7));
-    box('East bank solid dark parapet',50.08,.55,zc,.3,1.1,len,fenceStone);
-    box('East bank parapet coping',50.08,1.13,zc,.38,.07,len,fenceStone);
+    box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
+    box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
     for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
-      box('East bank dark stone pier',50.08,.65,z,.42,1.3,.42,fenceStone);
-      box('East bank pier cap',50.08,1.35,z,.5,.1,.5,fenceStone);}
-    K.blocker(50.08,zc,.45,len+.3,0,1.4);
+      box(name+' bank whitewashed square post',x,.72,z,.36,1.44,.36,fenceWhite);
+      box(name+' bank post cap',x,1.49,z,.44,.09,.44,fenceWhite);}
+    K.blocker(x,zc,.45,len+.3,0,1.4);
   }
-  railRun(-5.08,-10.0,-5.08,-37.68,'west bank');
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
   // standing about 0.4 m above the raised ground behind the wall.
   for(const [a,b] of [[-5.05,9.0],[17.5,49.4]]){
