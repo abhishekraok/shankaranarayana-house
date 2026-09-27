@@ -81,8 +81,8 @@ destinations.templesanctum={p:[35.2,.55,22],target:[39,2.3,24.2],fov:72};
 destinations.templesanctumfront={p:[43,.55,21],target:[39,2.25,16.3],fov:76};
 destinations.templeupperhall={p:[44.55,4.08,.37],target:[32.0,5.45,.80],fov:72};
 destinations.templesidebay={p:[33.6,.1,10.9],target:[32,1.9,6.5],fov:70};
-destinations.templehall={p:[26.1,.60,14.4],target:[23.8,2.1,7.8],fov:76};
-destinations.templehallbay={p:[27.2,.60,11.5],target:[26.1,2.1,6.85],fov:70};
+destinations.templehall={p:[24.6,.60,14.4],target:[22.3,2.1,7.8],fov:76};
+destinations.templehallbay={p:[25.7,.60,11.5],target:[24.6,2.1,6.85],fov:70};
 destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};
 destinations.godroomdesk={p:[-6.7,.45,4.55],target:[-5.75,1.20,5.15],fov:65};
 destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
@@ -105,8 +105,8 @@ destinations.templepoles={p:[45.8,.1,14.3],target:[30.5,2.6,10.7],fov:74};
 destinations.templebell={p:[39.74,.1,7.78],target:[36.86,1.72,6.97],fov:66};
 
 photos.templeoldwall={url:'temple-old-wall.jpg',caption:'September 2011 · The older inner wall and standing stone',p:[49.9,.1,22.4],target:[46.4,1.85,28.7],fov:76};
-photos.templeoutershrines={url:'temple-outer-shrines.jpg',caption:'September 2011 · The three vaulted shrine bays',p:[46.5,.1,32.7],target:[52.2,2.95,32.2],fov:76};
-photos.templeouterrear={url:'temple-outer-rear.jpg',caption:'September 2011 · Around the rear of the inner building',p:[40,.1,33.0],target:[26.1,1.9,35.2],fov:68};
+photos.templeoutershrines={url:'temple-outer-shrines.jpg',caption:'September 2011 · The three vaulted shrine bays',p:[49,.1,40.2],target:[56.2,2.95,39.7],fov:76};
+photos.templeouterrear={url:'temple-outer-rear.jpg',caption:'September 2011 · Around the rear of the inner building',p:[40,.1,40.5],target:[24.6,1.9,42.7],fov:68};
 photos.templeouterreturn={url:'temple-outer-return.jpg',caption:'September 2011 · Looking back along the outer circuit',p:[49.8,.1,28.7],target:[48.9,1.9,9.5],fov:68};
 for(const key of ['templeoldwall','templeoutershrines','templeouterrear','templeouterreturn'])destinations[key]=photos[key];
 destinations.templeroad=photos.templeroad;
@@ -266,7 +266,7 @@ function move(dt){if(aligning)alignPad(dt);else if(['walk','fly'].includes(mode)
  if(mode==='fly')return;
  const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62+lakeCameraLift(camera.position.x,camera.position.z),16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
 }
-function location(x,z,y){const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>18.8&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>24&&x<54&&z>-1&&z<38.3){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>30.3)return x>45?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
+function location(x,z,y){const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>17.3&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>21&&x<58.2&&z>-1&&z<45.8){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>37.8)return x>50?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){

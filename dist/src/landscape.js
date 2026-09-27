@@ -589,7 +589,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   {
     const clearings = [
       [-22, 58, -48.8, -8.5], [-125, 125, -8.1, -1.9],
-      [-16.5, 59, -2, 25.8], [21, 59, 25.8, 37.5],
+      [-16.5, 59, -2, 25.8], [21, 59, 25.8, 46],
       [-43, -31, 22.8, 33.2], [-2, 10, -65, -55], [60.5, 73.5, 36.5, 47.5],
     ];
     const positions = [], colors = [], indices = [];
@@ -631,7 +631,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('rear laterite garden retaining wall', -2+K.houseShiftX, .29, 24.8, 27, .58, .5, materials.basalt, true);
   box('rear retaining pale coping', -2+K.houseShiftX, .61, 24.8, 27.12, .1, .59, materials.path);
   box('west overgrown boundary wall', -24.1, .31, -26.5, .46, .62, 34, materials.basalt, true);
-  box('east garden low boundary', 59.5, .22, 20, .42, .44, 29, materials.basalt, true);
+  box('east garden low boundary', 59.5, .22, 26, .42, .44, 41, materials.basalt, true);
 
   // A frond has a curved rachis and individually tapered, folded leaflets.
   // Geometry is shared by every coconut and areca crown; no billboard palms.
@@ -1435,10 +1435,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   // The upper-gallery temple photos show dense palms directly behind the court.
   // Keep this grove behind the established temple footprint, separate from the
   // neighboring building's grove; individual tree positions are estimated.
-  for(let row=0;row<4;row++)for(let col=0;col<12;col++)palm(24+col*3.4+range(-.6,.6),43+row*4.3+range(-.7,.7),range(14,21),true);
-  for(const p of [[28,44,19],[37,48,23],[45,43,21],[55,45,20],[60,51,23],[33,59,22],[50,60,22]])palm(...p);
-  for(let i=0;i<12;i++)broadleaf(25+i*3.3,48+range(0,12),range(9,14),range(3,4.3));
-  for(let i=0;i<65;i++)shrub(range(24,64),range(41,57),range(.9,1.6));
+  for(let row=0;row<4;row++)for(let col=0;col<12;col++)palm(24+col*3.4+range(-.6,.6),50.5+row*4.3+range(-.7,.7),range(14,21),true);
+  for(const p of [[28,51.5,19],[37,55.5,23],[45,50.5,21],[55,52.5,20],[60,58.5,23],[33,66.5,22],[50,67.5,22]])palm(...p);
+  for(let i=0;i<12;i++)broadleaf(25+i*3.3,55.5+range(0,12),range(9,14),range(3,4.3));
+  for(let i=0;i<65;i++)shrub(range(24,64),range(48.5,64.5),range(.9,1.6));
 
   // Dense greenery on the house side of the small road, as in 14.58.48.
   // The near end is occupied by the white tiled block seen in 14.59.36.
