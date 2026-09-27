@@ -19,7 +19,7 @@ let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
 renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
 $('world').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3D scene. Click to look around; WASD or arrow keys to walk.');
-const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-8,4.2,-20);camera.lookAt(1,2.1,5);
+const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-11.8,4.2,-20);camera.lookAt(-2.8,2.1,5);
 const hemiLight=new THREE.HemisphereLight(0xdcebea,0x656048,1.5);scene.add(hemiLight);
 const ambientLight=new THREE.AmbientLight(0xdbe3df,.7);scene.add(ambientLight);
 const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
@@ -65,17 +65,17 @@ const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,last
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
- front:{p:[0,0,-2],target:[0,1.6,9]},courtyard:{p:[-6.8,.035,12.6],target:[-4.4,1.3,7.5]},kitchen:{p:[-9.7,.45,15.9],target:[-10.9,1.5,17.1]},upstairs:{p:[-2.65,3.85,1],target:[-2.65,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-.29,-37.3],target:[34,1,-34]},temple:{p:[39,0,-6.5],target:[39,3.7,5]},templecourt:{p:[30,.1,14],target:[41,2,17]}
+ front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-.29,-37.3],target:[34,1,-34]},temple:{p:[39,0,-6.5],target:[39,3.7,5]},templecourt:{p:[30,.1,14],target:[41,2,17]}
 
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
 // Entering faces +Z, so the photographer's left is +X; the room wall is on the right.
-const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-1.4,.051,-7.7],target:[-.4,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[0,.45,1.18],target:[4.3,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-36],target:[30,2,0]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-6.5],target:[38.8,3.85,-1.2],fov:84}};
-photos.houseleft={url:'house-front-left.jpg',caption:'September 2011 · Front of the house, looking left towards the temple · 15.28.45',p:[-2.2,.051,-7.6],target:[40,3.2,-1.5],fov:76};
+const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-5.2,.051,-7.7],target:[-4.2,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[-3.8,.45,1.18],target:[0.5,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-36],target:[30,2,0]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-6.5],target:[38.8,3.85,-1.2],fov:84}};
+photos.houseleft={url:'house-front-left.jpg',caption:'September 2011 · Front of the house, looking left towards the temple · 15.28.45',p:[-6,.051,-7.6],target:[40,3.2,-1.5],fov:76};
 destinations.house=photos.house;destinations.houseleft=photos.houseleft;
-photos.verandaleft={url:'veranda-left-passage.jpg',caption:'September 2011 · Before the main door, along the left walkway · 14.56.07',p:[1.90,.455,-.25],target:[4.20,1.68,1.05],fov:68};
-photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[.05,.45,1.32],target:[4.10,1.65,1.15],fov:72};
-photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-.05,.45,1.32],target:[-4.10,1.65,1.15],fov:72};
+photos.verandaleft={url:'veranda-left-passage.jpg',caption:'September 2011 · Before the main door, along the left walkway · 14.56.07',p:[-1.9,.455,-.25],target:[0.4,1.68,1.05],fov:68};
+photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[-3.75,.45,1.32],target:[0.3,1.65,1.15],fov:72};
+photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-3.85,.45,1.32],target:[-7.9,1.65,1.15],fov:72};
 for(const key of ['veranda','verandaleft','verandaseat','verandaright'])destinations[key]=photos[key];
 destinations.templesanctum={p:[35.2,.55,22],target:[39,2.3,24.2],fov:72};
 destinations.templesanctumfront={p:[43,.55,21],target:[39,2.25,16.3],fov:76};
@@ -83,15 +83,15 @@ destinations.templeupperhall={p:[44.55,4.08,.37],target:[32.0,5.45,.80],fov:72};
 destinations.templesidebay={p:[33.6,.1,10.9],target:[32,1.9,6.5],fov:70};
 destinations.templehall={p:[26.1,.60,14.4],target:[23.8,2.1,7.8],fov:76};
 destinations.templehallbay={p:[27.2,.60,11.5],target:[26.1,2.1,6.85],fov:70};
-destinations.courtpassage={p:[-9.85,.45,11.8],target:[-9.5,1.8,5.7],fov:68};
-destinations.godroomdesk={p:[-2.9,.45,4.55],target:[-1.95,1.20,5.15],fov:65};
-destinations.godroomshelf={p:[0,1.08,8.65],target:[0,3.77,7.05],fov:48};
-destinations.courtstair={p:[-4,.035,12],target:[-4.3,1.8,6.2],fov:72};
-destinations.courtstairtop={p:[-6.75,3.85,6.5],target:[-3.8,1.5,14.55],fov:72};
-photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-3.4,.035,6.85],target:[-5.0,1.2,11]};
-photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[0,.45,4.45],target:[0,1.80,6.92],fov:92};
-photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[8,0,-7],target:[60,3.5,-5],fov:54};
-photos.laneright={url:'lane-right.jpg',caption:'September 2011 · Front of the house, right away from the temple',p:[-7,.051,-5],target:[-42,2,-6.7],fov:60};
+destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};
+destinations.godroomdesk={p:[-6.7,.45,4.55],target:[-5.75,1.20,5.15],fov:65};
+destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
+destinations.courtstair={p:[-7.8,.035,12],target:[-8.1,1.8,6.2],fov:72};
+destinations.courtstairtop={p:[-10.55,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
+photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-7.2,.035,6.85],target:[-8.8,1.2,11]};
+photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.45,4.45],target:[-3.8,1.80,6.92],fov:92};
+photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[4.2,0,-7],target:[60,3.5,-5],fov:54};
+photos.laneright={url:'lane-right.jpg',caption:'September 2011 · Front of the house, right away from the temple',p:[-10.8,.051,-5],target:[-42,2,-6.7],fov:60};
 photos.templeleft={url:'temple-upper-left.jpg',caption:'September 2011 · Temple upper gallery, looking left at the inner building',p:[44.4,4.08,5.4],target:[46,2.6,16.5],fov:62};
 photos.templecenter={url:'temple-upper-center.jpg',caption:'September 2011 · Temple upper gallery, facing the inner building',p:[39,4.08,5.4],target:[39,3.3,16.5],fov:62};
 photos.templeright={url:'temple-upper-right.jpg',caption:'September 2011 · Temple upper gallery, looking right at the inner building',p:[33.5,4.08,5.4],target:[31,3.6,18],fov:62};
@@ -129,13 +129,13 @@ photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside t
 photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-6.3,0,-23],target:[59.8,-.8,-25.4],fov:34};
 destinations.shop=photos.shop;destinations.shoplake=photos.shoplake;
 destinations.lakefence={p:[9.8,0,-7.6],target:[56,3.2,-7],fov:74};
-photos.upperahead={url:'house-upper-ahead.jpg',caption:'September 2011 · House upstairs, directly ahead · 15.30.09',p:[-1,3.85,.72],target:[-2.65,1.6,-55],fov:64};
-photos.upperright={url:'house-upper-right.jpg',caption:'September 2011 · Same upstairs position, looking right · 15.30.06',p:[-1,3.85,.72],target:[15,1.5,-43],fov:68};
+photos.upperahead={url:'house-upper-ahead.jpg',caption:'September 2011 · House upstairs, directly ahead · 15.30.09',p:[-4.8,3.85,.72],target:[-2.65,1.6,-55],fov:64};
+photos.upperright={url:'house-upper-right.jpg',caption:'September 2011 · Same upstairs position, looking right · 15.30.06',p:[-4.8,3.85,.72],target:[15,1.5,-43],fov:68};
 destinations.upstairs=photos.upperahead;destinations.upperahead=photos.upperahead;destinations.upperright=photos.upperright;
-destinations.upperfarther={p:[-1,3.85,.72],target:[52,1.4,-35],fov:70};
-destinations.houseexitleft={p:[9.2,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
+destinations.upperfarther={p:[-4.8,3.85,.72],target:[52,1.4,-35],fov:70};
+destinations.houseexitleft={p:[5.4,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
 destinations.templeentryreturn={p:[48.5,.1,10.7],target:[50.7,2.0,6.4],fov:75};
-const tour=createPhotoTour(photos,supportY);
+const tour=createPhotoTour(photos,supportY,K.houseShiftX);
 // Change only the entry time: the route, segment order and loop stay intact.
 const tourStartTime=tour.spans.find(s=>s.a.label==='Along the lane').start;
 tourTime=tourStartTime;
@@ -266,7 +266,7 @@ function move(dt){if(aligning)alignPad(dt);else if(['walk','fly'].includes(mode)
  if(mode==='fly')return;
  const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62+lakeCameraLift(camera.position.x,camera.position.z),16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
 }
-function location(x,z,y){if(x>-8&&x<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>18.8&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>24&&x<54&&z>-1&&z<38.3){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>30.3)return x>45?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(x>-12&&x<12&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(x<-8&&z>14)return 'The kitchen';if(Math.abs(x)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(x<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(x)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
+function location(x,z,y){const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>18.8&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>24&&x<54&&z>-1&&z<38.3){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>30.3)return x>45?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){

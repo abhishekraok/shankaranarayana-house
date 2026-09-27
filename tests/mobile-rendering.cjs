@@ -18,7 +18,7 @@ const assert=require('node:assert/strict');
   const before=hits(),trianglesBefore=count(),roofParents=kit.roofs.map(r=>r.parent);
   const pedestal=house.getObjectByName('Entrance three-tier turquoise pedestal').position.x;
   const clock=house.getObjectByName('Ivory wall clock face').position.x;
-  const roofHit=new THREE.Raycaster(new THREE.Vector3(10.6,2.1,10),new THREE.Vector3(0,1,0),0,8).intersectObject(house,true)[0]?.object.name;
+  const roofHit=new THREE.Raycaster(new THREE.Vector3(10.6+kit.houseShiftX,2.1,10),new THREE.Vector3(0,1,0),0,8).intersectObject(house,true)[0]?.object.name;
   const stats=optimizeStaticScene(fixture,kit.roofs);fixture.updateMatrixWorld(true);const after=hits();
   return {rayDetails:before.flatMap((b,i)=>{const a=after[i];return a&&b&&(Math.abs(a.distance-b.distance)>1e-4||a.color!==b.color)?[{i,b,a}]:[];}),phoneMode:houseWalk.phoneMode,pixelRatio:houseWalk.renderer.getPixelRatio(),antialias:houseWalk.renderer.getContext().getContextAttributes().antialias,stats,trianglesBefore,trianglesAfter:count(),rayMismatches:before.flatMap((b,i)=>{const a=after[i];return (!a!==!b)||(a&&b&&(Math.abs(a.distance-b.distance)>1e-4||a.color!==b.color))?[i]:[];}),roofParentsPreserved:kit.roofs.every((r,i)=>r.parent===roofParents[i]),pedestal,clock,roofHit};
  });

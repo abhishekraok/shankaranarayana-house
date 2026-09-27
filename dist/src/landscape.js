@@ -601,7 +601,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const mesh = new THREE.Mesh(geometry, material); mesh.name = 'continuous mottled green and leaf-litter forest floor';
     group.add(mesh);
   }
-  patch('laterite rear yard', -1, 23.3, 17, 3.1, materials.redSoil);
+  patch('laterite rear yard', -1+K.houseShiftX, 23.3, 17, 3.1, materials.redSoil);
   patch('western coconut ground', -33, -24, 9.5, 30, materials.turf);
   patch('grove leaf litter', -4, 44, 25, 18, materials.darkSoil);
   patch('opposite bank overgrown ground', 0, -56, 34, 9, materials.turf);
@@ -611,8 +611,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     patch('irregular shaded grass patch', range(-25, 17), behind ? range(28, 59) : range(-66, -49), range(1.6, 4.5), range(1.0, 2.6), i % 3 ? materials.turf : materials.moss, .026 + i * .0002);
   }
   // Garden retaining walls stay behind the house and beside the eastern grove.
-  box('rear laterite garden retaining wall', -2, .29, 24.8, 27, .58, .5, materials.basalt, true);
-  box('rear retaining pale coping', -2, .61, 24.8, 27.12, .1, .59, materials.path);
+  box('rear laterite garden retaining wall', -2+K.houseShiftX, .29, 24.8, 27, .58, .5, materials.basalt, true);
+  box('rear retaining pale coping', -2+K.houseShiftX, .61, 24.8, 27.12, .1, .59, materials.path);
   box('west overgrown boundary wall', -24.1, .31, -26.5, .46, .62, 34, materials.basalt, true);
   box('east garden low boundary', 59.5, .22, 20, .42, .44, 29, materials.basalt, true);
 
@@ -1251,7 +1251,7 @@ export function buildLandscape(K, {mobile=false}={}) {
 
   // 14.59.36: the maroon hatchback is parked off the asphalt beside the house,
   // facing away from the temple. Its rear, not the bonnet, faces this viewpoint.
-  const car=new THREE.Group();car.name='Maroon hatchback beside the house';car.position.set(5.8,.03,-2.35);group.add(car);
+  const car=new THREE.Group();car.name='Maroon hatchback beside the house';car.position.set(5.8+K.houseShiftX,.03,-2.35);group.add(car);
   const carPaint=new THREE.MeshStandardMaterial({color:'#75243d',roughness:.40,metalness:.25});
   const carGlass=new THREE.MeshStandardMaterial({color:'#283a43',roughness:.23,metalness:.34});
   const carRubber=new THREE.MeshStandardMaterial({color:'#252726',roughness:.88});
@@ -1304,7 +1304,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   cb('Hatchback front dark grille',-1.86,.65,0,.035,.20,.69,carRubber);
   cb('Hatchback pale front number plate',-1.88,.48,0,.02,.12,.43,'cream');
-  K.blocker(5.8,-2.35,3.85,1.88,.03,1.78);
+  K.blocker(5.8+K.houseShiftX,-2.35,3.85,1.88,.03,1.78);
 
   // Purple roadside plants from the front-of-house photographs.
   // Thin stems along the parapet, clear of the grass verge in 14.58.02.

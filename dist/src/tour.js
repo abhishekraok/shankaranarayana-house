@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 
 // Eye-height waypoints follow doors, aisles, stairs and the dry lake banks.
-export function createPhotoTour(photos, supportY = null) {
+export function createPhotoTour(photos, supportY = null, houseShiftX = 0) {
   const photo=key=>({p:[photos[key].p[0],photos[key].p[1]+1.62,photos[key].p[2]],look:photos[key].target,label:photos[key].caption.split(' · ').slice(1).join(' · '),fov:photos[key].fov||58,photo:key,hold:.75});
-  const at=(p,look,label)=>({p,look,label,hold:0});
+  // Waypoints inside the house are authored in house coordinates and follow its placement.
+  const inHouse=p=>p[0]>-13&&p[0]<13&&p[2]>-1.5&&p[2]<25;
+  const at=(p,look,label)=>inHouse(p)?{p:[p[0]+houseShiftX,p[1],p[2]],look:[look[0]+houseShiftX,look[1],look[2]],label,hold:0}:{p,look,label,hold:0};
   const points=[
     photo('house'),
     at([0,2.07,-.8],[0,2,6],'Approaching the house'),
