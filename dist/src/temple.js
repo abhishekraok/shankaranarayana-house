@@ -1213,15 +1213,25 @@ export function buildTemple(K) {
   box('Lamp stone foot',lampX,.26,lampZ,1.45,.32,1.45,oldStone,true);
   box('Lamp dark lower plinth',lampX,.48,lampZ,1.6,.13,1.6,dark);
   box('Lamp upper plinth',lampX,.67,lampZ,1.03,.22,1.03,dark);
-  box('Lamp square shaft',lampX,1.66,lampZ,.49,1.83,.49,dark);
+  const lampShaftStone=mat('#4b4a42',.88);
+  box('Lamp square shaft',lampX,1.66,lampZ,.49,1.83,.49,lampShaftStone);
   for(const y of [.85,1.0,2.45,2.60])box('Lamp square collar',lampX,y,lampZ,.68,.12,.68,dark);
   // 15.03.47 / 15.13.03: slim shaft; dishes little wider than the shaft.
   cyl('Lamp round shaft',lampX,5.73,lampZ,.16,.2,6.5,dark,16);
+  const lampCups=[],lampTurnedBands=[];
   for(let i=0;i<15;i++){
     const y=2.62+i*.44;
     cyl('Lamp wide dish',lampX,y,lampZ,.30-i*.004,.21-i*.003,.08,dark,32);
     cyl('Lamp small rim',lampX,y+.045,lampZ,.31-i*.004,.31-i*.004,.022,dark,32);
+    // 15.13.03 / 15.02.27: each tray ends in a ring of small open oil cups.
+    // One shared lathe mesh retains the scalloped silhouette at close range.
+    const scale=1-i*.012,radius=.288-i*.004;
+    for(let j=0;j<20;j++){const angle=j*Math.PI/10;lampCups.push([lampX+radius*Math.cos(angle),y+.041,lampZ+radius*Math.sin(angle),scale,scale,scale]);}
+    if(i<14)lampTurnedBands.push([lampX,y+.23,lampZ,.206-i*.0027,1,.206-i*.0027]);
   }
+  const cupProfile=[[0,0],[.024,0],[.040,.016],[.042,.027],[.033,.029],[.029,.017],[.020,.010],[0,.010]].map(([r,y])=>new THREE.Vector2(r,y));
+  instances('Lamp scalloped open oil cups',new THREE.LatheGeometry(cupProfile,10),dark,lampCups);
+  instances('Lamp fine turned shaft bands',new THREE.CylinderGeometry(1,1,.022,20),lampShaftStone,lampTurnedBands);
   cyl('Lamp finial',lampX,9.12,lampZ,.018,.13,.42,dark,12);
   K.blocker(lampX,lampZ,1.6,1.6,.1,1.0);
   K.blocker(lampX,lampZ,1.02,1.02,1.0,9.35);
@@ -1245,6 +1255,9 @@ export function buildTemple(K) {
   cyl('Separate pale metal pole',poleX,5.3,poleZ,.115,.15,10.35,metalPole,16,true);
   const poleBands=[];for(let i=0;i<7;i++)poleBands.push([poleX,.9+i*1.25,poleZ,1,1,1]);
   instances('Pale pole collars',new THREE.CylinderGeometry(.16,.16,.075,16),brass,poleBands);
+  // Iron climbing pegs are visible on the same pole in 15.02.27 / 15.13.03.
+  for(let i=0;i<16;i++){const side=i%2?1:-1,y=1.3+i*.52;
+    K.beam(g,'Pale pole iron climbing peg',[poleX+side*.10,y,poleZ],[poleX+side*.39,y+.025,poleZ],.014,dark);}
   // Small planted Tulsi pedestal in the side courtyard, blue courses over red masonry.
   box('Tulsi lower blue course',31.8,.17,10.2,.85,.12,.85,blue);
   box('Tulsi red pedestal',31.8,.49,10.2,.60,.56,.60,red,true);
@@ -1342,12 +1355,30 @@ export function buildTemple(K) {
     cyl('Courtyard service bay red column foot',x,.90,7.59,.151,.151,.60,red,20);
     K.blocker(x,7.59,.32,.32,.602,3.61);
   }
+  // 15.10.30 / 15.10.43: distinct curled lobes and small downward cusps,
+  // rather than a sine-wave edge. Mirror the left silhouette at its crown.
+  const archOpening=new THREE.Path(),archScale=y=>2.90+(y-2.90)*.84;
+  const lobes=[
+    [[-1.625,2.90],[-1.41,2.84],[-1.31,2.99],[-1.28,3.08]],
+    [[-1.28,3.08],[-1.22,3.20],[-1.11,3.22],[-1.05,3.13]],
+    [[-1.05,3.13],[-1.08,3.32],[-.83,3.46],[-.76,3.29]],
+    [[-.76,3.29],[-.80,3.50],[-.54,3.64],[-.47,3.47]],
+    [[-.47,3.47],[-.44,3.58],[-.12,3.51],[0,3.64]],
+  ];
+  archOpening.moveTo(-1.625,2.90);
+  for(const [,a,b,c] of lobes)archOpening.bezierCurveTo(a[0],archScale(a[1]),b[0],archScale(b[1]),c[0],archScale(c[1]));
+  for(const [a,b,c] of [...lobes].reverse())archOpening.bezierCurveTo(-c[0],archScale(c[1]),-b[0],archScale(b[1]),-a[0],archScale(a[1]));
+  const archContour=archOpening.getPoints(16);
   const bayArchShape=new THREE.Shape();bayArchShape.moveTo(-1.625,3.71);bayArchShape.lineTo(1.625,3.71);
-  for(let i=0;i<=112;i++){
-    const t=i/112;bayArchShape.lineTo(1.625-t*3.25,2.90+.60*Math.sin(t*Math.PI)+.10*Math.abs(Math.sin(t*Math.PI*7)));
-  }
+  for(const p of [...archContour].reverse())bayArchShape.lineTo(p.x,p.y);
   bayArchShape.closePath();mesh('Courtyard left service bay scalloped arch',new THREE.ExtrudeGeometry(bayArchShape,{depth:.20,bevelEnabled:false}),paleBlue,32,0,7.50);
   const sideArch=mesh('Service bay west side scalloped arch',new THREE.ExtrudeGeometry(bayArchShape,{depth:.18,bevelEnabled:false}),paleBlue,30.35,0,6.245);sideArch.rotation.y=Math.PI/2;sideArch.scale.x=2.69/3.25;
+  const rimShape=new THREE.Shape();rimShape.moveTo(archContour[0].x,archContour[0].y);
+  for(const p of archContour.slice(1))rimShape.lineTo(p.x,p.y);
+  for(const p of [...archContour].reverse())rimShape.lineTo(p.x,p.y+.012);rimShape.closePath();
+  const archRim=new THREE.ExtrudeGeometry(rimShape,{depth:.012,bevelEnabled:false});
+  mesh('Service bay worn pale arch edge',archRim,whiteTrim,32,0,7.702);
+  const sideRim=mesh('Service bay worn pale side arch edge',archRim,whiteTrim,30.336,0,6.245);sideRim.rotation.y=Math.PI/2;sideRim.scale.x=2.69/3.25;
   cyl('Service bay rear blue pier',30.35,2.35,4.98,.145,.145,2.52,paleBlue,20);
   K.blocker(30.35,4.98,.32,.32,.823,3.61);
   const bayCeiling=box('Service bay flat porch ceiling',32,3.77,6.40,3.65,.12,3.3,white);K.roofs.push(bayCeiling);
