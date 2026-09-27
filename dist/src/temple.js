@@ -424,8 +424,12 @@ export function buildTemple(K) {
   // 15.21.47: the upper storey is enclosed behind its shallow front balcony.
   // Its courtyard-facing gallery remains usable for the three interior views.
   const upperRoomWall=mat('#807c70'),upperTimber=mat('#413e36');
-  box('Entrance upper enclosed room wall',39,5.29,-.22,17.56,2.42,.24,upperRoomWall,true);
-  box('Entrance upper wall lower band',39,4.30,-.36,17.55,.44,.06,white);
+  // 15.12.22: the central bay is open from the balcony back into the hall, round a stair
+  // well; only the side bays are walled.
+  for(const [a,b] of [[30.22,36.0],[40.7,47.78]]){
+    box('Entrance upper enclosed room wall',(a+b)/2,5.29,-.22,b-a,2.42,.24,upperRoomWall,true);
+    box('Entrance upper wall lower band',(a+b)/2,4.30,-.36,b-a,.44,.06,white);
+  }
   for(const x of [33.0,35.3,42.7,45.0]){
     box('Entrance upper timber window frame',x,5.43,-.39,1.10,1.57,.13,upperTimber);
     box('Entrance upper shaded window recess',x,5.43,-.47,.88,1.32,.04,dark);
@@ -433,18 +437,16 @@ export function buildTemple(K) {
     for(let dx=-.38;dx<=.4;dx+=.19)for(const sign of [-1,1])grille.push([x+dx,5.43,-.51,.032,1.34,.028,0,0,sign*.28]);
     instances('Entrance upper dark window lattice',new THREE.BoxGeometry(1,1,1),upperTimber,grille);
   }
-  box('Entrance upper closed central door frame',39,5.12,-.39,1.58,2.09,.14,upperTimber);
-  for(const x of [38.63,39.37])box('Entrance upper closed timber door leaf',x,5.12,-.49,.72,1.94,.08,doorwayBlue);
   // 15.12.42: upper entrance hall, looking along blue windows past rows
   // of folding chairs and narrow tables. Arrangement is inferred in this wing.
   const galleryChair=mat('#287d91',.48,{metalness:.22}),galleryTable=mat('#96988d',.35);
   const upperInside=K.M.plaster.clone();upperInside.color.set('#dcd8c7');
   const upperConcrete=K.M.plaster.clone();upperConcrete.color.set('#8c8b81');upperConcrete.roughness=.86;
   floor('Upper hall worn gray concrete floor',37.8,1.65,15.2,3.48,4.09,upperConcrete);
-  box('Upper hall pale interior wall face',39,5.30,-.095,17.4,2.38,.014,upperInside);
+  for(const [a,b] of [[30.3,36.0],[40.7,47.7]])box('Upper hall pale interior wall face',(a+b)/2,5.30,-.095,b-a,2.38,.014,upperInside);
   const backShape=new THREE.Shape();backShape.moveTo(-.23,-.18);backShape.lineTo(.23,-.18);backShape.lineTo(.23,.08);backShape.quadraticCurveTo(.23,.20,.11,.20);backShape.lineTo(-.11,.20);backShape.quadraticCurveTo(-.23,.20,-.23,.08);backShape.closePath();
   const chairBackGeometry=new THREE.ExtrudeGeometry(backShape,{depth:.022,bevelEnabled:true,bevelSize:.012,bevelThickness:.007,bevelSegments:2,steps:1});
-  box('Upper hall red interior wall skirt',39,4.42,-.08,17.4,.68,.025,red);
+  for(const [a,b] of [[30.3,36.0],[40.7,47.7]])box('Upper hall red interior wall skirt',(a+b)/2,4.42,-.08,b-a,.68,.025,red);
   for(const x of [33.0,35.3,42.7,45.0]){
     for(const dx of [-.58,.58])box('Upper hall blue inner window jamb',x+dx,5.39,-.06,.09,1.66,.10,blue);
     for(const y of [4.58,6.20])box('Upper hall blue inner window rail',x,y,-.06,1.24,.09,.10,blue);
@@ -460,7 +462,7 @@ export function buildTemple(K) {
   // Tubular crossed legs and curved metal back distinguish folding chairs
   // from the plastic stacks in the downstairs hall.
   for(let i=0;i<17;i++){
-    const x=32.0+i*.67,z=1.61;
+    const x=32.0+i*.67,z=1.61;if(x>36.9&&x<41)continue; // Clear walkway behind the stair well.
     box('Upper hall folding chair seat',x,4.53,z,.49,.045,.43,galleryChair);
     const back=mesh('Upper hall folding chair rounded blue back',chairBackGeometry,galleryChair,x,4.84,z+.23);back.rotation.x=-.12;
     for(const dx of [-.225,.225]){
@@ -469,7 +471,7 @@ export function buildTemple(K) {
     }
     K.blocker(x,z,.53,.62,4.08,5.07);
   }
-  for(const x of [33.3,36.1,38.9,42.0]){
+  for(const x of [33.3,43.0]){
     box('Upper hall narrow folding tabletop',x,4.81,.88,2.38,.045,.48,galleryTable);
     for(const dx of [-.82,.82]){
       K.beam(g,'Upper hall table folding leg',[x+dx-.20,4.1,.63],[x+dx+.20,4.79,1.08],.027,dark);
@@ -542,6 +544,19 @@ export function buildTemple(K) {
   const sideLace=instances('Entrance projecting side pierced screens',screenGeometry,entranceLace,
     [[30.1,4.62,-1.28,.56,.96,1,0,Math.PI/2,0],[30.1,4.62,-.08,.56,.96,1,0,Math.PI/2,0]]);
   K.blocker(30.1,-.68,.26,2.4,4.08,5.20);
+  // 15.12.22: pierced balustrades with red posts and coping round the stair well in the
+  // open central bay, and the temple's blue name board on its far side.
+  {const y0=4.09,top=5.08,wellScreens=[];
+   for(const x of [37.5,40.4]){
+     box('Upper stair well red coping',x,top,-.7,.2,.1,2.0,red);
+     K.blocker(x,-.7,.2,2.0,y0,top+.05);
+     for(const z of [-1.7,-.7,.3])box('Upper stair well red post',x,(y0+top)/2,z,.2,top-y0,.2,red);
+     for(const z of [-1.2,-.2])wellScreens.push([x,4.55,z,.44,.82,1,0,Math.PI/2,0]);}
+   box('Upper stair well red coping',38.95,top,.3,3.1,.1,.2,red);K.blocker(38.95,.3,3.1,.2,y0,top+.05);
+   for(const x of [38.23,39.67])wellScreens.push([x,4.55,.3,.66,.82,1,0,0,0]);
+   instances('Upper stair well white pierced screens',screenGeometry,entranceLace,wellScreens);
+   box('Temple name board blue face',38.95,5.52,.38,3.4,.82,.12,mat('#2a45a8'));
+   box('Temple name board white edge',38.95,5.52,.45,3.5,.92,.04,whiteTrim);}
 
   // 15.01.44–15.05.48: a rectangular, open-air circuit, with distinct shrine
   // bays on raised verandas. Extend the inferred rear court to leave a real
@@ -608,6 +623,7 @@ export function buildTemple(K) {
       const z=r.a+.2+(d-.4)*i/count;
       if(r.side>0&&[16.2,21.4].some(center=>Math.abs(z-center)<2.5))continue;
       if(r.side>0&&z>28.2&&z<36.2)continue; // Four shared piers frame the three vaulted bays below.
+      if(r.round&&z>8&&z<12)continue; // 15.13.11: one column mid-span under the lean-to.
       if(r.round){cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
       if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.23,1.13,z,.37,.35,.38,blue);
@@ -644,6 +660,18 @@ export function buildTemple(K) {
   K.box(rearRoof,'Rear circuit red roof fascia',39,3.52,35.02,30,.2,.20,red);
   K.box(rearRoof,'Rear circuit weathered parapet',39,4.01,35.28,30,.76,.22,agedWhite);
   // The blue doorway and little upper balcony terminate the long left aisle.
+  // 15.04.51 / 15.05.42: an upper storey runs along the rear range from the west corner to
+  // the corner pavilion: a room set back behind the terrace parapet, flat red-edged slab,
+  // small blue windows and a pierced jali panel facing the courtyard.
+  {const x0=24.0,x1=47.6,xm=(x0+x1)/2,w=x1-x0,zf=36.55,y0=3.69,y1=6.55;
+   K.box(rearRoof,'Rear upper storey white front wall',xm,(y0+y1)/2,zf,w,y1-y0,.22,agedWhite);
+   K.box(rearRoof,'Rear upper storey red skirting',xm,y0+.25,zf-.12,w,.5,.03,red);
+   K.box(rearRoof,'Rear upper storey flat slab',xm,y1+.08,37.05,w+.6,.16,2.6,agedWhite);
+   K.box(rearRoof,'Rear upper storey red slab edge',xm,y1+.08,35.72,w+.6,.18,.12,red);
+   for(const x of [26.6,31.2,40.4,44.8]){
+     K.box(rearRoof,'Rear upper storey blue window frame',x,5.15,zf-.12,1.05,1.05,.05,mat('#3d7fa3'));
+     K.box(rearRoof,'Rear upper storey dark window glass',x,5.15,zf-.15,.85,.85,.02,dark);}
+   const jali=instances('Rear upper storey pierced jali panel',screenGeometry,entranceLace,[[35.8,5.15,zf-.13,.95,1.25,1,0,0,0]]);g.remove(jali);rearRoof.add(jali);}
   frontDoor('Rear corner blue barred door',49.6,37.77,.6,1.25,2.35);
   scallop('Rear corner doorway scallops',49.6,35.35,2.9,3.36,.20,paleBlue,.47);
   for(const x of [48.05,51.15])K.box(rearRoof,'Rear corner upper pavilion pier',x,4.86,35.30,.22,1.70,.26,white);
@@ -882,8 +910,16 @@ export function buildTemple(K) {
   cyl('Inner tower finial tip',39,8.23,23.1,.012,.1,.31,brass);
   // Photo-right is world -X when looking into the courtyard (+Z).
   // Upper hall stands behind the veranda roof, leaving its broad lean-to exposed.
-  box('Right hall tall white upper storey',22.27,5.59,18.8,4.1,3.37,24.8,innerWhite,true);
-  for(const z of [8.1,12.3,17.5,22,26.5,29.6]){
+  // 15.13.11: the tall hall is three windows long (z 6.4-19.4); beyond it stands a lower
+  // flat-roofed block with a red-post balustrade.
+  const hallEnd=19.4,hallLen=hallEnd-6.4;
+  box('Right hall tall white upper storey',22.27,5.59,6.4+hallLen/2,4.1,3.37,hallLen,innerWhite,true);
+  box('Right hall lower block flat roof',22.3,3.62,21.25,4.1,.24,3.7,innerWhite);
+  box('Right hall lower block roof red edge',24.33,3.6,21.25,.08,.2,3.7,red);
+  box('Right hall lower block balustrade red coping',24.22,4.52,21.25,.2,.1,3.7,red);
+  for(const z of [19.5,21.25,23.0])box('Right hall lower block balustrade red post',24.22,4.1,z,.2,.8,.2,red);
+  instances('Right hall lower block pierced balustrade',screenGeometry,entranceLace,[[24.22,4.1,20.37,.88,.72,1,0,Math.PI/2,0],[24.22,4.1,22.12,.88,.72,1,0,Math.PI/2,0]]);
+  for(const z of [8.1,12.3,16.5]){
     box('Right hall pink window border',24.36,5.59,z,.09,1.23,1.86,pink);
     box('Right hall dark window inset',24.42,5.59,z,.025,1.03,1.66,maroon);
     const bars=[];for(let j=0;j<13;j++)bars.push([24.45,5.59,z-.76+j*.126,.04,1.07,.043]);
@@ -892,7 +928,7 @@ export function buildTemple(K) {
     box('Right hall dark attic vent',24.39,7.04,z,.045,.57,2.4,dark);
     for(let j=0;j<12;j++)for(const sign of [-1,1])K.beam(g,'Right hall attic diamond lattice',[24.44,6.79,z-1.13+j*.19],[24.44,7.28,z-1.13+j*.19+sign*.25],.028,oldStone);
   }
-  corrugatedRoof('Right hall pitched gray upper roof',22.25,18.8,5.4,25.6,7.45,1.25,greySheet);
+  corrugatedRoof('Right hall pitched gray upper roof',22.25,6.4+hallLen/2,5.4,hallLen+.8,7.45,1.25,greySheet);
   // Close the attic between the masonry and pitched roof. The roof overhang
   // remains outside this shell; the existing lattice vents stay below it.
   const hallAtticSection=new THREE.Shape();
@@ -903,7 +939,7 @@ export function buildTemple(K) {
   hallAtticSection.lineTo(22.25,8.71);
   hallAtticSection.lineTo(20.22,hallRoofY(20.22)+.01);
   hallAtticSection.closePath();
-  const hallAtticGeometry=new THREE.ExtrudeGeometry(hallAtticSection,{depth:24.8,bevelEnabled:false,steps:1});
+  const hallAtticGeometry=new THREE.ExtrudeGeometry(hallAtticSection,{depth:hallLen,bevelEnabled:false,steps:1});
   // Keep only the enclosing walls and underside. A second sloping top skin
   // would intersect the corrugations and produce bright flickering stripes.
   const atticPositions=hallAtticGeometry.attributes.position,atticNormals=hallAtticGeometry.attributes.normal,atticFaces=[];
@@ -1164,11 +1200,12 @@ export function buildTemple(K) {
   box('Lamp upper plinth',lampX,.67,lampZ,1.03,.22,1.03,dark);
   box('Lamp square shaft',lampX,1.66,lampZ,.49,1.83,.49,dark);
   for(const y of [.85,1.0,2.45,2.60])box('Lamp square collar',lampX,y,lampZ,.68,.12,.68,dark);
-  cyl('Lamp round shaft',lampX,5.73,lampZ,.20,.26,6.5,dark,16);
+  // 15.03.47 / 15.13.03: slim shaft; dishes little wider than the shaft.
+  cyl('Lamp round shaft',lampX,5.73,lampZ,.16,.2,6.5,dark,16);
   for(let i=0;i<15;i++){
     const y=2.62+i*.44;
-    cyl('Lamp wide dish',lampX,y,lampZ,.49-i*.007,.34-i*.005,.09,dark,32);
-    cyl('Lamp small rim',lampX,y+.05,lampZ,.50-i*.007,.50-i*.007,.025,dark,32);
+    cyl('Lamp wide dish',lampX,y,lampZ,.30-i*.004,.21-i*.003,.08,dark,32);
+    cyl('Lamp small rim',lampX,y+.045,lampZ,.31-i*.004,.31-i*.004,.022,dark,32);
   }
   cyl('Lamp finial',lampX,9.12,lampZ,.018,.13,.42,dark,12);
   K.blocker(lampX,lampZ,1.6,1.6,.1,1.0);
