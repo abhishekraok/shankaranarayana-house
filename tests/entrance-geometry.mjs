@@ -418,11 +418,11 @@ assert.ok(collision(lampPosition.x,lampPosition.z,.1),'Relocated lamp base block
 assert.ok(!collision(40.3,10.5,.1),'Old lamp position is clear');
 // The deep service porch has a usable inner step and a genuinely open west
 // arch. Neither the old portico wall nor the street-front block may fill it.
-for(const [x,z,y] of [[30.5,7.1,.613],[30.5,5.7,.823],[29.2,5.7,.823],[28.64,7.1,.613]]){
+for(const [x,z,y] of [[26.8,7.1,.613],[26.8,5.7,.823],[25.5,5.7,.823],[24.94,7.1,.613]]){
   assert.ok(Math.abs(supportY(x,z,y)-y)<.015,'Service porch floors support both levels and the hall connection');
   assert.ok(!collision(x,z,y),'Service porch interior is clear');
 }
-assert.ok(collision(30.5,4.9,.823),'Service porch rear wall stays closed');
+assert.ok(collision(26.8,4.9,.823),'Service porch rear wall stays closed');
 // User's 180635 / 180653: raised red chair hall beside a lower grey passage.
 assert.ok(Math.abs(supportY(23.2,11.4,.6)-.6)<.001,'Chair hall remains raised');
 assert.ok(Math.abs(supportY(25.8,11.4,.6)-.112)<.001,'Outer hall passage is lower than the chair floor');
@@ -437,14 +437,33 @@ for(const z of [9.3,12.9]){
 checkRoute('Lower chair hall passage',[[29.2,11],[25.8,11],[25.8,15.5]],.1,.09);
 checkRoute('Chair platform access',[[25.8,9.8],[23.7,9.8]],.112,.10);
 checkRoute('Chair platform descent',[[23.7,9.8],[25.8,9.8]],.6,.10);
-checkRoute('Lower hall to service porch',[[26.8,7.1],[29.6,7.1]],.112,.10);
-checkRoute('Service porch to lower hall',[[29.6,7.1],[26.8,7.1]],.613,.10);
-assert.ok(temple.getObjectByName('Covered hall broad blue corner arch'),'Corner opening has its broad scalloped return');
+checkRoute('Lower hall to service porch',[[26.8,9.1],[26.8,7.1]],.112,.10);
+checkRoute('Service porch to lower hall',[[26.8,7.1],[26.8,9.1]],.613,.10);
+checkRoute('Chair hall to recessed bay',[[23.7,7.1],[26.8,7.1]],.6,.10);
+checkRoute('Recessed bay to chair hall',[[26.8,7.1],[23.7,7.1]],.613,.10);
+// One connected interior bay replaces the invented arch projecting into the court.
+assert.ok(!temple.getObjectByName('Covered hall broad blue corner arch'));
+const serviceBounds=new THREE.Box3().setFromObject(temple.getObjectByName('Side bay red oxide platform'));
+assert.ok(serviceBounds.max.x<28.5,'Entire blue bay is inside the foreground column line');
+assert.ok(serviceBounds.min.x<25.2,'Blue bay reaches the chair-hall side');
+const stairThreshold=temple.getObjectByName('Stair door threshold');
+assert.ok(Math.abs(stairThreshold.position.x-34.475)<1e-6&&Math.abs(stairThreshold.position.z-7.55)<1e-6,'Correct central door remains fixed');
+const plainWall=temple.children.filter(o=>o.name==='Stair door white wall').map(o=>new THREE.Box3().setFromObject(o));
+assert.ok(plainWall.some(b=>b.min.x<31&&b.max.x>33.999),'Plain white wall extends left of the fixed door');
+const tulsi=temple.getObjectByName('Tulsi red pedestal');
+assert.ok(tulsi.position.z<9&&tulsi.position.x<31.8,'Tulsi leaves more space in the entrance court');
+assert.ok(collision(tulsi.position.x,tulsi.position.z,.1),'Tulsi blocker follows its new placement');
+assert.ok(!collision(31.8,10.2,.1),'Old Tulsi footprint is open');
+const entryCamera=new THREE.PerspectiveCamera(48,4/3,.06,400);
+entryCamera.position.set(37.124778231,1.665792075,8.243268529);
+entryCamera.quaternion.set(.0070964009,.8387724994,-.0109351129,.5443259673);entryCamera.updateMatrixWorld();
+const tulsiScreen=tulsi.position.clone().project(entryCamera);
+assert.ok(tulsiScreen.x>.45&&tulsiScreen.x<.9,'Entrance reference places Tulsi in the right part of the view');
 assert.ok(temple.getObjectByName('Side bay raised rolling shutter'),'Service opening follows the selected 2013 reference');
 
-{const ray=new THREE.Raycaster(new THREE.Vector3(28.3,1.8,6.8),new THREE.Vector3(1,0,0)),hit=ray.intersectObject(temple,true)[0];
+{const ray=new THREE.Raycaster(new THREE.Vector3(24.7,1.8,6.8),new THREE.Vector3(1,0,0)),hit=ray.intersectObject(temple,true)[0];
  assert.equal(hit?.object?.name,'Service bay east return wall','West scalloped opening sees through the porch');}
-{const eye=new THREE.Vector3(32.827,1.78,14.622),target=new THREE.Vector3(29.6,1.8,5.2);
+{const eye=new THREE.Vector3(33.4548,1.8415,14.5196),target=new THREE.Vector3(25.5,1.8,4.9);
  const hit=new THREE.Raycaster(eye,target.sub(eye).normalize()).intersectObject(temple,true)[0];
  assert.equal(hit?.object?.name,'Courtyard left service bay blue back','Street-front mass does not intersect the porch');}
 const largeBell=temple.getObjectByName('Great bronze temple bell');

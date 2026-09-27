@@ -80,7 +80,7 @@ for(const key of ['veranda','verandaleft','verandaseat','verandaright'])destinat
 destinations.templesanctum={p:[35.2,.55,22],target:[39,2.3,24.2],fov:72};
 destinations.templesanctumfront={p:[43,.55,21],target:[39,2.25,16.3],fov:76};
 destinations.templeupperhall={p:[44.55,4.08,.37],target:[32.0,5.45,.80],fov:72};
-destinations.templesidebay={p:[33.6,.1,10.9],target:[32,1.9,6.5],fov:70};
+destinations.templesidebay={p:[29.8,.1,10.9],target:[26.2,1.9,6.5],fov:70};
 destinations.templehall={p:[24.6,.10,14.4],target:[22.3,2.1,7.8],fov:76};
 destinations.templehallbay={p:[25.7,.10,11.5],target:[24.6,2.1,6.85],fov:70};
 destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};

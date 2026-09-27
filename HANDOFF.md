@@ -4,6 +4,25 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Northwest layout follow-up (2026-09-27)
+
+User references: `15.10.34`, then `15.10.30` from the same place turned left
+45 degrees, then the entrance view `15.02.00`. These supersede the earlier
+speculative corner-arch connection. Local review: `checks/fidelity-nw-layout/REVIEW.md`.
+
+- Central stair door stays fixed. Its plain left wall is 1.35 m wider.
+- Blue bay moves 3.70 m inward along -X, inside the round-column line; the street
+  building is hollowed there. A level connection joins the raised chair platform.
+- Removed the invented projecting corner arch. The barred window now occupies
+  the white wall between the blue bay and stair wall.
+- Tulsi moves 0.50 m along -X and 1.55 m along -Z, opening the court and placing it
+  farther right in the entrance view. The rest of the temple was not translated.
+- Distances are estimates. The foreground column, roof proportions and lighting
+  still differ from the photos. No claim of a fully matched corner.
+- Review uses one eye position and a 45-degree turn for the first pair; this is
+  an ignored diagnostic copy. Original saved poses and photos remain unchanged.
+  The unrelated rear-room draft remains uncommitted; native output is not rebuilt.
+
 ## Northwest temple corner correction (2026-09-27)
 
 The user identifies this corner by `IMG_20130720_180635` and `180653`: the chair
