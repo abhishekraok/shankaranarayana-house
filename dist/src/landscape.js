@@ -1091,12 +1091,22 @@ export function buildLandscape(K, {mobile=false}={}) {
   stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);
   stageFigure('Stage lower left photographed figure',2,2.68,[680,682,758,859]);
   stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
-  // Moulded capitals and a shaped white balcony screen replace plain rods.
+  // 15.13.51 / 15.19.57: curled brackets project beyond the capital collars
+  // in both beam directions. Starting at the centre hid the old small profile
+  // inside the one-metre collar; anchor these at the shaft face instead.
+  const corbelShape=new THREE.Shape();corbelShape.moveTo(0,0);corbelShape.lineTo(.60,0);
+  corbelShape.quadraticCurveTo(.60,-.16,.52,-.22);corbelShape.lineTo(.43,-.22);
+  corbelShape.bezierCurveTo(.52,-.29,.46,-.43,.39,-.40);
+  corbelShape.bezierCurveTo(.29,-.38,.31,-.20,0,-.20);corbelShape.closePath();
+  const corbelGeometry=new THREE.ExtrudeGeometry(corbelShape,{depth:.18,bevelEnabled:true,bevelSize:.008,bevelThickness:.008,bevelSegments:2,curveSegments:10});
+  corbelGeometry.translate(0,0,-.09);
   for(const [base,depth] of [[1.62,.50],[1.62,4.0],[5.05,.50]])for(const a of stageColumns){
     const front=depth<1&&Math.abs(a)===2?-.50:depth;
-    for(const side of [-1,1]){
-      const shape=new THREE.Shape();shape.moveTo(0,0);shape.lineTo(.49,0);shape.quadraticCurveTo(.46,-.29,.24,-.32);shape.quadraticCurveTo(.19,-.13,0,-.13);shape.closePath();
-      const bracket=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.18,bevelEnabled:false}),adjacentWhite);bracket.name='Stage shaped column capital bracket';bracket.rotation.y=Math.PI/2;bracket.scale.x=side;bracket.position.set(60+front-.10,base+2.92,-5-a);group.add(bracket);
+    for(let face=0;face<4;face++){
+      const angle=face*Math.PI/2;
+      const bracket=new THREE.Mesh(corbelGeometry,adjacentWhite);bracket.name='Stage shaped column capital bracket';
+      bracket.rotation.y=angle;bracket.position.set(60+front+.24*Math.cos(angle),base+3.16,-5-a-.24*Math.sin(angle));
+      bracket.castShadow=bracket.receiveShadow=true;group.add(bracket);
     }
   }
   const spindleProfile=[[.073,0],[.073,.09],[.031,.18],[.035,.36],[.084,.44],[.038,.53],[.07,.66]].map(p=>new THREE.Vector2(...p));
