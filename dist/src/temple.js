@@ -1899,5 +1899,17 @@ export function buildTemple(K) {
    for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const x0=r.x-r.w/2,x1=r.x+r.w/2;if(r.z-r.d/2<Z0||r.z+r.d/2>Z1)continue;
      if(x0>=EDGE)r.x+=DX;else if(x1>53.3){r.w+=DX;r.x+=DX/2;}}
    for(const l of K.labels.slice(navStart.labels))if(l.position[0]>=EDGE&&l.position[2]>=Z0&&l.position[2]<=Z1)l.position=[l.position[0]+DX,l.position[1],l.position[2]];}
+  // 15.01.44 / 15.02.23: the east range's north part (z 6.5-16.5) is a full two-storey
+  // block: an upper front wall with a heavy balcony band over the shutter bay, small
+  // windows, and a flat red-edged slab. Placed after the east shift, in final coordinates.
+  {const x0=52.6,x1=55.4,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
+   box('East range upper storey front wall',x0+.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
+   box('East range upper storey back wall',x1-.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
+   box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z1-.11,x1-x0,y1-y0,.22,white);
+   box('East range upper balcony band',x0-.05,4.6,zc,.3,1.2,len,white);
+   box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
+   const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,zc,x1-x0+.6,.16,len+.4,white);K.roofs.push(roof);
+   box('East range upper slab red edge',x0-.3,y1+.08,zc,.1,.18,len+.4,red);
+   for(const z of [8.3,11.2,14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
   return g;
 }
