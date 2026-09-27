@@ -4,6 +4,14 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Review workflow
+
+After each major improvement, create a local `REVIEW.md` with original / before / after
+images from matching cameras, source revisions, and short notes on changes and uncertainties.
+Preserve earlier reviews; label diagnostic camera or lighting adjustments. Keep photo-bearing
+reviews ignored and local, block source-file writes during capture, and link the new review
+in the progress update. This is the user's preferred review format.
+
 ## Continued fidelity session (2026-09-27, ongoing)
 
 Geometry through `779bf66`, starting from `2ea3ff9`; local only. Review:
