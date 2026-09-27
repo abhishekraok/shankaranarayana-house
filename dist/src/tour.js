@@ -45,7 +45,7 @@ export function createPhotoTour(photos, supportY = null) {
     at([39,1.72,14.2],[39,2,20],'Entering the inner sanctum'),
     at([39,2.17,20.2],[35.2,2.3,24],'The inner stone aisles'),
     at([35.2,2.17,20.2],[35.2,2.3,27.8],'Around the inner sanctum'),
-    {...at([35.2,2.17,24],[39,2.3,26.5],'Beside the sanctum'),hold:.75},
+    {...at([35.2,2.17,22.4],[39,2.3,24.2],'Beside the sanctum'),hold:.75},
     at([35.2,2.17,27.8],[42.8,2.3,27.8],'Behind the sanctum'),
     at([42.8,2.17,27.8],[42.8,2.3,21],'Returning along the inner aisle'),
     {...at([42.8,2.17,21],[39,2.25,16.3],'The inner entrance'),hold:.75},

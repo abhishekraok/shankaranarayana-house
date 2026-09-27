@@ -1562,21 +1562,51 @@ export function buildTemple(K) {
   instances('Inner left row of upright offering stones',new THREE.CylinderGeometry(1,1,1,10),aisleOfferingStone,leftOfferingStones);
   for(const z of [23.70,24.60])box('Inner left offering slab end block',35.97,.695,z,.13,.11,.15,aisleOfferingStone);
   cyl('Inner left low rear offering disc',35.85,.585,25.30,.15,.18,.07,aisleOfferingStone,12);
+  // The God room (garbhagriha) is a closed cella inside the grilled enclosure: the blue
+  // doorway opens into a deep, dim chamber rather than onto a painted panel. Photography
+  // inside was not possible, so the idol is a generic oiled dark-stone form with a brass
+  // arch, lit only by two oil lamps.
+  {const cellaStone=sanctumStone.clone();cellaStone.color.set('#8f8a78');
+  const cellaDark=mat('#3a332b',.96),idolStone=mat('#151412',.32),flame=new THREE.MeshStandardMaterial({color:'#ffd27a',emissive:'#ff9a2e',emissiveIntensity:3.2,roughness:.6});
+  const cF=1.06,cTop=3.5,cz0=24.2,cz1=27.05,cx0=37.2,cx1=40.8;
+  for(const [a,b] of [[cx0,38.09],[39.91,cx1]])box('Sanctum cella front wall',(a+b)/2,(cF+cTop)/2,cz0,b-a,cTop-cF,.3,cellaStone,true);
+  box('Sanctum cella wall over the doorway',39,3.41,cz0,1.82,.18,.3,cellaStone);
+  for(const x of [cx0,cx1])box('Sanctum cella side wall',x,(cF+cTop)/2,(cz0+cz1)/2,.3,cTop-cF,cz1-cz0+.3,cellaStone,true);
+  box('Sanctum cella rear wall',39,(cF+cTop)/2,cz1,cx1-cx0,cTop-cF,.3,cellaStone,true);
+  box('Sanctum cella stone ceiling',39,cTop-.09,(cz0+cz1)/2,cx1-cx0,.18,cz1-cz0,cellaStone);
+  // Soot-darkened inner lining: the chamber reads as depth receding into shadow.
+  box('Sanctum cella sooted inner rear face',39,(cF+cTop)/2,cz1-.16,cx1-cx0-.32,cTop-cF,.02,cellaDark);
+  for(const x of [cx0+.16,cx1-.16])box('Sanctum cella sooted inner side face',x,(cF+cTop)/2,(cz0+cz1)/2,.02,cTop-cF,cz1-cz0-.3,cellaDark);
+  box('Sanctum cella sooted ceiling',39,cTop-.19,(cz0+cz1)/2,cx1-cx0-.32,.02,cz1-cz0-.3,cellaDark);
+  box('Sanctum cella worn stone floor',39,cF+.01,(cz0+cz1)/2,cx1-cx0-.32,.02,cz1-cz0-.3,cellaDark);
+  // Stepped pedestal (peetha), idol and brass arch (prabhavali) at the back of the cella.
+  for(const [y,w,d,h] of [[cF+.12,1.25,.9,.24],[cF+.33,1.05,.74,.18],[cF+.5,.86,.6,.16]])box('Sanctum idol stepped pedestal',39,y,26.45,w,h,d,idolStone);
+  const idol=mesh('Sanctum idol dark stone form',new THREE.CapsuleGeometry(.2,.62,6,14),idolStone,39,cF+1.03,26.45);idol.scale.set(1,1,.62);
+  mesh('Sanctum idol brass crown',new THREE.ConeGeometry(.15,.32,12),brass,39,cF+1.55,26.45);
+  const prabhavali=mesh('Sanctum brass prabhavali arch',new THREE.TorusGeometry(.58,.045,8,28,Math.PI),brass,39,cF+1.0,26.78);prabhavali.scale.y=1.25;
+  const garland=mesh('Sanctum marigold garland',new THREE.TorusGeometry(.2,.04,6,18),mat('#e0891e',.9),39,cF+.95,26.3);garland.rotation.x=1.2;garland.scale.x=1.1;
+  for(const x of [38.25,39.75]){
+    cyl('Sanctum brass oil lamp stand',x,cF+.45,25.7,.035,.05,.9,brass,10);
+    cyl('Sanctum brass oil lamp dish',x,cF+.92,25.7,.12,.07,.05,brass,14);
+    const f=mesh('Sanctum oil lamp flame',new THREE.SphereGeometry(.04,8,6),flame,x,cF+1.0,25.7);f.scale.y=2.1;
+  }
+  // The lamps' warm glow is the only light on the idol.
+  const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
+  }
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
-  box('Inner sanctum dark rear chamber',39,2.17,26.64,4.5,2.22,.22,dark,true);
-  for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,26.46,.27,2.18,.14,vividBlue);
-  box('Inner sanctum blue doorway lintel',39,3.21,26.46,1.84,.27,.14,vividBlue);
+  for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,24.16,.27,2.18,.14,vividBlue);
+  box('Inner sanctum blue doorway lintel',39,3.21,24.16,1.84,.27,.14,vividBlue);
   const bulbColors=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'];
   for(const x of [38.22,39.78])for(let j=0;j<8;j++){
     const y=1.19+j*.27;
-    const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,26.35);boss.scale.z=.38;
-    mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,26.32);
+    const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,24.05);boss.scale.z=.38;
+    mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,24.02);
   }
   for(let j=0;j<6;j++){
-    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.32+j*.27,3.21,26.35);boss.scale.z=.38;
+    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.32+j*.27,3.21,24.05);boss.scale.z=.38;
   }
-  for(let j=0;j<9;j++)box('Inner sanctum closed gate bar',38.4+j*.15,1.83,26.29,.026,1.38,.045,dark);
-  box('Inner sanctum gate crossrail',39,2.43,26.27,1.32,.05,.05,dark);
+  for(let j=0;j<9;j++)box('Inner sanctum closed gate bar',38.4+j*.15,1.83,23.99,.026,1.38,.045,dark);
+  box('Inner sanctum gate crossrail',39,2.43,23.97,1.32,.05,.05,dark);
   // User-labelled right side of inner sanctum: large horizontal drum,
   // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
   {
