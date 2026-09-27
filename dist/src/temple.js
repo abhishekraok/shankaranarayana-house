@@ -11,6 +11,14 @@ import * as THREE from 'three';
 export function buildTemple(K) {
   const g = new THREE.Group();
   const navStart={colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,labels:K.labels.length};
+  // Move an authored assembly with its walkable surfaces and blockers. Keeping
+  // these scopes explicit avoids stretching ornament or moving the inner shrine.
+  const markAssembly=()=>({children:g.children.length,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length});
+  function moveAssembly(start,dx,dz){
+    for(const o of g.children.slice(start.children)){o.position.x+=dx;o.position.z+=dz;}
+    for(const c of K.colliders.slice(start.colliders)){c.minX+=dx;c.maxX+=dx;c.minZ+=dz;c.maxZ+=dz;}
+    for(const r of [...K.surfaces.slice(start.surfaces),...K.ramps.slice(start.ramps)]){r.x+=dx;r.z+=dz;}
+  }
   g.name = 'Shankaranarayana temple — 2011–2013';
   g.userData.notes = [
     'Estimated dimensions; courtyard arrangement and the connection behind the portico are inferred from the photo sequence.',
@@ -594,13 +602,15 @@ export function buildTemple(K) {
       y+=h;}
     for(let i=0;i<70;i++){c.fillStyle=`rgba(52,58,48,${.03+rand()*.06})`;c.beginPath();c.ellipse(rand()*s,rand()*s,20+rand()*70,10+rand()*40,rand()*3,0,Math.PI*2);c.fill();}
   },.3,.3);
-  floor('Courtyard large stone paving',39,22.1,29.5,32,.1,flagstones);
+  // User confirmed wider side passages and a more distant rear range (27 Sep).
+  // East receives +4 m in the placement pass below, previously +1.5 m.
+  floor('Courtyard large stone paving',38.25,25.85,31,39.5,.1,flagstones);
   // Each entry is a continuous veranda section. The broad shaded front hall
   // remains on photo-right; the other stretches have slimmer flat-roof walks.
   const verandaRuns=[
-    {side:1,wall:53.86,edge:51.05,a:6.4,b:37.9,stairs:[16.2,21.4,27.2,33.1]},
-    {side:-1,wall:24.14,edge:28.45,a:6.4,b:16.2,stairs:[12],round:true},
-    {side:-1,wall:24.14,edge:26.85,a:16.2,b:37.9,stairs:[22,31.4]},
+    {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,27.2,40.6]},
+    {side:-1,wall:22.64,edge:26.95,a:6.4,b:16.2,stairs:[12],round:true},
+    {side:-1,wall:22.64,edge:25.35,a:16.2,b:45.4,stairs:[22,38.9]},
   ];
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
@@ -629,7 +639,7 @@ export function buildTemple(K) {
     for(let i=0;i<=count;i++){
       const z=r.a+.2+(d-.4)*i/count;
       if(r.side>0&&[16.2,21.4].some(center=>Math.abs(z-center)<2.5))continue;
-      if(r.side>0&&z>28.2&&z<36.2)continue; // Four shared piers frame the three vaulted bays below.
+      if(r.side>0&&z>35.7&&z<43.7)continue; // Four shared piers frame the three vaulted bays below.
       if(r.side>0&&z<16)continue; // 15.01.44 / 15.02.23: only the shutter bay's own piers stand here.
       if(r.round&&z>8&&z<15)continue; // 15.02.00 / IMG_20130720_180653: the mid-span column stands at z 10.1 (added below).
       if(r.round){cyl('Right hall round red column foot',r.edge,.86,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,2.21,z,.14,.17,2.18,paleBlue,16);K.blocker(r.edge,z,.38,.38,.6,3.4);}
@@ -655,32 +665,35 @@ export function buildTemple(K) {
     }
     box('Outer circuit pale blue lintel',r.edge,3.35,zc,.28,.21,d,paleBlue);
   }
-  floor('Rear circuit raised red veranda',39,36.65,29.5,2.65,.6,oxideFloor);
-  box('Rear circuit weathered white wall',39,2.05,37.98,29.5,2.9,.28,agedWhite,true);
-  box('Rear circuit red dado',39,.90,37.8,29.5,.60,.08,red);
-  for(const x of [25.3,28.2,31.1,34,36.9,39.8,42.7,45.6,48.5,51.4,53.1])blueColumn('Rear circuit blue column',x,35.32);
-  for(const [a,b] of [[24.25,28.7],[30.1,48.9],[50.3,53.75]]){
+  // Rear range is authored at its final X extents, then translated 7.5 m in Z.
+  const rearStart=markAssembly();
+  floor('Rear circuit raised red veranda',40.25,36.65,35,2.65,.6,oxideFloor);
+  box('Rear circuit weathered white wall',40.25,2.05,37.98,35,2.9,.28,agedWhite,true);
+  box('Rear circuit red dado',40.25,.90,37.8,35,.60,.08,red);
+  for(const x of [23.8,26.7,29.6,32.5,35.4,38.3,41.2,44.1,47,49.9,52.8,55.7,57.1])blueColumn('Rear circuit blue column',x,35.32);
+  for(const [a,b] of [[22.75,27.2],[28.6,52.9],[54.3,57.75]]){
     box('Rear circuit outlined plinth',(a+b)/2,.30,35.3,b-a,.40,.22,outlinedPlinth);
     box('Rear circuit white plinth coping',(a+b)/2,.56,35.3,b-a,.09,.29,whiteTrim);
   }
-  for(const x of [29.4,49.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3);
+  for(const x of [27.9,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
-  K.box(rearRoof,'Rear circuit flat soffit',39,3.57,36.6,30,.24,3.12,agedWhite);
-  K.box(rearRoof,'Rear circuit red roof fascia',39,3.52,35.02,30,.2,.20,red);
-  K.box(rearRoof,'Rear circuit weathered parapet',39,4.01,35.28,30,.76,.22,agedWhite);
+  K.box(rearRoof,'Rear circuit flat soffit',40.25,3.57,36.6,35.5,.24,3.12,agedWhite);
+  K.box(rearRoof,'Rear circuit red roof fascia',40.25,3.52,35.02,35.5,.2,.20,red);
+  K.box(rearRoof,'Rear circuit weathered parapet',40.25,4.01,35.28,35.5,.76,.22,agedWhite);
   // The blue doorway and little upper balcony terminate the long left aisle.
   // 15.04.51 / 15.05.42: an upper storey runs along the rear range from the west corner to
   // the corner pavilion: a room set back behind the terrace parapet, flat red-edged slab,
   // small blue windows and a pierced jali panel facing the courtyard.
-  {const x0=24.0,x1=47.6,xm=(x0+x1)/2,w=x1-x0,zf=36.55,y0=3.69,y1=6.55;
+  {const x0=22.5,x1=51.6,xm=(x0+x1)/2,w=x1-x0,zf=36.55,y0=3.69,y1=6.55;
    K.box(rearRoof,'Rear upper storey white front wall',xm,(y0+y1)/2,zf,w,y1-y0,.22,agedWhite);
    K.box(rearRoof,'Rear upper storey red skirting',xm,y0+.25,zf-.12,w,.5,.03,red);
    K.box(rearRoof,'Rear upper storey flat slab',xm,y1+.08,37.05,w+.6,.16,2.6,agedWhite);
    K.box(rearRoof,'Rear upper storey red slab edge',xm,y1+.08,35.72,w+.6,.18,.12,red);
-   for(const x of [26.6,31.2,40.4,44.8]){
+   for(const x of [25.1,30.6,42.8,48.8]){
      K.box(rearRoof,'Rear upper storey blue window frame',x,5.15,zf-.12,1.05,1.05,.05,mat('#3d7fa3'));
      K.box(rearRoof,'Rear upper storey dark window glass',x,5.15,zf-.15,.85,.85,.02,dark);}
    const jali=instances('Rear upper storey pierced jali panel',screenGeometry,entranceLace,[[35.8,5.15,zf-.13,.95,1.25,1,0,0,0]]);g.remove(jali);rearRoof.add(jali);}
+  const cornerStart=markAssembly(),cornerRoofStart=rearRoof.children.length;
   frontDoor('Rear corner blue barred door',49.6,37.77,.6,1.25,2.35);
   scallop('Rear corner doorway scallops',49.6,35.35,2.9,3.36,.20,paleBlue,.47);
   for(const x of [48.05,51.15])K.box(rearRoof,'Rear corner upper pavilion pier',x,4.86,35.30,.22,1.70,.26,white);
@@ -690,6 +703,11 @@ export function buildTemple(K) {
   K.box(rearRoof,'Rear corner white balcony base',49.6,4.04,35.30,3.1,.19,.22,whiteTrim);
   const rr=[];for(let i=0;i<16;i++)rr.push([48.16+i*.192,4.37,35.30,.055,.55,.055]);
   instances('Rear corner upper white balusters',new THREE.CylinderGeometry(.65,1,1,6),whiteTrim,rr);
+  moveAssembly(cornerStart,4,0);
+  for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=4;
+  moveAssembly(rearStart,0,7.5);
+  const rearObjects=new Set(g.children.slice(rearStart.children));
+  const rearNav=new Set([...K.colliders.slice(rearStart.colliders),...K.surfaces.slice(rearStart.surfaces),...K.ramps.slice(rearStart.ramps)]);
 
   // Inner building seen from the entrance's upper gallery: a broad flat-fronted
   // veranda, floral parapet, corrugated shelter and a small tower behind it.
@@ -923,6 +941,7 @@ export function buildTemple(K) {
   // Upper hall stands behind the veranda roof, leaving its broad lean-to exposed.
   // 15.13.11: the tall hall is three windows long (z 6.4-19.4); beyond it stands a lower
   // flat-roofed block with a red-post balustrade.
+  const westHallStart=markAssembly();
   const hallEnd=19.4,hallLen=hallEnd-6.4;
   box('Right hall tall white upper storey',22.27,5.59,6.4+hallLen/2,4.1,3.37,hallLen,innerWhite,true);
   box('Right hall lower block flat roof',22.3,3.62,21.25,4.1,.24,3.7,innerWhite);
@@ -1074,6 +1093,7 @@ export function buildTemple(K) {
     }
   }
   K.beam(g,'Covered hall parasol suspension',[22.2,3.54,14.9],[22.2,3.21,14.9],.014,dark);
+  moveAssembly(westHallStart,-1.5,0);
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
   for(const z of [10.0,23.2]){
     box('Left pavilion upper white back',53.65,4.59,z,.18,1.6,3.65,agedWhite);
@@ -1164,7 +1184,7 @@ export function buildTemple(K) {
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
-    const z=29.80+i*2.48;
+    const z=37.30+i*2.48;
     box('Outer shrine raised altar base',52.23,1.02,z,2.72,.84,2.32,circuitStone,true);
     box('Outer shrine red altar front',51.61,1.49,z,.18,.62,2.30,red);
     box('Outer shrine pale niche backing',53.66,2.10,z,.08,1.32,2.22,agedWhite);
@@ -1186,9 +1206,9 @@ export function buildTemple(K) {
     for(const zz of [z-1.24,z+1.24])K.box(vaults,'Outer shrine vault white spring pier',51.0,4.15,zz,.26,.74,.17,white);
   }
   // The far corner has stored boards and a shaded work table, as in 15.05.42.
-  for(let i=0;i<8;i++)box('Rear circuit stacked dark boards',25.75,.73+i*.105,32.6,2.08,.075,1.08,K.M.wood);
-  box('Rear circuit old work table top',25.65,1.40,35.6,1.90,.10,.80,K.M.wood);
-  for(const x of [24.87,26.43])for(const z of [35.29,35.91])box('Rear circuit table leg',x,1.0,z,.085,.80,.085,K.M.wood);
+  for(let i=0;i<8;i++)box('Rear circuit stacked dark boards',24.25,.73+i*.105,40.1,2.08,.075,1.08,K.M.wood);
+  box('Rear circuit old work table top',24.15,1.40,43.1,1.90,.10,.80,K.M.wood);
+  for(const x of [23.37,24.93])for(const z of [42.79,43.41])box('Rear circuit table leg',x,1.0,z,.085,.80,.085,K.M.wood);
   const circuitStones=[[47.55,21.3],[47.55,27.7],[47.55,30.55],[42.6,32.15],[35.8,32.15],[30.5,27.7]];
   for(const [x,z] of circuitStones){box('Small circuit ritual stone foot',x,.145,z,.25,.09,.25,oldStone);cyl('Small circuit rounded stone',x,.23,z,.08,.105,.10,weathered,8);}
   // A gentle fall to a shallow edge drain replaces a perfectly bare perimeter.
@@ -1862,6 +1882,7 @@ export function buildTemple(K) {
   }
   box('Temple road rear connector ceiling',22.26,3.56,10.23,4.0,.12,2.65,edgeWhite);
   // The narrow exterior stair is photographed. Its upper connection is estimated.
+  const westStairStart=markAssembly();
   steps('Temple exterior side stair',19.52,13.99,1.02,4.70,.04,3.46,'z',21);
   floor('Temple exterior stair top landing',19.52,16.76,1.02,.87,3.46,stoneFloor);
   floor('Temple exterior upper side passage',19.52,18.27,1.02,2.3,3.46,stoneFloor);
@@ -1872,6 +1893,7 @@ export function buildTemple(K) {
   // A modest low wall closes the far end of the visible landing.
   box('Temple exterior landing end parapet',19.52,3.88,19.40,1.14,.84,.16,white,true);
   box('Temple exterior upper door shadow',20.185,4.52,17.5,.025,2.1,.90,dark);
+  moveAssembly(westStairStart,-1.5,0);
 
   // Familiar roadside objects help establish the scale of the small lane.
   // Place the taps beyond the newly identified house-end block, in the green
@@ -1954,12 +1976,13 @@ export function buildTemple(K) {
   K.labels?.push({text:'Temple entrance',position:[39,2,-1.5]},{text:'Temple courtyard',position:[39,1,10]},{text:'Inner temple building',position:[39,4.7,21.4]},{text:'Road between house and temple',position:[17,1.2,5]});
   g.traverse(o=>{if(o.isMesh){o.castShadow=!o.userData.noShadow;o.receiveShadow=true;}});
   // 15.03.33 / 15.03.38 (user notes): the passage east of the old shrine is wider, so the
-  // east range stands 1.5 m further east. Wholly-east objects move; long pieces that run
+  // east range stands 4 m further east. Wholly-east objects move; long pieces that run
   // across the courtyard (paving, rear circuit, entrance return) stretch to meet it.
-  {const DX=1.5,EDGE=49.5,Z0=5.5,Z1=39,b=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
+  {const DX=4,EDGE=49.5,Z0=5.5,Z1=46.5,b=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
    g.updateMatrixWorld(true);
    const inZ=(a,c)=>a>=Z0&&c<=Z1;
    for(const o of [...g.children]){
+     if(rearObjects.has(o))continue;
      if(o.isInstancedMesh){let moved=false;for(let k=0;k<o.count;k++){o.getMatrixAt(k,m);p.setFromMatrixPosition(m);
        if(p.x>=EDGE&&p.z>=Z0&&p.z<=Z1){m.elements[12]+=DX;o.setMatrixAt(k,m);moved=true;}}
        if(moved){o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();}continue;}
@@ -1969,14 +1992,14 @@ export function buildTemple(K) {
      if(b.min.x>=EDGE)o.position.x+=DX;
      else if(o.isMesh&&b.max.x>53.3&&b.min.x<EDGE&&!o.rotation.y){const w=b.max.x-b.min.x,f=(w+DX)/w;o.scale.x*=f;o.position.x=b.min.x+(o.position.x-b.min.x)*f;}
    }
-   for(const c of K.colliders.slice(navStart.colliders)){if(c.minZ<Z0||c.maxZ>Z1)continue;if(c.minX>=EDGE){c.minX+=DX;c.maxX+=DX;}else if(c.maxX>53.3)c.maxX+=DX;}
+   for(const c of K.colliders.slice(navStart.colliders)){if(rearNav.has(c)||c.minZ<Z0||c.maxZ>Z1)continue;if(c.minX>=EDGE){c.minX+=DX;c.maxX+=DX;}else if(c.maxX>53.3)c.maxX+=DX;}
    for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const x0=r.x-r.w/2,x1=r.x+r.w/2;if(r.z-r.d/2<Z0||r.z+r.d/2>Z1)continue;
-     if(x0>=EDGE)r.x+=DX;else if(x1>53.3){r.w+=DX;r.x+=DX/2;}}
+     if(rearNav.has(r))continue;if(x0>=EDGE)r.x+=DX;else if(x1>53.3){r.w+=DX;r.x+=DX/2;}}
    for(const l of K.labels.slice(navStart.labels))if(l.position[0]>=EDGE&&l.position[2]>=Z0&&l.position[2]<=Z1)l.position=[l.position[0]+DX,l.position[1],l.position[2]];}
   // 15.01.44 / 15.02.23: the east range's north part (z 6.5-16.5) is a full two-storey
   // block: an upper front wall with a heavy balcony band over the shutter bay, small
   // windows, and a flat red-edged slab. Placed after the east shift, in final coordinates.
-  {const x0=52.6,x1=55.4,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
+  {const x0=55.1,x1=57.9,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
    box('East range upper storey front wall',x0+.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
    box('East range upper storey back wall',x1-.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
    box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z1-.11,x1-x0,y1-y0,.22,white);

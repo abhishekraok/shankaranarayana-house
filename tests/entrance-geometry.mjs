@@ -148,7 +148,7 @@ for(const [point,prefixes] of [
   [[60.12,6.7,-5],['Adjacent building']],
   [[25.1,5.5,1.25],['Temple road']],
   [[0,5.5,0],['Upper','House','Pink','Overlapping']],
-  [[34,2.31,-34],['pavilion']],
+  [[34,1.33,-34],['pavilion']],
 ]){
   const ray=new THREE.Raycaster(panoramaEye,new THREE.Vector3(...point).sub(panoramaEye).normalize());
   const hit=ray.intersectObjects([landscape,temple,house],true)[0];
@@ -278,7 +278,7 @@ for(const [x,z] of [[17.2,1],[17.2,8],[16.9,18],[17.2,27]]){
   const roadRay=new THREE.Raycaster(new THREE.Vector3(x,.35,z),new THREE.Vector3(0,-1,0));
   assert.equal(roadRay.intersectObject(landscape,true)[0]?.object.name,'Dirt road between house and temple','The visible dirt surface must face upwards');
 }
-const outsideStairRoute=[[17.0,10.7],[19.52,10.7],[19.52,11.65],[19.52,16.7],[19.52,18.6]];
+const outsideStairRoute=[[17.0,10.7],[18.02,10.7],[18.02,11.65],[18.02,16.7],[18.02,18.6]];
 checkRoute('Temple exterior stair from side road',outsideStairRoute,.043,0);
 checkRoute('Temple exterior stair back to side road',[...outsideStairRoute].reverse(),3.46,0);
 const galleryRoute=[[39,3],[44.6,3],[44.6,1.35],[46.18,1.35],[46.18,5.72],[44.8,5.72],[39,5.4]];
@@ -292,20 +292,39 @@ for(const [x,z,height] of [[62.1,-1,2.82],[64.9,-1,3.42],[64.9,-9,3.42]]){
   assert.ok(hit&&Math.abs(hit.point.y-height)<.015,'Hall floor/dais mesh has the expected rise');
   assert.ok(Math.abs(hit.point.y-supportY(x,z,height))<.015,'Dais walking support agrees with its visible floor');
 }
-checkRoute('Near-bank pavilion entry',[[34,-37.3],[34,-34]],.28,-.30);
+checkRoute('Pavilion entry from raised bank',[[34,-39.4],[34,-34]],1.38,-1.28);
+checkRoute('Pavilion return to raised bank',[[34,-34],[34,-39.4]],-1.27,-1.28);
+for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-39.4],[-2.3,-34.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
-checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-.55);
-checkRoute('Temple-side bathing gate return',[...bathingRoute].reverse(),.065,-.55);
-assert.equal(supportY(23,-9.65,-.53),-.53,'The path between stairs stays down at the lower bank level');
+checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-1.56);
+checkRoute('Temple-side bathing gate return',[...bathingRoute].reverse(),.065,-1.56);
+assert.equal(supportY(23,-9.65,-1.55),-1.55,'The path between stairs stays down at the lower bank level');
 checkRoute('Road away from the house',[[-7,-5],[-24,-5.3],[-35,-5.8],[-43,-7.1]],.051,0);
 checkRoute('Downhill return to the house',[[-43,-7.1],[-35,-5.8],[-24,-5.3],[-7,-5]],1.71,0);
 houseRoute('Photo-correct front stair',[[-13.3,.95],[-7.93,.95],[-2.65,.95]]);
-const circuitRoute=[[39,8.2],[45,9],[49.9,13.8],[49.9,18.5],[50,25.6],[49.8,32.7],[40,33],[29.2,33],[29.36,22],[29.36,14],[33,13],[35,9],[39,8.2]];
+const circuitRoute=[[39,8.2],[45,9],[49.9,13.8],[49.9,18.5],[50,25.6],[51.8,40.2],[40,40.5],[27.7,40.5],[27.86,22],[27.86,14],[33,13],[35,9],[39,8.2]];
+// The expanded ranges must leave genuinely wider passages, with continuous
+// paving/roofs and matching walkable surfaces, while the inner shrine stays fixed.
+const shrinePlatform=new THREE.Box3().setFromObject(temple.getObjectByName('Old inner shrine black stone platform'));
+for(const [x,dx,minimum] of [[48.9,1,6.0],[30.5,-1,5.0]]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x,.32,25),new THREE.Vector3(dx,0,0)).intersectObject(temple,true)[0];
+  assert.ok(hit?.object.name.startsWith('Outer circuit'),'Passage ends at its veranda plinth');
+  const width=dx>0?hit.point.x-shrinePlatform.max.x:shrinePlatform.min.x-hit.point.x;
+  assert.ok(width>minimum,`Photographed side passage is broad: ${width} m`);
+}
+const rearWall=new THREE.Box3().setFromObject(temple.getObjectByName('Rear circuit weathered white wall'));
+assert.ok(rearWall.min.z>45.2,'Rear range is 7.5 m farther from the inner shrine');
+for(const [x,z] of [[23.2,44],[40,44],[57.2,44],[55.8,34],[24.5,34]]){
+  assert.ok(Math.abs(supportY(x,z,.6)-.6)<.001,'Expanded range has a continuous raised walkway');
+  const roof=new THREE.Raycaster(new THREE.Vector3(x,3.2,z),new THREE.Vector3(0,1,0),0,1).intersectObject(temple,true)[0];
+  assert.ok(roof&&/soffit/.test(roof.object.name),'Expanded range has a roof over its walkway');
+}
+assert.ok(!collision(58.8,40,.1),'East range remains clear of the garden boundary');
 checkRoute('Complete outer temple circuit',circuitRoute,.1,.09);
 checkRoute('Complete outer circuit in reverse',[...circuitRoute].reverse(),.1,.09);
-checkRoute('Circuit to blue shrine veranda',[[50,16.2],[51.8,16.2]],.1,.09);
-checkRoute('Circuit rear veranda stair',[[29.4,33.8],[29.4,36.2]],.1,.09);
+checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
+checkRoute('Circuit rear veranda stair',[[27.9,41.3],[27.9,43.7]],.1,.09);
 // Test physical meshes above the route, not only the authored wall colliders.
 for(let j=1;j<circuitRoute.length;j++){
   const a=circuitRoute[j-1],b=circuitRoute[j],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.16);
@@ -321,8 +340,8 @@ const aisleEye=new THREE.Vector3(...[49.9,.1,18.5]).add(new THREE.Vector3(0,1.62
 const aisleRay=new THREE.Raycaster(aisleEye,new THREE.Vector3(48.9,.85,24.24).sub(aisleEye).normalize());
 assert.equal(aisleRay.intersectObject(temple,true)[0]?.object.name,'Rounded courtyard marker stone','Standing stone must be visible along the circuit');
 const shrineEye=new THREE.Vector3(...photos.templeoutershrines.p).add(new THREE.Vector3(0,1.62,0));
-for(const z of [29.8,32.28,34.76]){
-  const ray=new THREE.Raycaster(shrineEye,new THREE.Vector3(51.95,2.16,z).sub(shrineEye).normalize());
+for(const z of [37.3,39.78,42.26]){
+  const ray=new THREE.Raycaster(shrineEye,new THREE.Vector3(55.95,2.16,z).sub(shrineEye).normalize());
   assert.equal(ray.intersectObject(temple,true)[0]?.object.name,'Photographed outer shrine stones and painted recess','All three shrine niches must be visible');
 }
 // The new viewpoint must look into the house, see the actual gate and remain
@@ -415,7 +434,7 @@ for(const x of [33.65,44.35]){
   assert.ok(hit?.object.name.startsWith('Inner blue window')||hit?.object.name==='Inner window white bars',`Gallery must see facade windows, got ${hit?.object.name}`);
 }
 const rightEye=new THREE.Vector3(...photos.templeright.p).add(new THREE.Vector3(0,1.62,0));
-const rightHallTarget=new THREE.Vector3(24.47,5.59,17.5);
+const rightHallTarget=new THREE.Vector3(22.97,5.59,17.5);
 const rightHallRay=new THREE.Raycaster(rightEye,rightHallTarget.sub(rightEye).normalize());
 const rightHallHit=rightHallRay.intersectObjects([temple,landscape],true)[0];
 assert.ok(rightHallHit?.object.name.startsWith('Right hall'),`Right photo must see the side hall, got ${rightHallHit?.object.name}`);
@@ -537,9 +556,9 @@ const shopUpper=new THREE.Vector3(62,3,-25).project(upperCameras[2]),stageUpper=
 assert.ok(shopUpper.x>pavilionRight.x&&stageUpper.x>shopUpper.x,'Final view orders pavilion, shop, stage');
 checkRoute('Opposite-bank path crosses stair landing',[[11.7,-39.4],[14.8,-39.4]],1.38,1.37);
 // 14.58.26: two flights along the retaining face meet at a central landing.
-checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.38,-.54);
-checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-36.06]],1.38,-.54);
-checkRoute('Opposite-bank flight ascent',[[13.25,-36.06],[13.25,-37.2675],[9.35,-37.2675],[9.35,-39.4]],-.53,-.54);
+checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-34.63]],1.38,-1.56);
+checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-34.63]],1.38,-1.56);
+checkRoute('Opposite-bank flight ascent',[[13.25,-34.63],[13.25,-37.2675],[9.35,-37.2675],[9.35,-39.4]],-1.55,-1.56);
 const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sidePlatformHeight:.602,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));

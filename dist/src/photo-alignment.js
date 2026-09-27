@@ -11,7 +11,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  // Eye height of the photographer (1.8 m tall), used by the H key and the readout.
  const EYE=1.68;
  const $=id=>document.getElementById(id);
- let items=[],index=0,active=false,saved=new Map(),discarded=new Set(),ghost=false,diskSync=false;
+ let items=[],index=0,active=false,saved=new Map(),discarded=new Set(),ghost=false,diskSync=false,modelVersion=null;
  const stage=document.createElement('div');stage.id='align-stage';stage.hidden=true;
  stage.innerHTML=`<img id="align-photo-view" alt=""><img id="alignment-overlay" alt="" hidden>`;
  document.body.append(stage);
@@ -109,10 +109,14 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  function step(dir){if(route){const r=routeAt();show(route[((r<0?(dir>0?-1:0):r)+dir+route.length)%route.length]);return;}if(items.every(it=>discarded.has(it.id))){show(index+dir);return;}let i=index;do{i=(i+dir+items.length)%items.length;}while(discarded.has(items[i].id));show(i);}
  photo.onload=()=>{$('align-save').disabled=false;layout();};
  photo.onerror=()=>status('This photo could not be loaded. Press N to skip it.');
+ // Each save records the model version its pose was fitted to, when the local server reports
+ // one; it is refreshed on open and after every save, so commits made meanwhile are picked up.
+ async function refreshModel(){try{const r=await fetch('./model-version',{cache:'no-store'});if(r.ok){const v=await r.json();if(typeof v.commit==='string')modelVersion=v;}}catch{}}
  function save(){
   const item=items[index];if(!photo.naturalWidth){status('Wait for the photo to finish loading.');return false;}
   const p=camera.position,q=camera.quaternion;
-  saved.set(item.id,{id:item.id,filename:item.filename,sha256:null,notes:$('align-notes').value,camera:{position:p.toArray(),quaternion:q.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),verticalFov:camera.fov,aspect:camera.aspect},image:{width:photo.naturalWidth,height:photo.naturalHeight,fit:'exact'},viewport:{width:innerWidth,height:innerHeight},savedAt:new Date().toISOString()});
+  saved.set(item.id,{id:item.id,filename:item.filename,sha256:null,notes:$('align-notes').value,camera:{position:p.toArray(),quaternion:q.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),verticalFov:camera.fov,aspect:camera.aspect},image:{width:photo.naturalWidth,height:photo.naturalHeight,fit:'exact'},viewport:{width:innerWidth,height:innerHeight},savedAt:new Date().toISOString(),...(modelVersion?{model:{commit:modelVersion.commit,uncommittedEdits:!!modelVersion.dirty}}:{})});
+  refreshModel();
   if(!persist())status('Browser storage is unavailable; export now to keep poses.');return true;
  }
  function next(){if(route){const r=routeAt();if(r>=route.length-1){status('That was the last photo in this list. Thank you!');refreshCounts();return;}show(route[r+1]);return;}const start=index;for(let k=1;k<=items.length;k++){const i=(start+k)%items.length;if(!saved.has(items[i].id)&&!discarded.has(items[i].id)){show(i);return;}}step(1);}
@@ -127,6 +131,7 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   // Opening the viewer may refresh the browser cache, but must not rewrite the
   // source pose file. Disk writes belong to explicit Save or Import actions.
   if(!items.length){items=await loadQueue();if(diskSync&&saved.size)persist(false);}
+  await refreshModel();
   let last=null;try{last=localStorage.getItem(POSITION);}catch{}
   const match=f=>items.findIndex(it=>it.filename.toLowerCase().includes(f.toLowerCase()));
   const parts=find.split(',').map(f=>f.trim()).filter(Boolean);
