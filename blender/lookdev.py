@@ -6,7 +6,7 @@ edges and occlusion grime over the blockout's own colours.
 Writes blender/build/lookdev.blend. Assets come from Poly Haven (CC0) into
 blender/build/assets/. Existing approved photo cards and procedural maps are preserved.
 """
-import bpy, os, json, math
+import bpy, os, json, math, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 A = os.path.join(HERE, 'build', 'assets')
@@ -193,5 +193,8 @@ if water:
 
 scene.view_settings.view_transform = 'AgX'; scene.view_settings.look = 'AgX - Base Contrast'
 scene.view_settings.exposure = 1.3
+source = json.loads(scene.get('reconstruction_source', '{}'))
+source['lookdev_sha256'] = hashlib.sha256(open(__file__, 'rb').read()).hexdigest()
+scene['reconstruction_source'] = json.dumps(source)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, 'build', 'lookdev.blend'))
 print('lookdev materials', count)

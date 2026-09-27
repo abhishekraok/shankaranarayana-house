@@ -8,8 +8,9 @@ so poses that were zoomed to hide a layout error show that error again.
 dark interior diagnostics. It is recorded in index.json and never saves the blend.
 --exposure-profile uses the relative EXIF settings written by photo_exposure.py;
 every selected photo must be present. Camera transforms and exposure are recorded.
+provenance.json records the loaded blend, source hashes, image assets and renderer settings.
 """
-import bpy, sys, os, math, json, time
+import bpy, sys, os, math, json, time, hashlib
 
 argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 def opt(name, default):
@@ -61,3 +62,17 @@ for cam in sorted(cams, key=lambda o: o.name):
                   'seconds': round(time.time() - t, 1)})
     print(f"rendered {cam.name} fov {index[-1]['fov']} in {index[-1]['seconds']}s")
 json.dump(index, open(os.path.join(OUT, 'index.json'), 'w'), indent=1)
+def file_hash(path):
+    with open(path, 'rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+image_paths = sorted({os.path.abspath(bpy.path.abspath(image.filepath))
+                      for image in bpy.data.images if image.filepath and image.source == 'FILE'})
+provenance = {'blend_file': bpy.data.filepath, 'blend_sha256': file_hash(bpy.data.filepath),
+              'source': json.loads(s.get('reconstruction_source', '{}')),
+              'renderer_sha256': file_hash(__file__), 'blender_version': bpy.app.version_string,
+              'engine': s.render.engine, 'device': s.cycles.device, 'samples': SAMPLES,
+              'denoiser': s.cycles.denoiser, 'view_transform': s.view_settings.view_transform,
+              'look': s.view_settings.look,
+              'image_files': {path: file_hash(path) for path in image_paths}}
+json.dump(provenance, open(os.path.join(OUT, 'provenance.json'), 'w'), indent=2)

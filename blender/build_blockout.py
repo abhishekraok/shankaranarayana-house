@@ -6,7 +6,7 @@ Everything sits under the empty "three.js world", rotated +90 degrees about X, s
 three.js coordinates (metres, +Y up) and camera quaternions carry over unchanged:
 Blender and three.js cameras both look down local -Z with +Y up.
 """
-import bpy, bmesh, json, math, sys, os
+import bpy, bmesh, json, math, sys, os, hashlib
 import numpy as np
 from mathutils import Matrix, Quaternion, Vector
 
@@ -16,7 +16,8 @@ argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 POSES = argv[argv.index('--poses') + 1] if '--poses' in argv else 'F:/Shankaranarayana/align-poses.json'
 PHOTO_FOV = 48.0  # 2011 Samsung GT-I9003, fixed 3.43 mm lens (vertical, estimated)
 
-meta = json.load(open(os.path.join(BUILD, 'scene.json')))
+metadata_bytes = open(os.path.join(BUILD, 'scene.json'), 'rb').read()
+meta = json.loads(metadata_bytes)
 blob = open(os.path.join(BUILD, 'scene.bin'), 'rb').read()
 def arr(ref, dtype):
     at, n = ref
@@ -215,7 +216,8 @@ print(f'objects {count}, meshes {len(bpy.data.meshes)}, materials {len(mats)}, c
 
 # Photo cameras from the alignment tool, in the same three.js frame.
 cams = collection('Photo cameras')
-poses = json.load(open(POSES))['poses'] if os.path.exists(POSES) else []
+pose_bytes = open(POSES, 'rb').read() if os.path.exists(POSES) else None
+poses = json.loads(pose_bytes)['poses'] if pose_bytes else []
 for p in poses:
     c = p['camera']; img = p['image']; fov = c['verticalFov']
     photo_aspect = img['width'] / img['height']
@@ -250,5 +252,12 @@ scene.render.engine = 'CYCLES'
 scene.cycles.device = 'GPU'
 scene.view_settings.view_transform = 'AgX'
 out = os.path.join(BUILD, 'blockout.blend')
+scene['reconstruction_source'] = json.dumps({
+    'export': meta.get('source'),
+    'scene_json_sha256': hashlib.sha256(metadata_bytes).hexdigest(),
+    'scene_bin_sha256': hashlib.sha256(blob).hexdigest(),
+    'poses_sha256': hashlib.sha256(pose_bytes).hexdigest() if pose_bytes else None,
+    'build_blockout_sha256': hashlib.sha256(open(__file__, 'rb').read()).hexdigest(),
+})
 bpy.ops.wm.save_as_mainfile(filepath=out)
 print('saved', out)
