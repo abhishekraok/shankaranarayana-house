@@ -408,12 +408,12 @@ const homePhoto=photos.templehouse,homeEye=new THREE.Vector3(...homePhoto.p).add
 const homeCamera=new THREE.PerspectiveCamera(homePhoto.fov,4/3,.06,400);homeCamera.position.copy(homeEye);homeCamera.lookAt(new THREE.Vector3(...homePhoto.target));homeCamera.updateMatrixWorld();
 assert.ok(homeCamera.getWorldDirection(new THREE.Vector3()).x<-.98,'Temple-to-house camera must face home along -X');
 assert.ok(!collision(homePhoto.p[0],homePhoto.p[2],homePhoto.p[1]),'Temple-to-house camera is clear');
-assert.ok(new THREE.Vector3(14.99,1.26,2.5).project(homeCamera).x<0,'White house end must appear on the left');
+assert.ok(new THREE.Vector3(16.49,1.1,1.5).project(homeCamera).x<0,'White house end must appear on the left');
 assert.ok(new THREE.Vector3(13.55,.78,-11.3).project(homeCamera).x>0,'Lake boundary must appear on the right');
 for(const [point,prefix] of [
-  [[14.99,1.26,2.5],'Temple-facing block closed timber door'],
+  [[16.49,1.1,1.5],'Temple-facing block closed timber door'],
   [[7.68,.76,-2.35],'Hatchback'],
-  [[14.77,2.13,5.25],'Blue tarp'],
+  [[16.49,1.9,3.6],'Blue tarp'],
 ]){
   const ray=new THREE.Raycaster(homeEye,new THREE.Vector3(...point).sub(homeEye).normalize());
   const hit=ray.intersectObjects([house,temple,landscape],true)[0];

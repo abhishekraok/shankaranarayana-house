@@ -1209,17 +1209,17 @@ export function buildHouse(K) {
   const porchVertices=[],porchUvs=[];
   // 15.22.40 (the Ritz as a 1.62 m ruler) and 15.28.36: a deep, steep awning whose eave
   // hangs about 2.35 m above the lane, rising some 1.4 m to meet the wall under the lattice.
-  const porchEaveZ=-1.8,porchHeight=z=>z<.5?2.35+(z-porchEaveZ)*1.4/(.5-porchEaveZ):3.75+(z-.5)*.23/1.58;
-  for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])for(const [x,z] of [[-7.8,za],[12.45,za],[12.45,zb],[-7.8,za],[12.45,zb],[-7.8,zb]]){porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
+  const porchEndX=9.2,porchEaveZ=-1.8,porchHeight=z=>z<.5?2.35+(z-porchEaveZ)*1.4/(.5-porchEaveZ):3.75+(z-.5)*.23/1.58;
+  for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])for(const [x,z] of [[-7.8,za],[porchEndX,za],[porchEndX,zb],[-7.8,za],[porchEndX,zb],[-7.8,zb]]){porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
   porchGeometry.setAttribute('position',new THREE.Float32BufferAttribute(porchVertices,3));
   porchGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(porchUvs,2));porchGeometry.computeVertexNormals();
   const porchMaterial=mat('tile').clone();porchMaterial.side=THREE.DoubleSide;
   const porchTiles=new THREE.Mesh(porchGeometry,porchMaterial);porchTiles.name='Entrance veranda roof tiles';porchTiles.castShadow=true;porchTiles.receiveShadow=true;porchRoof.add(porchTiles);
-  K.beam(porchRoof,'Entrance porch outer fascia',[-7.8,2.30,porchEaveZ],[12.45,2.30,porchEaveZ],.16,verandaTimber,.14);
-  K.beam(porchRoof,'Entrance porch wall plate on the posts',[-7.8,2.67,-1.25],[12.45,2.67,-1.25],.14,verandaTimber,.12);
-  for(let x=-7.6;x<12.4;x+=.50)for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])K.beam(porchRoof,'Entrance veranda exposed sloping rafter',[x,porchHeight(za)-.085,za],[x,porchHeight(zb)-.085,zb],.075,verandaTimber,.12);
+  K.beam(porchRoof,'Entrance porch outer fascia',[-7.8,2.30,porchEaveZ],[porchEndX,2.30,porchEaveZ],.16,verandaTimber,.14);
+  K.beam(porchRoof,'Entrance porch wall plate on the posts',[-7.8,2.67,-1.25],[porchEndX,2.67,-1.25],.14,verandaTimber,.12);
+  for(let x=-7.6;x<porchEndX;x+=.50)for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])K.beam(porchRoof,'Entrance veranda exposed sloping rafter',[x,porchHeight(za)-.085,za],[x,porchHeight(zb)-.085,zb],.075,verandaTimber,.12);
   const porchTileRows=[];
-  for(let z=porchEaveZ+.03;z<2.05;z+=.32)for(let x=-7.69;x<12.4;x+=.25)porchTileRows.push({x,y:porchHeight(z),z,angle:z<.5?Math.atan2(1.4,.5-porchEaveZ):Math.atan2(.23,1.58)});
+  for(let z=porchEaveZ+.03;z<2.05;z+=.32)for(let x=-7.69;x<porchEndX;x+=.25)porchTileRows.push({x,y:porchHeight(z),z,angle:z<.5?Math.atan2(1.4,.5-porchEaveZ):Math.atan2(.23,1.58)});
   tilesOnSlope(porchRoof,'Overlapping lower-veranda Mangalore tile courses',porchTileRows);
   // A dark timber soffit conceals the red underside of the upper balcony slab.
   K.box(porchRoof,'Veranda timber ceiling underside',0,3.59,1.05,11.35,.035,2.04,verandaTimber);
@@ -1227,7 +1227,7 @@ export function buildHouse(K) {
   const blade=new THREE.BufferGeometry();blade.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,0,.5,0,0,-.22,.55,.17,.22,.55,.17,.10,1,.55],3));blade.setIndex([0,1,2,1,3,2,2,3,4]);blade.computeVertexNormals();
   const roofGrowth=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:'#aaa38e',roughness:1,side:THREE.DoubleSide}),2400);
   const growthPose=new THREE.Object3D();
-  for(let i=0;i<2400;i++){const x=-7.45+((i*173)%2399)/2399*18.8,z=porchEaveZ+.3+((i*317)%2393)/2393*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>.1;growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(.012+(i%5)*.004,dense?.14+(i%9)*.021:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
+  for(let i=0;i<2400;i++){const x=-7.45+((i*173)%2399)/2399*(porchEndX-7.45-.3),z=porchEaveZ+.3+((i*317)%2393)/2393*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>.1;growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(.012+(i%5)*.004,dense?.14+(i%9)*.021:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
   roofGrowth.name='Dry grass and moss on the lower tiled awning';porchRoof.add(roofGrowth);
   K.hipRoof(g,'West range tiled roof',-10.18,12.0,4.6,13.1,3.62,1.12);
   const rearRoof=K.hipRoof(g,'Rear veranda tiled roof',-.50,16.38,18.2,4.25,3.64,1.05);
@@ -1288,28 +1288,33 @@ export function buildHouse(K) {
   corridorBulb.name='Clock-side veranda hanging bare bulb';corridorBulb.position.set(9.7,2.935,10.15);corridorBulb.scale.y=1.35;eastPassageRoof.add(corridorBulb);
 
   K.hipRoof(g,'East rear service roof',10.1,15.8,4.2,5.25,3.62,.85);
-  // Low white block with its own hipped roof, visible at the house's temple end.
-  // Its enclosed interior and exact connection are not visible in the references.
+  // 15.22.40: a long whitewashed single-storey wing with a black dado runs on from the
+  // veranda's far door, under the upper enclosed room and some 4 m past the upper
+  // storey, its hipped tile roof taking over from the veranda awning. Solid: its rooms
+  // are not photographed. Length from the photo, bounded by the 4 m side road.
+  const wingX0=9.2,wingX1=16.4,wingZ0=-.9,wingZ1=4.9,wingCx=(wingX0+wingX1)/2,wingCz=(wingZ0+wingZ1)/2;
   const endWhite=mat('plaster').clone();endWhite.color.set('#f1eced');
-  const dampBase=new THREE.MeshStandardMaterial({color:'#494942',roughness:1});
-  b('Temple-facing low white block',13.20,1.66,2.6,3.40,3.02,4.6,endWhite,true);
-  b('Temple-facing block dark foundation',13.2,.30,2.6,3.5,.50,4.7,dampBase);
-  b('Temple-side low block front damp band',13.20,.49,.274,3.43,.79,.045,dampBase);
-  b('Temple-side low block small front slit',13.06,1.60,.248,.20,.65,.035,'wood');
-  K.hipRoof(g,'Temple-facing small block tiled roof',13.2,2.6,5.6,5.6,3.24,1.36);
+  const dampBase=new THREE.MeshStandardMaterial({color:'#2f302c',roughness:1});
+  b('Temple-side long white wing',wingCx,1.36,wingCz,wingX1-wingX0,2.42,wingZ1-wingZ0,endWhite,true);
+  b('Temple-side wing black dado',wingCx,.43,wingCz,wingX1-wingX0+.05,.86,wingZ1-wingZ0+.05,dampBase);
+  b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
+  for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
+  b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
+  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',wingCx-.05,wingCz,wingX1-wingX0+2.1,wingZ1-wingZ0+1.9,2.42,1.3);
+  wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
-  b('Temple-facing block worn door jamb',14.93,1.34,2.5,.09,2.32,1.08,'paleStone');
-  b('Temple-facing block closed timber door',14.99,1.26,2.5,.045,2.12,.82,'wood');
-  for(const z of [2.15,2.33,2.50,2.67,2.84])detail(15.02,1.26,z,.022,2.07,.022,dampBase);
-  b('Temple-facing block door threshold',15.02,.19,2.5,.38,.10,1.12,'stone');
-  b('Temple-facing block stone boundary post',15.48,.70,.40,.24,1.38,.26,'stone',true);
+  b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
+  b('Temple-facing block closed timber door',wingX1+.09,1.1,1.5,.045,1.8,.82,'wood');
+  for(const z of [1.15,1.33,1.50,1.67,1.84])detail(wingX1+.12,1.1,z,.022,1.75,.022,dampBase);
+  b('Temple-facing block door threshold',wingX1+.12,.19,1.5,.38,.10,1.12,'stone');
+  b('Temple-facing block stone boundary post',wingX1+.3,.70,wingZ0-.5,.24,1.38,.26,'stone',true);
   const tarp=new THREE.MeshStandardMaterial({color:'#218fad',roughness:.88,side:THREE.DoubleSide});
   const tarpGeometry=new THREE.PlaneGeometry(2.5,2.3,18,18),tp=tarpGeometry.attributes.position;
   for(let i=0;i<tp.count;i++){
     const x=tp.getX(i),y=tp.getY(i),fold=.12*Math.sin(x*8+y*2)+.045*Math.sin(y*14);
     tp.setXYZ(i,x,y-.15*Math.cos(x*2.4),fold);
   }
-  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(14.77,2.13,5.25);g.add(tarpSheet);
+  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(16.47,1.9,3.6);g.add(tarpSheet);
   // Roof framing is grouped with the cutaway roofs.
   const roofTimber=new THREE.Group();roofTimber.name='Exposed veranda roof rafters';g.add(roofTimber);K.roofs.push(roofTimber);
   for(let z=6.3;z<17.8;z+=.55) {
