@@ -92,9 +92,9 @@ for mat in bpy.data.materials:
     base = tuple(bsdf.inputs['Base Color'].default_value)
     lum = 0.2126 * base[0] + 0.7152 * base[1] + 0.0722 * base[2]
     coord = nt.nodes.new('ShaderNodeTexCoord')
-    # Rounded edges in shading only: every hard box edge catches a little light.
+    # Millimetre-scale wear in shading only; retain square pillars and stepped masonry.
     # (Blender 5.2's Normal Map node has no normal input, so scanned-relief materials skip it.)
-    bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.012; bev.samples = 6
+    bev = nt.nodes.new('ShaderNodeBevel'); bev.inputs['Radius'].default_value = 0.003; bev.samples = 6
     kind = 'plain'
     authored = any(mat.get(key) for key in ('authored_map', 'authored_bump', 'authored_roughness'))
     inlaid_hall = not authored and mat.name == 'Adjacent hall dark stone with pale inlays'
