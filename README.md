@@ -1,12 +1,12 @@
 # Shankaranarayana, Udupi
 
-A walkable 3D reconstruction of the house, lake and temple, created by Abhishek Rao using photographs and memories from 2011–2013.
+A walkable 3D reconstruction of the house, lake and temple as remembered from 2011–2013, created by Abhishek Rao from photographs and memories.
 
-[Explore the live site](https://shankaranarayana.abhishekraok.chatgpt.site/) · [Source code](https://github.com/abhishekraok/shankaranarayana-house)
+[Explore the live site](https://shankaranarayana.abhishekraok.chatgpt.site/)
 
 ## Run locally
 
-Install Node.js 18 or newer, then run:
+Install Node.js 18 or newer:
 
 ```sh
 git clone https://github.com/abhishekraok/shankaranarayana-house.git
@@ -14,49 +14,66 @@ cd shankaranarayana-house
 node server.mjs
 ```
 
-Open http://127.0.0.1:4173/. On Windows, double-click `start.cmd`. The application needs no package installation or build step; Three.js and all scene assets are included.
+Open http://127.0.0.1:4173/. On Windows, `start.cmd` also starts the server. No package installation or build is needed; Three.js and the scene assets are included. The app's Info pane explains desktop, phone and controller controls.
 
-## Explore
+## Contribute or remix
 
-The guided tour starts automatically. Use Walk, Aerial or Go to to explore freely. Drag to look around, use WASD/arrow keys to walk, and scroll to move forward or backward. Photos shows reference views; Info explains the controls. On mobile, tap Controls to expand the toolbar.
+`dist/` is the authored application, not generated output:
 
-## Edit and verify
+| File in `dist/src/` | Purpose |
+| --- | --- |
+| `house.js`, `temple.js`, `landscape.js` | Buildings and surroundings |
+| `main.js` | Navigation and UI |
+| `tour.js` | Guided route |
+| `photo-alignment.js` | Reference camera alignment |
 
-`dist/` is the authored application. Scene geometry lives in `dist/src/house.js`, `temple.js` and `landscape.js`; navigation and UI are in `main.js`, with the tour in `tour.js`. Measurements and obscured details are estimates, not a surveyed model.
+For a correction, open a GitHub issue with the location, reference filename and what differs. A matching camera view is especially useful. For code changes, keep the scope focused and describe the reference and verification in your pull request. Share only photographs you have permission to publish.
 
-```sh
-npm test
-```
+### Align reference photographs
 
-Optional browser checks require Node.js 22+, Playwright and Chromium. Start the local server in another terminal, then run:
+Open **Photographs → Align photos** to compare a photo with the 3D view. Drag to look, WASD to move, Q/E to change height, H to use standing eye height, and Z/X to adjust zoom. Shift moves faster; Alt makes finer adjustments. G overlays the photo; R resets the camera. Space saves and advances, N skips, P goes back, and Delete discards a photo from the queue without deleting its file. The tool also shows controller controls.
 
-```sh
-npm install --no-save playwright
-npx playwright install chromium
-npm run test:browser
-```
+Use `?align` to resume, `?align=14.59.54` to start at a filename match, or a comma-separated list of matches to choose a sequence. The 2011 photos start at a 48° vertical field of view; adjust it when needed.
 
-Set `BROWSER_CHANNEL=msedge` to use an installed Microsoft Edge instead. Test output goes into the ignored `checks/` directory.
-
-## Hosting and reuse
-
-Any static host can serve `dist/`. GitHub updates do not automatically redeploy the live Sites version; publication is a separate step.
-
-The public repository begins with a clean snapshot of the approved source and photographs. Earlier development history and private references are excluded.
-
-Original code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: [CC BY 4.0](LICENSE-PHOTOS.txt), credited to Abhishek Rao. For photo reuse, credit Abhishek Rao, link to this repository and the license, and indicate any changes. See [reference photographs](REFERENCE-SOURCES.md) for provenance. Vendored Three.js retains its [MIT license](dist/vendor/THREE-LICENSE.txt).
-
-### Photo alignment
-
-Open **Photographs → Align photos**. The photo and a live 3D view appear side by side, the 3D view sized to the photo's exact shape. Drag to look, WASD to move, Q/E to lower or raise the camera, Z/X to zoom, Shift for bigger and Alt for finer steps. G overlays the photo on the 3D view; R returns to the starting camera. **Space saves the pose and moves to the next photo still needing work**; N skips and P goes back. The list beside the counter jumps to any photo in queue order (✓ saved, ✕ discarded). **Discard** (or the Delete key) hides a useless photo from the queue; the file is never deleted, and choosing it from the list shows **Restore**.
-
-To open the tool directly, add `?align` to the address (`http://127.0.0.1:4173/?align` resumes where you left off) or part of a filename (`?align=14.59.54`).
-
-Without a local photo folder, the queue is the bundled reference photos. To align a private collection, generate a queue (most uncertain photos first) and serve the folder locally:
+To align a private collection locally:
 
 ```sh
 node tools/align-queue.mjs "F:/Photos"
 node server.mjs --photos "F:/Photos"
 ```
 
-The server then serves only that folder's image files and `align-queue.json` on 127.0.0.1, and writes every save to `align-poses.json` and the discard list to `align-discarded.json` in the same folder. Photos are never copied into the project. Saves are also kept in browser storage; **Export JSON** and **Import** move them between browsers. Each export records world-space eye position in metres, quaternion, viewing direction, vertical field of view, aspect, photo dimensions, filename, timestamp and notes, and no photo pixels.
+This serves the selected images on 127.0.0.1 and saves `align-poses.json` and `align-discarded.json` in that folder. Photos are not copied into the project. Poses are also saved in browser storage; **Export JSON** and **Import** transfer them between browsers. Exports contain filenames, camera coordinates in metres, orientation, field of view, aspect, dimensions, timestamps and notes, without photo pixels. Check filenames and notes before sharing an export.
+
+## Verify changes
+
+For geometry or navigation changes:
+
+```sh
+npm test
+```
+
+Browser checks require Node.js 22+, Playwright and Chromium. Keep the local server running in another terminal:
+
+```sh
+npm install --no-save playwright
+npx playwright install chromium
+npm run test:browser
+npm run test:mobile
+npm run test:alignment
+```
+
+Set `BROWSER_CHANNEL=msedge` to use installed Microsoft Edge. Reports are written to the ignored `checks/` directory.
+
+## Hosting
+
+Any static host can serve `dist/`. GitHub commits do not automatically update the live Sites version; deployment is a separate step. The [dev site](https://shankaranarayana-dev.abhishekraok.chatgpt.site/) is private and used for review before updating the public site.
+
+## Known limitations
+
+Dimensions, hidden spaces and some architectural details are estimates. This is a reconstruction of the photographed period, not a survey or a description of the village today. Fidelity varies by viewpoint; mobile rendering uses reduced visual detail for performance.
+
+## Licenses and references
+
+Code and documentation: [MIT](LICENSE). Photographs in `dist/assets/`: [CC BY 4.0](LICENSE-PHOTOS.txt), credited to Abhishek Rao. When reusing photos, credit Abhishek Rao, link to the repository and license, and indicate changes. [Reference sources](REFERENCE-SOURCES.md) maps included photographs to their original filenames. Three.js retains its [MIT license](dist/vendor/THREE-LICENSE.txt).
+
+Only approved photographs are included. Private reference media and photo-bearing review files stay outside the public source and deployment packages.

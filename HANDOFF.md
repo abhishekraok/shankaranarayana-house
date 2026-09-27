@@ -4,6 +4,83 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Rear temple range completed (2026-09-27)
+
+References: `15.11.08`, `15.11.17`, `15.05.42`, with the dome checked in `15.12.56`.
+Review: `checks/fidelity-rear-range/REVIEW.md`. The earlier rear-room draft is now
+completed and verified: supported upper room, open bay and jali, roof-mounted dome,
+usable stairwell, enclosed lower door/window bay and paired stones. West-veranda
+scallops and pierced parapet replace the solid rail; the unsupported z=22 stair is gone.
+
+The saved `15.05.42` pose faces a different section; it was not refitted. Dimensions
+and stair direction remain estimates. Wheel/geometry, full circuit, physical stair
+clearance and browser checks pass. Older notes below about an unfinished rear draft
+are historical. No private media was committed.
+
+## House right entrance repair (2026-09-27)
+
+Reference: `IMG_20130720_175312.jpg`; user-confirmed pose saved at 20:39:15 UTC.
+Use it unchanged. Earlier `175312-pose-height` advice is superseded.
+
+- Assuming the house faces east (-Z), moved the stepped pedestal 1.65 m east
+  and 0.50 m south onto the entrance ledge; used the pale 2013 finish.
+- Peach round and octagonal timber pillars now sit near the frame center. Removed
+  the intervening narrow partition and connected the supports with a ceiling bearer.
+- Three red treads ascend northward (-X). Cut a genuine lower floor pocket in the
+  old solid front slab; preserve access to the inner sitting platform.
+- Desk moved to the north platform edge; its viewpoint and the walking tour follow
+  the corrected layout. Placement distances and unseen connections remain estimates.
+- Local original/before/after: `checks/fidelity-house-right/REVIEW.md`.
+  Photos and user poses unchanged; no media added to Git. Rear temple draft separate.
+
+## Northwest layout follow-up (2026-09-27)
+
+User references: `15.10.34`, then `15.10.30` from the same place turned left
+45 degrees, then the entrance view `15.02.00`. These supersede the earlier
+speculative corner-arch connection. Local review: `checks/fidelity-nw-layout/REVIEW.md`.
+
+- Central stair door stays fixed. Its plain left wall is 1.35 m wider.
+- Blue bay moves 3.70 m inward along -X, inside the round-column line; the street
+  building is hollowed there. A level connection joins the raised chair platform.
+- Removed the invented projecting corner arch. The barred window now occupies
+  the white wall between the blue bay and stair wall.
+- Tulsi moves 0.50 m along -X and 1.90 m along -Z (including the user-requested
+  additional 0.35 m northward nudge), opening the court and placing it
+  farther right in the entrance view. The rest of the temple was not translated.
+- Distances are estimates. The foreground column, roof proportions and lighting
+  still differ from the photos. No claim of a fully matched corner.
+- Review uses one eye position and a 45-degree turn for the first pair; this is
+  an ignored diagnostic copy. Original saved poses and photos remain unchanged.
+  The unrelated rear-room draft remains uncommitted; native output is not rebuilt.
+
+## Northwest temple corner correction (2026-09-27)
+
+The user identifies this corner by `IMG_20130720_180635` and `180653`: the chair
+hall and scalloped service porch, not the far rear dome room. Local review:
+`checks/fidelity-temple-northwest/REVIEW.md`.
+
+- Two high windows flank a solid wall with pilaster, beam and electrical boards.
+- The red chair floor is at 0.60 m; the grey passage is at 0.112 m, with access steps.
+- The entrance-side hall and exterior stair again meet the existing street wall and
+  porch. The wider outer circuit farther back is retained.
+- Added the broad corner arch, suspended bell and near barred window. The service
+  opening follows the 2013 raised shutter; the 2011 photo has an older panelled door.
+- Wheel/geometry and physical window, floor and bidirectional stair routes pass.
+  Dimensions, arch connection and furniture details remain approximate. Saved poses
+  are unchanged. The far rear-room draft remains separate and uncommitted.
+
+## House entrance correction (2026-09-27)
+
+Primary reference: `IMG_20130720_175306.jpg`, plus the user's confirmation of an open
+lower passage and nearly symmetrical furnished platforms. Door opening reduced from
+2.05 m to an estimated 1.20 m; shorter leaves expose both bays. Chairs moved back
+0.32 m to clear access around the posts; the other platform now has a storage trunk,
+and a metal vessel follows the reference. Platform sizes and levels are unchanged.
+Original / before / after: `checks/fidelity-house-entry/REVIEW.md` (local, ignored).
+Wheel/geometry and explicit platform access/visibility regressions pass. Exact room
+widths and object details remain estimates; this is a bounded entrance repair.
+The unfinished temple rear-room geometry is separate, uncommitted work.
+
 ## Review workflow
 
 After each major improvement, create a local `REVIEW.md` with original / before / after
