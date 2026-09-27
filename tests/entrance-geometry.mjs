@@ -423,6 +423,25 @@ for(const [x,z,y] of [[30.5,7.1,.613],[30.5,5.7,.823],[29.2,5.7,.823],[28.64,7.1
   assert.ok(!collision(x,z,y),'Service porch interior is clear');
 }
 assert.ok(collision(30.5,4.9,.823),'Service porch rear wall stays closed');
+// User's 180635 / 180653: raised red chair hall beside a lower grey passage.
+assert.ok(Math.abs(supportY(23.2,11.4,.6)-.6)<.001,'Chair hall remains raised');
+assert.ok(Math.abs(supportY(25.8,11.4,.6)-.112)<.001,'Outer hall passage is lower than the chair floor');
+const hallGlazing=temple.children.filter(o=>o.name==='Covered hall pale translucent window glazing');
+assert.equal(hallGlazing.length,2,'Two high windows flank the central wall');
+for(const z of [9.3,12.9]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(23.7,2.65,z),new THREE.Vector3(-1,0,0)).intersectObject(temple,true)[0];
+  assert.equal(hit?.object.name,'Covered hall pale translucent window glazing','Window opening is exposed between real wall piers');
+}
+{const hit=new THREE.Raycaster(new THREE.Vector3(23.7,2.5,10.8),new THREE.Vector3(-1,0,0)).intersectObject(temple,true)[0];
+ assert.equal(hit?.object.name,'Covered hall lane-side wall pier','The old middle window is solid wall');}
+checkRoute('Lower chair hall passage',[[29.2,11],[25.8,11],[25.8,15.5]],.1,.09);
+checkRoute('Chair platform access',[[25.8,9.8],[23.7,9.8]],.112,.10);
+checkRoute('Chair platform descent',[[23.7,9.8],[25.8,9.8]],.6,.10);
+checkRoute('Lower hall to service porch',[[26.8,7.1],[29.6,7.1]],.112,.10);
+checkRoute('Service porch to lower hall',[[29.6,7.1],[26.8,7.1]],.613,.10);
+assert.ok(temple.getObjectByName('Covered hall broad blue corner arch'),'Corner opening has its broad scalloped return');
+assert.ok(temple.getObjectByName('Side bay raised rolling shutter'),'Service opening follows the selected 2013 reference');
+
 {const ray=new THREE.Raycaster(new THREE.Vector3(28.3,1.8,6.8),new THREE.Vector3(1,0,0)),hit=ray.intersectObject(temple,true)[0];
  assert.equal(hit?.object?.name,'Service bay east return wall','West scalloped opening sees through the porch');}
 {const eye=new THREE.Vector3(32.827,1.78,14.622),target=new THREE.Vector3(29.6,1.8,5.2);

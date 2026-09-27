@@ -4,6 +4,22 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Northwest temple corner correction (2026-09-27)
+
+The user identifies this corner by `IMG_20130720_180635` and `180653`: the chair
+hall and scalloped service porch, not the far rear dome room. Local review:
+`checks/fidelity-temple-northwest/REVIEW.md`.
+
+- Two high windows flank a solid wall with pilaster, beam and electrical boards.
+- The red chair floor is at 0.60 m; the grey passage is at 0.112 m, with access steps.
+- The entrance-side hall and exterior stair again meet the existing street wall and
+  porch. The wider outer circuit farther back is retained.
+- Added the broad corner arch, suspended bell and near barred window. The service
+  opening follows the 2013 raised shutter; the 2011 photo has an older panelled door.
+- Wheel/geometry and physical window, floor and bidirectional stair routes pass.
+  Dimensions, arch connection and furniture details remain approximate. Saved poses
+  are unchanged. The far rear-room draft remains separate and uncommitted.
+
 ## House entrance correction (2026-09-27)
 
 Primary reference: `IMG_20130720_175306.jpg`, plus the user's confirmation of an open
