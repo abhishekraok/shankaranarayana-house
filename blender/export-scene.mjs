@@ -114,7 +114,12 @@ console.log('skipped',skipped);
   const {supportY}=new Function('K','THREE',navigation+';return {supportY};')(K,THREE);
   const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
   for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
-  const tour=createPhotoTour(photos,supportY);
+  // Photo poses and the webapp's destinations, for native captures from the same viewpoints.
+  const dm=main.indexOf('const destinations={'),de=main.indexOf('};',dm);
+  const destinations=new Function('return ('+main.slice(dm+'const destinations='.length,de+1)+')')();
+  for(const m of main.matchAll(/destinations\.(\w+)=(\{[^;]*?\});/g)){try{destinations[m[1]]=new Function('return ('+m[2]+')')();}catch{}}
+  await fs.writeFile(new URL('views.json',out),JSON.stringify({...destinations,...photos}));
+  const tour=createPhotoTour(photos,supportY,K.houseShiftX);
   const FPS=24,frames=[];let label=null;const markers=[];
   for(let f=0;f<=Math.ceil(tour.duration*FPS);f++){
     const s=tour.sample(f/FPS);

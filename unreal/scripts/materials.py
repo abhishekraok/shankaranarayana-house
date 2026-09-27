@@ -26,10 +26,16 @@ def param(m, cls, name, x, y, default):
 
 def master(name, tint=False, two_sided=False, water=False, emissive=False):
     path = f'{DIR}/{name}'
-    if EAL.does_asset_exist(path) and '--rebuild' not in __import__('sys').argv: return unreal.load_asset(path)
+    if EAL.does_asset_exist(path) and '--rebuild' not in __import__('sys').argv:
+        m = unreal.load_asset(path)
+        # Nanite meshes fall back to the default material unless the master allows Nanite.
+        if not m.get_editor_property('used_with_nanite'):
+            m.set_editor_property('used_with_nanite', True); MEL.recompile_material(m); EAL.save_loaded_asset(m)
+        return m
     if EAL.does_asset_exist(path): EAL.delete_asset(path)
     m = AT.create_asset(name, DIR, unreal.Material, unreal.MaterialFactoryNew())
     m.set_editor_property('two_sided', two_sided)
+    m.set_editor_property('used_with_nanite', True)
     col = param(m, unreal.MaterialExpressionVectorParameter, 'Color', -700, 0, unreal.LinearColor(1, 1, 1, 1))
     out = col
     if tint:

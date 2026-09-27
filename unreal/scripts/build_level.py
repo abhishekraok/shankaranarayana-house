@@ -57,15 +57,30 @@ bp_set(backdrop, ('Intensity', 'intensity'), 1.0)
 bp_set(backdrop, ('Size', 'size'), 30000.0)
 bp_set(backdrop, ('LightingDistanceFactor', 'Lighting Distance Factor', 'lighting_distance_factor'), 0.1)
 bp_set(backdrop, ('UseCameraProjection', 'Use Camera Projection', 'use_camera_projection'), True)
+# The backdrop's own sky light never captures in a level saved from a commandlet, which left
+# every surface black. Drive it explicitly from the same cubemap and capture it now.
+skies = backdrop.get_components_by_class(unreal.SkyLightComponent)
+if not skies:
+    skies = [spawn(unreal.SkyLight, (0, 0, 500), label='Overcast sky light').light_component]
+for sky in skies:
+    sky.set_editor_property('source_type', unreal.SkyLightSourceType.SLS_SPECIFIED_CUBEMAP)
+    sky.set_editor_property('cubemap', cube); sky.set_editor_property('intensity', 2.5)
+    sky.set_editor_property('real_time_capture', False); sky.set_mobility(unreal.ComponentMobility.MOVABLE)
+    sky.recapture_sky()
+print('SKY lights', len(skies))
 sun = spawn(unreal.DirectionalLight, (0, 0, 5000), (0, -55, 200), 'Soft sun')
 sc = sun.light_component
-sc.set_editor_property('intensity', 1.2); sc.set_editor_property('light_source_angle', 12.0)
+sc.set_editor_property('intensity', 6.0); sc.set_editor_property('light_source_angle', 12.0)
 fog = spawn(unreal.ExponentialHeightFog, (0, 0, -200), label='Humid haze')
 fog.component.set_editor_property('fog_density', 0.02)
 pp = spawn(unreal.PostProcessVolume, label='Exposure')
 pp.set_editor_property('unbound', True)
 s = pp.settings
+# The sky and sun are in relative (not photometric) units, so physical camera exposure
+# (EV100 about 14, meant for 100k-lux daylight) renders the scene black. Manual exposure
+# without the physical camera leaves brightness to the bias alone.
 s.set_editor_property('override_auto_exposure_method', True); s.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
+s.set_editor_property('override_auto_exposure_apply_physical_camera_exposure', True); s.set_editor_property('auto_exposure_apply_physical_camera_exposure', False)
 s.set_editor_property('override_auto_exposure_bias', True); s.set_editor_property('auto_exposure_bias', EXPOSURE)
 pp.set_editor_property('settings', s)
 

@@ -34,6 +34,11 @@ for col in bpy.context.scene.collection.children:
     with bpy.context.temp_override(active_object=objs[0], selected_editable_objects=objs):
         bpy.ops.object.join()
     part = vl.objects.active; part.name = col.name
+    # glTF writes only the active colour attribute; after a join it may not be the
+    # per-instance tint 'Col', which left foliage and tinted instances white in Unreal.
+    ca = part.data.color_attributes
+    if 'Col' in ca:
+        ca.active_color = ca['Col']; ca.render_color_index = ca.find('Col')
     for o in vl.objects: o.select_set(False)
     part.select_set(True)
     low = col.name.lower()
