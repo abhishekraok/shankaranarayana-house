@@ -14,10 +14,12 @@ in the progress update. This is the user's preferred review format.
 
 ## Continued fidelity session (2026-09-27, ongoing)
 
-Geometry through `cd7e8d9`, starting from `2ea3ff9`; local only. Review:
+Geometry through `7ae7b3d`, starting from `2ea3ff9`; local only. Review:
 `checks/fidelity-session/REVIEW.md` (original / session start / current).
 Later reviews: `checks/fidelity-capitals/REVIEW.md` and
 `checks/fidelity-native-materials/REVIEW.md`; earlier reviews are preserved.
+Also see `checks/fidelity-pedestals/REVIEW.md` and
+`checks/fidelity-window-exposure/REVIEW.md`.
 
 - Sitting window: ochre surround, rounded blue mouldings, exposed recess and oxide sill.
 - Adjacent hall: dark stone with pale inlays; rear dais, central steps and high green vents;
@@ -27,6 +29,8 @@ Later reviews: `checks/fidelity-capitals/REVIEW.md` and
   and alternating pegs on the pale pole.
 - Hall capitals: curled brackets now extend beyond their collars in both beam directions
   (`cd7e8d9`); wheel/geometry and paired camera captures passed.
+- Outer pedestal faces now have approximate procedural floral relief (`7ae7b3d`), supported
+  by 15.13.51 / 15.12.15. Inner bases and deity engravings remain unresolved.
 - Porch-side blue window **is confirmed** by 15.02.27, 15.03.47 and 15.10.30. The plain-wall
   15.10.34 view likely crops it out. Placement relative to the stair door still needs alignment.
 - Wheel/geometry passed each geometry checkpoint. Browser verification after the hall
@@ -39,6 +43,11 @@ Later reviews: `checks/fidelity-capitals/REVIEW.md` and
   material maps, with original UV transforms. Stair diamonds and paint are retained; no photo
   textures exported. Blender image/link/UV-seam checks passed. Geometry object transforms
   are unchanged. See the native material review for fixed-camera comparisons and provenance.
+- EXIF exposure (`ec2064f` on `photoreal`): the window photos used 1/14 s, ISO 125 versus
+  the exterior reference's 1/203 s, ISO 50, both f/2.6. Their +5.180-stop difference gives
+  a useful window render at 6.480 stops. This is a relative estimate, not absolute calibration.
+  `blender/photo_exposure.py` creates an ignored profile for `render_poses.py --exposure-profile`;
+  the renderer records camera matrices and per-view exposure without saving the blend.
 
 **Pose-file audit:** opening alignment auto-synced `align-poses.json`, refreshing its export
 timestamp. All paired review cameras match, but full historical file equality is unverified.
