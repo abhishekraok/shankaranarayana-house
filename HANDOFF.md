@@ -1,8 +1,40 @@
 # Handoff (2026-09-27)
 
-State of the Shankaranarayana reconstruction when Claude handed it over, and what is left.
+Claude's reconstruction handoff, updated after the local Codex fidelity pass below.
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
+
+## Codex fidelity pass (2026-09-27)
+
+Geometry checkpoint: `03d5fba` on `main`, merged into `photoreal`. Nothing pushed or deployed.
+
+- **House:** the +x sitting window has a real 1.9 m rounded recess, 0.18 m deep; the opposite
+  window is unchanged (14.56.56, 14.57.08).
+- **Adjacent building:** four inner lower columns, 3.5 m behind the front row; heavier lower
+  shafts, bases, inset panels and diamond relief. Upper columns and plinth stay unchanged
+  (15.13.51, 15.19.57). Exact inner-row depth remains an estimate: the older findings disagree.
+- **Lamp:** moved to (38.7, 11.2), with shelter and pale pole. The bell-return viewpoint and
+  tour now go around it. The pole's exact relation to the flagstaff remains approximate.
+- **Service porch:** moved 1.5 m west, deepened to 2.7 m behind the front piers, with a west
+  scalloped arch and a 0.21 m inner step. Removed intersecting portico/frontage solids and
+  connected the floor to the hall. The adjoining blue window is deferred: the position inferred
+  from 15.10.30 conflicts with the plain wall in 15.10.34. 15.10.43 still needs re-alignment.
+
+Local review: `checks/fidelity/REVIEW.md` and its four photo/before/after sheets. Cameras stay
+fixed between renders. The 15.13.51 close-up uses a labelled +1.18 m diagnostic eye height in
+both versions; its saved pose is at the raised floor and needs re-saving. Original pose files
+and `docs/photo-findings.json` were not modified.
+
+Blender: rebuilt from this checkpoint; nine saved-camera renders and sheets are under
+`D:\repos\shankaranarayana-photoreal\blender\build\fidelity-20260927` (ignored). The render
+manifest records the source revisions. A separate `fidelity-20260927-diagnostic` folder has
+the raised column camera. Interior window lighting is dark; use the web sheets for geometry
+review. Unreal was not rebuilt in this pass.
+
+Verification: wheel/geometry, browser routes, views, shrine platforms, lake stairs, gamepad,
+photo alignment, mobile landscape and mobile rendering passed. Browser verification reports
+58 clear destinations, 54 route segments, no route failures or page errors. New regressions
+cover the actual window recess, column aisles, lamp sightlines, tour clearance and porch interior.
 
 ## Layout of the work
 
@@ -37,14 +69,16 @@ committed) still apply.
 
 The tests need Node 24 and Playwright with Edge, and a server on http://127.0.0.1:4173 (`node server.mjs`):
 
-```
-NODE=C:/Users/abhis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe
-PLAYWRIGHT_MODULE=C:/Users/abhis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright
-BROWSER_CHANNEL=msedge
-$NODE tests/wheel-movement.mjs        # geometry + navigation; runs entrance-geometry.mjs; required before commits
-$NODE tests/verify.cjs                # viewpoints and walking routes (routeFailures must be [])
-$NODE tests/views.cjs tests/lake-stairs.cjs tests/shrine-platforms.cjs tests/photo-alignment.cjs \
-      tests/gamepad.cjs tests/landscape-mobile.cjs tests/mobile-rendering.cjs
+```powershell
+$taskNode='C:/Users/abhis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe'
+$env:PLAYWRIGHT_MODULE='C:/Users/abhis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'
+$env:BROWSER_CHANNEL='msedge'
+& $taskNode tests/wheel-movement.mjs  # required before geometry commits
+if ($LASTEXITCODE) { throw 'Geometry/navigation failed' }
+foreach ($test in @('verify','views','lake-stairs','shrine-platforms','photo-alignment','gamepad','landscape-mobile','mobile-rendering')) {
+  & $taskNode "tests/$test.cjs"
+  if ($LASTEXITCODE) { throw "$test failed" }
+}
 ```
 
 A `verify.cjs` failure of `net::ERR_NO_BUFFER_SPACE` is transient; rerun it. The git index has
@@ -116,15 +150,8 @@ Ordered by support. Check each against the photo before changing anything, becau
 off by 1 m and a few degrees.
 
 - **Two photos agree:**
-  - Adjacent building: an inner second row of lower-storey columns about 3.5 m behind the front
-    row (15.13.51, 15.19.57), and heavier carved lower columns (15.13.51).
-  - Temple service bay (blue scalloped porch, x about 30–34, z about 6.3–7.6): about 2.5–3 m
-    deep with an inner step and side scallops (15.10.30, 15.10.43). 15.10.34 also says it sits
-    about 1.5 m too far east.
-  - House sitting-bay window at house x 3.0: a recessed plaster niche with a rounded head about
-    1.9 m wide (14.56.56, 14.57.08).
-  - Temple lamp column (deepastambha, `lampX`): nearer the doorway axis, x about 38.6–39.1
-    (15.13.03, 15.15.51). Move its shelter and the pale pole with it.
+  - Columns, service porch, sitting-window recess and lamp placement: addressed in the Codex
+    pass above; use its comparison sheets and caveats before changing them again.
   - West bank of the tank: a straight stair up the tiers at about z -23 to -30 (15.23.38,
     15.23.35, 15.21.56, 15.22.00).
   - Covered hall (temple.js "Covered hall"): two lane-side windows instead of three
