@@ -279,7 +279,10 @@ export function buildHouse(K) {
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
   // Two shallow front rooms, either side of the central through-entrance.
-  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:2.05,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95},{c:7,w:1.5,top:2.5}],verandaAqua);
+  // IMG_20130720_175306: the doorway is substantially narrower than the
+  // lower entry passage. Its leaves must not project across the sitting bays.
+  const mainDoorWidth=1.20,mainJambInset=(2.05-mainDoorWidth)/2;
+  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95},{c:7,w:1.5,top:2.5}],verandaAqua);
   // 14.56.56 / 14.57.08: only the +x sitting-bay window has this rounded,
   // splayed plaster recess. Cut the facade rather than laying trim over it.
   {const cx=3,front=1.925,back=2.105,bottom=1.005,shoulder=3.13,rise=.23,half=.95;
@@ -303,7 +306,7 @@ export function buildHouse(K) {
     b('Sitting window oxide sill surface',cx,bottom+.003,(front+back)/2,1.90,.012,back-front,verandaRed);
     K.blocker(cx,2.08,1.90,.31,F,3.4);
   }
-  doorX(0,2.03,2.05,F,2.7,1);doorX(7,2.03,1.5,F,2.5,1);
+  doorX(0,2.03,mainDoorWidth,F,2.7,1);doorX(7,2.03,1.5,F,2.5,1);
   grilleX(-7.9,1.90,1.7,F+.9,1.5);
   const entranceOchre=new THREE.MeshStandardMaterial({color:0x988258,roughness:.98});
   // 14.56.56 / 14.57.08: warm worn ochre and rounded blue mouldings on
@@ -368,12 +371,12 @@ export function buildHouse(K) {
    cable.name='Sitting window hanging wire';g.add(cable);}
   // Layered main-door jambs sit at the threshold, with the leaves open inward.
   for(const s of [-1,1]) {
-    for(let j=0;j<4;j++)b('Main door carved nested jamb',s*(1.08+j*.067),1.84,1.95-j*.039,.055,2.78+j*.09,.10,verandaTimber);
-    b('Main door broad worn pilaster',s*1.32,1.83,1.85,.17,2.85,.18,verandaTimber);
-    for(const y of [.62,.69,.78,3.01,3.10])b('Main door jamb moulding',s*1.31,y,1.84,.26,.045,.24,verandaTimber);
+    for(let j=0;j<4;j++)b('Main door carved nested jamb',s*(1.08-mainJambInset+j*.067),1.84,1.95-j*.039,.055,2.78+j*.09,.10,verandaTimber);
+    b('Main door broad worn pilaster',s*(1.32-mainJambInset),1.83,1.85,.17,2.85,.18,verandaTimber);
+    for(const y of [.62,.69,.78,3.01,3.10])b('Main door jamb moulding',s*(1.31-mainJambInset),y,1.84,.26,.045,.24,verandaTimber);
   }
-  b('Main door deep carved lintel',0,3.27,1.90,2.88,.24,.29,verandaTimber);
-  for(let j=0;j<3;j++)b('Main door lintel layered rim',0,3.38+j*.075,1.88,3.04-j*.12,.06,.31,verandaTimber);
+  b('Main door deep carved lintel',0,3.27,1.90,2.88-2*mainJambInset,.24,.29,verandaTimber);
+  for(let j=0;j<3;j++)b('Main door lintel layered rim',0,3.38+j*.075,1.88,3.04-2*mainJambInset-j*.12,.06,.31,verandaTimber);
   const doorBoss=K.cylinder(g,'Main door central carved boss',0,3.27,1.723,.092,.108,.065,verandaTimber,12);doorBoss.rotation.x=Math.PI/2;
   // IMG_20130720_175306, looking out: a sunken dark entry strip with
   // raised sitting platforms to either side, not a tall enclosed tunnel.
@@ -1409,9 +1412,18 @@ export function buildHouse(K) {
   }
   b('Cupboard dark central door seam',-3.131,1.58,3.27,.008,1.42,.012,'black');
   b('Cupboard projecting top lip',-3.43,2.35,3.27,.59,.045,.88,cupboardRed);
+  // 175306: both raised platforms hold household objects, while the lower
+  // middle passage stays empty. The right of that outward view is +X here.
+  const trunkPaint=new THREE.MeshStandardMaterial({color:'#696b62',roughness:.9});
+  b('Inner sitting platform storage trunk',2.28,1.04,3.00,.72,.50,.57,trunkPaint,true);
+  b('Inner platform trunk raised lid',2.28,1.302,3.00,.74,.025,.59,trunkPaint);
+  for(const x of [2.04,2.52])b('Inner platform trunk dark strap',x,1.318,3.00,.036,.008,.59,'wood');
+  b('Inner platform trunk handle',1.907,1.07,3.00,.022,.045,.16,'metal');
+  K.cylinder(g,'Inner platform metal storage vessel',-1.94,1.03,3.36,.13,.12,.48,'metal',24);
+  K.cylinder(g,'Inner platform vessel lid',-1.94,1.28,3.36,.135,.135,.025,'metal',24);
   const sittingChairWood=verandaTimber.clone();sittingChairWood.color.set('#6f6153');
   for(const z of [2.48,3.40]){
-    const c=new THREE.Group();c.name='Inner sitting bay curved-arm wooden chair';c.position.set(-2.43,.79,z);c.rotation.y=-Math.PI/2;g.add(c);
+    const c=new THREE.Group();c.name='Inner sitting bay curved-arm wooden chair';c.position.set(-2.75,.79,z);c.rotation.y=-Math.PI/2;g.add(c);
     K.box(c,'Sitting chair solid seat',0,.43,0,.59,.065,.63,sittingChairWood);
     for(const x of [-.255,.255]){
       const legProfile=[[.034,0],[.046,.025],[.031,.07],[.029,.19],[.046,.22],[.030,.25],[.028,.39],[.045,.44],[.034,.49],[.028,.68]];
@@ -1422,7 +1434,7 @@ export function buildHouse(K) {
       K.beam(c,'Sitting chair lower stretcher',[x,.20,-.25],[x,.20,.27],.038,sittingChairWood);
     }
     for(const [y,zz,h] of [[.56,.31,.085],[.98,.36,.12]])K.box(c,'Sitting chair open back crossrail',0,y,zz,.56,h,.045,sittingChairWood);
-    K.blocker(-2.43,z,.82,.65,.79,1.86);
+    K.blocker(-2.75,z,.82,.65,.79,1.86);
   }
   chair(-10.85,6.0,Math.PI/2);chair(-10.85,7.45,Math.PI/2);
   chair(-5.1,4.48,Math.PI);chair(4.0,4.48,Math.PI);

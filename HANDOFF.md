@@ -4,6 +4,18 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## House entrance correction (2026-09-27)
+
+Primary reference: `IMG_20130720_175306.jpg`, plus the user's confirmation of an open
+lower passage and nearly symmetrical furnished platforms. Door opening reduced from
+2.05 m to an estimated 1.20 m; shorter leaves expose both bays. Chairs moved back
+0.32 m to clear access around the posts; the other platform now has a storage trunk,
+and a metal vessel follows the reference. Platform sizes and levels are unchanged.
+Original / before / after: `checks/fidelity-house-entry/REVIEW.md` (local, ignored).
+Wheel/geometry and explicit platform access/visibility regressions pass. Exact room
+widths and object details remain estimates; this is a bounded entrance repair.
+The unfinished temple rear-room geometry is separate, uncommitted work.
+
 ## Review workflow
 
 After each major improvement, create a local `REVIEW.md` with original / before / after

@@ -235,6 +235,25 @@ const houseRoute=(name,points,...rest)=>checkRoute(name,points.map(([x,z])=>[x+H
 function checkRoute(name,points,startFeet=.45,minimumFloor=.44){let feet=startFeet,samples=0;for(let j=1;j<points.length;j++){const a=points[j-1],b=points[j],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.04);for(let i=0;i<=n;i++){const t=i/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;assert.ok(!collision(x,z,feet),`${name}: collision at ${x}, ${z}`);assert.ok(!blockedRise(x,z,feet),`${name}: impassable rise at ${x}, ${z}`);feet=supportY(x,z,feet);assert.ok(feet>=minimumFloor,`${name}: missing floor`);samples++;}}routes.push({name,samples,finalHeight:feet});}
 houseRoute('Entrance to left veranda',[[0,1.1],[0,-.31],[8.2,-.31]]);
 houseRoute('Central entrance to inner hall',[[0,.5],[0,5.1]]);
+// 175306: a lower open entrance passage between matching raised platforms.
+const innerPlatforms=house.children.filter(o=>o.name==='Inner entrance raised sitting platform');
+assert.equal(innerPlatforms.length,2);
+const innerPlatformBounds=innerPlatforms.map(o=>new THREE.Box3().setFromObject(o));
+assert.equal(innerPlatformBounds[0].max.y,innerPlatformBounds[1].max.y);
+assert.ok(innerPlatformBounds.every(b=>b.max.y>.75&&b.max.y<.85),'Both platforms rise above the entry passage');
+for(const side of [-1,1]){
+  const eye=HV(0,2.07,3.15),target=HV(side*2,1.4,2.80),direction=target.clone().sub(eye);
+  const hits=new THREE.Raycaster(eye,direction.clone().normalize(),0,direction.length()).intersectObject(house,true);
+  assert.equal(hits.length,0,'Open door leaves must not hide the inner sitting platforms');
+  houseRoute('Inner hall to raised platform '+side,[[0,4.55],[side*2.05,4.55],[side*2.05,3.92]]);
+  houseRoute('Raised platform back to hall '+side,[[side*2.05,3.92],[side*2.05,4.55],[0,4.55]],.79);
+}
+for(const side of [-1,1]){
+  const ray=new THREE.Raycaster(HV(side*.76,2.0,3.15),new THREE.Vector3(0,0,-1),0,1.3);
+  assert.ok(ray.intersectObject(house,true).some(h=>h.object.name.startsWith('Front room facade')),'Door is narrower than the lower passage');
+}
+assert.ok(house.getObjectByName('Inner sitting platform storage trunk'),'The second platform is furnished too');
+
 houseRoute('Left veranda to front room',[[7,-.31],[7,3.1],[5.5,3.1],[5.5,5.1]]);
 houseRoute('Entrance to left sitting bay',[[0,1.32],[2.65,1.32]]);
 houseRoute('Entrance to right sitting bay',[[0,1.32],[-2.65,1.32]]);
