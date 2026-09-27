@@ -14,8 +14,10 @@ in the progress update. This is the user's preferred review format.
 
 ## Continued fidelity session (2026-09-27, ongoing)
 
-Geometry through `779bf66`, starting from `2ea3ff9`; local only. Review:
+Geometry through `cd7e8d9`, starting from `2ea3ff9`; local only. Review:
 `checks/fidelity-session/REVIEW.md` (original / session start / current).
+Later reviews: `checks/fidelity-capitals/REVIEW.md` and
+`checks/fidelity-native-materials/REVIEW.md`; earlier reviews are preserved.
 
 - Sitting window: ochre surround, rounded blue mouldings, exposed recess and oxide sill.
 - Adjacent hall: dark stone with pale inlays; rear dais, central steps and high green vents;
@@ -23,6 +25,8 @@ Geometry through `779bf66`, starting from `2ea3ff9`; local only. Review:
   corroborate the close-ups. Dimensions remain estimates from photographs.
 - Service porch: curled arch cusps and pale edges. Lamp: scalloped oil cups, turned bands
   and alternating pegs on the pale pole.
+- Hall capitals: curled brackets now extend beyond their collars in both beam directions
+  (`cd7e8d9`); wheel/geometry and paired camera captures passed.
 - Porch-side blue window **is confirmed** by 15.02.27, 15.03.47 and 15.10.30. The plain-wall
   15.10.34 view likely crops it out. Placement relative to the stair door still needs alignment.
 - Wheel/geometry passed each geometry checkpoint. Browser verification after the hall
@@ -31,6 +35,10 @@ Geometry through `779bf66`, starting from `2ea3ff9`; local only. Review:
   procedural inlays now survive export. Window `fidelity-session-window-exposure` uses a
   diagnostic exposure of 3.3 stops; it does not change the saved blend. Interiors remain dark.
   Statue photo cards remain a fidelity limitation, especially in native exports.
+- Native materials (`48c2fc5` on `photoreal`): 56 authored procedural images supply 173
+  material maps, with original UV transforms. Stair diamonds and paint are retained; no photo
+  textures exported. Blender image/link/UV-seam checks passed. Geometry object transforms
+  are unchanged. See the native material review for fixed-camera comparisons and provenance.
 
 **Pose-file audit:** opening alignment auto-synced `align-poses.json`, refreshing its export
 timestamp. All paired review cameras match, but full historical file equality is unverified.
@@ -88,6 +96,11 @@ cover the actual window recess, column aisles, lamp sightlines, tour clearance a
   - Order: `export-scene.mjs` → `build_blockout.py` (cameras from
     `F:/Shankaranarayana/align-poses.json`) → `lookdev.py` → `render_poses.py` / `contact_sheet.py`.
     Each script's docstring gives its exact command.
+  - Export now needs `@napi-rs/canvas` (declared in the photoreal package). This machine's
+    installed copy can be selected with
+    `$env:CANVAS_MODULE='C:/Users/abhis/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@napi-rs/canvas'`.
+    Use `--python-exit-code 1` for automated Blender commands, then run
+    `blender -b blender/build/lookdev.blend --python-exit-code 1 -P blender/verify_materials.py`.
   - Unreal: `export_unreal.py` → `unreal/scripts/import_scene.py` → `materials.py` →
     `build_level.py`, each run with `UnrealEditor-Cmd.exe <uproject> -run=pythonscript -script=...`.
   - Copy `nav.json`, `tour.json` and `views.json` into `blender/build/unreal/` after the export.
