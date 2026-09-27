@@ -239,7 +239,27 @@ function alignPad(dt){
  for(const [i,name] of [[0,'saveNext'],[1,'skip'],[2,'ghost'],[3,'eye'],[4,'prev'],[5,'skip']])if(press(i))photoAlignment.command(name);
  padPrevious=pad.buttons.map(b=>b.pressed);
 }
-function move(dt){if(aligning)alignPad(dt);moveWheel(dt);if(!['walk','fly'].includes(mode))return;let forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS')),side=Number(keys.has('KeyD'))-Number(keys.has('KeyA'));
+// Xbox-style gamepad outside the align tool: left stick walks, right stick looks, RT runs.
+// Y starts the tour and A pauses or resumes it; touching a stick or B leaves the tour and
+// walks on from wherever the tour camera is.
+function walkPad(dt){
+ const pad=[...(navigator.getGamepads?.()||[])].find(p=>p&&p.connected);if(!pad)return;
+ const dz=v=>Math.abs(v)<.15?0:(v-Math.sign(v)*.15)/.85,[lx,ly,rx,ry]=[0,1,2,3].map(i=>dz(pad.axes[i]||0));
+ const held=i=>!!pad.buttons[i]?.pressed,value=i=>pad.buttons[i]?.value||0,press=i=>held(i)&&!padPrevious[i];
+ if(press(3))startTour();
+ else if(press(0)&&mode==='tour'){tourPaused=!tourPaused;updateModeUI();}
+ if((lx||ly||rx||ry||press(1))&&!['walk','fly'].includes(mode)){
+  const q=camera.quaternion.clone();if(mode==='tour'||!entered)walkPosition.copy(camera.position);setMode('walk');
+  const e=new THREE.Euler().setFromQuaternion(q,'YXZ');yaw=e.y;pitch=e.x;syncLook();
+ }
+ if(['walk','fly'].includes(mode)){
+  if(lx||ly){const v=speed*(1+value(7)*1.2)*dt,f=-ly,s=lx,dx=(-Math.sin(yaw)*f+Math.cos(yaw)*s)*v,dz2=(-Math.cos(yaw)*f-Math.sin(yaw)*s)*v;
+   if(mode==='walk')translateWalk(dx,dz2);else translateFlight(new THREE.Vector3(dx,0,dz2));}
+  if(rx||ry){yaw-=rx*2.2*dt;pitch=THREE.MathUtils.clamp(pitch-ry*1.6*dt,-1.35,1.35);syncLook();}
+ }
+ padPrevious=pad.buttons.map(b=>b.pressed);
+}
+function move(dt){if(aligning)alignPad(dt);else if(['walk','fly'].includes(mode))walkPad(dt);moveWheel(dt);if(!['walk','fly'].includes(mode))return;let forward=Number(keys.has('KeyW'))-Number(keys.has('KeyS')),side=Number(keys.has('KeyD'))-Number(keys.has('KeyA'));
  if(forward||side){const n=Math.hypot(forward,side);forward/=n;side/=n;const v=speed*(keys.has('ShiftLeft')||keys.has('ShiftRight')?1.7:1)*dt;const dx=(-Math.sin(yaw)*forward+Math.cos(yaw)*side)*v,dz=(-Math.cos(yaw)*forward-Math.sin(yaw)*side)*v;
   if(mode==='walk')translateWalk(dx,dz);else{const delta=camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(forward*v);delta.add(new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion).multiplyScalar(side*v));translateFlight(delta);}
  }
@@ -258,7 +278,7 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
