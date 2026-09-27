@@ -1,11 +1,12 @@
 """Create a local photo / before / after REVIEW.md from two capture folders.
 
 Requires Pillow. Output stays under the repository's ignored checks/ directory.
-Capture folders contain PNGs and captures.json from checks/capture-fidelity.cjs.
+Capture folders contain PNGs and captures.json from tools/capture-fidelity.cjs.
 """
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont, ImageOps
@@ -26,6 +27,8 @@ checks = Path(__file__).resolve().parents[1] / 'checks'
 out = args.out.resolve()
 if not out.is_relative_to(checks) or out == checks:
     parser.error('--out must be a subdirectory of the ignored checks/ directory')
+if out.exists():
+    parser.error('Output already exists; choose a new directory to preserve the earlier review')
 
 documents = [json.loads((p / 'captures.json').read_text()) for p in (args.before, args.after)]
 for document in documents:
@@ -34,6 +37,12 @@ for document in documents:
     audit = document.get('sourceAudit', {})
     if not audit.get('unchanged') or audit.get('beforeSha256') != audit.get('afterSha256'):
         parser.error('Both captures must verify that the source file was unchanged')
+for document, revision in zip(documents, [args.before_ref, args.after_ref]):
+    provenance = document.get('provenance')
+    if provenance:
+        captured = provenance.get('geometryBaseline') or provenance['revision']
+        if not re.fullmatch(r'[a-f0-9]{7,40}', revision) or not captured.startswith(revision):
+            parser.error(f'Revision label {revision!r} differs from captured revision {captured}')
 rows = [{r['capture']: r for r in d['report']} for d in documents]
 views = args.views.split(',') if args.views else [v for v in rows[0] if v in rows[1]]
 if not views:
@@ -69,7 +78,9 @@ lines += ['- ' + note for note in args.note]
 lines += ['', 'Paired cameras are identical. Source-file hashes remained unchanged during both captures. '
           'Photos and comparisons stay local. Camera alignment remains a separate uncertainty.', '']
 manifest = {'before_revision': args.before_ref, 'after_revision': args.after_ref,
-            'source_audits': [d['sourceAudit'] for d in documents], 'notes': args.note, 'views': []}
+            'source_audits': [d['sourceAudit'] for d in documents],
+            'capture_provenance': [d.get('provenance') for d in documents],
+            'notes': args.note, 'views': []}
 width, height = 600, 450
 for view, row, paths in pairs:
     sheet = Image.new('RGB', (3 * width + 32, height + 94), '#182320')

@@ -12,14 +12,22 @@ Preserve earlier reviews; label diagnostic camera or lighting adjustments. Keep 
 reviews ignored and local, block source-file writes during capture, and link the new review
 in the progress update. This is the user's preferred review format.
 
+Use `tools/capture-fidelity.cjs <new-batch-name>` with `PHOTO_TIMES=HH.MM.SS,...`,
+`PLAYWRIGHT_MODULE` and `BROWSER_CHANNEL` from the test setup below. Outputs go under
+`checks/fidelity/`; writes to local photos are blocked and loaded JS hashes recorded.
+Optional `FIDELITY_BASELINE=<commit>` substitutes only house/temple/landscape geometry;
+`FIDELITY_RAISED_HALL=1` adds the labelled +1.18 m diagnostic. Pair captures with
+`tools/fidelity-review.py --help`. Both tools preserve existing output directories.
+
 ## Continued fidelity session (2026-09-27, ongoing)
 
-Geometry through `7ae7b3d`, starting from `2ea3ff9`; local only. Review:
+Geometry through `b8b8a66`, starting from `2ea3ff9`; local only. Review:
 `checks/fidelity-session/REVIEW.md` (original / session start / current).
 Later reviews: `checks/fidelity-capitals/REVIEW.md` and
 `checks/fidelity-native-materials/REVIEW.md`; earlier reviews are preserved.
 Also see `checks/fidelity-pedestals/REVIEW.md` and
 `checks/fidelity-window-exposure/REVIEW.md`.
+The cumulative nine-view review is `checks/fidelity-final/REVIEW.md`.
 
 - Sitting window: ochre surround, rounded blue mouldings, exposed recess and oxide sill.
 - Adjacent hall: dark stone with pale inlays; rear dais, central steps and high green vents;
@@ -31,10 +39,14 @@ Also see `checks/fidelity-pedestals/REVIEW.md` and
   (`cd7e8d9`); wheel/geometry and paired camera captures passed.
 - Outer pedestal faces now have approximate procedural floral relief (`7ae7b3d`), supported
   by 15.13.51 / 15.12.15. Inner bases and deity engravings remain unresolved.
+- Balcony balusters now use the photographed flat forked profile (`fec42f2`);
+  `checks/fidelity-balcony/REVIEW.md`. The sitting chair has lower back/arms, and the window
+  has its hanging wire (`b8b8a66`); `checks/fidelity-sitting-details/REVIEW.md`.
 - Porch-side blue window **is confirmed** by 15.02.27, 15.03.47 and 15.10.30. The plain-wall
   15.10.34 view likely crops it out. Placement relative to the stair door still needs alignment.
-- Wheel/geometry passed each geometry checkpoint. Browser verification after the hall
-  changes: 58 destinations, 60 routes, no failures/errors. Final integration checks pending.
+- Wheel/geometry passed each geometry checkpoint. Final browser verification: 58 destinations,
+  60 routes, no failures/errors. Views, lake stairs, shrine platforms, alignment, gamepad,
+  mobile landscape and mobile rendering also passed; logs are in `checks/fidelity-session/`.
 - Native hall renders: `blender/build/fidelity-session-hall` in the photoreal worktree;
   procedural inlays now survive export. Window `fidelity-session-window-exposure` uses a
   diagnostic exposure of 3.3 stops; it does not change the saved blend. Interiors remain dark.
@@ -208,8 +220,10 @@ off by 1 m and a few degrees.
 - **Two photos agree:**
   - Columns, service porch, sitting-window recess and lamp placement: addressed in the Codex
     pass above; use its comparison sheets and caveats before changing them again.
-  - West bank of the tank: a straight stair up the tiers at about z -23 to -30 (15.23.38,
-    15.23.35, 15.21.56, 15.22.00).
+  - West bank of the tank: 15.23.38 / 15.23.35 confirm a straight stair. Its rise depends on
+    the unresolved bank heights/water level above; old notes disagree on location. Resolve
+    those dimensions before adding the stair. The paired-flight notes in 15.21.56 / 15.22.00
+    may describe another location.
   - Covered hall (temple.js "Covered hall"): two lane-side windows instead of three
     (IMG_20130720_180635); an open door and street shutter at the entrance end (two of the named
     "temple right side" photos). Those photos are from 2013 or undated, so they may show later changes.
