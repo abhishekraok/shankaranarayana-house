@@ -836,6 +836,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     shrub(zone === 0 ? range(-27, 19) : zone === 1 ? range(-39, 25) : zone === 2 ? range(-37, -24.8) : range(62, 75),
       zone === 0 ? range(27, 63) : zone === 1 ? range(-70, -48.1) : zone === 2 ? range(-46, 24) : range(4, 60), range(.42, 1.28));
   }
+  // 15.22.00 / 15.23.08 / 15.25.49: dense weeds and shrubs fill the ground behind the far-bank
+  // footpath, up to the houses (lifted onto the far-bank terrace below). Authored 6 m out:
+  // the satellite-refit pass below brings everything past z -41.5 that much nearer.
+  const weedSeed = seed;
+  for (let i = 0; i < 140; i++) {
+    const x = i % 4 ? range(-4.6, 49.6) : range(-21, -5), z = range(-53.8, -46.9);
+    if (x > -19.4 && x < -16.4 || x > -17.6 && x < -6.4 && z < -50.4) continue;
+    shrub(x, z, range(.45, 1.15));
+  }
+  seed = weedSeed;
   // Small tufts on the wild edges, kept away from the walking paths.
   const grassPositions = [], grassIndices = [];
   for (let i = 0; i < 5; i++) {
@@ -849,6 +859,27 @@ export function buildLandscape(K, {mobile=false}={}) {
     const x = i % 2 ? range(-38, -22) : range(-30, 28), z = i % 2 ? range(-47, 23) : range(-68, -47.1), s = range(.55, 1.3);
     instance('grass and weeds along wild banks', grassGeometry, materials.grass, [x, .025, z], [s, s, s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
   }
+  const tuftSeed = seed;
+  for (let i = 0; i < 700; i++) {
+    const x = i % 4 ? range(-4.8, 49.8) : range(-21, -5), z = range(-55, -45.6), s = range(.6, 1.25);
+    if (x > -19.2 && x < -16.6 || x > -17.4 && x < -6.6 && z < -50.6) continue;
+    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [x, .025, z], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
+  }
+  seed = tuftSeed;
+  // 15.25.49: weeds, not bare laterite, between the hall and the tank path, beside its approach.
+  const weedyGround = new THREE.MeshStandardMaterial({ color: '#6d7443', roughness: 1 });
+  for (const [a, b] of [[-21, -19.2], [-16.6, -9.9]])
+    box('Opposite bank weedy ground before the hall', (a + b) / 2, .012, -42.45, b - a, .02, 4.7, weedyGround);
+  // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
+  // shrubs fill the ground beyond it.
+  box('West bank weedy ground beyond the path', -13.8, .012, -24.4, 10.4, .02, 26.8, weedyGround);
+  const westSeed = seed;
+  for (let i = 0; i < 60; i++) shrub(range(-18.6, -9.4), range(-37, -12), range(.5, 1.25));
+  for (let i = 0; i < 260; i++) {
+    const s = range(.6, 1.25);
+    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [range(-18.8, -8.9), .025, range(-37.5, -11.5)], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
+  }
+  seed = westSeed;
 
   // A few quiet white service houses frame the site beyond the main buildings.
   function ancillary(name, x, z, w, d, h) {
@@ -1741,7 +1772,8 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const r of K.surfaces)if(r.z+r.d/2<edge)r.y+=lift(r.x);
    for(const r of K.ramps)if(r.z+r.d/2<edge){const l=lift(r.x);r.lowY+=l;r.highY+=l;}
    for(const l of K.labels)if(l.position[2]<edge)l.position=[l.position[0],l.position[1]+lift(l.position[0]),l.position[2]];
-   const earth=K.M.earth,zc=(edge+back)/2,d=edge-back;
+   // Weedy ground rather than bare laterite, with a worn footpath along the bank top.
+   const earth=new THREE.MeshStandardMaterial({color:'#6d7443',roughness:1}),zc=(edge+back)/2,d=edge-back;
    for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]]){
      box('Far bank raised earth terrace',(a+b)/2,(FAR_TOP-.3)/2,zc,b-a,FAR_TOP+.3,d,earth);K.surface((a+b)/2,zc,b-a,d,FAR_TOP);
    }
@@ -1749,7 +1781,8 @@ export function buildLandscape(K, {mobile=false}={}) {
    box('Far bank earth behind pavilion entry',34,(FAR_TOP-.3)/2,(-38.8+back)/2,2.2,FAR_TOP+.3,-38.8-back,earth);K.surface(34,(-38.8+back)/2,2.2,-38.8-back,FAR_TOP);
    for(let i=0;i<16;i++)for(const side of [-1,1]){const x=side<0?x0-(i+.5)*fall/16:x1+(i+.5)*fall/16,h=lift(x);
      box('Far bank earth slope',x,(h-.3)/2,zc,fall/16+.01,h+.3,d,earth);}
-   K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);}
+   K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);
+   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,materials.redSoil);}
   // Bring the far bank closer (see farZ): move what lies beyond, stretch what spans.
   {const b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
    group.updateMatrixWorld(true);
