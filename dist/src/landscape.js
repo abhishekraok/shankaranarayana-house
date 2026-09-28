@@ -1297,25 +1297,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   steps('Lane-end concrete steps down to the lawn',54.2,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
-  // 15.20.13 and 15.28.26: beyond the tank's south-east corner a steep wooded
-  // bank rises about 4.6 m, climbed by a laterite stair, with a small white
-  // building of the lake entrance group and a dark-roofed shed on top.
-  const bankProfile=new THREE.Shape([[0,0],[2.4,4.6],[13.5,4.6],[13.5,0]].map(([u,v])=>new THREE.Vector2(u,v)));
-  const bankGeo=new THREE.ExtrudeGeometry(bankProfile,{depth:12.2,bevelEnabled:false});bankGeo.rotateY(Math.PI/2);
-  const bankGreen=new THREE.MeshStandardMaterial({color:'#4c5a33',roughness:1});const hillBank=new THREE.Mesh(bankGeo,bankGreen);hillBank.name='South-east wooded bank';hillBank.position.set(49.8,0,-46.3);hillBank.castShadow=hillBank.receiveShadow=true;group.add(hillBank);
-  box('South-east bank grassy crest',55.9,4.62,-54.5,12.2,.04,11.4,verge);K.surface(55.9,-54.5,12.2,11.4,4.64);
-  K.blocker(55.9,-53.1,12.2,13.6,0,4.5);
-  steps('South-east laterite hill stair',50.55,-47.5,1.3,2.4,'-z',.05,4.62,14,materials.redSoil);
-  const entranceWhite=materials.oldWhite.clone();entranceWhite.color.set('#e9e6dc');
-  const entrancePink=materials.oldWhite.clone();entrancePink.color.set('#c77b7e');
-  box('Lake entrance small white block',53.5,4.62+1.35,-50.3,2.5,2.7,2.8,entranceWhite,true);
-  box('Lake entrance block pink dado',53.5,4.62+.25,-50.3,2.54,.5,2.84,entrancePink);
-  const slab=box('Lake entrance block flat roof',53.5,4.62+2.78,-50.3,2.8,.16,3.1,materials.roofConcrete);K.roofs.push(slab);
-  for(const x of [55.6,57.9])for(const z of [-49.3,-51.2])box('Entrance shed timber post',x,4.62+1.05,z,.12,2.1,.12,'wood',true);
-  const shedRoof=box('Entrance shed dark sheet roof',56.75,4.62+2.2,-50.25,2.9,.06,2.5,materials.basalt);shedRoof.rotation.x=-.12;K.roofs.push(shedRoof);
-  const shrubGreen=new THREE.MeshStandardMaterial({color:'#3d5a2a',roughness:.95,flatShading:true});
-  for(let i=0;i<14;i++){const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.55+(i%4)*.18,0),shrubGreen);bush.name='South-east bank shrub';
-    const t=i/13;bush.position.set(51.6+t*10.2+Math.sin(i*2.3)*.4,.4+(i%3)*1.2+(i%5)*.3,-46.5-(i%3)*.7);bush.scale.y=.8;bush.castShadow=true;group.add(bush);}
+  // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
+  // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
   // Broken grassy edges and the narrow concrete threshold step.
   sb('front entry shallow step',-.8,.075,-.42,2.1,.15,.42,materials.mortar);K.surface(59.58,-24.2,.42,2.1,.15);
   for(const a of [-5.1,-1.7,2.4,6.7,9.0]){
