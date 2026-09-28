@@ -593,8 +593,9 @@ export function buildTemple(K) {
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
     while(y<s){const h=Math.min(s-y,58+rand()*20);let x=-rand()*120;
-      while(x<s){const w=78+rand()*72,v=168+rand()*30|0,t=rand()*8-3|0;
-        for(const ox of [0,s])if(x+ox<s+160){c.fillStyle=`rgb(${v+t+6},${v+t+2},${v-4})`;c.fillRect(x+ox+1.2,y+1.2,w-2.4,h-2.4);}
+      // 15.03.33 / 15.04.55 / 15.11.08: weathered grey-brown granite, darker than fresh stone.
+      while(x<s){const w=78+rand()*72,v=140+rand()*30|0,t=rand()*8-3|0;
+        for(const ox of [0,s])if(x+ox<s+160){c.fillStyle=`rgb(${v+t+10},${v+t+3},${v-9})`;c.fillRect(x+ox+1.2,y+1.2,w-2.4,h-2.4);}
         for(let k=0;k<4;k++){c.fillStyle=`rgba(${rand()<.3?80:60},${rand()<.3?88:66},62,${.04+rand()*.09})`;c.beginPath();c.ellipse(x+rand()*w,y+rand()*h,4+rand()*18,3+rand()*9,rand()*3,0,Math.PI*2);c.fill();}
         c.fillStyle='rgba(245,242,230,.12)';c.fillRect(x+4,y+3,w-8,2);
         c.fillStyle='rgba(60,60,52,.10)';c.fillRect(x+3,y+h-5,w-6,3);
