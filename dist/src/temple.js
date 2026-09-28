@@ -1561,10 +1561,17 @@ export function buildTemple(K) {
     box('Service window red dado',(left+right)/2,.87,z+.155,right-left,.5,.02,red);
     box('Service window tiled plinth',(left+right)/2,.31,z+.16,right-left,.62,.03,outlinedPlinth);
   }
-  const bellX=36.55,bellZ=6.8;
-  // 15.14.44, looking west from the entry: white piers flank the bell.
-  box('Great bell heavy timber suspension beam',bellX,3.39,bellZ-.2,.31,.25,1.7,K.M.wood);
-  box('Great bell white suspension pier',bellX,1.98,bellZ-.8,.46,2.75,.36,white,true);
+  // User's note with 15.14.44: the bell bay is wider (it runs 1.0 m further into the court,
+  // see the pass at the end), the bell hangs between two stepped white piers and the drum
+  // hangs clear of it beside the right-hand pier.
+  const bellX=36.55,bellZ=7.65;
+  box('Great bell heavy timber suspension beam',bellX,3.39,7.65,.31,.25,2.4,K.M.wood);
+  for(const z of [6.8,8.5]){
+    box('Great bell white suspension pier',bellX,1.98,z,.5,2.75,.42,white,true);
+    box('Great bell white pier stepped base',bellX,.95,z,.72,.7,.56,white);
+    box('Great bell white pier middle step',bellX,1.55,z,.6,.5,.48,white);
+    box('Great bell pier red foot',bellX,.64,z,.78,.08,.62,red);
+  }
   bell('Great bronze temple bell',bellX,1.19,bellZ,1.10);
   for(const dx of [-.14,.14]){
     const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58,bellZ);handle.rotation.y=dx<0?-.3:.3;
@@ -1582,7 +1589,8 @@ export function buildTemple(K) {
   mesh('Great bell looped clapper rope',new THREE.TubeGeometry(pull,20,.017,6,false),rope);
   K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
   // The suspended drum is beside the large bell, as in the close-up 15.14.44.
-  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(bellX+.3,1.78,bellZ-.62);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
+  const drumX=bellX+.8,drumZ=6.6;
+  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(drumX,1.5,drumZ);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
   const shell=mesh('Temple drum wooden shell',new THREE.CylinderGeometry(.45,.31,.65,32),K.M.wood,0,0,0,drum);
   for(const y of [-.325,.325]){
     const radius=y>0?.45:.31;
@@ -1593,7 +1601,7 @@ export function buildTemple(K) {
     const a=i*Math.PI/11,b=a+.15;
     K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
   }
-  K.beam(g,'Temple drum hanging chain',[bellX+.3,3.32,bellZ-.62],[bellX+.3,2.18,bellZ-.62],.018,dark);
+  K.beam(g,'Temple drum hanging chain',[drumX,3.32,drumZ],[drumX,1.9,drumZ],.018,dark);
   for(const x of [41.5,44.5]){
     bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
@@ -2200,5 +2208,20 @@ export function buildTemple(K) {
      if(q.minZ>=Z0){q.minZ+=DZ;q.maxZ+=DZ;}else if(q.minZ<20.6)q.maxZ+=DZ;}
    for(const r of [...K.surfaces,...K.ramps]){const lo=r.z-r.d/2,hi=r.z+r.d/2;
      if(r.x>30.2&&r.x<49.6&&lo<20.6&&lo>18.8&&hi>29.3&&hi<30.9){r.d+=DZ;r.z+=DZ/2;}}}
+  // The bell bay's court front moves out 1.0 m (user's note with 15.14.44): its plinth,
+  // panels, lip, side steps, pier, carved column and arch move; floor, ceiling and west wall stretch.
+  {const DZ=1.0,b3=new THREE.Box3();g.updateMatrixWorld(true);
+   const inBay=()=>b3.min.x>=35.0&&b3.max.x<=38.1;
+   for(const o of g.children){if(o.isInstancedMesh)continue;b3.setFromObject(o);if(b3.isEmpty()||!inBay())continue;
+     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended)/.test(o.name))continue;
+     if(b3.min.z>=7.15&&b3.max.z<=8.7){o.position.z+=DZ;continue;}
+     if(/^(Courtyard portico raised marble platform|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
+       const lo=b3.min.z,f=(b3.max.z-lo+DZ)/(b3.max.z-lo);o.scale.z*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=lo-b3.min.z;}}
+   for(const c of K.colliders){if(c.minX<35.0||c.maxX>38.1)continue;
+     if(c.minZ>=7.15&&c.maxZ<=8.7&&!(c.minX>35.9&&c.maxX<37.2))c.minZ+=DZ,c.maxZ+=DZ;
+     else if(c.minZ>5.8&&c.minZ<6.3&&c.maxZ>7.5&&c.maxZ<8)c.maxZ+=DZ;}
+   for(const r of [...K.surfaces,...K.ramps]){if(r.x<35.0||r.x>38.0)continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;
+     if(lo>=7.15&&hi<=8.7){r.z+=DZ;continue;}
+     if(lo>6.1&&lo<6.3&&hi>7.7&&hi<7.9){r.d+=DZ;r.z+=DZ/2;}}}
   return g;
 }

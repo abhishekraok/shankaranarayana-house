@@ -344,7 +344,7 @@ assert.equal(supportY(23,-9.65,-1.55),-1.55,'The path between stairs stays down 
 checkRoute('Road away from the house',[[-7,-5],[-24,-5.3],[-35,-5.8],[-43,-7.1]],.051,0);
 checkRoute('Downhill return to the house',[[-43,-7.1],[-35,-5.8],[-24,-5.3],[-7,-5]],1.71,0);
 houseRoute('Photo-correct front stair',[[-13.3,.95],[-7.93,.95],[-2.65,.95]]);
-const circuitRoute=[[39,8.2],[45,9],[49.9,13.8],[49.9,18.5],[50,25.6],[51.8,40.2],[40,40.5],[27.7,40.5],[27.86,22],[27.86,14],[33,13],[35,9],[39,8.2]];
+const circuitRoute=[[39,8.2],[45,9],[49.9,13.8],[49.9,18.5],[50,25.6],[51.8,40.2],[40,40.5],[27.7,40.5],[27.86,22],[27.86,14],[33,13],[34.8,10.1],[36.7,9.95],[38,9.4],[39,8.2]];
 // The expanded ranges must leave genuinely wider passages, with continuous
 // paving/roofs and matching walkable surfaces, while the inner shrine stays fixed.
 const shrinePlatform=new THREE.Box3().setFromObject(temple.getObjectByName('Old inner shrine black stone platform'));
