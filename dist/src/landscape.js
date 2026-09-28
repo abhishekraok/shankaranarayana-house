@@ -754,14 +754,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   for (let i = 0; i < 29; i++) {
     const zone = i % 3;
     palm(zone === 0 ? range(-37, 19) : zone === 1 ? range(-43, 29) : range(-42, -29),
-      zone === 0 ? range(33, 59) : zone === 1 ? range(-70, -53) : range(-37, 32), range(10, 18));
+      zone === 0 ? range(33, 59) : zone === 1 ? range(-70, -53) : range(-37, 32), zone === 1 ? range(18, 26) : range(10, 18));
   }
   // Slender areca stems rise through the rear understory in irregular rows.
   for (let row = 0; row < 7; row++) for (let col = 0; col < 13; col++) {
     const x = -26 + col * 3.5 + range(-.6, .6), z = 29 + row * 4.5 + range(-.9, .9);
     palm(x, z, range(8, 14), true);
   }
-  for (let i = 0; i < 32; i++) palm(range(-38, 30), range(-70, -53), range(7, 13), true);
+  // 14.57.50: tall palms stand well above the far-bank houses, with sky between their crowns.
+  for (let i = 0; i < 32; i++) palm(range(-38, 30), range(-70, -53), range(12, 20), true);
 
   // Irregular lobed crowns with small peripheral clusters replace uniform balls.
   const crown = new THREE.IcosahedronGeometry(1, 2);
@@ -925,7 +926,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Low hedge and a worn footpath separate the buildings from the bank.
   ow('hall dirt approach',-17.9,.024,-48.0,2.4,.045,12.2,materials.redSoil);
   const neighborSeed=seed;
-  for(const [x,z,h] of [[-15.5,-48.6,15],[-8.2,-48.4,17],[1.2,-49.0,16],[14.5,-51.8,17],[21,-54,16],[33,-53.0,17],[46,-52,16]])palm(x,z,h);
+  for(const [x,z,h] of [[-15.5,-48.6,21],[-8.2,-48.4,24],[1.2,-49.0,20],[14.5,-51.8,23],[21,-54,25],[33,-53.0,22],[46,-52,24]])palm(x,z,h);
   for(let i=0;i<24;i++)shrub(17+i*1.22,-53.3-(i%3)*.8,.65+(i%4)*.12);
   seed=neighborSeed;
   ancillary('eastern garden service house', 67, 42, 9.1, 6.0, 2.7);
