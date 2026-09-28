@@ -763,8 +763,9 @@ export function buildTemple(K) {
   K.box(rearRoof,'Rear corner white balcony base',49.6,4.04,35.30,3.1,.19,.22,whiteTrim);
   const rr=[];for(let i=0;i<16;i++)rr.push([48.16+i*.192,4.37,35.30,.055,.55,.055]);
   instances('Rear corner upper white balusters',new THREE.CylinderGeometry(.65,1,1,6),whiteTrim,rr);
-  moveAssembly(cornerStart,4,0);
-  for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=4;
+  // 15.03.33 (user): this two-storey bay sits centred at the end of the east passage (x 51.6).
+  moveAssembly(cornerStart,2,0);
+  for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=2;
   moveAssembly(rearStart,0,7.5);
   const rearObjects=new Set(g.children.slice(rearStart.children));
   const rearNav=new Set([...K.colliders.slice(rearStart.colliders),...K.surfaces.slice(rearStart.surfaces),...K.ramps.slice(rearStart.ramps)]);
@@ -1291,8 +1292,8 @@ export function buildTemple(K) {
     for(let i=0;i<30;i++){c.fillStyle=`rgba(${r()<.5?'150,148,130':'40,44,36'},${.12+r()*.2})`;c.beginPath();c.ellipse(r()*s,r()*s,6+r()*24,4+r()*16,r()*3,0,7);c.fill();}
   });
   K.worldMap(markerGranite,1.6);
-  mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
-  K.blocker(48.9,24.31,.94,.22,.1,1.37);
+  const markerStone=mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
+  const markerNav=K.colliders.length;K.blocker(48.9,24.31,.94,.22,.1,1.37);
   // Two unequal upright stones stand outside the rear door/window bay.
   for(const [x,h] of [[26.05,1.10],[26.90,.88]]){
     const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,x,.10,42.06);
@@ -2142,5 +2143,7 @@ export function buildTemple(K) {
      box('East passage end block window mullion',x,5.35,z1+.07,.05,1.2,.03,K.M.wood);
    }
    K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
+  // 15.03.33 (user): the marker stone stands in the middle of the east passage, not at its wall.
+  {const dx=51.8-markerStone.position.x;markerStone.position.x+=dx;K.colliders[markerNav].minX+=dx;K.colliders[markerNav].maxX+=dx;}
   return g;
 }
