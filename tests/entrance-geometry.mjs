@@ -400,7 +400,7 @@ for(let j=1;j<circuitRoute.length;j++){
 const outerKeys=['templeoldwall','templeoutershrines','templeouterrear','templeouterreturn'];
 for(const key of outerKeys){const p=photos[key].p;assert.ok(!collision(p[0],p[2],p[1]),key+' photo camera clear');assert.equal(supportY(p[0],p[2],.1),.1,key+' photo on courtyard paving');}
 const aisleEye=new THREE.Vector3(...[49.9,.1,18.5]).add(new THREE.Vector3(0,1.62,0));
-const aisleRay=new THREE.Raycaster(aisleEye,new THREE.Vector3(48.9,.85,24.24).sub(aisleEye).normalize());
+const aisleRay=new THREE.Raycaster(aisleEye,new THREE.Vector3(51.8,.85,24.24).sub(aisleEye).normalize());
 assert.equal(aisleRay.intersectObject(temple,true)[0]?.object.name,'Rounded courtyard marker stone','Standing stone must be visible along the circuit');
 const shrineEye=new THREE.Vector3(...photos.templeoutershrines.p).add(new THREE.Vector3(0,1.62,0));
 for(const z of [37.3,39.78,42.26]){
