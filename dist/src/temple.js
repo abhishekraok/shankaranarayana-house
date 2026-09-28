@@ -2169,5 +2169,31 @@ export function buildTemple(K) {
    K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
   // 15.03.33 (user): the marker stone stands in the middle of the east passage, not at its wall.
   {const dx=51.8-markerStone.position.x;markerStone.position.x+=dx;K.colliders[markerNav].minX+=dx;K.colliders[markerNav].maxX+=dx;}
+  // User's 15.05.42 note: the old inner shrine runs further toward the rear range, leaving
+  // less open court behind it. Two more bays (2.78 m): the rear wall and the stones behind
+  // it move back, spanning parts stretch, and the last two bays' side details repeat.
+  {const DZ=2*1.39,Z0=29.2,b3=new THREE.Box3(),c=new THREE.Vector3();const skylights=[];let roofMap=null;
+   g.updateMatrixWorld(true);
+   const inShrine=o=>{b3.setFromObject(o);return !b3.isEmpty()&&b3.min.x>30.2&&b3.max.x<49.8&&b3.min.z>18.8&&b3.max.z<30.9;};
+   for(const o of [...g.children]){
+     if(o.isInstancedMesh)continue;
+     if(/^Small circuit (ritual stone foot|rounded stone)/.test(o.name)){b3.setFromObject(o);if(b3.min.z>30.3&&b3.max.z<32.5&&b3.min.x>35)o.position.z+=DZ;continue;}
+     if(/^Inner (aisle translucent corrugated skylights|skylight )/.test(o.name)){skylights.push(o);continue;}
+     if(!/^(Old inner shrine|Inner sanctum continuous stone aisle)/.test(o.name)||!inShrine(o))continue;
+     if(b3.min.z>=Z0){o.position.z+=DZ;continue;}
+     if(b3.min.z<20.6&&b3.max.z>29.3){
+       const len=b3.max.z-b3.min.z,f=(len+DZ)/len,ry=o.rotation.y;
+       if(o.isGroup){roofMap=z=>b3.min.z+(z-b3.min.z)*f;roofMap.lo=b3.min.z;roofMap.f=f;}
+       if((o.isMesh||o.isGroup)&&Math.abs(Math.sin(ry))<1e-3)o.scale.z*=f;else if((o.isMesh||o.isGroup)&&Math.abs(Math.cos(ry))<1e-3)o.scale.x*=f;else continue;
+       o.updateMatrixWorld(true);const lo=b3.min.z;b3.setFromObject(o);o.position.z+=lo-b3.min.z;continue;}
+     if(b3.getCenter(c).z>Z0-DZ&&b3.max.z<Z0+.5&&!/lamp rack/.test(o.name)){const d=o.clone();d.position.z+=DZ;g.add(d);}
+   }
+   // The aisle skylights sit in the roof, so they follow its stretch.
+   if(roofMap){const S=new THREE.Matrix4().makeTranslation(0,0,roofMap.lo).multiply(new THREE.Matrix4().makeScale(1,1,roofMap.f)).multiply(new THREE.Matrix4().makeTranslation(0,0,-roofMap.lo));
+     for(const o of skylights){o.updateMatrix();o.matrix.premultiply(S).decompose(o.position,o.quaternion,o.scale);}}
+   for(const q of K.colliders){if(q.minX<30.2||q.maxX>49.6||q.maxZ<29.2||q.maxZ>30.9||q.minZ<18.8)continue;
+     if(q.minZ>=Z0){q.minZ+=DZ;q.maxZ+=DZ;}else if(q.minZ<20.6)q.maxZ+=DZ;}
+   for(const r of [...K.surfaces,...K.ramps]){const lo=r.z-r.d/2,hi=r.z+r.d/2;
+     if(r.x>30.2&&r.x<49.6&&lo<20.6&&lo>18.8&&hi>29.3&&hi<30.9){r.d+=DZ;r.z+=DZ/2;}}}
   return g;
 }
