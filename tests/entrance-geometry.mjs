@@ -252,9 +252,10 @@ for(const side of [-1,1]){
   const ray=new THREE.Raycaster(HV(side*.76,2.0,3.15),new THREE.Vector3(0,0,-1),0,1.3);
   assert.ok(ray.intersectObject(house,true).some(h=>h.object.name.startsWith('Front room facade')),'Door is narrower than the lower passage');
 }
-assert.ok(house.getObjectByName('Inner sitting platform storage trunk'),'The second platform is furnished too');
+// User's notes: both raised sitting platforms are left empty.
+for(const n of ['Inner sitting platform storage trunk','Inner sitting bay red steel cupboard','Inner sitting bay curved-arm wooden chair','God room side desk'])assert.ok(!house.getObjectByName(n),n+' was removed');
 
-houseRoute('Left veranda to front room',[[7,-.31],[7,3.1],[5.5,3.1],[5.5,5.1]]);
+houseRoute('Inner veranda to the right front room (no facade door, per user)',[[5.5,5.1],[5.5,3.1],[7,3.1]]);
 houseRoute('Entrance to left sitting bay',[[0,1.32],[2.65,1.32]]);
 houseRoute('Entrance to right sitting bay',[[0,1.32],[-2.65,1.32]]);
 houseRoute('Left sitting bay back to main door',[[2.65,1.32],[0,1.32],[0,3]],.75);
