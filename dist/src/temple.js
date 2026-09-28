@@ -37,7 +37,7 @@ export function buildTemple(K) {
   darkRoof.color.set('#554b40');
   const brass = mat('#8c7142', .49, { metalness: .52 });
   const stoneFloor = mat('#b7b0a0');
-  const blackFloor = mat('#38413f', .56);
+  const blackFloor = mat('#ffffff', .62); // worn brown tiles (user's note); the name is historical
   const oxideFloor = mat('#834b3c', .69);
 
   // Repeatable, geometry-native canvas finishes avoid hundreds of paving meshes.
@@ -83,9 +83,9 @@ export function buildTemple(K) {
     for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.015+mildew()*.03})`;c.fillRect(mildew()*s,mildew()*s,2+mildew()*5,2+mildew()*5);}
   },.35,.35);white.color.set('#ffffff');white.userData.worldAnchored=true;K.baseGrime(white,{top:1.8,strength:.55});
   blackFloor.map = canvasMap(256, (c,s) => {
-    c.fillStyle='#3b4442';c.fillRect(0,0,s,s);
+    c.fillStyle='#6f5242';c.fillRect(0,0,s,s);
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
-      c.strokeStyle='#68716b';c.lineWidth=1;c.strokeRect(x*64,y*64,64,64);
+      c.strokeStyle='#8c705d';c.lineWidth=1;c.strokeRect(x*64,y*64,64,64);
       c.fillStyle='#d5cfba';c.save();c.translate(x*64+32,y*64+32);c.rotate(Math.PI/4);c.fillRect(-4,-4,8,8);c.restore();
     }
   }, 8, 3);
@@ -1601,9 +1601,7 @@ export function buildTemple(K) {
   // Little lamp canopy projects toward the entrance from the black pole's base.
   const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.64,1.30,.07,1.70,brass);shelterRoof.rotation.x=-.07;
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
-  cyl('Small brass oil lamp base',lampX,.33,lampZ-.61,.13,.18,.16,brass,14);
-  cyl('Small brass oil lamp stem',lampX,.65,lampZ-.61,.035,.07,.54,brass,12);
-  cyl('Small brass oil lamp dish',lampX,.93,lampZ-.61,.19,.1,.06,brass,20);
+  // User's note: no small brass oil lamp here (it stood through the pole's plinth).
 
   // 15.08.04 / 15.08.10 / 15.08.42: lowered stone aisles surround a
   // raised pillared mandapa. The front hall has marble-clad column bases.
@@ -2129,6 +2127,13 @@ export function buildTemple(K) {
      if(o.isMesh&&!o.rotation.y&&b3.min.x<W1-.1&&b3.max.x>W1+.1&&b3.max.z<=2.8&&b3.min.z<-.3){
        const f=(b3.max.x-W1)/(b3.max.x-b3.min.x);o.scale.x*=f;o.position.x=W1+(o.position.x-b3.min.x)*f;}
    }
+   // User's note: the green marble side platform must not run out in front of the road
+   // frontage; west of the portico it keeps only the part inside the building (z > 1.42).
+   for(const o of [...g.children])if(o.name==='Entrance raised side marble platform'){b3.setFromObject(o);if(b3.min.x<30.5){
+     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/7.8;inner.position.x=(30+W1)/2;g.add(inner);
+     o.scale.x=(37.8-W1)/7.8;o.position.x=(W1+37.8)/2;}}
+   for(const r of K.surfaces)if(Math.abs(r.x-33.9)<.01&&Math.abs(r.w-7.8)<.01&&Math.abs(r.z-2.1)<.01){
+     r.x=(W1+37.8)/2;r.w=37.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
    for(const o of [...g.children])if(/^Upper hall (pale interior wall face|red interior wall skirt)/.test(o.name)){b3.setFromObject(o);if(b3.max.x<36.1)g.remove(o);}
    for(let i=K.colliders.length-1;i>=navStart.colliders;i--){const c=K.colliders[i];
      if(c.minX>29.2&&c.maxX<30.5&&c.minZ>-2.6&&c.maxZ<2.1){c.minX+=DX;c.maxX+=DX;continue;}

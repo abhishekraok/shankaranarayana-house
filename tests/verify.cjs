@@ -31,7 +31,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   const out=[];for(const [target,key] of [[[0,1.62,-20],'KeyW'],[[0,1.62,-20],'KeyD'],[[20,1.62,-5],'KeyW']]){houseWalk.teleport({p:[0,.051,-5],target});const before=houseWalk.camera.position.toArray();const after=houseWalk.moveFor(key,.5).position;out.push({before,after});}return out;
  });
  assert.ok(directions[0].after[2]<directions[0].before[2]-.7,'Forward -Z');assert.ok(directions[1].after[0]>directions[1].before[0]+.7,'Strafe +X');assert.ok(directions[2].after[0]>directions[2].before[0]+.7,'Forward +X');
- const plinth=await page.evaluate(()=>{houseWalk.teleport({p:[34,0,-4],target:[34,1.62,8]});return houseWalk.moveFor('KeyW',2.5);});assert.ok(plinth.position[2]<-2,'Cannot walk under temple platform: '+JSON.stringify(plinth));
+ const plinth=await page.evaluate(()=>{houseWalk.teleport({p:[36.2,0,-4],target:[36.2,1.62,8]});return houseWalk.moveFor('KeyW',2.5);});assert.ok(plinth.position[2]<-2,'Cannot walk under temple platform: '+JSON.stringify(plinth));
  const routes=await page.evaluate(()=>{
   const H=houseWalk;
   function route(name,start,points){H.teleport({p:start,target:[points[0][0],start[1]+1.62,points[0][1]]});let results=[];
