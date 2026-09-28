@@ -4,6 +4,28 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Claude model pass on PHOTOREAL-NOTES (2026-09-27 evening)
+
+Ownership: Claude owns the model on `main`; Codex owns `photoreal` and reports model
+findings in `PHOTOREAL-NOTES.md` there. Web captures: `checks/fidelity/claude-*` (local).
+
+- `9ca695f` Temple road frontage (x 20.4-35): four-metre bays measured head-on in 15.22.36
+  against the 2.72 m shutter; one open-shuttered upper window per bay; two narrow ground
+  windows (26.1, 29.7); donor sign and bench instead of the corner block's ground windows.
+- `d569e24` Palms behind the far bank raised to 20-26 m (14.57.50). More horizon palms broke
+  the distant-foliage triangle budget, so the horizon ring is unchanged.
+- Pose repo `8fedd1e`: 15.22.00, 15.22.06, 15.22.36 lifted 1.38 m (saved on the old far-bank
+  ground). Reload the align page before saving so a cached copy doesn't undo this.
+- Not model problems (the geometry there did not change; the saved cameras are off):
+  15.04.59 (inside the red shrine wall), 15.14.51 (facing a portico pier at 2 m), 15.11.45
+  (against the railing). 15.03.38 matches the widened passage with the camera ~0.8 m east.
+- Poses saved before the widening (`45eec44`) in moved regions, to re-save: east 15.03.33,
+  15.03.38, 15.04.55; west 15.10.43, 15.10.49, 15.11.00, 15.11.08, 15.11.17,
+  IMG_20130720_180635, IMG_20130720_180653 and the two "temple right side" named photos.
+- Open: 15.30.09 (upstairs window jamb blocks the right half; far bank looks closer in the
+  photo). The small pond: 14.58.48 shows no pond left of its camera, which suggests it sits
+  further east than PX 23.7, against the three photos that moved it west. Left unchanged.
+
 ## Final native refresh and verification (2026-09-27)
 
 Native Blender output now includes the house, northwest/Tulsi and rear-range repairs
