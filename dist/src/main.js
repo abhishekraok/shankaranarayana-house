@@ -1,4 +1,5 @@
 import {installPhotoAlignment} from './photo-alignment.js';
+import {installModelNotes} from './model-notes.js';
 import {optimizeStaticScene} from './optimize.js';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
@@ -208,6 +209,12 @@ const photoAlignment=installPhotoAlignment({camera,photos,release,groundY:(x,z,y
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});
 
+// Local-only model notes (N): hidden unless served by server.mjs on this machine.
+installModelNotes({camera,release,isBusy:()=>aligning,place:()=>location(camera.position.x,camera.position.z,camera.position.y),teleport:c=>{
+ release();entered=true;$('welcome').hidden=true;mode='fly';orbit.enabled=false;
+ camera.position.fromArray(c.position);camera.quaternion.fromArray(c.quaternion);setLens(c.verticalFov);
+ const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
+}});
 $('about-btn').onclick=()=>{release();$('about').showModal();};$('close-about').onclick=()=>$('about').close();$('about').onclick=e=>{if(e.target===$('about'))$('about').close();};
 $('fullscreen').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen();}catch{}};
 
