@@ -357,7 +357,7 @@ for(const [x,dx,minimum] of [[48.9,1,6.0],[30.5,-1,5.0]]){
 }
 const rearWall=new THREE.Box3().setFromObject(temple.getObjectByName('Rear circuit weathered white wall'));
 assert.ok(rearWall.min.z>45.2,'Rear range is 7.5 m farther from the inner shrine');
-for(const [x,z] of [[23.2,44],[40,44],[57.2,44],[55.8,34],[24.5,34]]){
+for(const [x,z] of [[23.2,44],[40,44],[57.2,44],[55.8,34],[23.6,34]]){
   assert.ok(Math.abs(supportY(x,z,.6)-.6)<.001,'Expanded range has a continuous raised walkway');
   const roof=new THREE.Raycaster(new THREE.Vector3(x,3.2,z),new THREE.Vector3(0,1,0),0,1).intersectObject(temple,true)[0];
   assert.ok(roof&&/soffit/.test(roof.object.name),'Expanded range has a roof over its walkway');
@@ -366,18 +366,10 @@ assert.ok(!collision(58.8,40,.1),'East range remains clear of the garden boundar
 checkRoute('Complete outer temple circuit',circuitRoute,.1,.09);
 checkRoute('Complete outer circuit in reverse',[...circuitRoute].reverse(),.1,.09);
 checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
-checkRoute('Circuit rear veranda stair',[[31.1,41.3],[31.1,43.7]],.1,.09);
+checkRoute('Circuit rear veranda stair',[[31.1,41.3],[31.1,43.15]],.1,.09);
 assert.ok(!temple.getObjectByName('Rear right dome pavilion white room'),'Unsupported room over the west passage is removed');
-const rearUpperRoute=[[35.7,44.45],[29.7,44.45],[29.7,43.25],[33.5,43.25]];
-checkRoute('Rear upper storey stair ascent',rearUpperRoute,.6,.59);
-checkRoute('Rear upper storey stair descent',[...rearUpperRoute].reverse(),3.69,.59);
-for(let i=0;i<18;i++){
-  const x=35-(i+.5)*4.8/18,z=44.45,y=.6+(i+1)*3.09/18;
-  const floorHit=new THREE.Raycaster(new THREE.Vector3(x,y+.3,z),new THREE.Vector3(0,-1,0),0,.5).intersectObject(temple,true)[0];
-  assert.ok(floorHit&&Math.abs(floorHit.point.y-y)<1e-4,'Rear stair treads stay exposed through the slab opening');
-  const headHits=new THREE.Raycaster(new THREE.Vector3(x,y+.05,z),new THREE.Vector3(0,1,0),0,1.85).intersectObject(temple,true);
-  assert.equal(headHits.length,0,'Rear stair has full physical head clearance');
-}
+// User's note with 15.11.17: the rear stair climbs straight back inside the open bay, not sideways.
+assert.ok(!K.ramps.some(r=>r.axis&&r.axis.includes('x')&&r.x>30&&r.x<35&&Math.abs(r.z-44.45)<.2),'No sideways rear stair');
 const domeBase=new THREE.Box3().setFromObject(temple.getObjectByName('Rear dome square roof base'));
 const upperRoof=new THREE.Box3().setFromObject(temple.getObjectByName('Rear upper storey flat slab'));
 assert.ok(domeBase.min.z>=upperRoof.min.z&&domeBase.max.z<=upperRoof.max.z&&domeBase.min.y<=upperRoof.max.y,'Dome sits on the rear upper roof');

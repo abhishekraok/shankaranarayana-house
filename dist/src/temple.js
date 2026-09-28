@@ -623,7 +623,8 @@ export function buildTemple(K) {
   const verandaRuns=[
     {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,27.2,40.6]},
     {side:-1,wall:24.14,edge:28.45,a:6.4,b:16.2,stairs:[12],round:true},
-    {side:-1,wall:22.64,edge:25.35,a:16.2,b:45.4,stairs:[38.9],wallA:19.9},
+    // User's note: the west veranda's court edge lines up with the covered hall's platform (x 24.2).
+    {side:-1,wall:22.64,edge:24.2,a:16.2,b:45.4,stairs:[38.9],wallA:19.9},
   ];
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
@@ -710,7 +711,7 @@ export function buildTemple(K) {
   for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
   // A real stairwell interrupts the slab, leaving the front terrace continuous.
-  for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.25,37.21,7.5,1.9],[46.65,37.21,22.7,1.9]]){
+  for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.3,37.21,7.6,1.9],[44.55,37.21,26.9,1.9]]){
     K.box(rearRoof,'Rear circuit flat soffit',x,3.57,z,w,.24,d,agedWhite);
     K.surface(x,z,w,d,3.69);
   }
@@ -747,11 +748,11 @@ export function buildTemple(K) {
    mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,27.4,7.29,37.25,rearRoof);
    mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,27.4,8.38,37.25,rearRoof);
   }
-  steps('Rear upper storey access stair',32.6,36.95,4.8,1.10,.6,3.69,'-x',18);
-  floor('Rear upper stair landing',29.7,36.95,1.0,1.10,3.69,oxideFloor);
-  // Physical guards leave the lower stair entry and upper exit open.
-  K.railing(g,'Rear upper stairwell front guard',30.2,36.26,35.1,36.26,3.69,.85,whiteTrim);
-  K.blocker(32.65,36.26,4.9,.12,3.69,4.54);
+  // User's note with 15.11.17: no sideways stair across the open bay. The photo's steep
+  // flight climbs straight back beside the door pier and vanishes into the floor above;
+  // it is shown but not walkable.
+  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12);
+  K.blocker(30.6,36.85,1.0,1.9,.6,3.5);
   // 15.11.08 / 15.11.17: enclosed white door/window bay in front of the
   // rear wall, with the stair bay open immediately to its east.
   for(const [a,b] of [[24.8,25.025],[25.975,27.15],[28.65,30.0]])
@@ -2223,5 +2224,23 @@ export function buildTemple(K) {
    for(const r of [...K.surfaces,...K.ramps]){if(r.x<35.0||r.x>38.0)continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;
      if(lo>=7.15&&hi<=8.7){r.z+=DZ;continue;}
      if(lo>6.1&&lo<6.3&&hi>7.7&&hi<7.9){r.d+=DZ;r.z+=DZ/2;}}}
+  // User's notes (west of the inner sanctum front): the front building starts at the old
+  // shrine's red wall line (x 31.7), not 2 m further west, and that red wall runs on north to
+  // the facade so there is no opening through which the sanctum shows.
+  {const XW=31.7,Z0=14.2,Z1=20.6,b3=new THREE.Box3();g.updateMatrixWorld(true);
+   for(const o of [...g.children]){
+     if(o.isInstancedMesh||!/^(Inner |Maroon pierced transom)/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.isEmpty()||b3.min.x>=XW-.02||b3.min.z<Z0||b3.max.z>Z1)continue;
+     if(b3.max.x<=XW+.12){g.remove(o);continue;}
+     if(!o.isMesh||Math.abs(Math.sin(o.rotation.y))>1e-3)continue;
+     const hi=b3.max.x,f=(hi-XW)/(hi-b3.min.x);o.scale.x*=Math.abs(Math.cos(o.rotation.y))>.5?f:1;
+     o.updateMatrixWorld(true);b3.setFromObject(o);o.position.x+=XW-b3.min.x;}
+   for(let i=K.colliders.length-1;i>=0;i--){const c=K.colliders[i];if(c.minX>=XW-.02||c.minZ<Z0||c.maxZ>Z1||c.maxX<28.9)continue;
+     if(c.maxX<=XW+.12)K.colliders.splice(i,1);else c.minX=XW;}
+   for(const list of [K.surfaces,K.ramps])for(let i=list.length-1;i>=0;i--){const r=list[i],lo=r.x-r.w/2,hi=r.x+r.w/2;
+     if(lo>=XW-.02||r.z-r.d/2<Z0||r.z+r.d/2>Z1||hi<28.9)continue;
+     if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
+   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
+   box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
   return g;
 }
