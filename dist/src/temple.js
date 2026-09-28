@@ -1928,8 +1928,19 @@ export function buildTemple(K) {
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
   // Leave the service porch's rear-west corner hollow; this frontage used
   // to be one solid block intersecting its newly recovered interior.
-  box('Temple road corner lower frontage',25.15,1.91,3.14,9.7,3.38,3.38,edgeWhite,true);
-  box('Temple road corner lower frontage rear',22.64,1.91,5.615,4.68,3.38,1.57,edgeWhite,true);
+  // User's note with 'temple right side facing -45 degrees from the entrance': the covered
+  // hall runs on north through this block to the road frontage. Only the street wall, the
+  // lane wall and the part east of the hall (x > 24.2) stay solid.
+  box('Temple road corner lower frontage',25.15,1.91,1.6,9.7,3.38,.3,edgeWhite,true);
+  box('Temple road corner lower frontage east block',27.1,1.91,3.29,5.8,3.38,3.08,edgeWhite,true);
+  box('Temple road corner lower frontage rear',24.59,1.91,5.615,.78,3.38,1.57,edgeWhite,true);
+  box('Temple road corner lane-side wall',20.27,1.91,4.075,.14,3.38,4.65,edgeWhite,true);
+  floor('Covered hall front extension oxide floor',22.27,4.075,3.86,4.65,.60,hallFloor);
+  for(const [x,z,w,d] of [[20.36,4.075,.02,4.65],[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  box('Covered hall front extension ceiling',22.27,3.60,4.075,3.86,.16,4.65,white);
+  box('Covered hall front square blue pier',22.27,2.08,6.4,.38,2.96,.38,hallBlue,true);
+  box('Covered hall front pier red foot',22.27,.87,6.4,.40,.54,.40,red);
+  box('Covered hall transverse white ceiling beam',22.27,3.36,6.4,3.86,.32,.30,white);
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
