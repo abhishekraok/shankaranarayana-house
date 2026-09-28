@@ -2130,5 +2130,17 @@ export function buildTemple(K) {
    for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
    for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road rooftop red baluster',x,7.25,-.25,.07,.6,.07,balconyRed);}
+  // 15.04.55 (south down the east passage) and 15.02.17: the passage ends at a two-storey block.
+  // Its ground floor is the closed return wall; above it are two windows under a tiled hip roof.
+  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2;
+   box('East passage end block ground floor',xm,1.95,zm-.1,x1-x0,3.7,z1-z0-.2,edgeWhite,true);
+   box('East passage end block upper storey',xm,5.45,zm,x1-x0,3.1,z1-z0,edgeWhite,true);
+   box('East passage end block red floor band',xm,4.0,z1+.02,x1-x0,.16,.05,balconyRed);
+   for(const x of [50.3,52.9]){
+     box('East passage end block upper window frame',x,5.35,z1+.03,1.2,1.4,.06,K.M.wood);
+     box('East passage end block dark window panes',x,5.35,z1+.05,1.0,1.2,.03,dark);
+     box('East passage end block window mullion',x,5.35,z1+.07,.05,1.2,.03,K.M.wood);
+   }
+   K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
   return g;
 }
