@@ -28,8 +28,11 @@ for actor in actors.get_all_level_actors():
             'auto_exposure_speed_up': 2.0,
             'auto_exposure_speed_down': 1.0,
             'motion_blur_amount': 0.0,
-            'local_exposure_shadow_contrast_scale': 0.65,
+            'local_exposure_shadow_contrast_scale': 0.5,
             'local_exposure_highlight_contrast_scale': 0.8,
+            'lumen_final_gather_quality': 2.0,
+            'lumen_scene_detail': 2.0,
+            'lumen_reflection_quality': 2.0,
         }
         for key, value in values.items():
             settings.set_editor_property('override_'+key, True)

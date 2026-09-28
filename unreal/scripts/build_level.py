@@ -19,7 +19,10 @@ MAP = '/Game/Maps/Site'
 if unreal.EditorAssetLibrary.does_asset_exist(MAP):  # rebuild in place: clear the old actors
     les.load_level(MAP)
     for a in eas.get_all_level_actors():
-        if not isinstance(a, (unreal.WorldSettings, unreal.Brush)): eas.destroy_actor(a)
+        # PostProcessVolume inherits Brush: an isinstance(Brush) check kept every
+        # previous Exposure volume and stacked conflicting settings on rebuild.
+        if not isinstance(a, unreal.WorldSettings) and a.get_class() != unreal.Brush.static_class():
+            eas.destroy_actor(a)
 else:
     les.new_level(MAP)
 
@@ -67,13 +70,29 @@ if not skies:
     skies = [spawn(unreal.SkyLight, (0, 0, 500), label='Overcast sky light').light_component]
 for sky in skies:
     sky.set_editor_property('source_type', unreal.SkyLightSourceType.SLS_SPECIFIED_CUBEMAP)
-    sky.set_editor_property('cubemap', cube); sky.set_editor_property('intensity', 2.5)
+    sky.set_editor_property('cubemap', cube); sky.set_editor_property('intensity', 3.5)
     sky.set_editor_property('real_time_capture', False); sky.set_mobility(unreal.ComponentMobility.MOVABLE)
     sky.recapture_sky()
 print('SKY lights', len(skies))
 sun = spawn(unreal.DirectionalLight, (0, 0, 5000), (0, -55, 200), 'Soft sun')
 sc = sun.light_component
-sc.set_editor_property('intensity', 6.0); sc.set_editor_property('light_source_angle', 12.0)
+sc.set_editor_property('intensity', 1.5); sc.set_editor_property('light_source_angle', 20.0)
+# Match the existing authored fixtures with actual native lights. Tiny emissive
+# meshes alone are unreliable light sources in Lumen's surface cache.
+meta = json.load(open(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json')))
+for index, obj in enumerate(meta['objects']):
+    if obj['name'] not in ('Shrine warm bulb', 'Sanctum oil lamp flame'): continue
+    matrix = obj['matrix']
+    p = ue((matrix[12], matrix[13] - .10, matrix[14]))
+    lamp = spawn(unreal.PointLight, (p.x,p.y,p.z), label=f'Fixture light {index}')
+    light = lamp.light_component
+    light.set_mobility(unreal.ComponentMobility.MOVABLE)
+    light.set_editor_property('intensity_units', unreal.LightUnits.LUMENS)
+    light.set_editor_property('intensity', 25.0 if obj['name'] == 'Shrine warm bulb' else 8.0)
+    light.set_editor_property('attenuation_radius', 500.0 if obj['name'] == 'Shrine warm bulb' else 220.0)
+    light.set_editor_property('source_radius', 4.0)
+    light.set_editor_property('use_temperature', True)
+    light.set_editor_property('temperature', 3800.0 if obj['name'] == 'Shrine warm bulb' else 2200.0)
 fog = spawn(unreal.ExponentialHeightFog, (0, 0, -200), label='Humid haze')
 fog.component.set_editor_property('fog_density', 0.02)
 pp = spawn(unreal.PostProcessVolume, label='Exposure')

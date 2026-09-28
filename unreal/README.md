@@ -66,3 +66,24 @@ all original triangles for collision. The ray-tracing geometry pool is 1024 MB.
 After a scene refresh, run `scripts/verify_scene.py` through the Python commandlet;
 it checks every group, material assignment and persisted collision setting, writing
 `Shankaranarayana/Saved/native-scene-audit.json`. Then run the walking smoke checks.
+
+## Material and lighting fidelity
+
+`materials.py --rebuild` updates masters in place and restores authored color, bump
+and roughness maps, UV transforms, wrapping and approved photo cards. Texture imports
+stay ignored; photo sources must be explicitly allowlisted in the root `.gitignore`.
+The lake uses single-layer water with absorption, scattering and animated normals.
+
+After mesh import, run `configure_lumen.py` with the full editor's
+`-ExecutePythonScript=<absolute path>` (it saves and exits). It gives joined building
+meshes 64 surface-cache cards, landscape groups 32, and preserves fine Nanite detail.
+Building detail stays resident. Fallback targets explicitly retain 100% of triangles;
+Auto would override the percentage/error fields. The scene audit compares actual
+fallback triangle counts with each GLB export.
+The Static Mesh Editor subsystem is unavailable in commandlets. Run
+`verify_materials.py` in a commandlet to audit persisted maps and transforms.
+
+Level rebuilds keep exactly one exposure volume and add native light at the three
+authored bulb/flame positions. `finish_game.py` applies adaptive exposure and Lumen
+quality. Full-pose captures allow 30 seconds of startup warmup and 32 temporal frames
+per screenshot; camera metadata records those settings.

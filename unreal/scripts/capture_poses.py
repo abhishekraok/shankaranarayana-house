@@ -20,6 +20,8 @@ parser.add_argument('--out', required=True)
 parser.add_argument('--only', default='')
 parser.add_argument('--width', type=int, default=768)
 parser.add_argument('--delay', type=float, default=3)
+parser.add_argument('--warmup', type=float, default=30)
+parser.add_argument('--temporal-frames', type=int, default=32)
 args = parser.parse_args()
 out = Path(args.out).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -36,6 +38,7 @@ if not poses:
 (out / 'poses.json').write_bytes(raw)
 metadata = {'poses_sha256': hashlib.sha256(raw).hexdigest(), 'expected': len(poses),
             'width': args.width, 'delay': args.delay, 'renderer': 'Unreal Engine 5.8',
+            'warmup_seconds': args.warmup, 'temporal_frames': args.temporal_frames,
             'started': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'complete': False}
 
 
@@ -57,12 +60,17 @@ def values(v):
 levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 levels.load_level('/Game/Maps/Site')
+# The subsystem's True removes an override; seed it first to avoid an ensure
+# when a fresh viewport has no named realtime override yet.
+levels.editor_set_viewport_realtime(False)
 levels.editor_set_viewport_realtime(True)
+world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
 camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(), unreal.Rotator(), transient=True)
 component = camera.get_component_by_class(unreal.CameraComponent)
 component.set_editor_property('constrain_aspect_ratio', True)
 index = []
-state = {'i': 0, 'task': None, 'started': time.monotonic(), 'ready': time.monotonic()+3}
+state = {'i': 0, 'task': None, 'started': time.monotonic(), 'ready': time.monotonic()+args.warmup}
 
 
 def write_progress():

@@ -38,6 +38,13 @@ for part in PARTS:
     settings.enabled = part != 'water'
     settings.fallback_relative_error = 0.0
     settings.fallback_percent_triangles = 1.0
+    settings.fallback_target = unreal.NaniteFallbackTarget.PERCENT_TRIANGLES
+    # Preserve submillimetre relief and nearby photo-card faces in joined meshes.
+    # This is a render-resource setting; source triangles and collision stay intact.
+    settings.position_precision = 8
+    settings.normal_precision = 12
+    if part.startswith(('house', 'temple')):
+        settings.set_editor_property('target_minimum_residency_in_kb', 4294967295)
     mesh.modify()
     mesh.set_editor_property('nanite_settings', settings)
     unreal.EditorAssetLibrary.save_loaded_asset(mesh, False)
