@@ -29,6 +29,13 @@ for i, web in enumerate(meta['materials']):
     assert abs(mel.get_material_instance_scalar_parameter_value(mi,'BumpCentimetres') - expected_bump) < 1e-5, name
     mapped.append({'material': name, 'texture': texture.get_name(), 'photo': bool(web.get('photoMap'))})
 assert len(mapped) > 100, 'Most authored maps are missing'
+for obj in meta['objects']:
+    if obj['name'] != 'Shrine warm bulb': continue
+    for i in obj['materials']:
+        web = meta['materials'][i]
+        name = 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
+        mi = unreal.load_asset('/Game/Materials/Web/' + name)
+        assert mi and abs(mel.get_material_instance_scalar_parameter_value(mi, 'EmissionStrength') - 6.0) < 1e-5, 'Shrine bulb emission was not rebuilt'
 water = unreal.load_asset('/Game/Materials/M_Water')
 assert water.get_editor_property('shading_model') == unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
 assert sum(isinstance(node, unreal.MaterialExpressionSingleLayerWaterMaterialOutput)

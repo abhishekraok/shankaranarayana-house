@@ -87,3 +87,11 @@ Level rebuilds keep exactly one exposure volume and add native light at the thre
 authored bulb/flame positions. `finish_game.py` applies adaptive exposure and Lumen
 quality. Full-pose captures allow 30 seconds of startup warmup and 32 temporal frames
 per screenshot; camera metadata records those settings.
+
+`lighting.py` owns the lighting profile. A separate native skylight retains the HDR
+cubemap across reloads; HDRIBackdrop's light is disabled because its Blueprint resets
+component overrides and left the scene with a null cubemap. `verify_lighting.py`
+checks a fresh load, packaging runs that preflight, and captures and the native smoke
+test check that exactly one active sky still has its texture. After lighting edits,
+run `finish_game.py` and rebuild the package; after emissive graph edits, also run
+`materials.py --rebuild` first.

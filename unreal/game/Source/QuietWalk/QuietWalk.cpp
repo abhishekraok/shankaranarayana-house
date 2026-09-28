@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/SkyLightComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/GameUserSettings.h"
 #include "Kismet/GameplayStatics.h"
@@ -15,6 +16,8 @@
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
+#include "Engine/TextureCube.h"
+#include "EngineUtils.h"
 #include "Sound/SoundWave.h"
 #include "UnrealClient.h"
 #include "Framework/Application/SlateApplication.h"
@@ -337,6 +340,16 @@ void AWalkController::SmokeTick() {
     }
     switch(SmokeStep++) {
     case 0: {
+        int32 ActiveSkies=0, MappedSkies=0;
+        for(TActorIterator<AActor> It(GetWorld());It;++It) {
+            TInlineComponentArray<USkyLightComponent*> Lights;It->GetComponents(Lights);
+            for(auto* Light:Lights)if(Light->bAffectsWorld&&Light->IsVisible()) {
+                ++ActiveSkies;
+                if(Light->SourceType==SLS_SpecifiedCubemap&&Light->Cubemap&&Light->Intensity>0&&
+                   Light->Cubemap->GetName()==TEXT("overcast_soil_puresky_4k"))++MappedSkies;
+            }
+        }
+        Check(ActiveSkies==1&&MappedSkies==1,TEXT("one active skylight retains the overcast HDR after runtime load"));
         Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.ResidentGeometryMemoryPoolSizeInMB"))->GetInt()==1024,TEXT("ray-tracing geometry pool configured for this scene"));
         Check(Page=="home"&&IsMoveInputIgnored()&&Menu.IsValid()&&bShowMouseCursor,TEXT("title blocks movement with cursor and native UI"));
         Check(Menu&&Menu->Buttons[0]->HasKeyboardFocus(),TEXT("title primary action has keyboard focus"));

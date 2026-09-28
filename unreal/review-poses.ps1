@@ -21,7 +21,7 @@ try {
     $revision = @{main=(git rev-parse main); photoreal=(git rev-parse HEAD); scene=(Get-FileHash blender/build/scene.json -Algorithm SHA256).Hash; map=(Get-FileHash unreal/Shankaranarayana/Content/Maps/Site.umap -Algorithm SHA256).Hash}
     $revision.uncommitted_edits = [bool](git status --porcelain)
     $revision.scripts = @{}
-    foreach ($source in @('blender/export_unreal.py','unreal/scripts/import_scene.py','unreal/scripts/configure_lumen.py','unreal/scripts/capture_poses.py','unreal/scripts/materials.py','unreal/scripts/build_level.py','unreal/scripts/finish_game.py')) {
+    foreach ($source in @('blender/export_unreal.py','unreal/scripts/import_scene.py','unreal/scripts/configure_lumen.py','unreal/scripts/capture_poses.py','unreal/scripts/materials.py','unreal/scripts/build_level.py','unreal/scripts/finish_game.py','unreal/scripts/lighting.py')) {
         $revision.scripts[$source] = (Get-FileHash $source -Algorithm SHA256).Hash
     }
     if (Test-Path blender/build/unreal/parts.json) { $revision.native_parts = Get-Content blender/build/unreal/parts.json -Raw | ConvertFrom-Json }

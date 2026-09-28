@@ -9,10 +9,13 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import sys
 import time
 import traceback
 
 import unreal
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import lighting
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--poses', required=True)
@@ -60,11 +63,17 @@ def values(v):
 levels = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 actors = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 levels.load_level('/Game/Maps/Site')
+# Hidden unattended captures must continue when another app gains focus. Keep
+# this process-local; do not save the user's editor performance preferences.
+performance_class = unreal.load_class(None, '/Script/UnrealEd.EditorPerformanceSettings')
+unreal.get_default_object(performance_class).set_editor_property(
+    'bThrottleCPUWhenNotForeground', False)
 # The subsystem's True removes an override; seed it first to avoid an ensure
 # when a fresh viewport has no named realtime override yet.
 levels.editor_set_viewport_realtime(False)
 levels.editor_set_viewport_realtime(True)
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+unreal.SystemLibrary.execute_console_command(world, 't.IdleWhenNotForeground 0')
 unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
 camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(), unreal.Rotator(), transient=True)
 component = camera.get_component_by_class(unreal.CameraComponent)
@@ -142,6 +151,8 @@ def tick(dt):
         if state['i'] == len(poses):
             finish()
             return
+        if state['i'] == 0:
+            metadata['skylights'] = lighting.audit_sky(actors)
         entry = place(poses[state['i']], state['i'])
         state['entry'] = entry
         state['started'] = now

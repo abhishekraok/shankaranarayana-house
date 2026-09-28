@@ -16,9 +16,11 @@ M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
 tinted = set()
 altar_brass = set()
+bulb_materials = set()
 for o in meta['objects']:
     if o.get('instanceColors') or G[o['geometry']].get('color'): tinted.update(o['materials'])
     if o['name'].startswith('Altar ') and 'brass' in o['name'].lower(): altar_brass.update(o['materials'])
+    if o['name'] == 'Shrine warm bulb': bulb_materials.update(o['materials'])
 
 AT = unreal.AssetToolsHelpers.get_asset_tools(); MEL = unreal.MaterialEditingLibrary; EAL = unreal.EditorAssetLibrary
 DIR = '/Game/Materials'
@@ -117,7 +119,9 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         MEL.connect_material_expressions(out, '', mul, 'A'); MEL.connect_material_expressions(vc, '', mul, 'B'); out = mul
     if emissive:
         glow = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -350, 300)
-        MEL.connect_material_expressions(col, '', glow, 'A'); glow.set_editor_property('const_b', 40.0)
+        strength = param(m, unreal.MaterialExpressionScalarParameter, 'EmissionStrength', -700, 300, 40.0)
+        MEL.connect_material_expressions(col, '', glow, 'A')
+        MEL.connect_material_expressions(strength, '', glow, 'B')
         MEL.connect_material_property(glow, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     MEL.connect_material_property(out, '', unreal.MaterialProperty.MP_BASE_COLOR)
     r = param(m, unreal.MaterialExpressionScalarParameter, 'Roughness', -700, 400, 0.05 if water else 0.85)
@@ -211,6 +215,10 @@ def instance(i):
     if kind == 'water': c = unreal.LinearColor(0.025, 0.065, 0.018, 1)
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
+        # The small bulb previously emitted 40x saturated orange in addition to
+        # its native point light. Keep it luminous without flooding the shrine.
+        if i in bulb_materials: c = unreal.LinearColor(1.0, .84, .65, 1)
+        MEL.set_material_instance_scalar_parameter_value(mi, 'EmissionStrength', 6.0 if i in bulb_materials else 40.0)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass else float(web['metalness'] or 0))

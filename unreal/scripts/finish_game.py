@@ -3,7 +3,10 @@
     UnrealEditor-Cmd <uproject> -run=pythonscript -script=unreal/scripts/finish_game.py
 """
 from pathlib import Path
+import sys
 import unreal
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import lighting
 
 project = Path(unreal.Paths.project_dir())
 les = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
@@ -18,26 +21,7 @@ for actor in actors.get_all_level_actors():
         # HDRIBackdrop includes a flat ground cap. At z=0 it covers the sunken
         # lake with an opaque white plane, regardless of the water material.
         actor.set_actor_location(unreal.Vector(0, 0, -1500), False, False)
-    if isinstance(actor, unreal.PostProcessVolume):
-        settings = actor.settings
-        values = {
-            'auto_exposure_method': unreal.AutoExposureMethod.AEM_HISTOGRAM,
-            'auto_exposure_min_brightness': -4.0,
-            'auto_exposure_max_brightness': 4.0,
-            'auto_exposure_bias': 0.0,
-            'auto_exposure_speed_up': 2.0,
-            'auto_exposure_speed_down': 1.0,
-            'motion_blur_amount': 0.0,
-            'local_exposure_shadow_contrast_scale': 0.5,
-            'local_exposure_highlight_contrast_scale': 0.8,
-            'lumen_final_gather_quality': 2.0,
-            'lumen_scene_detail': 2.0,
-            'lumen_reflection_quality': 2.0,
-        }
-        for key, value in values.items():
-            settings.set_editor_property('override_'+key, True)
-            settings.set_editor_property(key, value)
-        actor.set_editor_property('settings', settings)
+lighting.configure(actors)
 for name in ('Ambience', 'Footstep'):
     task=unreal.AssetImportTask()
     task.filename=str(project / 'Saved/WalkAudio' / (name+'.wav'))
