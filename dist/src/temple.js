@@ -571,7 +571,19 @@ export function buildTemple(K) {
    for(const x of [38.23,39.67])wellScreens.push([x,4.55,.3,.66,.82,1,0,0,0]);
    instances('Upper stair well white pierced screens',screenGeometry,entranceLace,wellScreens);
    box('Temple name board blue face',38.95,5.52,.38,3.4,.82,.12,mat('#2a45a8'));
-   box('Temple name board white edge',38.95,5.52,.45,3.5,.92,.04,whiteTrim);}
+   box('Temple name board white edge',38.95,5.52,.45,3.5,.92,.04,whiteTrim);
+   // 15.12.22: white Kannada lettering on the road-side face (the donor line is left off).
+   const lettering=canvasMap(1024,(c,S)=>{
+     c.fillStyle='#2a45a8';c.fillRect(0,0,S,S);c.fillStyle='#f2f2ee';c.textAlign='center';c.textBaseline='middle';
+     // The square canvas spans a 3.3 x 0.76 m face: squeeze x so the glyphs keep their shape.
+     const k=.76/3.3,W=S/k;c.scale(k,1);
+     const font=px=>`bold ${px}px "Noto Sans Kannada","Nirmala UI","Tunga","Kannada Sangam MN",sans-serif`;
+     c.font=font(96);c.fillText('॥ ಶ್ರೀ ಶಂಕರನಾರಾಯಣ ಪ್ರಸನ್ನ ॥',W/2,S*.13);
+     c.font=font(360);c.fillText('ಶ್ರೀ ಶಂಕರನಾರಾಯಣ ದೇವಸ್ಥಾನ',W/2,S*.46,W*.94);
+     c.font=font(120);c.fillText('ಶ್ರೀ ಕ್ಷೇತ್ರ, ಶಂಕರನಾರಾಯಣ, ಕುಂದಾಪುರ ತಾ॥',W/2,S*.8);
+   });
+   if(lettering){lettering.wrapS=lettering.wrapT=THREE.ClampToEdgeWrapping;
+     const face=mesh('Temple name board lettering',new THREE.PlaneGeometry(3.3,.76),mat('#ffffff',.8,{map:lettering}),38.95,5.52,.315);face.rotation.y=Math.PI;}}
 
   // 15.01.44–15.05.48: a rectangular, open-air circuit, with distinct shrine
   // bays on raised verandas. Extend the inferred rear court to leave a real
