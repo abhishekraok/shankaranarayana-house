@@ -132,7 +132,7 @@ for(const key of ['templepond','templeacross']){
   assert.ok(Math.abs(supportY(p[0],p[2],p[1])-p[1])<.06,key+' viewpoint is supported');
 }
 assert.ok(temple.getObjectByName('Entrance weathered flat canopy').position.y<temple.getObjectByName('Temple road corner flat roof').position.y,'The entry canopy is below the right wing roof');
-assert.equal(temple.children.filter(o=>o.name==='Temple road upper closed timber shutter').length,6); // 15.22.36: six upper windows along the frontage
+assert.equal(temple.children.filter(o=>o.name==='Temple road blue window frame'&&o.position.y>4&&o.position.x<35).length,4); // 15.22.36: one upper window per four-metre bay along the frontage
 assert.ok(temple.getObjectByName('Temple road white front balcony balusters').count>=38);
 // The three lake photographs are a stationary left-to-right pan opposite the mud road.
 const panoramaKeys=['lakeleft','lakemiddle','lakehouse'];

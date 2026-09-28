@@ -1901,39 +1901,33 @@ export function buildTemple(K) {
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
-  for(const x of [20.38,25.18,29.89]){
+  // 15.22.36 (head-on across the lake): four-metre bays, measured against the 2.72 m shutter.
+  for(const x of [20.38,24.4,28.4]){
     box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);
     box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);
   }
   // Closed blue-gray rolling shutter with narrow corrugations and a dark header.
-  box('Temple road shutter dark frame',22.95,1.63,1.34,2.96,2.92,.10,dark);
-  box('Temple road blue rolling shutter',22.95,1.60,1.27,2.72,2.70,.05,shutterBlue);
-  const shutterRibs=[];for(let i=0;i<43;i++)shutterRibs.push([22.95,.28+i*.063,1.235,2.72,.021,.028]);
+  box('Temple road shutter dark frame',22.3,1.63,1.34,2.96,2.92,.10,dark);
+  box('Temple road blue rolling shutter',22.3,1.60,1.27,2.72,2.70,.05,shutterBlue);
+  const shutterRibs=[];for(let i=0;i<43;i++)shutterRibs.push([22.3,.28+i*.063,1.235,2.72,.021,.028]);
   instances('Temple road shutter horizontal ribs',new THREE.BoxGeometry(1,1,1),greySheet,shutterRibs);
-  box('Temple road shutter threshold',22.95,.23,1.19,2.95,.06,.35,oldStone);
-  box('Temple road shutter handle',22.95,.39,1.20,.18,.045,.055,dark);
+  box('Temple road shutter threshold',22.3,.23,1.19,2.95,.06,.35,oldStone);
+  box('Temple road shutter handle',22.3,.39,1.20,.18,.045,.055,dark);
   // Barred windows and open dark wooden shutters, including the balcony corner.
-  function edgeWindow(x,y,z,w,h){
+  function edgeWindow(x,y,z,w,h,leaves=true){
     box('Temple road blue window frame',x,y,z,w+.18,h+.16,.14,blue);
     box('Temple road dark window opening',x,y,z-.09,w,h,.03,dark);
     const grille=[];for(let i=0;i<=12;i++)grille.push([x,y-h/2+i*h/12,z-.12,w,.022,.025]);
     instances('Temple road horizontal window bars',new THREE.BoxGeometry(1,1,1),whiteTrim,grille);
     box('Temple road window centre mullion',x,y,z-.15,.065,h+.12,.08,K.M.wood);
-    for(const side of [-1,1]){
+    if(leaves)for(const side of [-1,1]){
       const leaf=box('Temple road open timber shutter',x+side*(w*.52+.22),y,z-.39,.085,h+.08,.68,K.M.wood);leaf.rotation.y=side*.42;
     }
   }
-  edgeWindow(27.52,1.73,1.28,1.43,1.55);
-  // 15.22.12: six narrow upper openings, with dark shutters along the wing.
-  for(const x of [21.15,22.75,24.35,25.95,27.55,29.15]){
-    if(x>27)edgeWindow(x,5.23,1.30,1.10,1.85);
-    else{
-      box('Temple road upper shutter frame',x,5.23,1.30,1.26,2.02,.14,whiteTrim);
-      box('Temple road upper closed timber shutter',x,5.23,1.20,1.10,1.85,.06,K.M.wood);
-      for(let j=0;j<16;j++)box('Temple road upper shutter slat',x,4.38+j*.112,1.153,1.06,.043,.035,dark);
-      box('Temple road upper shutter meeting stile',x,5.23,1.13,.055,1.85,.04,K.M.wood);
-    }
-  }
+  // 15.22.36 / 14.59.21: two narrow barred windows without leaves in the second bay, and one
+  // broad blue-framed upper window centred on each bay, its timber leaves open.
+  for(const x of [26.1,29.7])edgeWindow(x,1.73,1.28,.95,1.55,false);
+  for(const x of [22.4,26.4])edgeWindow(x,5.23,1.30,1.55,1.85);
   floor('Temple road upper balcony',25.15,.64,9.98,1.85,3.46,stoneFloor);
   box('Temple road balcony white soffit',25.15,3.32,.64,10.05,.18,1.9,edgeWhite);
   box('Temple road balcony red fascia',25.15,3.46,-.32,10.05,.25,.16,balconyRed);
@@ -1947,7 +1941,7 @@ export function buildTemple(K) {
     box('Temple road balcony front rail',25.15,y,-.25,10.02,.15,.19,balconyRed);
     box('Temple road balcony side rail',20.20,y,4.34,.19,.15,9.1,balconyRed);
   }
-  for(const x of [20.20,25.2,30.03])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
+  for(const x of [20.20,24.4,28.4])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
   K.blocker(25.15,-.25,10.02,.20,3.46,4.49);
   K.blocker(20.20,4.34,.2,9.1,3.46,4.49);
   const edgeRoof=box('Temple road corner flat roof',25.13,6.72,4.43,10.05,.21,9.48,edgeWhite);K.roofs.push(edgeRoof);
@@ -2118,18 +2112,20 @@ export function buildTemple(K) {
    // Road-corner frontage carried across W0..W1: porch piers, balcony, roof and parapet,
    // and an upper front wall set back behind the balcony with shuttered windows.
    const xm=(W0+W1)/2,w=W1-W0;
-   for(const x of [32.55,W1-.12]){box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);}
+   for(const x of [32.3,W1-.12]){box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);}
    box('Temple road corner lower frontage',xm,1.91,1.3,w,3.38,.24,edgeWhite,true);
-   for(const x of [31.3,33.8]){box('Temple road blue window frame',x,1.95,1.17,1.3,1.5,.08,blue);box('Temple road dark window opening',x,1.95,1.12,1.1,1.3,.03,dark);}
+   // 15.22.36 / 14.59.21: no windows here; a donor sign board over a small bench.
+   box('Temple road donor sign board',33.85,2.6,1.15,2.6,.42,.05,edgeWhite);box('Temple road donor sign red border',33.85,2.6,1.17,2.7,.5,.03,balconyRed);
+   box('Temple road bench top',33.0,.95,.95,1.1,.05,.45,K.M.wood);for(const dx of [-.5,.5])for(const dz of [-.18,.18])box('Temple road bench leg',33.0+dx,.8,.95+dz,.05,.3,.05,K.M.wood);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
    for(const y of [3.63,4.4])box('Temple road balcony front rail',xm,y,-.25,w,.15,.19,balconyRed);
-   for(const x of [32.55,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
+   for(const x of [32.3,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road white front balcony baluster',x,4.0,-.25,.07,.62,.07,whiteTrim);
    K.blocker(xm,-.25,w,.25,3.46,4.5);
    box('Temple road upper front wall',xm,5.15,1.1,w,2.9,.24,edgeWhite,true);
-   for(const x of [31.3,33.8]){box('Temple road upper shutter frame',x,5.23,.97,1.26,2.02,.1,whiteTrim);box('Temple road upper closed timber shutter',x,5.23,.93,1.1,1.85,.05,K.M.wood);}
+   for(const x of [30.35,34.3])edgeWindow(x,5.23,.97,1.55,1.85);
    const ext=box('Temple road corner flat roof',xm,6.72,1.2,w,.21,3.1,edgeWhite);K.roofs.push(ext);
    for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
    for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
