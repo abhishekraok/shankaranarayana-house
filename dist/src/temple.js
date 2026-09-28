@@ -908,7 +908,8 @@ export function buildTemple(K) {
   // Beyond the blue facade: older, narrower construction with red walls,
   // arched pale panels, black stone sill and deep, layered protective eaves.
   const wornRed=red.clone();wornRed.map=canvasMap(512,(c,s)=>{
-    c.fillStyle='#995346';c.fillRect(0,0,s,s);
+    // 15.03.33 / 15.04.55: a dark, weathered maroon rather than fresh red.
+    c.fillStyle='#7c4239';c.fillRect(0,0,s,s);
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
   // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
@@ -917,13 +918,15 @@ export function buildTemple(K) {
   floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
   for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
   box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
+  const stainedRecess=mat('#5a4a42',.95);
   for(const side of [-1,1]){
     const x=SX+side*(7.34+SE);
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
     for(let i=0;i<7;i++){
       const z=20.45+i*1.39,shape=new THREE.Shape();
       shape.moveTo(-.53,.87);shape.lineTo(.53,.87);shape.lineTo(.53,2.18);shape.absarc(0,2.18,.53,0,Math.PI,false);shape.closePath();
-      const painted=mesh('Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
+      // East side (15.03.33, 15.04.55): the arched recesses read dark and stained, not whitewashed.
+      const painted=mesh(side>0?'Old inner shrine dark stained arched recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?stainedRecess:agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
       box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,wornRed);
       K.beam(g,'Old inner shrine projecting eave corbel',[x,2.84,z+.62],[x+side*.65,3.12,z+.62],.17,weathered,.23);
     }
