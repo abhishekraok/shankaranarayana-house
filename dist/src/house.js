@@ -256,16 +256,12 @@ export function buildHouse(K) {
     }
   }
   stairSideFence(6.35,9.3,7.3);
-  // 14.48.11: behind the God room the east side is a plastered aqua wall on a dark plinth
-  // with a small timber-barred window, not railing.
-  b('East rear strip aqua wall',7.3,(F+2.95)/2,12.75,.22,F+2.95,3.5,verandaAqua,true);
-  b('East rear strip wall dark plinth',7.18,.3,12.75,.04,.6,3.5,'stone');
-  b('East rear strip small window dark opening',7.18,1.6,12.6,.03,1.2,.9,'black');
-  for(let k=0;k<6;k++)b('East rear strip window timber bar',7.16,1.6,12.2+k*.16,.04,1.2,.04,'wood');
-  for(const y of [.98,2.22])b('East rear strip window timber frame',7.16,y,12.6,.05,.08,1.02,'wood');
-  for(const z of [12.13,13.07])b('East rear strip window timber frame',7.16,1.6,z,.05,1.3,.08,'wood');
+  // User's 14.31.14 note: the blue railing runs on along the whole east veranda edge,
+  // with no wall and no opening into the courtyard.
+  stairSideFence(9.3,14.28,7.3);
   // 14.46.04: the rear veranda is screened by weathered horizontal boards.
-  for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
+  // User's 14.48.07 note: the screen is unbroken, with no opening into the courtyard.
+  for(const [a,end] of [[-8.3,7.3]]) {
     for(let row=0;row<7;row++) {
       const board=b('Courtyard weathered horizontal timber board',(a+end)/2,F+.10+row*.135,14.55,end-a,.112,.075,verandaTimber);
       board.rotation.z=.004*Math.sin(row*2.1);
@@ -274,7 +270,7 @@ export function buildHouse(K) {
     K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
   }
   // Court entry steps match every deliberate veranda opening.
-  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55],[7.15,10.15,.75,1.55],[-2.7,14.35,1.65,.75]]) {
+  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55]]) {
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
   }
 
@@ -285,7 +281,19 @@ export function buildHouse(K) {
 
   // Ground floor enclosing walls. All rooms have usable openings.
   wallZ('West exterior wall',-11.88,1.95,17.85,F,3.02,[{c:8.4,w:1.6,bottom:1.05,top:2.45},{c:15.1,w:1.4,bottom:1.05,top:2.4}]);
-  wallZ('East exterior wall',11.88,.15,17.85,F,3.02,[{c:14.75,w:1.7,top:2.55}],'plaster');
+  wallZ('East exterior wall',11.88,.15,17.85,F,3.02,[{c:10.45,w:.95,top:2.3}],'plaster');
+  // User's 14.31.14 / 14.31.25 notes: that door leads into a room on the clock side.
+  // Its size is not photographed; a small store room is assumed.
+  {const x0=12.0,x1=15.3,z0=8.6,z1=12.4,xm=(x0+x1)/2,zm=(z0+z1)/2,h=3.02;
+   wallZ('Clock-side room outer wall',x1,z0,z1,F,h,[{c:10.5,w:.9,bottom:1.1,top:2.1}],'plaster');
+   for(const z of [z0,z1])wallX('Clock-side room end wall',x0-.12,x1+.12,z,F,h,[],'plaster');
+   floor('Clock-side room floor',xm,zm,x1-x0,z1-z0,F,'red',.2);
+   b('Clock-side room ceiling boards',xm,F+h-.02,zm,x1-x0,.04,z1-z0,'wood');
+   K.hipRoof(g,'Clock-side room tiled roof',xm,zm,x1-x0+.9,z1-z0+.9,F+h,.9);
+   for(const z of [9.905,10.995])b('Clock-side room door dark timber jamb',11.72,F+1.15,z,.1,2.3,.09,'wood');
+   b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
+   const leaf=b('Clock-side room open door leaf',12.3,F+1.12,10.0,.9,2.22,.05,'wood');leaf.rotation.y=-.35;
+   for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
   wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}],rearWash);
   doorX(0,17.86,1.9,F,2.5,-1);
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
@@ -1088,9 +1096,6 @@ export function buildHouse(K) {
   const garden=new THREE.InstancedMesh(new THREE.SphereGeometry(1,7,4),mat('leaf'),gardenLeaves.length);
   gardenLeaves.forEach((p,i)=>{helper.position.set(p.x,p.y,p.z);helper.rotation.set(.5,p.a,.6);helper.scale.set(.11,.045,.35);helper.updateMatrix();garden.setMatrixAt(i,helper.matrix);});
   garden.name='Courtyard leafy garden strips';garden.castShadow=true;g.add(garden);
-  for(let i=0;i<5;i++) {
-    b('Worn courtyard paving slab',-2.72,.065,11.0+i*.66,.78,.075,.51,'paleStone');
-  }
 
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
@@ -1361,7 +1366,7 @@ export function buildHouse(K) {
   const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(scallopedBeam,{depth:.10,bevelEnabled:false}),ceilingTimber);
   beamFrieze.name='Clock-side veranda scalloped timber wall beam';beamFrieze.rotation.y=-Math.PI/2;
   beamFrieze.position.set(11.68,0,6.0);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
-  b('Clock-side veranda turquoise wall finish',11.735,1.97,9.82,.016,3.02,8.24,verandaAqua);
+  for(const [a,e] of [[5.7,9.86],[11.04,13.94]])b('Clock-side veranda turquoise wall finish',11.735,1.97,(a+e)/2,.016,3.02,e-a,verandaAqua);
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
@@ -1497,9 +1502,9 @@ export function buildHouse(K) {
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
   // 14.31.43: arched timber case, ivory numbered dial and floral lower glass.
-  b('Clock bay vertical timber mounting strip',11.71,1.97,6.7,.055,3.02,.19,verandaTimber);
+  b('Clock bay vertical timber mounting strip',11.71,1.97,8.1,.055,3.02,.19,verandaTimber);
   const clock=new THREE.Group();clock.name='Photographed veranda pendulum clock';
-  clock.position.set(11.68,2.25,6.7);clock.rotation.y=-Math.PI/2;g.add(clock);
+  clock.position.set(11.68,2.25,8.1);clock.rotation.y=-Math.PI/2;g.add(clock);
   const caseShape=new THREE.Shape();caseShape.moveTo(-.215,-.415);
   caseShape.quadraticCurveTo(-.215,-.455,-.17,-.455);caseShape.lineTo(.17,-.455);
   caseShape.quadraticCurveTo(.215,-.455,.215,-.415);caseShape.lineTo(.215,.397);
@@ -1525,10 +1530,10 @@ export function buildHouse(K) {
   for(const x of [88,168]){dial.fillStyle='#51493c';dial.beginPath();dial.arc(x,166,5,0,Math.PI*2);dial.fill();}
   const dialMap=new THREE.CanvasTexture(dialCanvas);dialMap.colorSpace=THREE.SRGBColorSpace;
   const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,40),new THREE.MeshStandardMaterial({map:dialMap,roughness:.51}));
-  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,6.7);clockFace.name='Ivory wall clock face';g.add(clockFace);
+  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,8.1);clockFace.name='Ivory wall clock face';g.add(clockFace);
   const rim=new THREE.Mesh(new THREE.TorusGeometry(.168,.006,7,40),caseWood);rim.position.set(0,.21,.115);clock.add(rim);
-  K.beam(g,'Clock minute hand',[11.55,2.46,6.7],[11.55,2.46,6.555],.008,'black');
-  K.beam(g,'Clock hour hand',[11.54,2.46,6.7],[11.54,2.402,6.625],.013,'black');
+  K.beam(g,'Clock minute hand',[11.55,2.46,8.1],[11.55,2.46,7.955],.008,'black');
+  K.beam(g,'Clock hour hand',[11.54,2.46,8.1],[11.54,2.402,8.025],.013,'black');
   const pendulumRod=new THREE.Mesh(new THREE.CylinderGeometry(.003,.003,.24,6),mat('gold'));pendulumRod.position.set(0,-.14,.008);clock.add(pendulumRod);
   const bob=new THREE.Mesh(new THREE.CircleGeometry(.052,20),mat('gold'));bob.position.set(0,-.26,.013);clock.add(bob);
   const etched=new THREE.MeshStandardMaterial({color:'#dddac1',roughness:.56});

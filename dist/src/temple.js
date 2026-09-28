@@ -623,7 +623,7 @@ export function buildTemple(K) {
   const verandaRuns=[
     {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,27.2,40.6]},
     {side:-1,wall:24.14,edge:28.45,a:6.4,b:16.2,stairs:[12],round:true},
-    {side:-1,wall:22.64,edge:25.35,a:16.2,b:45.4,stairs:[38.9]},
+    {side:-1,wall:22.64,edge:25.35,a:16.2,b:45.4,stairs:[38.9],wallA:19.9},
   ];
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
@@ -639,8 +639,10 @@ export function buildTemple(K) {
       }
       floor('Outer circuit raised red veranda',xc,(start+r.b)/2,w,r.b-start,.6,oxideFloor);
     }else if(!r.round)floor('Outer circuit raised red veranda',xc,zc,w,d,.6,oxideFloor);
-    if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,zc,.27,2.9,d,agedWhite,true);
-    if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,zc,.065,.6,d,red);
+    // The west wall starts behind the covered hall's deepened stage bay (wallA).
+    {const wa=r.wallA??r.a;
+    if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,(wa+r.b)/2,.27,2.9,r.b-wa,agedWhite,true);
+    if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,(wa+r.b)/2,.065,.6,r.b-wa,red);}
     // Real notches in the plinth align with steps instead of blocking them.
     const cuts=[r.a,...r.stairs.flatMap(z=>[z-.72,z+.72]),r.b];
     for(let i=0;!r.round&&i<cuts.length-1;i+=2){const lo=cuts[i],hi=cuts[i+1];
@@ -1077,12 +1079,18 @@ export function buildTemple(K) {
   steps('Covered hall inner platform access',24.86,9.8,1.40,1.20,.1,.6,'-x',3);
   // 15.11.08 is taken from the raised passage just inside this end, so the
   // wall closes only the hall itself; the passage continues into the circuit.
-  box('Covered hall rear end wall',22.2,2.03,16.10,3.9,2.86,.20,hallBlue,true);
-  box('Covered hall rear red dado',22.2,.88,15.985,3.9,.56,.025,red);
+  // User's 'temple right side facing opposite to the entrance' note: the end wall and
+  // stage stand further back, about 8 m from that camera. The hall runs on under the
+  // right hall's upper storey to z 19.9; the old end-wall line keeps only its beam.
+  const stageEnd=19.9;
+  box('Covered hall rear end wall',21.45,2.03,stageEnd-.1,2.4,2.86,.20,hallBlue,true);
+  box('Covered hall rear red dado',21.45,.88,stageEnd-.215,2.4,.56,.025,red);
+  floor('Covered hall stage bay oxide floor',21.45,(16.2+stageEnd)/2,2.3,stageEnd-16.2,.60,hallFloor);
+  box('Covered hall stage bay white ceiling',21.45,3.60,(16.2+stageEnd)/2,2.4,.16,stageEnd-16.2,white);
   // 180635: two high-silled windows, with a solid wall and beam pilaster
   // between them. The old third window occupied the electrical-board wall.
   const hallWindowCenters=[9.0,12.6],windowPaint=mat('#426577');
-  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,16.2]])
+  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,stageEnd]])
     box('Covered hall lane-side wall pier',20.30,2.03,(a+b)/2,.20,2.86,b-a,hallBlue,true);
   for(const z of hallWindowCenters){
     box('Covered hall window sill wall',20.30,1.22,z,.20,1.24,1.30,hallBlue,true);
@@ -1097,7 +1105,7 @@ export function buildTemple(K) {
   box('Covered hall central pilaster red foot',20.60,.88,11.0,.025,.56,.30,red);
   // Continuous wall heads meet the ceiling underside; the original wall
   // pieces stopped six centimetres short and leaked a strip of outdoor light.
-  box('Covered hall lane wall ceiling closure',20.30,3.51,11.3,.22,.14,9.8,hallBlue);
+  box('Covered hall lane wall ceiling closure',20.30,3.51,(6.4+stageEnd)/2,.22,.14,stageEnd-6.4,hallBlue);
   box('Covered hall rear wall ceiling closure',24.25,3.51,16.10,8.0,.14,.22,hallBlue);
   const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
   for(const z of [9.0,12.7]){
@@ -1169,20 +1177,20 @@ export function buildTemple(K) {
   const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
   const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,1),cp=curtainGeometry.attributes.position;
   for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
-  mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,22.2,1.9,15.93);
-  for(const x of [20.6,23.8]){
-    box('Covered hall ceremonial bay decorated upright',x,1.95,15.75,.18,2.70,.20,blue);
-    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,15.63,.23,.07,.025,brass);
+  const curtain=mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,21.45,1.9,stageEnd-.17);curtain.scale.x=.68;
+  for(const x of [20.55,22.35]){
+    box('Covered hall ceremonial bay decorated upright',x,1.95,stageEnd-.35,.18,2.70,.20,blue);
+    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,stageEnd-.47,.23,.07,.025,brass);
   }
   const parasolColors=[mat('#c5b99d'),mat('#c28b27'),mat('#a74f37')];
   for(let tier=0;tier<3;tier++){
     const radius=1.05-tier*.27,y=2.78+tier*.20;
     for(let j=0;j<18;j++){
       const segment=new THREE.ConeGeometry(radius,.26,2,1,true,j*Math.PI/9,Math.PI/9);
-      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],22.2,y,14.9);
+      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],21.45,y,stageEnd-1.2);
     }
   }
-  K.beam(g,'Covered hall parasol suspension',[22.2,3.54,14.9],[22.2,3.21,14.9],.014,dark);
+  K.beam(g,'Covered hall parasol suspension',[21.45,3.54,stageEnd-1.2],[21.45,3.21,stageEnd-1.2],.014,dark);
 
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
   for(const z of [10.0,23.2]){

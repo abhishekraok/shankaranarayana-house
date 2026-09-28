@@ -452,8 +452,10 @@ export function buildLandscape(K, {mobile=false}={}) {
     box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
     box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
     for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
-      box(name+' bank whitewashed square post',x,.72,z,.36,1.44,.36,fenceWhite);
-      box(name+' bank post cap',x,1.49,z,.44,.09,.44,fenceWhite);}
+      // User's 15.28.26 note: the posts are flush with the parapet faces and stand
+      // only a little above its coping (as on the east bank in that photo).
+      box(name+' bank whitewashed square post',x,.56,z,.31,1.12,.31,fenceWhite);
+      box(name+' bank post cap',x,1.14,z,.32,.05,.32,fenceWhite);}
     K.blocker(x,zc,.45,len+.3,0,1.4);
   }
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
@@ -873,6 +875,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
   // shrubs fill the ground beyond it.
   box('West bank weedy ground beyond the path', -13.8, .012, -24.4, 10.4, .02, 26.8, weedyGround);
+  // User's 15.30.09 note: the mud road is slimmer, about 1.5 m, with a weedy verge along the wall.
+  box('West bank weedy verge beside the wall', -6.2, .012, -24.4, 2.1, .02, 26.8, weedyGround);
   const westSeed = seed;
   for (let i = 0; i < 60; i++) shrub(range(-18.6, -9.4), range(-37, -12), range(.5, 1.25));
   for (let i = 0; i < 260; i++) {
@@ -919,7 +923,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const hallRoof=K.gableRoof(group,'Opposite bank hall shallow gray roof',0,0,8.5,10.05,6.69,1.41,materials.roofConcrete);hallRoof.rotation.y=Math.PI/2;hallRoof.position.set(-12,0,-55);
   for(const side of [-1,1])K.beam(group,'Opposite bank hall pale sloping roof edge',[-12+side*4.92,6.74,-50.71],[-12,8.15,-50.71],.14,oppositeWhite,.20);
   for(const y of [2.65,3.18])ow('hall lower balcony white rail',-12,y,-50.15,9.9,.11,.13);
-  const hallSpindles=[];for(let x=-16.8;x<-7.1;x+=.235)hallSpindles.push([x,2.91,-50.15,.08,.47,.08]);
+  const hallSpindles=[];for(let x=-14.8;x<-5.1;x+=.235)hallSpindles.push([x,2.91,-50.15,.08,.47,.08]);
   for(const a of hallSpindles)instance('Opposite bank hall balcony balusters',cylinder,oppositeWhite,a.slice(0,3),a.slice(3));
   ow('hall red awning fascia',-12,2.59,-50.17,9.98,.08,.18,'red');
   // Original lettering and emblem, sampled only from the white hall in 15.30.09.
@@ -1802,5 +1806,9 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const c of K.colliders){if(c.minZ<FAR_Z1&&(c.minX+c.maxX)/2<FAR_X1){c.minZ=farZ(c.minZ);c.maxZ=farZ(c.maxZ);}}
    for(const r of [...K.surfaces,...K.ramps])if(r.z-r.d/2<FAR_Z1&&r.x<FAR_X1){const z0=farZ(r.z-r.d/2),z1=farZ(r.z+r.d/2);r.z=(z0+z1)/2;r.d=z1-z0;}
    for(const l of K.labels)if(l.position[2]<FAR_Z1)l.position=[l.position[0],l.position[1],farZ(l.position[2],l.position[0])];}
+  // User's 15.30.09 note: the hall (Vipra Bhavan) stands a little further right, about 2 m east.
+  {const DX=2,b3=new THREE.Box3();
+   for(const o of group.children){if(o.isInstancedMesh||!o.name.startsWith('Opposite bank hall')||o.name.endsWith('dirt approach'))continue;o.position.x+=DX;}
+   for(const c of K.colliders)if(c.minX>-17.2&&c.maxX<-6.8&&c.minZ>-52&&c.maxZ<-42.5){c.minX+=DX;c.maxX+=DX;}}
   return group;
 }
