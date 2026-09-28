@@ -13,15 +13,17 @@ const name = process.argv[2];
 if (!name || !/^[a-z0-9][a-z0-9-]*$/.test(name)) throw Error('Supply a lowercase batch-name');
 const out = path.join(root, 'checks', 'fidelity', name);
 if (fs.existsSync(out)) throw Error('Capture folder exists; choose a new name to preserve its review');
-const times = (process.env.PHOTO_TIMES || '14.56.56,14.57.08,15.12.15,15.10.30,15.03.47').split(',');
-if (times.some(t => !/^\d{2}\.\d{2}\.\d{2}$/.test(t))) throw Error('PHOTO_TIMES must contain HH.MM.SS values');
+// PHOTO_NAMES='IMG_20130720_175306|house front' selects by filename substring instead.
+const names = process.env.PHOTO_NAMES ? process.env.PHOTO_NAMES.split('|') : null;
+const times = names || (process.env.PHOTO_TIMES || '14.56.56,14.57.08,15.12.15,15.10.30,15.03.47').split(',');
+if (!names && times.some(t => !/^\d{2}\.\d{2}\.\d{2}$/.test(t))) throw Error('PHOTO_TIMES must contain HH.MM.SS values');
 const posePath = process.env.POSE_FILE || 'F:/Shankaranarayana/align-poses.json';
 const sourceBefore = fs.readFileSync(posePath);
 const poses = JSON.parse(sourceBefore).poses;
 const captures = times.map(t => {
   const matches = poses.filter(p => p.filename.includes(t));
   if (matches.length !== 1) throw Error(`Expected one pose for ${t}; found ${matches.length}`);
-  return {t, pose: matches[0]};
+  return {t: names ? matches[0].filename.replace(/\.[^.]+$/, '').replace(/[^\w.-]+/g, '_') : t, pose: matches[0]};
 });
 if (process.env.FIDELITY_RAISED_HALL === '1') {
   const pose = structuredClone(poses.find(p => p.filename.includes('15.13.51')));
