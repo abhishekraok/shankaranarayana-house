@@ -4,6 +4,23 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Claude pass 2 (2026-09-27 night)
+
+Full web review of all 136 dated poses at `bb5edb6`: `checks/fidelity/claude-all-bb5edb6/`.
+- `bb5edb6` Far bank 2 m closer (user: "bring it closer"; satellite 26.5 m water). One mapping,
+  `farZ`/`farZinv` exported from landscape.js: past z -29.5 (x < 52) moves +2, -29.5..-25.5
+  stretches. main.js terrain, water, ground and `location` use it; tour, viewpoints and tests
+  converted. Pose repo `0db6b87` moved the 25 far-side poses the same way.
+- `325ffe5` Far and west banks: weedy ground, shrubs and tall weeds beside a dirt footpath
+  (15.22.00, 15.23.08, 15.25.49). Note: vegetation authored past z -41.5 is moved +6 by the
+  older satellite-refit pass, so author it 6 m further out.
+- `370583c` East passage south end: two-storey block with a tiled hip roof (15.04.55).
+- Poses: far-bank 15.21.50, 15.22.00, 15.22.06, 15.22.36 lifted 1.38 m again (`38c2ed4`; an
+  align-page save had restored old heights); 15.13.51 lifted 1.2 m (`28ffc17`).
+- Open: north end of the east passage (15.03.33). The photo's two-storey room with the blue
+  door sits centred at the passage end and reads ~36 m away; the model's is at the east edge
+  ~27 m away. Needs the user before moving the rear range again.
+
 ## Claude model pass on PHOTOREAL-NOTES (2026-09-27 evening)
 
 Ownership: Claude owns the model on `main`; Codex owns `photoreal` and reports model
