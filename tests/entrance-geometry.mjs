@@ -10,7 +10,7 @@ async function loadModule(path){const source=(await fs.readFile(new URL(path,imp
 const {createKit}=await loadModule('../dist/src/kit.js');
 const {buildHouse}=await loadModule('../dist/src/house.js');
 const {buildTemple}=await loadModule('../dist/src/temple.js');
-const {buildLandscape}=await loadModule('../dist/src/landscape.js');
+const {buildLandscape,farZ,farZinv}=await loadModule('../dist/src/landscape.js');
 const {createPhotoTour}=await loadModule('../dist/src/tour.js');
 const K=createKit(),house=buildHouse(K);house.updateMatrixWorld(true);
 const temple=buildTemple(K),landscape=buildLandscape(K);temple.updateMatrixWorld(true);landscape.updateMatrixWorld(true);
@@ -32,7 +32,7 @@ for(let degrees=-90;degrees<=90;degrees+=3)for(const rise of [0,.08]){
 }
 const main=await fs.readFile(new URL('../dist/src/main.js',import.meta.url),'utf8');
 const navigation=main.slice(main.indexOf('function inside('),main.indexOf('function lookAt('));
-const {collision,supportY,blockedRise}=new Function('K','THREE',navigation+';return {collision,supportY,blockedRise};')(K,THREE);
+const {collision,supportY,blockedRise}=new Function('K','THREE','farZinv',navigation+';return {collision,supportY,blockedRise};')(K,THREE,farZinv);
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
 // The house is authored with its front door at x=0 and placed at K.houseShiftX.
@@ -148,14 +148,14 @@ for(const [point,prefixes] of [
   [[60.12,6.7,-5],['Adjacent building']],
   [[25.1,5.5,1.25],['Temple road']],
   [[0,5.5,0],['Upper','House','Pink','Overlapping']],
-  [[34,1.33,-34],['pavilion']],
+  [[34,1.33,-32],['pavilion']],
 ]){
   const ray=new THREE.Raycaster(panoramaEye,new THREE.Vector3(...point).sub(panoramaEye).normalize());
   const hit=ray.intersectObjects([landscape,temple,house],true)[0];
   assert.ok(prefixes.some(prefix=>hit?.object.name.startsWith(prefix)),`Panorama landmark at ${point} must be visible, got ${hit?.object.name}`);
 }
 const panoramaCamera=new THREE.PerspectiveCamera(photos.lakeleft.fov,4/3,.06,400);panoramaCamera.position.copy(panoramaEye);panoramaCamera.lookAt(new THREE.Vector3(...photos.lakeleft.target));panoramaCamera.updateMatrixWorld();
-const pavilionProjection=new THREE.Vector3(34,1,-34).project(panoramaCamera);
+const pavilionProjection=new THREE.Vector3(34,1,-32).project(panoramaCamera);
 assert.ok(pavilionProjection.x<0&&pavilionProjection.x>-1.2,'Pavilion belongs in the near left foreground');
 assert.equal(supportY(38,-25,0),-8,'The tank continues in front of the temple');
 // 14.58.02: view from the house-side lane, with shop, stage and temple in order.
@@ -333,9 +333,9 @@ for(const [x,z,height] of [[62.1,-1,2.82],[64.9,-1,3.42],[64.9,-9,3.42]]){
   assert.ok(hit&&Math.abs(hit.point.y-height)<.015,'Hall floor/dais mesh has the expected rise');
   assert.ok(Math.abs(hit.point.y-supportY(x,z,height))<.015,'Dais walking support agrees with its visible floor');
 }
-checkRoute('Pavilion entry from raised bank',[[34,-39.4],[34,-34]],1.38,-1.28);
-checkRoute('Pavilion return to raised bank',[[34,-34],[34,-39.4]],-1.27,-1.28);
-for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-39.4],[-2.3,-34.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
+checkRoute('Pavilion entry from raised bank',[[34,-37.4],[34,-32]],1.38,-1.28);
+checkRoute('Pavilion return to raised bank',[[34,-32],[34,-37.4]],-1.27,-1.28);
+for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
 checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-1.56);
@@ -646,24 +646,24 @@ const upperCameras=upperViews.map(v=>{const c=new THREE.PerspectiveCamera(v.fov,
 for(const v of upperViews){assert.deepEqual(v.p,photos.upperahead.p);assert.ok(!collision(v.p[0],v.p[2],v.p[1]));assert.ok(Math.abs(supportY(v.p[0],v.p[2],v.p[1])-v.p[1])<.01);}
 const upperYaw=upperCameras.map(c=>{const d=c.getWorldDirection(new THREE.Vector3());return Math.atan2(d.x,-d.z);});
 assert.ok(upperYaw[0]<upperYaw[1]&&upperYaw[1]<upperYaw[2],'Pan steadily right without moving the photographer');
-for(const [point,prefix] of [[[-9.45,5.15,-45.057],'Opposite bank hall'],[[10,1.92,-46.31],'Opposite bank low house'],[[25,5.3,-53.72],'Opposite bank pink house']]){
+for(const [point,prefix] of [[[-9.45,5.15,-43.057],'Opposite bank hall'],[[10,1.92,-44.31],'Opposite bank low house'],[[25,5.3,-51.72],'Opposite bank pink house']]){
   const ray=new THREE.Raycaster(upperCameras[0].position,new THREE.Vector3(...point).sub(upperCameras[0].position).normalize());
   const hit=ray.intersectObjects([house,landscape,temple],true)[0];assert.ok(hit?.object.name.startsWith(prefix),'Upstairs panorama sees '+prefix+', got '+hit?.object.name);
 }
-const pavilionMiddle=new THREE.Vector3(34,1,-34).project(upperCameras[1]),pavilionRight=new THREE.Vector3(34,1,-34).project(upperCameras[2]);
+const pavilionMiddle=new THREE.Vector3(34,1,-32).project(upperCameras[1]),pavilionRight=new THREE.Vector3(34,1,-32).project(upperCameras[2]);
 assert.ok(pavilionMiddle.x>0&&pavilionMiddle.x<1,'Pavilion lies right in the middle view');
 assert.ok(pavilionRight.x<0&&pavilionRight.x>-1,'Pavilion moves left in the far-right view');
 const shopUpper=new THREE.Vector3(62,3,-25).project(upperCameras[2]),stageUpper=new THREE.Vector3(60,5,-5).project(upperCameras[2]);
 assert.ok(shopUpper.x>pavilionRight.x&&stageUpper.x>shopUpper.x,'Final view orders pavilion, shop, stage');
-checkRoute('Opposite-bank path crosses stair landing',[[11.7,-39.4],[14.8,-39.4]],1.38,1.37);
+checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]],1.38,1.37);
 // 14.58.26: two flights along the retaining face meet at a central landing.
-checkRoute('Opposite-bank left flight descent',[[9.35,-39.4],[9.35,-37.2675],[13.25,-37.2675],[13.25,-34.63]],1.38,-1.56);
-checkRoute('Opposite-bank right flight descent',[[17.25,-39.4],[17.25,-37.2675],[13.25,-37.2675],[13.25,-34.63]],1.38,-1.56);
-checkRoute('Opposite-bank flight ascent',[[13.25,-34.63],[13.25,-37.2675],[9.35,-37.2675],[9.35,-39.4]],-1.55,-1.56);
+checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
+checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
+checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
 const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sidePlatformHeight:.602,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
-export {K,THREE,main,collision,supportY,blockedRise};
+export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};
 
 // Solid stair risers and ridge continuity must survive future detail edits.
 const frontTreads=[];house.traverse(o=>{if(o.name==='Front-right masonry stair tread')frontTreads.push(new THREE.Box3().setFromObject(o));});

@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import {K,THREE,main,collision,supportY,blockedRise} from './entrance-geometry.mjs';
+import {K,THREE,main,collision,supportY,blockedRise,farZinv} from './entrance-geometry.mjs';
 // Execute the actual wheel handler and motion controller against the full scene's collisions.
 const registration=main.slice(main.indexOf("renderer.domElement.addEventListener('wheel'"),main.indexOf('function translateWalk'));
 const movement=main.slice(main.indexOf('function translateWalk'),main.indexOf('function location'));
 const takeover=main.slice(main.indexOf('function takeFlight'),main.indexOf('function setMode'));
 const cameraLift=main.slice(main.indexOf('function lakeCameraLift'),main.indexOf('function inside'));
-const run=new Function('K','THREE','collision','supportY','blockedRise',`
+const run=new Function('K','THREE','collision','supportY','blockedRise','farZinv',`
  let mode='walk',entered=true,feet=.45,speed=2.6,wheelTravel=0,yaw=0,pitch=0,aligning=false;
  const camera=new THREE.PerspectiveCamera(),keys=new Set(),walkPosition=new THREE.Vector3(),lastSafe=new THREE.Vector3();
  const innerHeight=800,$=()=>({open:false}),updateModeUI=()=>{},release=()=>{keys.clear();wheelTravel=0;};
@@ -18,7 +18,7 @@ const run=new Function('K','THREE','collision','supportY','blockedRise',`
  return {set(m,p,target){mode=m;feet=p[1]-1.62;wheelTravel=0;camera.position.set(...p);camera.lookAt(new THREE.Vector3(...target));const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;},
  wheel(deltaY,deltaMode=0){let prevented=false;wheel({deltaY,deltaMode,ctrlKey:false,preventDefault(){prevented=true;}});for(let i=0;i<90;i++)move(1/60);return {mode,p:camera.position.toArray(),prevented};},
  direction(){return camera.getWorldDirection(new THREE.Vector3());}};
-`)(K,THREE,collision,supportY,blockedRise);
+`)(K,THREE,collision,supportY,blockedRise,farZinv);
 const results=[];
 for(const mode of ['walk','tour','fly','orbit']){
  const p=mode==='walk'?[0,1.671,-4]:[-8,5,-23],target=mode==='walk'?[0,1.671,-15]:[0,3,2];

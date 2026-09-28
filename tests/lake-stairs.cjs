@@ -7,15 +7,15 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
  const result=await page.evaluate(async()=>{
   const THREE=await import('/vendor/three.module.js'),h=houseWalk,out=[];
   const flights=[
-   ['far left',10.95,-37.2675,3.9,.535,'-x',.28,1.38,8],
-   ['far right',15.55,-37.2675,3.9,.535,'x',.28,1.38,8],
-   ['far lower',13.25,-35.9,2.3,2.2,'-z',-1.55,.28,11],
+   ['far left',10.95,-35.2675,3.9,.535,'-x',.28,1.38,8],
+   ['far right',15.55,-35.2675,3.9,.535,'x',.28,1.38,8],
+   ['far lower',13.25,-33.9,2.3,2.2,'-z',-1.55,.28,11],
    ['bathing gate',17.75,-9.65,2.7,2.1,'-x',-1.55,.055,9],
    ['arcade',28.55,-9.65,2.1,2.1,'x',-1.55,.065,9],
    ['east bank',49.16,-22.15,2.3,2.45,'x',-1.55,.055,9],
    ['west bank',-4.15,-24,2.3,2.2,'-x',-1.55,.055,9],
-   ['pavilion',34,-37.25,2,3.1,'-z',-1.27,1.38,15],
-   ['far corner',-2.3,-36.6,2.25,3.6,'-z',-1.55,1.38,16],
+   ['pavilion',34,-35.25,2,3.1,'-z',-1.27,1.38,15],
+   ['far corner',-2.3,-34.6,2.25,3.6,'-z',-1.55,1.38,16],
   ];
   for(const [name,cx,cz,w,d,axis,low,high,n] of flights)for(let i=0;i<n;i++){
    const alongX=axis.endsWith('x'),t=(i+.5)/n,offset=(axis.startsWith('-')?.5-t:t-.5)*(alongX?w:d);

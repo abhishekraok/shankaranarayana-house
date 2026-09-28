@@ -4,6 +4,13 @@ import * as THREE from 'three';
  * Ground and animated water are supplied by the application. Keep this group
  * at identity: all walkable surfaces and collision bounds use world metres.
  */
+// 15.30.09 and the satellite tank width (26.5 m of water): the far bank stands 2 m closer
+// than first built. West of FAR_X1 (the shop and east lane stay) everything past FAR_Z0 moves
+// FAR_SHIFT toward the house; between FAR_Z0 and FAR_Z1 the side banks stretch linearly. main.js maps its terrain through this.
+export const FAR_SHIFT=2,FAR_Z0=-29.5,FAR_Z1=-25.5,FAR_X1=52;
+export function farZ(z,x=0){if(x>=FAR_X1)return z;return z<=FAR_Z0?z+FAR_SHIFT:z>=FAR_Z1?z:z+FAR_SHIFT*(FAR_Z1-z)/(FAR_Z1-FAR_Z0);}
+export function farZinv(z,x=0){if(x>=FAR_X1)return z;const k=FAR_SHIFT/(FAR_Z1-FAR_Z0);return z<=FAR_Z0+FAR_SHIFT?z-FAR_SHIFT:z>=FAR_Z1?z:(z-k*FAR_Z1)/(1-k);}
+
 export function buildLandscape(K, {mobile=false}={}) {
   const group = new THREE.Group();
   group.name = 'Shankaranarayana · tank and coconut grove';
@@ -1743,5 +1750,24 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<16;i++)for(const side of [-1,1]){const x=side<0?x0-(i+.5)*fall/16:x1+(i+.5)*fall/16,h=lift(x);
      box('Far bank earth slope',x,(h-.3)/2,zc,fall/16+.01,h+.3,d,earth);}
    K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);}
+  // Bring the far bank closer (see farZ): move what lies beyond, stretch what spans.
+  {const b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
+   group.updateMatrixWorld(true);
+   for(const o of group.children){
+     if(o.isInstancedMesh){let moved=false;for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);p.setFromMatrixPosition(m);const z=farZ(p.z,p.x);
+       if(z!==p.z){m.elements[14]=z;o.setMatrixAt(i,m);moved=true;}}
+       if(moved){o.instanceMatrix.needsUpdate=true;o.computeBoundingBox?.();o.computeBoundingSphere?.();}continue;}
+     b3.setFromObject(o);if(b3.isEmpty()||b3.min.z>=FAR_Z1||(b3.min.x+b3.max.x)/2>=FAR_X1)continue;
+     if(b3.max.z<=FAR_Z0){o.position.z+=FAR_SHIFT;continue;}
+     const z0=farZ(b3.min.z),z1=farZ(b3.max.z),f=(z1-z0)/(b3.max.z-b3.min.z),e=o.rotation;
+     const flat=Math.abs(Math.abs(e.x)-Math.PI/2)<1e-3&&Math.abs(e.y)<1e-3&&Math.abs(e.z)<1e-3,upright=Math.abs(e.x)<1e-3&&Math.abs(e.z)<1e-3;
+     if(o.isMesh&&flat)o.scale.y*=f;
+     else if(o.isMesh&&upright&&Math.abs(Math.sin(e.y))<1e-3)o.scale.z*=f;
+     else if(o.isMesh&&upright&&Math.abs(Math.cos(e.y))<1e-3)o.scale.x*=f;
+     else{o.position.z+=farZ((b3.min.z+b3.max.z)/2)-(b3.min.z+b3.max.z)/2;continue;}
+     o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=z0-b3.min.z;}
+   for(const c of K.colliders){if(c.minZ<FAR_Z1&&(c.minX+c.maxX)/2<FAR_X1){c.minZ=farZ(c.minZ);c.maxZ=farZ(c.maxZ);}}
+   for(const r of [...K.surfaces,...K.ramps])if(r.z-r.d/2<FAR_Z1&&r.x<FAR_X1){const z0=farZ(r.z-r.d/2),z1=farZ(r.z+r.d/2);r.z=(z0+z1)/2;r.d=z1-z0;}
+   for(const l of K.labels)if(l.position[2]<FAR_Z1)l.position=[l.position[0],l.position[1],farZ(l.position[2],l.position[0])];}
   return group;
 }
