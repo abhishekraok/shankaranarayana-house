@@ -35,6 +35,17 @@ Left for the user (conflicts with earlier decisions or poses not trusted):
 - 15.19.36 shows a window where the road-corner shutter is; the shutter was kept per the note.
 - 15.28.49 shows a small laterite shed with a tiled roof beside the west stair foot, but 14.46.51
   looks down on that ground from the rear upper floor and shows open garden. Left out.
+- 15.15.26, 15.14.02, 15.00.01 and 15.12.03 (all well aligned, looking west down the lane)
+  show the house's temple-side wing as a two-storey block with a steep hipped roof over a
+  tiled one-storey front with the blue tarp; the model's wing is single-storey.
+- IMG_20130720_182845 and 14.32.31 both show an open sloping timber roof over the God room's
+  blue grille front, not the flat red upper-floor ceiling.
+- 15.08.10: the old inner shrine's roof, stretched 2.78 m for the 15.05.42 note, now hangs its
+  front eave (~3.0 m) over the bell platforms; the photo shows a flat white ceiling there.
+- 15.26.49 shows the west tank bank as a vertical wall with a ledge and rail; 15.23.35/38
+  show tiers (implemented). They may be different stretches.
+- Round-3 review of the 98 well-aligned poses: `checks/fidelity/claude-good-d340e4a`; the
+  46 findings (mostly medium confidence) are in the session scratchpad, not the repo.
 
 ## Claude pass 3: user's notes (2026-09-28)
 
