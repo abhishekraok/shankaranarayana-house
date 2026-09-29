@@ -58,6 +58,10 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     .006/.015/.005, absorption .42/.20/.38). Emission scales with the exported
     `emissiveIntensity` (5x); oil-lamp lights 2 lm, so the sanctum reads dark. Blender leaf
     saturation lifted. Full review at `sheets-a775558/unreal-20260929-002542/`.
+  - Pass 3: brass fittings (materials used mostly by the God-room doorway bosses) are warm
+    gold, metallic .9, roughness .3 in Unreal. Blender crowns get a Voronoi leaf-cluster bump
+    (scale 4) so they read as clumps. Next: water reflections, native-capture GI noise,
+    per-photo exposure differences.
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
