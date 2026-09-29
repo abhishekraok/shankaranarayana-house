@@ -38,6 +38,23 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
 
 ## Remaining photoreal work
 
+- Claude pass (2026-09-28 night; Codex no longer works on this project). Merged main
+  `fe5f680`; the exporter now evaluates main.js `farZ` expressions (lake, ground) and passes
+  `farZ`/`farZinv` to the navigation; the Blender tour includes the opening flight. Full
+  rebuild (lookdev, export, import, materials, level, Lumen, finish) and scene audit passed.
+  Full review: `blender/build/sheets-9b9e2bb/unreal-20260928-231937/`.
+  - Tiled roofs weathered to dark clay in both Blender and Unreal: a material counts when
+    most users are tiled roofs/tile courses/ridges; multiplier (0.30, 0.27, 0.25).
+  - Tank water: instance scattering (.016,.045,.012), absorption (.34,.12,.30). Its mean
+    colour now matches 15.23.35, but it reads flat and over-saturated without reflections.
+  - `review-poses.ps1 -NoMerge` captures the scene as exported when main has moved on.
+  - Tried: a foliage master (world-space speckle, clumps and scattered normals). The crown
+    material is mapped (procedural), so it needs the mapped masters; even with those the crown
+    region was unchanged in captures. Check whether build_level assigns component material
+    overrides to the instanced crowns before trying again. Reverted.
+  - Next: crown shapes (blobs) and colour, road/shoulder widths (a model item), water
+    reflections, shrine brass patina.
+
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
   component to a null cubemap on reload; a native skylight now retains the texture,
   with the backdrop light disabled. Added fresh-load, capture and packaged-runtime
