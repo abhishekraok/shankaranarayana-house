@@ -4,6 +4,24 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## User answers (2026-09-29)
+
+- Temple-side wing stays one storey (the four lane photos notwithstanding).
+- God room: upstairs floor cut back over x ±2.6 (local), z 4.0-6.0, leaving a double-height
+  space in front of and above the God room; heavy beams and an upstairs rail at the void edge.
+- Temple entrance (15.15.51): full-length dark timber leaves open along the passage; the teal
+  reveals that read as blue half-doors are timber.
+- Inner temple (15.08.10): entrance platforms and pillar ledges 1 m above the aisle (top 1.55).
+- More trees and undergrowth behind the temple-side wing along the side road (14.58.48,
+  15.21.53); the roadside taps stay clear. In 15.21.53 the covered hall still hides most of it.
+- 14.46.51 shows the neighbouring house, not our garden: the west shed (15.28.49) is restored.
+- Pavilion: the user says 15.30.02 and 15.26.12 agree and it stands at the tank's east-south
+  corner (far bank, temple end). The model has it on the far bank at x 31-37 (south end x 49.4);
+  not moved yet, as 15.30.02 would put it further north. Ask whether it should hug the corner.
+- West bank: south of the water stair (z < -25.2) it is a vertical wall with a low timber rail
+  (15.26.49); the tiers and stair north of it stay (15.23.35/38).
+- Still open: 14.37.50, 15.04.59, 15.26.12, 15.30.02 need re-aligning (user will do it).
+
 ## Claude pass 4: photo sweep (2026-09-28 night)
 
 Two full render sweeps of all 159 poses (`checks/fidelity/claude-all-38e7412`, `-54eb59a`),

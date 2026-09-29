@@ -1173,7 +1173,15 @@ export function buildHouse(K) {
 
 
   // Upper front range with airy perforated pink balcony.
-  floor('Upper storey rear floor',0,3.9,23.75,4.2,U,'red',.22);
+  // User: the upstairs floor stops short of the God room, leaving a double-height space in
+  // front of and above it (IMG_20130720_182845 looks up past a heavy beam to the roof).
+  floor('Upper storey rear floor',0,2.9,23.75,2.2,U,'red',.22);
+  for(const side of [-1,1])floor('Upper storey rear floor',side*7.2375,5.0,9.275,2.0,U,'red',.22);
+  b('God room void heavy timber wall beam',0,U-.2,5.86,5.3,.4,.3,verandaTimber);
+  b('God room void edge timber beam',0,U-.17,4.0,5.3,.34,.22,verandaTimber);
+  for(const side of [-1,1])b('God room void side timber beam',side*2.6,U-.17,4.93,.22,.34,1.86,verandaTimber);
+  b('Upstairs void guard rail',0,U+.9,4.06,5.2,.07,.07,verandaTimber);
+  for(let x=-2.5;x<=2.51;x+=.625)b('Upstairs void guard rail post',x,U+.45,4.06,.06,.9,.06,verandaTimber);
   floor('Upper balcony floor',1.8625,.9,20.025,1.8,U,'red',.22);
   floor('Upper stair landing',10.2,6.37,3.5,1.28,U,'paleStone',.18);
   const facadeWhite=mat('plaster').clone();facadeWhite.color.setRGB(1.15,1.20,1.21);
@@ -1533,8 +1541,8 @@ export function buildHouse(K) {
   b('Upstairs simple wooden cot',-9.35,U+.34,4.2,2.2,.15,1.08,'wood',true);
   b('Cot woven sleeping surface',-9.35,U+.45,4.2,2.05,.10,1.0,'cream');
   for(const dx of [-.95,.95])for(const dz of [-.4,.4])detail(-9.35+dx,U+.17,4.2+dz,.08,.34,.08,'wood');
-  b('Upstairs old trunk',2.05,U+.23,5.2,1.1,.46,.56,'wood',true);
-  for(const x of [1.68,2.40])detail(x,U+.235,4.908,.045,.43,.026,'metal');
+  b('Upstairs old trunk',4.05,U+.23,5.2,1.1,.46,.56,'wood',true);
+  for(const x of [3.68,4.40])detail(x,U+.235,4.908,.045,.43,.026,'metal');
 
   // All tiny repeated timber, grille and furniture parts are instanced by material.
   const unitBox=new THREE.BoxGeometry(1,1,1),o=new THREE.Object3D();

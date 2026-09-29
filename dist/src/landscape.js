@@ -1431,8 +1431,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
-  // 15.28.49 shows a small laterite shed beside the west stair foot, but 14.46.51 looks down on
-  // that ground and shows open garden; left out until the user places it.
+  // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
+  // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
+  {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
+   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
+   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
+   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
+   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
+   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05);K.roofs.push(r);}
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
@@ -1729,6 +1735,13 @@ export function buildLandscape(K, {mobile=false}={}) {
       new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.66,.92)));
   }
 
+  // User (15.21.53 centre, 14.58.48): a dense clump of trees and undergrowth fills the ground
+  // behind the temple-side wing, between the house and the temple road. Own seed, restored
+  // after, so the rest of the vegetation keeps its placement.
+  {const saved=seed;seed=40517;
+   for(const [x,z,h,r] of [[13.9,8.2,6.8,2.9],[14.6,13.2,7.6,3.2],[13.4,18.4,6.4,2.8],[15.4,5.4,5.2,2.2],[16.1,9.6,6.2,2.7],[15.9,12.0,5.6,2.5]])broadleaf(x,z,h,r);
+   for(let i=0;i<46;i++){const x=range(12.2,16.1),z=range(6.2,20.5),size=range(.7,1.45);if(x>13.2&&Math.abs(z-7.2)<1.3)continue;shrub(x,z,size);} // the roadside taps stay open
+   seed=saved;}
   // Flush all repeat details into one draw call per geometry/material family.
   for (const [name, batch] of batches) {
     const mesh = new THREE.InstancedMesh(batch.geometry, batch.material, batch.instances.length);
@@ -1816,6 +1829,17 @@ export function buildLandscape(K, {mobile=false}={}) {
      o.scale.x*=(t[1]-t[0])/(b3.max.x-b3.min.x);o.position.x+=(t[0]+t[1])/2-(b3.min.x+b3.max.x)/2;
      // The far-corner stair (x -3.4..-1.2, z < -32.8) stays clear of the wider tiers.
      if(t[1]>-3.5&&b3.min.z<-32.8){const z0=-32.75;o.scale.z*=(b3.max.z-z0)/(b3.max.z-b3.min.z);o.position.z+=(z0-b3.min.z)/2;}}}
+  // 15.26.49 looks along the west bank from the far corner: south of the water stair it is a
+  // plain vertical wall with a low timber rail, not tiers or a masonry parapet (the tiers and
+  // stair of 15.23.35 / 15.23.38 are north of z -25.2).
+  {const b3=new THREE.Box3();group.updateMatrixWorld(true);
+   const lower=/^(middle worn stone tread|low mossy stone tread|submerged tank course) west$/,rail=/^West bank (solid dark parapet|parapet coping|whitewashed square post|post cap)$/;
+   for(const o of [...group.children]){if(!o.isMesh||o.isInstancedMesh)continue;b3.setFromObject(o);
+     if(lower.test(o.name)&&b3.max.z<-25)group.remove(o);
+     else if(rail.test(o.name)&&b3.min.z<-25.5&&b3.max.z<-25.15)group.remove(o);}
+   const railWood=new THREE.MeshStandardMaterial({color:'#4a3a2c',roughness:.95});
+   for(let z=-25.6;z>-35.6;z-=2.0)box('West bank timber rail post',-5.08,.4,z,.13,.8,.13,railWood);
+   for(const y of [.42,.74])box('West bank timber log rail',-5.08,y,-30.5,.11,.1,10.3,railWood);}
   // Same on the house bank (15.23.35, 15.23.38): broad tiers under the parapet posts; the thin
   // ledges that stood in front of the old courses are folded into them.
   {const spans={'upper dark stone retaining course near':[-9.9,-9.0],'middle worn stone tread near':[-10.8,-9.9],

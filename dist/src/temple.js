@@ -247,7 +247,7 @@ export function buildTemple(K) {
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),silver=mat('#ffffff',.63,{metalness:.25});
+  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),silver=mat('#ffffff',.63,{metalness:.25});
   // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
   silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
@@ -262,9 +262,12 @@ export function buildTemple(K) {
   box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
   for(const side of [-1,1]){
     // 15.15.51 / 15.16.13: the opening is about 1.45 m clear, framed by blue reveals.
-    box('Entrance doorway blue inner reveal',39+side*.99,2.00,5.87,.42,2.80,.23,doorwayBlue,true);
-    box('Entrance doorway red inner jamb',39+side*.78,1.78,5.73,.12,2.36,.17,red);
-    box('Entrance doorway open timber leaf',39+side*.84,1.78,6.1,.09,2.36,.72,K.M.wood);
+    // User: full-length timber doors stand open against the passage sides (the earlier teal
+    // reveals read as blue half-doors in front of hidden leaves).
+    box('Entrance doorway timber frame',39+side*.99,2.00,5.87,.42,2.80,.23,doorLeafWood,true);
+    box('Entrance doorway red inner jamb',39+side*.76,1.74,5.73,.07,2.26,.17,red);
+    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafWood);
+    for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
     const x=39+side*2.05;
 
     box('Entrance doorway pillar red base',x,1.02,5.36,.58,.72,.58,red,true);
@@ -1671,18 +1674,19 @@ export function buildTemple(K) {
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
   for(const x of [34.3,43.7]){
-    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,laterite,true); // 15.08.10: red laterite faces
-    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
+    // User: these platforms stand about a metre above the aisle (15.08.10).
+    box('Inner entrance raised platform',x,1.05,18.15,7.5,.96,2.5,laterite,true); // 15.08.10: red laterite faces
+    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.55,dado);
   }
   for(const x of [34.8,37.3,40.7,43.2]){
-    box('Inner hall marble column pedestal',x,1.57,18.8,.78,1.08,.78,dado,true);
+    box('Inner hall marble column pedestal',x,1.83,18.8,.78,.56,.78,dado,true);
     innerColumn('Inner hall carved stone column',x,18.8,2.11,1.58,.63);
   }
   // The two front platforms leave the central entrance passage lower and clear.
   for(const x of [33.05,44.95]){
-    box('Inner side raised stone ledge',x,.79,24.5,2.25,.44,8.0,sanctumStone,true);
-    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.03);
-    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.03,2.45,.77);
+    box('Inner side raised stone ledge',x,1.05,24.5,2.25,.96,8.0,sanctumStone,true);
+    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.55);
+    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
   box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
