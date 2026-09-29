@@ -4,6 +4,36 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Claude pass 4: photo sweep (2026-09-28 night)
+
+Two full render sweeps of all 159 poses (`checks/fidelity/claude-all-38e7412`, `-54eb59a`),
+reviewed by agents; round 2 rated 98 poses as well aligned. Fixed, all tests passing:
+- `2e2c518` Align page: a folder pose wins a savedAt tie (stale browser copies had undone 26
+  scripted far-bank/hall pose fixes; restored in the pose repo `a3dcbc1`).
+- `fd1b62d` User's 10 walkthrough notes (lake gate closed, porch under road piers, courtyard
+  filler wall, bell pier, floating instanced railings, gallery stair well open, God room front).
+- `c9f649b` Tour opens with a one-time flight from the far bank to the front door
+  (`tour.intro`). Start uses the 15.26.04 spot; 15.26.12 itself is not aligned.
+- East range: veranda 0.95 m high (15.04.08), rubble-plinth porch with steps and slab roof,
+  open stair bay, rooftop scalloped pavilion (15.02.23, 15.01.44).
+- Inner temple grey granite, laterite bell-hall platforms, sanctum gates folded back, east
+  grilles removed, rear panels dark stone, east panels blue (15.08.10, 15.08.42, sanctum photos).
+- West veranda parapet lowered; its southern stretch solid with no scallops (15.05.42).
+- Tank west and house banks in broad 0.9 m tiers (15.23.35/38); lakeside arcade roof steep
+  (14.59.39); house west-end stair bay pale blue plus a laterite shed (15.28.36/49); naga
+  niche steps; stage curtain black; stair elephants both on the south side; west-lane
+  cottage has no pink upper floor.
+
+Left for the user (conflicts with earlier decisions or poses not trusted):
+- 14.58.48 / IMG_20130720_180708 show only trees and a trough right of the lane beside the
+  lodge, where the model has the house's temple-side wing and the clock-side room.
+- IMG_20130720_182845 looks up at the God room's tiled roof underside; the model's upper floor
+  slab covers that space (an upstairs trunk stands on it).
+- 15.15.51: side platforms match the plinth band; the saved camera is ~2 m too far inside.
+- 14.37.50: camera 0.1 m from the God room altar niche; needs re-aligning.
+- 15.30.02 / 15.26.12 disagree on the lake pavilion's position; left at the satellite fit.
+- 15.19.36 shows a window where the road-corner shutter is; the shutter was kept per the note.
+
 ## Claude pass 3: user's notes (2026-09-28)
 
 The user now leaves notes from the walkthrough: press **N** in a local build (`node server.mjs
