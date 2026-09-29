@@ -122,6 +122,10 @@ for mat in bpy.data.materials:
         for name, val in (('Transmission Weight', 0.12), ('Subsurface Weight', 0.0)):
             if name in bsdf.inputs: bsdf.inputs[name].default_value = val
         nt.links.new(bev.outputs['Normal'], bsdf.inputs['Normal'])
+        # The photos' canopy is a lush, saturated green; under the overcast world the web
+        # tints read grey. Lift saturation and value a little.
+        hs = nt.nodes.new('ShaderNodeHueSaturation'); hs.inputs['Saturation'].default_value = 1.4; hs.inputs['Value'].default_value = 1.1
+        nt.links.new(col_out, hs.inputs['Color']); col_out = hs.outputs['Color']
     elif kind != 'plain':
         maps = surface(nt, kind, coord)
         # Keep the web colour; borrow the scan's value variation (stains, pits) around it.
