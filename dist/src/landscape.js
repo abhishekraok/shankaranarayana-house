@@ -1800,6 +1800,21 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const c of K.colliders){if(c.minZ<FAR_Z1&&(c.minX+c.maxX)/2<FAR_X1){c.minZ=farZ(c.minZ);c.maxZ=farZ(c.maxZ);}}
    for(const r of [...K.surfaces,...K.ramps])if(r.z-r.d/2<FAR_Z1&&r.x<FAR_X1){const z0=farZ(r.z-r.d/2),z1=farZ(r.z+r.d/2);r.z=(z0+z1)/2;r.d=z1-z0;}
    for(const l of K.labels)if(l.position[2]<FAR_Z1)l.position=[l.position[0],l.position[1],farZ(l.position[2],l.position[0])];}
+  // 15.23.35 / 15.23.38: the west bank steps down in broad tiers (~0.9 m treads), not the
+  // steep 0.45 m courses that read as one wall from across the water.
+  {const spans={'upper dark stone retaining course west':[-5,-4.1],'middle worn stone tread west':[-4.1,-3.2],
+     'low mossy stone tread west':[-3.2,-2.3],'submerged tank course west':[-2.3,-1.5]},b3=new THREE.Box3();group.updateMatrixWorld(true);
+   for(const o of group.children){const t=spans[o.name];if(!t||!o.isMesh)continue;b3.setFromObject(o);
+     o.scale.x*=(t[1]-t[0])/(b3.max.x-b3.min.x);o.position.x+=(t[0]+t[1])/2-(b3.min.x+b3.max.x)/2;
+     // The far-corner stair (x -3.4..-1.2, z < -32.8) stays clear of the wider tiers.
+     if(t[1]>-3.5&&b3.min.z<-32.8){const z0=-32.75;o.scale.z*=(b3.max.z-z0)/(b3.max.z-b3.min.z);o.position.z+=(z0-b3.min.z)/2;}}}
+  // Same on the house bank (15.23.35, 15.23.38): broad tiers under the parapet posts; the thin
+  // ledges that stood in front of the old courses are folded into them.
+  {const spans={'upper dark stone retaining course near':[-9.9,-9.0],'middle worn stone tread near':[-10.8,-9.9],
+     'low mossy stone tread near':[-11.7,-10.8],'submerged tank course near':[-12.5,-11.7]},b3=new THREE.Box3();group.updateMatrixWorld(true);
+   for(const o of [...group.children]){if(o.name==='House bank continuous retaining ledge'){group.remove(o);continue;}
+     const t=spans[o.name];if(!t||!o.isMesh)continue;b3.setFromObject(o);
+     o.scale.z*=(t[1]-t[0])/(b3.max.z-b3.min.z);o.position.z+=(t[0]+t[1])/2-(b3.min.z+b3.max.z)/2;}}
   // User's 15.30.09 note: the hall (Vipra Bhavan) stands a little further right, about 2 m east.
   {const DX=2,b3=new THREE.Box3();
    for(const o of group.children){if(o.isInstancedMesh||!o.name.startsWith('Opposite bank hall')||o.name.endsWith('dirt approach'))continue;o.position.x+=DX;}
