@@ -997,7 +997,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // K.box supplies metre-based UVs at 0.5 units/m on every face.
   hallFloorMap.wrapS=hallFloorMap.wrapT=THREE.RepeatWrapping;hallFloorMap.repeat.set(2/.70,2/.70);
   const hallFloorStone=new THREE.MeshStandardMaterial({name:'Adjacent hall dark stone with pale inlays',map:hallFloorMap,roughness:.64});
-  ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,materials.basalt,true);
+  // 14.59.26 / 15.12.15: the plinth is weathered pale concrete, not dark basalt.
+  const stagePlinth=new THREE.MeshStandardMaterial({color:'#aaa89e',roughness:.96});
+  ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,stagePlinth,true);
   ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,hallFloorStone);K.surface(62.9,-5,5.8,20,1.62);
   // 14.59.26: the deep two-level veranda reads as grey shade behind the white
   // front, under a flat white ceiling rather than the bare tile underside.
@@ -1010,7 +1012,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // ahead of the side bays on both levels. Keep the existing central stair
   // clear between the two lower side landings.
   for(const a of [-2.05,2.05]){
-    ab('projecting porch raised dark foundation',a,.76,-.45,.90,1.52,1.10,materials.basalt,true);
+    ab('projecting porch raised dark foundation',a,.76,-.45,.90,1.52,1.10,stagePlinth,true);
     ab('projecting porch lower landing',a,1.56,-.45,.90,.12,1.10,hallFloorStone);
     K.surface(59.55,-5-a,1.10,.90,1.62);
   }
