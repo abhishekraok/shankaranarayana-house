@@ -2287,8 +2287,11 @@ export function buildTemple(K) {
    for(let i=K.ramps.length-1;i>=0;i--){const r=K.ramps[i];if(r.x>54.7&&r.x<58.3&&r.z>6.2&&r.z<20.9)K.ramps.splice(i,1);}
    steps('Outer shrine recessed access stair',55.75,16.2,1.4,1.4,.1,Y1,'x',5);
    for(const z of [15.47,16.93])box('Outer shrine recessed stair side riser',55.75,(Y1+.1)/2,z,1.4,Y1-.1,.04,white);
-   box('Entrance circuit corner landing',56.2,Y1-.09,6.67,2.7,.18,.32,stoneFloor);K.surface(56.2,6.67,2.7,.32,Y1);
-   steps('Entrance circuit worn corner steps',56.2,7.6,2.7,1.5,.1,Y1,'-z',5);}
+   // 15.02.17: the flight is wide, filling the corner up to the service door, which opens
+   // off its landing.
+   box('Entrance circuit corner landing',55.58,Y1-.09,6.67,3.95,.18,.32,stoneFloor);K.surface(55.58,6.67,3.95,.32,Y1);
+   steps('Entrance circuit worn corner steps',55.58,7.6,3.95,1.5,.1,Y1,'-z',5);
+   for(const o of g.children)if(/^Entrance circuit (closed service door frame|closed blue service door|service door crossbar)$/.test(o.name))o.position.y+=Y1-.55;}
   // 15.11.17 / 15.11.08: over the west veranda's slab the parapet is low (~0.5 m), not a
   // tall pierced screen.
   {const b3=new THREE.Box3(),Y0=3.63,Y1=4.13;g.updateMatrixWorld(true);
