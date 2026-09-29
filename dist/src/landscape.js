@@ -1726,7 +1726,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const px=x+range(-3.5,3.5),pz=z+range(-3.5,3.5),r=range(6.2,9.4)*(random()<.12?1.35:1);
     instance('Horizon overlapping broadleaf crowns',farCrown,materials.foliage,
       [px,hillY(px,pz)+r*.55+range(0,2.5),pz],[r,r*range(.72,1.0),r],
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.5,.74)));
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.66,.92)));
   }
 
   // Flush all repeat details into one draw call per geometry/material family.
