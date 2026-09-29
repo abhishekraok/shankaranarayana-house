@@ -2262,17 +2262,29 @@ export function buildTemple(K) {
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
    box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
+  // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
+  // the recessed shrine stair and the corner flight to the new height.
+  {const DY=.35,Y1=.95,b3=new THREE.Box3(),inR=b=>b.min.x>54.7&&b.max.x<58.3&&b.min.z>6.2&&b.max.z<20.9;g.updateMatrixWorld(true);
+   for(const o of [...g.children]){b3.setFromObject(o);if(b3.isEmpty()||!inR(b3))continue;
+     if(/^(Outer shrine recessed (access stair|stair side riser)|Entrance circuit (worn corner steps|corner landing))/.test(o.name)){g.remove(o);continue;}
+     if(/^Outer circuit (white red-outlined plinth)$/.test(o.name)){o.scale.y*=(.85-.1)/.4;o.position.y=(.1+.85)/2;continue;}
+     if(/^(Outer circuit raised red veranda|Outer shrine rear threshold|Outer circuit plinth white coping)$/.test(o.name)||(b3.min.y>.5&&b3.min.y<.7&&b3.max.y<1.6))o.position.y+=DY;}
+   for(const r of K.surfaces)if(Math.abs(r.y-.6)<.02&&r.x-r.w/2>54.7&&r.x+r.w/2<58.3&&r.z-r.d/2>6.2&&r.z+r.d/2<20.9)r.y=Y1;
+   for(let i=K.ramps.length-1;i>=0;i--){const r=K.ramps[i];if(r.x>54.7&&r.x<58.3&&r.z>6.2&&r.z<20.9)K.ramps.splice(i,1);}
+   steps('Outer shrine recessed access stair',55.75,16.2,1.4,1.4,.1,Y1,'x',5);
+   for(const z of [15.47,16.93])box('Outer shrine recessed stair side riser',55.75,(Y1+.1)/2,z,1.4,Y1-.1,.04,white);
+   box('Entrance circuit corner landing',56.2,Y1-.09,6.67,2.7,.18,.32,stoneFloor);K.surface(56.2,6.67,2.7,.32,Y1);
+   steps('Entrance circuit worn corner steps',56.2,7.6,2.7,1.5,.1,Y1,'-z',5);}
   // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
   // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
   // the bay to its north is open, with a steep concrete stair climbing inside it.
   {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95);
-   box('East porch raised deck',56.28,.725,10,2.84,.25,3.3,stoneFloor);K.surface(56.28,10,2.84,3.3,.85);
-   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.43,(z0+z1)/2,.7,.86,z1-z0,rubble,true);
-   box('East porch plinth rubble face',54.21,.43,10,.02,.84,3.6,rubble);
-   steps('East porch front steps',54.1,10,1.6,1.2,.1,.85,'x',3);
-   box('East porch projecting flat roof slab',56.0,3.8,10,3.6,.26,4.0,white);
-   box('East porch roof slab red edge',54.19,3.8,10,.04,.2,4.0,red);
-   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.6,2.7,'x',10);
+   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.48,(z0+z1)/2,.7,.96,z1-z0,rubble,true);
+   box('East porch plinth rubble face',54.21,.48,10,.02,.94,3.6,rubble);
+   steps('East porch front steps',54.1,10,1.6,1.2,.1,.95,'x',4);
+   box('East porch projecting flat roof slab',56.0,3.89,10,3.6,.46,4.0,white);
+   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.95,2.9,'x',9);
    K.ramps.splice(r0);K.blocker(56.55,13.05,2.0,1.1,.6,3.2);
    box('East range open bay stair side wall',56.65,1.95,13.66,2.1,2.7,.12,white,true);
    box('East range open bay red lintel band',54.98,3.32,13.25,.14,.22,3.0,red);}
