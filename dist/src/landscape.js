@@ -411,7 +411,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,.93);
+  // 14.59.39 / 15.11.58: a steep, deep tiled roof about as tall as the pillars.
+  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.75);
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
@@ -1447,10 +1448,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const cottageCanopy=box('Western cottage shallow grey shutter canopy',-24.95,2.72,-10.01,2.15,.065,.77,materials.roofConcrete);
   cottageCanopy.rotation.x=.13;K.roofs.push(cottageCanopy);
 
-  box('Western cottage recessed pink upper floor',-29.1,4.17,-15.2,6.2,1.62,3.8,'pink',true);
-  box('Western cottage pale terrace slab',-29.1,5.02,-15.2,6.5,.16,4.1,'plaster');
-  box('Western cottage pink terrace parapet',-29.1,5.29,-13.22,6.5,.52,.16,'pink');
-  K.cylinder(group,'Western cottage rooftop water tank',-30.5,5.48,-15.25,.54,.54,.77,'black',16);
+  // 14.46.51: a single-storey house under its hipped tile roof; no pink upper floor over it.
   const bendMeshes=group.children.length,bendColliders=K.colliders.length,bendSurfaces=K.surfaces.length;
   laneHouse('White porch at the lane bend',-44.5,-.7,6.4,5.4,2.7,-1);
   box('Lane bend porch red parapet',-44.5,.70,-4.65,5.8,.65,.20,'red');
