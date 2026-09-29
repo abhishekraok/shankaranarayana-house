@@ -411,8 +411,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
-  // 14.59.39 / 15.11.58: a steep, deep tiled roof about as tall as the pillars.
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.75);
+  // 14.59.39 / 15.11.58 show a deeper roof than first built; 14.58.05's end view limits the pitch.
+  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25);
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
@@ -997,7 +997,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // K.box supplies metre-based UVs at 0.5 units/m on every face.
   hallFloorMap.wrapS=hallFloorMap.wrapT=THREE.RepeatWrapping;hallFloorMap.repeat.set(2/.70,2/.70);
   const hallFloorStone=new THREE.MeshStandardMaterial({name:'Adjacent hall dark stone with pale inlays',map:hallFloorMap,roughness:.64});
-  ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,materials.basalt,true);
+  // 14.59.26 / 15.12.15: the plinth is weathered pale concrete, not dark basalt.
+  const stagePlinth=new THREE.MeshStandardMaterial({color:'#aaa89e',roughness:.96});
+  ab('raised dark foundation',0,.76,2.9,20,1.52,5.8,stagePlinth,true);
   ab('ground veranda floor',0,1.56,2.9,20,.12,5.8,hallFloorStone);K.surface(62.9,-5,5.8,20,1.62);
   // 14.59.26: the deep two-level veranda reads as grey shade behind the white
   // front, under a flat white ceiling rather than the bare tile underside.
@@ -1010,7 +1012,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // ahead of the side bays on both levels. Keep the existing central stair
   // clear between the two lower side landings.
   for(const a of [-2.05,2.05]){
-    ab('projecting porch raised dark foundation',a,.76,-.45,.90,1.52,1.10,materials.basalt,true);
+    ab('projecting porch raised dark foundation',a,.76,-.45,.90,1.52,1.10,stagePlinth,true);
     ab('projecting porch lower landing',a,1.56,-.45,.90,.12,1.10,hallFloorStone);
     K.surface(59.55,-5-a,1.10,.90,1.62);
   }
@@ -1299,8 +1301,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.20.13 is taken from their foot. A raised concrete platform with a drain
   // opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
-  box('Lane-end concrete landing',54.2,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(54.2,-8.95,5.0,3.3,.45);
-  steps('Lane-end concrete steps down to the lawn',54.2,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
+  // 14.59.54 is taken from the top landing and 15.20.13 from the foot: both fit 1.8 m further
+  // west than first placed.
+  box('Lane-end concrete landing',52.4,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(52.4,-8.95,5.0,3.3,.45);
+  steps('Lane-end concrete steps down to the lawn',52.4,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
@@ -1427,18 +1431,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
-  // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
-  // beside the foot of the outside stair.
-  {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
-   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
-   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
-   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
-   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
-   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05);K.roofs.push(r);}
+  // 15.28.49 shows a small laterite shed beside the west stair foot, but 14.46.51 looks down on
+  // that ground and shows open garden; left out until the user places it.
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
   box('Western cottage dark raised foundation',-28,.225,-13,8.24,.45,5.44,materials.wetStone);
+  // 14.46.51: the red dado runs about 0.8 m up the wall above the dark foundation.
+  box('Western cottage red dado',-28,.83,-13,8.25,.76,5.45,'red');
   group.getObjectByName('Western lane right cottage dark doorway').position.y=1.50;
   for(let i=0;i<3;i++){
     const top=.45-i*.15,z=-10.275+.14+i*.28;
