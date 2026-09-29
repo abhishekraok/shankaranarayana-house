@@ -1658,7 +1658,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Planting is inferred, beyond the photographed buildings and walking routes.
   // Separate low-detail batches keep the background inexpensive on phones.
   seed=591307;
+  // Lumpy rather than spherical crowns (the photos' canopy is irregular): each vertex moves in
+  // or out by a hash of its position, so shared corners stay joined; undersides flatten a
+  // little. Same 80 faces, so the phone budget is unchanged.
   const farCrown=new THREE.IcosahedronGeometry(1,1);
+  {const cp=farCrown.attributes.position,v=new THREE.Vector3();
+   for(let i=0;i<cp.count;i++){v.fromBufferAttribute(cp,i);
+     const h=Math.sin(v.x*12.9898+v.y*78.233+v.z*37.719)*43758.5453,k=.78+.42*(h-Math.floor(h));
+     v.multiplyScalar(k);if(v.y<-.2)v.y=-.2+(v.y+.2)*.55;cp.setXYZ(i,v.x,v.y,v.z);}
+   farCrown.computeVertexNormals();}
   const farPositions=farCrown.attributes.position;
   for(let i=0;i<farPositions.count;i++){
     const x=farPositions.getX(i),y=farPositions.getY(i),z=farPositions.getZ(i);
