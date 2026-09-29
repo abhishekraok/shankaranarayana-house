@@ -115,7 +115,7 @@ const hex=c=>c?'#'+c.getHexString():null;
 function mat(m){
   if(matIndex.has(m))return matIndex.get(m);
   const i=materials.length;matIndex.set(m,i);
-  materials.push({name:kitName.get(m)||m.name||`${m.type}.${i}`,type:m.type,color:hex(m.color),emissive:m.emissive&&m.emissive.getHex()?hex(m.emissive):null,
+  materials.push({name:kitName.get(m)||m.name||`${m.type}.${i}`,type:m.type,color:hex(m.color),emissive:m.emissive&&m.emissive.getHex()?hex(m.emissive):null,emissiveIntensity:m.emissive&&m.emissive.getHex()?m.emissiveIntensity??1:null,
     roughness:m.roughness??null,metalness:m.metalness??null,opacity:m.opacity,transparent:!!m.transparent,doubleSided:m.side===THREE.DoubleSide,
     hasMap:!!m.map,mapBase:m.map&&m.map.image&&m.map.image.baseFill?new THREE.Color().setStyle(m.map.image.baseFill).getStyle():null,mapIsPhoto:!!(m.map&&m.map.image&&!m.map.isCanvasTexture),alphaTest:m.alphaTest||0,vertexColors:!!m.vertexColors,
     proceduralMap:proceduralMap(m.map),photoMap:photoMap(m.map),

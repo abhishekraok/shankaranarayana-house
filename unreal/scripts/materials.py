@@ -257,7 +257,8 @@ def instance(i):
         # The small bulb previously emitted 40x saturated orange in addition to
         # its native point light. Keep it luminous without flooding the shrine.
         if i in bulb_materials: c = unreal.LinearColor(1.0, .84, .65, 1)
-        MEL.set_material_instance_scalar_parameter_value(mi, 'EmissionStrength', 6.0 if i in bulb_materials else 40.0)
+        # Scale by the web's own emissive intensity. The sanctum reads dark in the photos: flames (3.2) at 16, the shelf image (0.25) and skylights (0.35) no longer blow out.
+        MEL.set_material_instance_scalar_parameter_value(mi, 'EmissionStrength', 6.0 if i in bulb_materials else 5.0 * float(web.get('emissiveIntensity') or 3.2))
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass else float(web['metalness'] or 0))

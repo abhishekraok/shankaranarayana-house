@@ -82,7 +82,7 @@ for index, obj in enumerate(meta['objects']):
     light = lamp.light_component
     light.set_mobility(unreal.ComponentMobility.MOVABLE)
     light.set_editor_property('intensity_units', unreal.LightUnits.LUMENS)
-    light.set_editor_property('intensity', 25.0 if obj['name'] == 'Shrine warm bulb' else 8.0)
+    light.set_editor_property('intensity', 25.0 if obj['name'] == 'Shrine warm bulb' else 2.0)  # the sanctum reads dark in 'God room 2'
     light.set_editor_property('attenuation_radius', 500.0 if obj['name'] == 'Shrine warm bulb' else 220.0)
     light.set_editor_property('source_radius', 4.0)
     light.set_editor_property('use_temperature', True)
