@@ -1427,6 +1427,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
+  // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
+  // beside the foot of the outside stair.
+  {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
+   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
+   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
+   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
+   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
+   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05);K.roofs.push(r);}
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});

@@ -1546,6 +1546,11 @@ export function buildHouse(K) {
   }
   g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   K.labels.push({text:'Grandparents’ house',position:[0,7.8,2.5]},{text:'Open courtyard',position:[-3.2,1.0,11.8]},{text:'Family shrine',position:[0,3.9,8.0]},{text:'Tulsi',position:[-5.2,2.2,8]},{text:'Kitchen',position:[-10.2,3.25,15.2]});
+  // 15.28.36 / 15.28.49: the west end bay carrying the outside stair is a pale-blue block from
+  // ground to eaves, not white. (Local coordinates: the bay is x < -7.8.)
+  {const paleBlue=K.M.plaster.clone();paleBlue.color.set('#a4d6de');const b3=new THREE.Box3();
+   for(const o of g.children){if(!o.isMesh||!/^(Front room facade pier|Upper room front wall pier|Upper west gable pier|West exterior wall pier|Upper stair-side wall dark lower band)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.max.x<-8.1)o.material=o.name.includes('dark lower band')?o.material:paleBlue;}}
   // Place the house (authored with its front door at x=0) at K.houseShiftX, with its navigation.
   const hs=K.houseShiftX||0;g.position.x+=hs;
   for(const c of K.colliders.slice(navStart.colliders)){c.minX+=hs;c.maxX+=hs;}
