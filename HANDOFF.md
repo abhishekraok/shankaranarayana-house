@@ -33,6 +33,8 @@ Left for the user (conflicts with earlier decisions or poses not trusted):
 - 14.37.50: camera 0.1 m from the God room altar niche; needs re-aligning.
 - 15.30.02 / 15.26.12 disagree on the lake pavilion's position; left at the satellite fit.
 - 15.19.36 shows a window where the road-corner shutter is; the shutter was kept per the note.
+- 15.28.49 shows a small laterite shed with a tiled roof beside the west stair foot, but 14.46.51
+  looks down on that ground from the rear upper floor and shows open garden. Left out.
 
 ## Claude pass 3: user's notes (2026-09-28)
 
