@@ -1299,8 +1299,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.20.13 is taken from their foot. A raised concrete platform with a drain
   // opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
-  box('Lane-end concrete landing',54.2,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(54.2,-8.95,5.0,3.3,.45);
-  steps('Lane-end concrete steps down to the lawn',54.2,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
+  // 14.59.54 is taken from the top landing and 15.20.13 from the foot: both fit 1.8 m further
+  // west than first placed.
+  box('Lane-end concrete landing',52.4,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(52.4,-8.95,5.0,3.3,.45);
+  steps('Lane-end concrete steps down to the lawn',52.4,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
