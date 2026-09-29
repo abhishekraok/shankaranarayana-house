@@ -1934,7 +1934,8 @@ export function buildTemple(K) {
   // This replaces the estimated roadside annex; the entrance alignment is retained.
   const edgeWhite=K.M.plaster.clone();edgeWhite.color.set('#f4f1eb');
   const balconyRed=mat('#b65f61'),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
-  floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,stoneFloor);
+  // 15.19.36 / 14.59.21: a red-oxide floor, not white tiles.
+  floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,oxideFloor);
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
   // Leave the service porch's rear-west corner hollow; this frontage used
   // to be one solid block intersecting its newly recovered interior.
@@ -2179,7 +2180,7 @@ export function buildTemple(K) {
    box('Temple road donor sign board',33.85,2.6,1.15,2.6,.42,.05,edgeWhite);box('Temple road donor sign red border',33.85,2.6,1.17,2.7,.5,.03,balconyRed);
    // User's note: the tiled porch runs on under these piers (stopping at the wash trough);
    // no bench.
-   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,stoneFloor);
+   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,oxideFloor);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
@@ -2274,7 +2275,7 @@ export function buildTemple(K) {
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
   // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
   // inside the upper storey.
-  {const b3=new THREE.Box3();for(const o of g.children)if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6)o.position.y+=7.16-3.79;}}
+  {const b3=new THREE.Box3();for(const o of g.children)if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)o.position.y+=7.16-3.79;}}
   // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
   // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
   // the recessed shrine stair and the corner flight to the new height.

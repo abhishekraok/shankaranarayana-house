@@ -411,8 +411,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
-  // 14.59.39 / 15.11.58: a steep, deep tiled roof about as tall as the pillars.
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.75);
+  // 14.59.39 / 15.11.58 show a deeper roof than first built; 14.58.05's end view limits the pitch.
+  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25);
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
