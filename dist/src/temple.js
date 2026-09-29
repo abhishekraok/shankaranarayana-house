@@ -2137,7 +2137,8 @@ export function buildTemple(K) {
    box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,zc,x1-x0+.6,.16,len+.4,white);K.roofs.push(roof);
    box('East range upper slab red edge',x0-.3,y1+.08,zc,.1,.18,len+.4,red);
-   for(const z of [8.3,11.2,14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
+   // 15.02.23: the wall over the porch is blank; one small window further along.
+   for(const z of [14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
   // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
   // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
   // projecting portico front starts there. The entrance hall and its paintings stay behind.
@@ -2271,6 +2272,9 @@ export function buildTemple(K) {
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
    box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
+  // inside the upper storey.
+  {const b3=new THREE.Box3();for(const o of g.children)if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6)o.position.y+=7.16-3.79;}}
   // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
   // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
   // the recessed shrine stair and the corner flight to the new height.
