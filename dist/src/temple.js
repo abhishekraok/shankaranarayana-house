@@ -796,7 +796,7 @@ export function buildTemple(K) {
   const vividBlue=mat('#087ead'),maroon=mat('#633a38'),pink=mat('#b57d80');
   const dado=K.M.paleStone.clone();dado.color.set('#c6cbd0');
   const greenBand=mat('#435b55'),sheet=mat('#929ea2',.91,{side:THREE.DoubleSide});
-  const greySheet=mat('#666d68',.96,{side:THREE.DoubleSide});
+  const greySheet=mat('#4f5452',.96,{side:THREE.DoubleSide}); // 15.13.11: dark grey corrugated sheets
   const weathered=K.M.stone.clone();weathered.color.set('#83857f');
   const metalPole=mat('#b7af91',.5,{metalness:.45});
   // Ribbons form actual openings in the floral lattice, not an opaque picture.
@@ -1740,6 +1740,9 @@ export function buildTemple(K) {
     box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
   box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
   box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
+  // 15.08.42: the west corridor also ends at a blue door beside its last pillar.
+  box('Inner rear west closed blue double door',34.55,2.13,29.40,1.35,2.2,.06,blue);
+  box('Inner rear west blue door stile',34.55,2.13,29.34,.05,2.2,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);

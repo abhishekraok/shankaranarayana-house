@@ -58,6 +58,7 @@ export function buildHouse(K) {
     b(name,x,y-thick/2,z,w,thick,d,m);
     K.surface(x,z,w,d,y);
   };
+  let skirting=true; // off where a photo shows plain plaster to the floor
   const wallX = (name,x1,x2,z,y,h,opens=[],m='aqua',t=.25) => {
     let cursor=x1;
     for (const o of [...opens].sort((a,b)=>a.c-b.c)) {
@@ -69,6 +70,7 @@ export function buildHouse(K) {
     }
     if(cursor<x2) b(name+' pier',(cursor+x2)/2,y+h/2,z,x2-cursor,h,t,m,true);
     // Red oxide skirting stops at doors.
+    if(!skirting)return;
     let sc=x1;
     for(const o of [...opens].filter(o=>!o.bottom).sort((a,b)=>a.c-b.c)) {
       const left=o.c-o.w/2;
@@ -230,8 +232,9 @@ export function buildHouse(K) {
   K.cylinder(g,'Entrance court round column base rim',-4.6,.469,4.3,.178,.178,.038,verandaRed,20);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
   const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
+  const railPlinth=K.M.plaster.clone();railPlinth.color.set('#5e4636');railPlinth.roughness=1;
   function stairSideFence(a,end,x=-8.35){
-    b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,'paleStone');
+    b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,railPlinth); // 14.30.57: dark laterite, not white stone
     for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',x,y,(a+end)/2,.11,.105,end-a,courtBlue);
     for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',x,F+.63,z,.068,1.10,.052,courtBlue);
     for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',x,F+.66,z,.115,1.32,.115,courtBlue);
@@ -299,7 +302,10 @@ export function buildHouse(K) {
    b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
    const leaf=b('Clock-side room open door leaf',12.3,F+1.12,10.0,.9,2.22,.05,'wood');leaf.rotation.y=-.35;
    for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
+  // 14.44.22: the back veranda wall is pale plaster to the floor, with no red dado.
+  skirting=false;
   wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}],rearWash);
+  skirting=true;
   doorX(0,17.86,1.9,F,2.5,-1);
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
