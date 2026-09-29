@@ -1544,6 +1544,25 @@ export function buildHouse(K) {
   b('Upstairs old trunk',4.05,U+.23,5.2,1.1,.46,.56,'wood',true);
   for(const x of [3.68,4.40])detail(x,U+.235,4.908,.045,.43,.026,'metal');
 
+  // User's 14.37.50 note: the God room is deeper east-west (the photo looks back at the door from
+  // in front of the altar). Push the altar, rear wall and everything behind z 9.3 back by DEEP and
+  // stretch whatever spans that line (side walls, floor, bands, roof), with their navigation.
+  {const DEEP=1.4,CUT=9.3,b3=new THREE.Box3(),inX=(a,b)=>a>-2.7&&b<2.7,altar=/^(Altar |Shrine warm bulb|Shrine bulb cord)/;
+   const stretch=(min,max)=>new THREE.Matrix4().makeTranslation(0,0,min).multiply(new THREE.Matrix4().makeScale(1,1,(max-min+DEEP)/(max-min))).multiply(new THREE.Matrix4().makeTranslation(0,0,-min));
+   g.updateMatrixWorld(true);
+   for(const o of g.children){b3.setFromObject(o);if(b3.isEmpty()||!inX(b3.min.x,b3.max.x)||b3.min.z<5.4||b3.max.z>10.8)continue;
+     if(o===shrineRoof){ // keep the open front gable and its frieze; stretch only the rear half
+       const Z0=8.3,Z1=b3.max.z,inv=new THREE.Matrix4();
+       o.traverse(m=>{if(!m.isMesh)return;m.geometry=m.geometry.clone();inv.copy(m.matrixWorld).invert();m.geometry.applyMatrix4(m.matrixWorld);
+         const pos=m.geometry.attributes.position;for(let i=0;i<pos.count;i++){const z=pos.getZ(i);if(z>Z0)pos.setZ(i,z+DEEP*(z-Z0)/(Z1-Z0));}
+         m.geometry.applyMatrix4(inv);m.geometry.computeVertexNormals();m.geometry.computeBoundingBox();m.geometry.computeBoundingSphere();});}
+     else if(altar.test(o.name)||b3.min.z>=CUT)o.position.z+=DEEP;else if(b3.max.z>CUT+.2)o.applyMatrix4(stretch(b3.min.z,b3.max.z));}
+   for(const items of batches.values())for(const p of items){const z0=p.z-p.d/2,z1=p.z+p.d/2;if(!inX(p.x-p.w/2,p.x+p.w/2)||z0<5.4||z1>10.8)continue;
+     if(z0>=CUT)p.z+=DEEP;else if(z1>CUT+.2){p.d+=DEEP;p.z+=DEEP/2;}}
+   for(const c of K.colliders.slice(navStart.colliders)){if(!inX(c.minX,c.maxX)||c.minZ<5.4||c.maxZ>10.8)continue;
+     if(c.minZ>=CUT){c.minZ+=DEEP;c.maxZ+=DEEP;}else if(c.maxZ>CUT+.2)c.maxZ+=DEEP;}
+   for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const z0=r.z-r.d/2,z1=r.z+r.d/2;if(!inX(r.x-r.w/2,r.x+r.w/2)||z0<5.4||z1>10.8)continue;
+     if(z0>=CUT)r.z+=DEEP;else if(z1>CUT+.2){r.d+=DEEP;r.z+=DEEP/2;}}}
   // All tiny repeated timber, grille and furniture parts are instanced by material.
   const unitBox=new THREE.BoxGeometry(1,1,1),o=new THREE.Object3D();
   for(const [material,items] of batches) {

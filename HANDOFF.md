@@ -20,7 +20,10 @@ committed) still apply.
   not moved yet, as 15.30.02 would put it further north. Ask whether it should hug the corner.
 - West bank: south of the water stair (z < -25.2) it is a vertical wall with a low timber rail
   (15.26.49); the tiers and stair north of it stay (15.23.35/38).
-- Still open: 14.37.50, 15.04.59, 15.26.12, 15.30.02 need re-aligning (user will do it).
+- Re-aligned by the user: 14.37.50, 15.04.59, 15.26.12, 15.30.02. Pavilion position confirmed as is.
+- User's 14.37.50 note: God room deeper east-west. Altar, rear wall and everything behind z 9.3
+  moved back 1.4 m (house.js end pass; side walls, floor and the roof's rear half stretched);
+  tour stops behind it moved to z 12.7. 14.35.26 was fitted to the old altar and needs re-aligning.
 
 ## Claude pass 4: photo sweep (2026-09-28 night)
 
