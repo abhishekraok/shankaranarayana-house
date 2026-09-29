@@ -1616,7 +1616,8 @@ export function buildTemple(K) {
   // 15.08.04 / 15.08.10 / 15.08.42: lowered stone aisles surround a
   // raised pillared mandapa. The front hall has marble-clad column bases.
   // Footprint and bay spacing are inferred within the photographed exterior.
-  const sanctumStone=K.M.plaster.clone();sanctumStone.color.set('#aaa591');sanctumStone.roughness=.88;
+  // 15.08.10 / 15.08.42 / sanctum photos: weathered grey granite, not tan.
+  const sanctumStone=K.M.plaster.clone();sanctumStone.color.set('#8f928b');sanctumStone.roughness=.88;
   function innerColumn(n,x,z,base,h,scale=1){
     box(n+' shaft',x,base+h/2,z,.38*scale,h,.38*scale,sanctumStone,true);
     for(const [yy,w,hh] of [[.10,.75,.20],[.38,.58,.30],[h*.48,.52,.48],[h-.25,.62,.18],[h-.08,.88,.16]])
@@ -1666,7 +1667,7 @@ export function buildTemple(K) {
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
   for(const x of [34.3,43.7]){
-    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,sanctumStone,true);
+    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,laterite,true); // 15.08.10: red laterite faces
     floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
   }
   for(const x of [34.8,37.3,40.7,43.2]){
@@ -1722,10 +1723,13 @@ export function buildTemple(K) {
     for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
   }
   // Worn pale interior wall panels sit between the red masonry joints.
+  // 15.08.42 / 'inner sanctum, left side': the rear and west panels are dark weathered
+  // stone; the east side is painted blue.
+  const innerDarkStone=mat('#6d6a62',.95),innerEastBlue=mat('#3a82ad',.85);
   for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
-    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,white);
+    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:innerDarkStone);
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
-    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,white);
+    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
   box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
   box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
@@ -1787,7 +1791,9 @@ export function buildTemple(K) {
   innerPaving('Inner mandapa raised paving',39,24,5.2,6.2,1.06);
   for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
   const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
-  for(const x of [36.6,41.4])for(const z of [22.55,25.45]){
+  // 15.08.42 shows the X-braced grilles on the west side; 'inner sanctum, left side' shows the
+  // east side open between its columns.
+  for(const x of [36.6])for(const z of [22.55,25.45]){
     for(const dz of [-1.1,0,1.1])box('Inner mandapa grille upright',x,2.18,z+dz,.06,2.08,.06,dark);
     for(const y of [1.18,2.20,3.22])box('Inner mandapa grille rail',x,y,z,.06,.07,2.25,dark);
     for(const sign of [-1,1])K.beam(g,'Inner mandapa X grille',[x,1.2,z-sign*1.1],[x,3.2,z+sign*1.1],.045,dark);
@@ -1883,7 +1889,7 @@ export function buildTemple(K) {
   for(let j=0;j<8;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),38.37+j*.18,3.08,24.02);
   const gateBlue=mat('#1b8fb8',.6);
   for(const side of [-1,1]){
-    const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.95);leaf.rotation.y=side*1.2;g.add(leaf);
+    const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.9);leaf.rotation.y=side*(Math.PI-.14);g.add(leaf); // folded back flat beside the frame, as in 'God room 2'
     const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
     const lw=-side*.9;
     for(const y of [.62,1.9,3.35])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
