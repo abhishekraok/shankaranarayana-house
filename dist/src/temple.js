@@ -1726,11 +1726,11 @@ export function buildTemple(K) {
     for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
   }
   // Worn pale interior wall panels sit between the red masonry joints.
-  // 15.08.42 / 'inner sanctum, left side': the rear and west panels are dark weathered
-  // stone; the east side is painted blue.
+  // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
+  // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
   const innerDarkStone=mat('#6d6a62',.95),innerEastBlue=mat('#3a82ad',.85);
   for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
-    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:innerDarkStone);
+    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:white);
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
   box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
@@ -2297,6 +2297,13 @@ export function buildTemple(K) {
      b3.setFromObject(o);if(b3.isEmpty())continue;
      if(/coping/.test(o.name)){if(b3.min.y>4.2)o.position.y-=b3.min.y-(Y1-.02);continue;}
      const f=(Y1-Y0)/(b3.max.y-Y0);o.scale.y*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.y+=Y0-b3.min.y;}}
+  // 15.05.42: the west veranda's southern stretch (z > 30.5) has plain openings and a solid,
+  // mossy parapet; the scallops and pierced panels belong to the northern part (15.11.17).
+  {const b3=new THREE.Box3(),Z0=30.5,mossy=mat('#b9b7a8',.97);g.updateMatrixWorld(true);
+   for(const rg of g.children.filter(c=>c.isGroup&&c.name==='Outer circuit veranda roof'))
+     for(const o of [...rg.children]){if(!/^West veranda (pierced parapet|parapet pier)$/.test(o.name))continue;b3.setFromObject(o);if(b3.min.z>Z0)rg.remove(o);}
+   for(const o of [...g.children]){if(o.name!=='West veranda blue scalloped bay')continue;b3.setFromObject(o);if(b3.min.z>Z0)g.remove(o);}
+   box('West veranda solid mossy parapet south',24.2,4.08,(Z0+45.4)/2,.22,.9,45.4-Z0,mossy);}
   // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
   // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
   // the bay to its north is open, with a steep concrete stair climbing inside it.
