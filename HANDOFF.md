@@ -29,7 +29,9 @@ Left for the user (conflicts with earlier decisions or poses not trusted):
   lodge, where the model has the house's temple-side wing and the clock-side room.
 - IMG_20130720_182845 looks up at the God room's tiled roof underside; the model's upper floor
   slab covers that space (an upstairs trunk stands on it).
-- 15.15.51: side platforms match the plinth band; the saved camera is ~2 m too far inside.
+- 15.15.51 (the saved camera is right: moving it back 2 m shrinks the door): the photo shows the
+  side platforms only near the rear pillars, with visible front faces ~0.75 m above a lower
+  floor that runs to the entrance. The model runs them the hall's full depth. Needs a decision.
 - 14.37.50: camera 0.1 m from the God room altar niche; needs re-aligning.
 - 15.30.02 / 15.26.12 disagree on the lake pavilion's position; left at the satellite fit.
 - 15.19.36 shows a window where the road-corner shutter is; the shutter was kept per the note.
