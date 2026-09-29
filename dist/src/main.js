@@ -140,6 +140,8 @@ const tour=createPhotoTour(photos,supportY,K.houseShiftX);
 // Change only the entry time: the route, segment order and loop stay intact.
 const tourStartTime=tour.spans.find(s=>s.a.label==='Along the lane').start;
 tourTime=tourStartTime;
+// The opening flight (tour.intro) plays once before the loop, on load and on Tour.
+let introClock=0;
 // Camera-only lift on the far bank; feet and collision height stay unchanged.
 function lakeCameraLift(x,z){z=farZinv(z,x);
  return .5*THREE.MathUtils.smoothstep(-z,37,38.5)*THREE.MathUtils.smoothstep(x,-8.5,-6.5)*(1-THREE.MathUtils.smoothstep(x,58,60));
@@ -189,9 +191,9 @@ setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
 $('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
-$('tour-btn').onclick=()=>{tourTime=tourStartTime;startTour();};
+$('tour-btn').onclick=()=>{tourTime=tourStartTime;introClock=0;startTour();};
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
-$('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;startTour();};
+$('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;introClock=null;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
 $('reset').onclick=()=>teleport(destinations.front);
 $('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
@@ -256,7 +258,9 @@ function walkPad(dt){
  if(press(3))startTour();
  else if(press(0)&&mode==='tour'){tourPaused=!tourPaused;updateModeUI();}
  if((lx||ly||rx||ry||press(1))&&!['walk','fly'].includes(mode)){
-  const q=camera.quaternion.clone();if(mode==='tour'||!entered)walkPosition.copy(camera.position);setMode('walk');
+  const q=camera.quaternion.clone();if(mode==='tour'||!entered){
+   // Leaving during the opening flight walks on from its landing spot, not the far-bank roof.
+   if(introClock!==null){walkPosition.copy(tour.intro.sample(tour.intro.duration).position);introClock=null;tourTime=tourStartTime;}else walkPosition.copy(camera.position);}setMode('walk');
   const e=new THREE.Euler().setFromQuaternion(q,'YXZ');yaw=e.y;pitch=e.x;syncLook();
  }
  if(['walk','fly'].includes(mode)){
@@ -285,7 +289,7 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){if(!tourPaused&&!$('about').open)tourTime+=Math.min(frameTime,1);const view=tour.sample(tourTime);camera.position.copy(view.position);camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}

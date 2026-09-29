@@ -608,6 +608,17 @@ for(const span of tour.spans){
   }
 }
 assert.ok(tour.sample(tour.duration).position.distanceTo(tour.sample(0).position)<1e-9,'The tour must loop continuously');
+// User's request: an opening flight from the 15.26.12 far-bank view to the lane before the
+// house, joining the loop at 'Along the lane' without a jump and without passing through anything.
+{const intro=tour.intro,lane=tour.spans.find(s=>s.a.label==='Along the lane');
+ assert.ok(intro.duration>5&&intro.sample(0).position.distanceTo(new THREE.Vector3(-12.59,5.6,-42.85))<1e-6,'Tour opens at the far-bank view');
+ assert.ok(intro.sample(intro.duration).position.distanceTo(tour.sample(lane.start).position)<.02,'Flight lands where the loop continues');
+ assert.ok(intro.sample(intro.duration).quaternion.angleTo(tour.sample(lane.start).quaternion)<.02,'Flight ends facing along the lane');
+ for(let t=0;t<=intro.duration;t+=.05){const v=intro.sample(t),p=v.position;
+   assert.ok(Object.values(p).every(Number.isFinite),'Flight position is finite');
+   const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-.3<c.top);
+   assert.ok(!hit,'Opening flight clears '+(hit&&JSON.stringify(hit))+' at '+p.toArray().map(v=>v.toFixed(2)));
+   assert.ok(p.y>=supportY(p.x,p.z,p.y)+1.6,'Opening flight stays above the ground at '+p.toArray().map(v=>v.toFixed(2)));}}
 for(const span of tour.spans){
   const t=span.start;
   for(const join of [t,t+span.hold]){

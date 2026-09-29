@@ -127,5 +127,33 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0) {
     const smooth=f2*(3-2*f);
     return {position,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:s.a.photo||null};
   }
-  return {duration,points,spans,sample};
+  // User's request: the tour opens once with a flight. From the raised far-bank view of
+  // 15.26.12 it turns to the house, floats across the lake and lands on the lane before the
+  // front door, then joins the loop at 'Along the lane'.
+  const hx=houseShiftX;
+  const introRoute=[
+    {p:[-12.59,5.6,-42.85],look:[-3.2,2.8,-25.2],label:'Across the lake from the far bank',hold:2.5},
+    {p:[-12.59,5.6,-42.85],look:[hx,3,1],label:'Towards the house',hold:.3},
+    {p:[-7,6.4,-25],look:[hx,3,1],label:'Over the lake',hold:0},
+    {p:[hx,3.6,-11],look:[hx,2.6,1],label:'Towards the house',hold:0},
+    {p:[hx,1.671,-6],look:[hx,2.3,1],label:'In front of the house',hold:1.2},
+    {p:[0,1.671,-6],look:[15,2,-6],label:'Along the lane',hold:0}];
+  const introPositions=introRoute.map(p=>new THREE.Vector3(...p.p)),introSpans=[];let introDuration=0;
+  for(let i=0;i<introRoute.length-1;i++){
+    const a=introRoute[i],b=introRoute[i+1],qa=qFor(a),qb=qFor(b);
+    const travel=Math.max(.8,introPositions[i].distanceTo(introPositions[i+1])/4.5,qa.angleTo(qb)/.5);
+    introSpans.push({a,b,qa,qb,start:introDuration,hold:a.hold,travel});introDuration+=a.hold+travel;
+  }
+  // Catmull-Rom through the flight points gives one continuous glide, not a stop at each.
+  const introCurve=new THREE.CatmullRomCurve3(introPositions,false,'centripetal');
+  const introU=introPositions.map((_,i)=>i/(introPositions.length-1));
+  function sampleIntro(time){
+    const t=THREE.MathUtils.clamp(time,0,introDuration);
+    const found=introSpans.findIndex(s=>t<s.start+s.hold+s.travel),i=found<0?introSpans.length-1:found,s=introSpans[i];
+    const f=THREE.MathUtils.clamp((t-s.start-s.hold)/s.travel,0,1),smooth=f*f*(3-2*f);
+    const position=introCurve.getPoint(introU[i]+(introU[i+1]-introU[i])*smooth);
+    if(supportY)position.y=Math.max(position.y,supportY(position.x,position.z,position.y-1.62)+1.62);
+    return {position,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:null};
+  }
+  return {duration,points,spans,sample,intro:{duration:introDuration,sample:sampleIntro,points:introRoute}};
 }

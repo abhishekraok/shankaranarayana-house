@@ -6,12 +6,12 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.waitForFunction(()=>window.houseWalk?.ready);
  assert.equal(await page.evaluate(()=>houseWalk.getState().mode),'tour');
  const initial=await page.evaluate(()=>houseWalk.getState());
- assert.ok(initial.position[0]>=-.1&&initial.position[0]<8&&initial.position[2]<-5&&initial.position[1]<2,'Tour opens just outside the house');
+ assert.ok(Math.hypot(initial.position[0]+12.59,initial.position[2]+42.85)<1&&initial.position[1]>5,'Tour opens with the far-bank view across the lake (15.26.12)');
  await page.evaluate(()=>{document.getElementById('tour-btn').click();document.getElementById('tour-pause').click();});
  // Wait for rendered frames rather than wall time; headless frames can exceed 50 ms.
  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
  const restart=await page.evaluate(()=>houseWalk.getState());
- assert.ok(Math.abs(restart.position[0])<.01&&restart.position[2]<-5,'Restart uses the lane just outside the house');
+ assert.ok(Math.hypot(restart.position[0]+12.59,restart.position[2]+42.85)<1,'Restart replays the opening flight from the far bank');
  const bank=await page.evaluate(()=>{
   houseWalk.teleport({p:[23.1,1.38,-37.4],target:[25,2,-1]});
   const before=houseWalk.getState();houseWalk.moveFor('KeyD',.3);const moved=houseWalk.getState();
