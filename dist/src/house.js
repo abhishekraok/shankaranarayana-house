@@ -162,11 +162,13 @@ export function buildHouse(K) {
   // Lowered central entrance with paired raised sitting platforms.
   // Entrance photos show raised seating against the room wall, with a lower
   // continuous walkway between the stout inner posts and slender outer row.
+  // 14.56.30: the platform faces are dark weathered grey plaster under the stone edge.
+  const riserGrey=K.M.plaster.clone();riserGrey.color.set('#85847c');riserGrey.roughness=1;
   for(const side of [-1,1]) {
     floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,1.15,2.99,1.80,.75,verandaRed,.30);
-    b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,'paleStone');
+    b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,riserGrey);
     b('Veranda dark stone sitting edge',side*2.745,.765,.29,2.99,.045,.22,'stone');
-    b('Veranda entrance end riser',side*1.26,.59,1.15,.07,.27,1.80,'paleStone');
+    b('Veranda entrance end riser',side*1.26,.59,1.15,.07,.27,1.80,riserGrey);
     b('Veranda entrance end stone coping',side*1.31,.768,1.15,.16,.045,1.80,'stone');
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
