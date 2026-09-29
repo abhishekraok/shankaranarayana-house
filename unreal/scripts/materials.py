@@ -36,6 +36,11 @@ veg_use = {}
 for o in meta['objects']:
     for m in o['materials']: u = veg_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += bool(VEG.search(o['name'])) and not re.search(r'trunk', o['name'], re.I)
 foliage_mats = {m for m, (n, v) in veg_use.items() if v / n >= 0.5}
+# 'God room 2': the doorway bosses and fittings are polished brass with warm highlights.
+brass_use = {}
+for o in meta['objects']:
+    for m in o['materials']: u = brass_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += bool(re.search(r'brass', o['name'], re.I))
+polished_brass = {m for m, (n, b) in brass_use.items() if b / n >= 0.5} - altar_brass
 
 AT = unreal.AssetToolsHelpers.get_asset_tools(); MEL = unreal.MaterialEditingLibrary; EAL = unreal.EditorAssetLibrary
 DIR = '/Game/Materials'
@@ -259,9 +264,10 @@ def instance(i):
         if i in bulb_materials: c = unreal.LinearColor(1.0, .84, .65, 1)
         # Scale by the web's own emissive intensity. The sanctum reads dark in the photos: flames (3.2) at 16, the shelf image (0.25) and skylights (0.35) no longer blow out.
         MEL.set_material_instance_scalar_parameter_value(mi, 'EmissionStrength', 6.0 if i in bulb_materials else 5.0 * float(web.get('emissiveIntensity') or 3.2))
+    if i in polished_brass: c = unreal.LinearColor(.48, .30, .085, 1)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
-    MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
-    MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass else float(web['metalness'] or 0))
+    MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
+    MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
     EAL.save_loaded_asset(mi); made[i] = mi; return mi
 
 def lookup(slot):
