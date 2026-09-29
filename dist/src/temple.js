@@ -1276,10 +1276,13 @@ export function buildTemple(K) {
   // of the left range. Their exact spacing is inferred from the walking sequence.
   const shrineTexture=new THREE.TextureLoader().load('./assets/temple-outer-shrines.jpg');shrineTexture.colorSpace=THREE.SRGBColorSpace;
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
+  const shrineStepGrey=mat('#9b9a93',.95);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
     const z=37.30+i*2.48;
-    box('Outer shrine raised altar base',52.23,1.02,z,2.72,.84,2.32,circuitStone,true);
+    // 15.04.59: two grey concrete steps below the red niche sill, not one tan block.
+    box('Outer shrine raised altar base',52.42,1.02,z,2.34,.84,2.32,shrineStepGrey,true);
+    box('Outer shrine altar base lower step',51.06,.81,z,.38,.42,2.32,shrineStepGrey,true);
     box('Outer shrine red altar front',51.61,1.49,z,.18,.62,2.30,red);
     box('Outer shrine pale niche backing',53.66,2.10,z,.08,1.32,2.22,agedWhite);
     // Retain the actual stones and painted background from the supplied image.
