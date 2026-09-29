@@ -2282,6 +2282,14 @@ export function buildTemple(K) {
    for(const z of [15.47,16.93])box('Outer shrine recessed stair side riser',55.75,(Y1+.1)/2,z,1.4,Y1-.1,.04,white);
    box('Entrance circuit corner landing',56.2,Y1-.09,6.67,2.7,.18,.32,stoneFloor);K.surface(56.2,6.67,2.7,.32,Y1);
    steps('Entrance circuit worn corner steps',56.2,7.6,2.7,1.5,.1,Y1,'-z',5);}
+  // 15.11.17 / 15.11.08: over the west veranda's slab the parapet is low (~0.5 m), not a
+  // tall pierced screen.
+  {const b3=new THREE.Box3(),Y0=3.63,Y1=4.13;g.updateMatrixWorld(true);
+   for(const o of [...g.children,...g.children.flatMap(c=>c.isGroup?c.children:[])]){
+     if(!/^West veranda (pierced parapet|parapet pier|parapet continuous coping)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.isEmpty())continue;
+     if(/coping/.test(o.name)){if(b3.min.y>4.2)o.position.y-=b3.min.y-(Y1-.02);continue;}
+     const f=(Y1-Y0)/(b3.max.y-Y0);o.scale.y*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.y+=Y0-b3.min.y;}}
   // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
   // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
   // the bay to its north is open, with a steep concrete stair climbing inside it.
