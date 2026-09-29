@@ -1,15 +1,24 @@
 # A quiet walk
 
 Run `unreal/play.cmd` or `unreal/build/Windows/QuietWalk.exe` to open the native game.
-The launcher prefers the standalone build; if absent, it uses the generated project
-and compiled editor module. No browser or photo server is needed.
+The launcher prefers the standalone build, but only when its paks are newer than every
+file under the project's `Content` and the editor game module; otherwise it warns and
+runs the generated project with the compiled editor module (`-game`). No browser or
+photo server is needed.
 
+- It opens on the web app's guided tour (`blender/build/unreal/tour.json`, copied to
+  `Content/Tour` by `install_game.py` and staged into the package): the opening flight
+  from the far bank, then the walking loop. Esc / Menu (Start) opens the menu; WASD or
+  either stick leaves the tour and walks on from the camera's spot (from the landing on
+  the lane during the flight). The pause menu can restart the tour.
 - Begin / Continue, pause, settings, controls, save & quit.
 - Walk with WASD and mouse, or the controller sticks. Shift / right trigger walks faster.
 - E / A notices a nearby place. J / Y opens the seven-place journal; discovered places
   can be revisited. Guidance can be disabled. There is no timer or required order.
 - Escape / Menu pauses. Return to the entrance is available if you get stuck.
 - Sensitivity, FOV, invert look, guidance, volume, graphics and display settings persist.
+  By default pushing the mouse or right stick up looks down; Invert makes up look up.
+  Saves from before this default (no `LookVersion`) have Invert reset once.
 - No jump, camera bob or motion blur. Position saves every 20 seconds on safe ground,
   when noticing a place and on exit. A new walk asks before replacing progress.
 

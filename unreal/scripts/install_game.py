@@ -53,6 +53,12 @@ def main():
     data['Modules'] = modules + [{'Name': 'QuietWalk', 'Type': 'Runtime', 'LoadingPhase': 'Default'}]
     project_file.write_text(json.dumps(data, indent=2) + '\n')
     shutil.copytree(ROOT / 'game/Source', PROJECT / 'Source', dirs_exist_ok=True)
+    # The guided tour the game plays on launch; staged into the package as a raw file.
+    tour = ROOT.parent / 'blender/build/unreal/tour.json'
+    if not tour.exists():
+        raise SystemExit(f'Missing {tour}; export the scene first.')
+    (PROJECT / 'Content/Tour').mkdir(parents=True, exist_ok=True)
+    shutil.copy2(tour, PROJECT / 'Content/Tour/tour.json')
     managed(PROJECT / 'Config/DefaultEngine.ini', '''
 [/Script/EngineSettings.GameMapsSettings]
 GlobalDefaultGameMode=/Script/QuietWalk.WalkGameMode
@@ -89,6 +95,7 @@ bCaptureMouseOnLaunch=False
 [/Script/UnrealEd.ProjectPackagingSettings]
 +MapsToCook=(FilePath="/Game/Maps/Site")
 +DirectoriesToAlwaysCook=(Path="/Game/WalkAudio")
++DirectoriesToAlwaysStageAsUFS=(Path="Tour")
 FullRebuild=True
 bSkipEditorContent=True
 

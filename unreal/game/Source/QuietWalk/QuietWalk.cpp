@@ -37,6 +37,7 @@
 #include "Misc/Parse.h"
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
+#include "Serialization/JsonReader.h"
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, QuietWalk, "QuietWalk");
 
@@ -46,6 +47,9 @@ FText Txt(const FString& S) { return FText::FromString(S); }
 TSharedRef<STextBlock> Label(const FString& S, int Size=16, FLinearColor Color=Cream) {
     return SNew(STextBlock).Text(Txt(S)).Font(FCoreStyle::GetDefaultFontStyle("Regular",Size)).ColorAndOpacity(Color).WrapTextAt(530);
 }
+// Saves from before LookVersion 1 used push-up-looks-up as the default. The default is now
+// flipped; reset InvertY once so the new default is what the player gets.
+void UpgradeSave(UWalkSave* S) { if(S->LookVersion<1){S->InvertY=false;S->LookVersion=1;} }
 }
 
 class SQuietMenu : public SCompoundWidget {
@@ -93,11 +97,13 @@ public:
             Heading(TEXT("A quiet walk"),TEXT("A house, a temple, a lake.\nTake your time; there is no wrong turn."));
             if(S->HasWalk) Add(TEXT("Continue your walk"),"continue");
             Add(S->HasWalk?TEXT("Begin a new walk"):TEXT("Begin your walk"),"new");
+            if(O->TourPosition.Num()>1) Add(TEXT("Return to the guided tour"),"tour");
             Add(TEXT("Settings"),"settings"); Add(TEXT("How to walk"),"controls"); Add(TEXT("Quit"),"quit");
             Rows->AddSlot().AutoHeight().Padding(0,24,0,0)[Label(TEXT("A reconstruction from photographs, 2011–2013.\nSome spaces and details are approximate."),14,Muted)];
         } else if(O->Page=="pause") {
             Heading(TEXT("Take a breath"),TEXT("Your walk is paused."));
-            Add(TEXT("Resume"),"resume"); Add(TEXT("Places journal"),"journal"); Add(TEXT("Settings"),"settings"); Add(TEXT("How to walk"),"controls");
+            Add(TEXT("Resume"),"resume"); Add(TEXT("Places journal"),"journal");
+            if(O->TourPosition.Num()>1) Add(TEXT("Watch the guided tour"),"tour"); Add(TEXT("Settings"),"settings"); Add(TEXT("How to walk"),"controls");
             Add(TEXT("Return to the house entrance"),"rescue"); Add(TEXT("Save & return to title"),"title"); Add(TEXT("Save & quit"),"quit");
         } else if(O->Page=="settings") {
             Heading(TEXT("Settings"),TEXT("Comfort, sound and display. Saved automatically."));
@@ -113,7 +119,7 @@ public:
             Rows->AddSlot().AutoHeight().Padding(0,10)[Label(TEXT("Select a setting to cycle its choices."),13,Muted)];
         } else if(O->Page=="controls") {
             Heading(TEXT("How to walk"),TEXT("Mouse & keyboard, or a controller."));
-            Rows->AddSlot().AutoHeight().Padding(0,0,0,24)[Label(TEXT("W A S D / left stick     Walk\nMouse / right stick      Look around\nShift / right trigger      Walk a little faster\nE / A                            Notice a place\nJ / Y                             Places journal\nEsc / Menu                  Pause & resume\n\nIn menus: arrows or D-pad, Enter / A to select, Esc / B to go back.\n\nStairs are walked, not jumped. If you lose your way, use Return to the house entrance from Pause.\n\nProgress saves while walking, when you notice a place, and when you leave."),18)];
+            Rows->AddSlot().AutoHeight().Padding(0,0,0,24)[Label(TEXT("W A S D / left stick     Walk\nMouse / right stick      Look around\nShift / right trigger      Walk a little faster\nE / A                            Notice a place\nJ / Y                             Places journal\nEsc / Menu                  Pause & resume\n\nThe guided tour plays on launch. Walk or move a stick to leave it and walk on from there.\n\nIn menus: arrows or D-pad, Enter / A to select, Esc / B to go back.\n\nStairs are walked, not jumped. If you lose your way, use Return to the house entrance from Pause.\n\nProgress saves while walking, when you notice a place, and when you leave."),18)];
             Add(TEXT("Back"),"back");
         } else if(O->Page=="journal") {
             Heading(TEXT("Places along the way"),FString::Printf(TEXT("%d of %d noticed. Visit in any order."),S->Visited.Num(),O->Places.Num()));
@@ -157,12 +163,20 @@ void AWalkCharacter::SetupPlayerInputComponent(UInputComponent* I) {
     I->BindKey(EKeys::LeftShift,IE_Pressed,this,&AWalkCharacter::Brisk); I->BindKey(EKeys::LeftShift,IE_Released,this,&AWalkCharacter::Slow);
     I->BindKey(EKeys::Gamepad_RightTrigger,IE_Pressed,this,&AWalkCharacter::Brisk); I->BindKey(EKeys::Gamepad_RightTrigger,IE_Released,this,&AWalkCharacter::Slow);
 }
-void AWalkCharacter::Forward(float V) { AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::X),V); }
-void AWalkCharacter::Right(float V) { AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::Y),V); }
-void AWalkCharacter::LookX(float V) { if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*C->Save->Sensitivity*2.0f); }
-void AWalkCharacter::LookY(float V) { if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*C->Save->Sensitivity*(C->Save->InvertY?-2.f:2.f)); }
-void AWalkCharacter::StickX(float V) { if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*GetWorld()->GetDeltaSeconds()*90*C->Save->Sensitivity); }
-void AWalkCharacter::StickY(float V) { if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*GetWorld()->GetDeltaSeconds()*70*C->Save->Sensitivity*(C->Save->InvertY?-1:1)); }
+// While the guided tour plays, walking input (keys or either stick) leaves it and walks on
+// from the tour camera's spot; the mouse alone does not, so a nudge cannot end the tour.
+static bool Touring(AController* Controller,float V,bool TakesOver) {
+    auto* C=Cast<AWalkController>(Controller); if(!C||C->Walking) return false;
+    if(TakesOver&&FMath::Abs(V)>.25f) C->TakeOver();
+    return !C->Walking;
+}
+void AWalkCharacter::Forward(float V) { if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::X),V); }
+void AWalkCharacter::Right(float V) { if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::Y),V); }
+void AWalkCharacter::LookX(float V) { if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*C->Save->Sensitivity*2.0f); }
+// Default vertical look: pushing the mouse or right stick up looks down. InvertY flips it.
+void AWalkCharacter::LookY(float V) { if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*C->Save->Sensitivity*(C->Save->InvertY?2.f:-2.f)); }
+void AWalkCharacter::StickX(float V) { if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*GetWorld()->GetDeltaSeconds()*90*C->Save->Sensitivity); }
+void AWalkCharacter::StickY(float V) { if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*GetWorld()->GetDeltaSeconds()*70*C->Save->Sensitivity*(C->Save->InvertY?1:-1)); }
 void AWalkCharacter::Brisk(){GetCharacterMovement()->MaxWalkSpeed=300;}
 void AWalkCharacter::Slow(){GetCharacterMovement()->MaxWalkSpeed=180;}
 
@@ -173,6 +187,7 @@ void AWalkController::BeginPlay() {
     Smoke=ResumeSmoke||FParse::Param(FCommandLine::Get(),TEXT("WalkSmoke"));
     Save=(Smoke&&!ResumeSmoke)?nullptr:Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
     if(!Save||Save->Version!=1) Save=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));
+    UpgradeSave(Save);
     Save->Sensitivity=FMath::Clamp(Save->Sensitivity,.5f,2.f); Save->Fov=FMath::Clamp(Save->Fov,70.f,100.f); Save->Volume=FMath::Clamp(Save->Volume,0.f,1.f); Save->Quality=FMath::Clamp(Save->Quality,0,3);
     // Feet positions come from the authored web viewpoints, in centimetres (x,z,y).
     Places={
@@ -203,8 +218,10 @@ void AWalkController::BeginPlay() {
     GEngine->GameViewport->AddViewportWidgetContent(Hud.ToSharedRef(),1); Hud->SetVisibility(EVisibility::HitTestInvisible);
     TitleCamera=GetWorld()->SpawnActor<ACameraActor>(FVector(-700,-3700,300),FRotator(-3,35,0));
     if(TitleCamera)TitleCamera->GetCameraComponent()->SetFieldOfView(75);
-    Travel(0); Show("home");
-    UE_LOG(LogTemp,Display,TEXT("QUIETWALK ready: native menus, walking, journal and saves"));
+    Travel(0);
+    // Like the web app: open straight into the guided tour; Esc / Menu brings up the menu.
+    if(LoadTour()){TourShownAt=FPlatformTime::Seconds();TickTour(0);Show("");}else{UE_LOG(LogTemp,Warning,TEXT("QUIETWALK tour missing: Content/Tour/tour.json"));Show("home");}
+    UE_LOG(LogTemp,Display,TEXT("QUIETWALK ready: guided tour, native menus, walking, journal and saves"));
 }
 void AWalkController::EndPlay(const EEndPlayReason::Type R) {
     if(Save&&Walking&&!Smoke) Persist(true);
@@ -224,7 +241,7 @@ void AWalkController::Show(const FString& P) {
     int32 FocusIndex=0;
     if(Menu&&Page==P)for(int32 I=0;I<Menu->Buttons.Num();I++)if(Menu->Buttons[I]->HasKeyboardFocus())FocusIndex=I;
     if(Menu) { GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); Menu.Reset(); }
-    Page=P; bool Open=!P.IsEmpty(); SetPause(Open&&Walking); bShowMouseCursor=Open;
+    Page=P; bool Open=!P.IsEmpty(); SetPause(Open&&(Walking||TourPosition.Num()>1)); bShowMouseCursor=Open;
     if(!Walking&&TitleCamera)SetViewTarget(TitleCamera);else if(GetPawn())SetViewTarget(GetPawn());
     ResetIgnoreMoveInput();ResetIgnoreLookInput();SetIgnoreMoveInput(Open);SetIgnoreLookInput(Open);
     FocusAt=FPlatformTime::Seconds()+.3;PendingFocus=FocusIndex;
@@ -233,8 +250,8 @@ void AWalkController::Show(const FString& P) {
     if(Open) { Menu=SNew(SQuietMenu).Owner(this); GEngine->GameViewport->AddViewportWidgetContent(Menu.ToSharedRef(),10); FInputModeUIOnly M; M.SetWidgetToFocus(Menu); M.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); SetInputMode(M); Menu->Focus(FocusIndex); }
     else {SetInputMode(FInputModeGameOnly()); FSlateApplication::Get().SetAllUserFocusToGameViewport();}
 }
-void AWalkController::Back(){if(Page=="home")return;if(Page=="pause")Show("");else if(Page.StartsWith("place:"))Show("journal");else Show(Walking?"pause":"home");}
-void AWalkController::PauseWalk(){if(Walking){if(Page.IsEmpty())Show("pause");else Back();}}
+void AWalkController::Back(){if(Page=="home"){if(!Walking&&TourPosition.Num()>1)Show("");return;}if(Page=="pause")Show("");else if(Page.StartsWith("place:"))Show("journal");else Show(Walking?"pause":"home");}
+void AWalkController::PauseWalk(){if(Walking){if(Page.IsEmpty())Show("pause");else Back();}else if(Page.IsEmpty())Show("home");else Back();}
 void AWalkController::OpenJournal(){if(Walking)Show("journal");}
 void AWalkController::Notify(const FString& T){Toast=T;ToastUntil=FPlatformTime::Seconds()+6;}
 bool AWalkController::RestorePosition(FVector P, FRotator R) {
@@ -278,6 +295,7 @@ void AWalkController::Action(const FString& Id) {
     else if(Id=="new") {if(Save->HasWalk)Show("new-confirm");else StartWalk(false);}
     else if(Id=="new-confirmed"&&Page=="new-confirm")StartWalk(false);
     else if(Id=="resume"&&Walking)Show("");
+    else if(Id=="tour"&&TourPosition.Num()>1){if(Walking)StartTour();else Show("");}
     else if(Id=="back")Back();
     else if(Id=="settings"||Id=="controls"||Id=="journal"||Id.StartsWith("place:"))Show(Id);
     else if(Id=="title"){if(Persist(true)){Walking=false;Travel(0);Show("home");}}
@@ -306,7 +324,13 @@ FString AWalkController::Status() const {
     return S;
 }
 FString AWalkController::Prompt() const {
-    if(!Page.IsEmpty()||!Walking)return TEXT("");
+    if(!Page.IsEmpty())return TEXT("");
+    if(!Walking){
+        if(TourPosition.Num()<2||!Save->Guidance)return TEXT("");
+        FString L=TourLabel();
+        if(FPlatformTime::Seconds()<TourShownAt+12)L+=TEXT("\nWASD / sticks  Walk from here      Esc / Menu  Menu");
+        return L;
+    }
     if(FPlatformTime::Seconds()<ToastUntil)return Toast;
     if(Places.IsValidIndex(Nearby)) return TEXT("E / A  ·  ")+Places[Nearby].Title;
     return TEXT("");
@@ -316,7 +340,8 @@ void AWalkController::PlayerTick(float D) {
     if(!InitialViewReady&&GetPawn()){InitialViewReady=Travel(0);ApplySettings();}
     if(Menu&&FocusAt>0&&FPlatformTime::Seconds()>=FocusAt){Menu->Focus(PendingFocus);FocusAt=0;}
     if(Smoke)SmokeTick();
-    if(!Walking||!Page.IsEmpty())return;
+    if(!Walking){if(Page.IsEmpty())TickTour(D);return;}
+    if(!Page.IsEmpty())return;
     if(!Smoke&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
     auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
     if(Smoke&&SmokeMoving)C->Forward(1);
@@ -327,11 +352,87 @@ void AWalkController::PlayerTick(float D) {
     if(C->GetCharacterMovement()->IsMovingOnGround()&&C->GetVelocity().Size2D()>40){FootstepTimer+=D;if(FootstepTimer> (C->GetVelocity().Size2D()>210?.43f:.65f)){FootstepTimer=0; if(auto* Sound=LoadObject<USoundWave>(nullptr,TEXT("/Game/WalkAudio/Footstep.Footstep")))UGameplayStatics::PlaySound2D(this,Sound,Save->Volume*.3f,FMath::FRandRange(.92f,1.08f));}}else FootstepTimer=.3f;
 }
 
+bool AWalkController::LoadTour() {
+    FString Text;
+    if(!FFileHelper::LoadFileToString(Text,*(FPaths::ProjectContentDir()/TEXT("Tour/tour.json"))))return false;
+    TSharedPtr<FJsonObject> J;
+    if(!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),J)||!J.IsValid())return false;
+    const TArray<TSharedPtr<FJsonValue>>* Frames=nullptr;
+    if(!J->TryGetArrayField(TEXT("frames"),Frames)||Frames->Num()<8)return false;
+    TourFps=J->GetNumberField(TEXT("fps"));TourFov=J->GetNumberField(TEXT("fov"));
+    if(TourFps<=0)return false;
+    TourPosition.Reset();TourRotation.Reset();TourMarkers.Reset();
+    FQuat Prev=FQuat::Identity;
+    // three.js frames: eye position in metres (y up) and camera quaternion (looks along -z).
+    // Unreal swaps y and z and uses centimetres, as in capture.py.
+    auto Swap=[](const FVector& V){return FVector(V.X,V.Z,V.Y);};
+    for(const auto& Value:*Frames){
+        const auto& A=Value->AsArray();if(A.Num()<7)return false;
+        TourPosition.Add(Swap(FVector(A[0]->AsNumber(),A[1]->AsNumber(),A[2]->AsNumber()))*100);
+        const FQuat Q3(A[3]->AsNumber(),A[4]->AsNumber(),A[5]->AsNumber(),A[6]->AsNumber());
+        FQuat Q=FRotationMatrix::MakeFromXZ(Swap(Q3.RotateVector(FVector(0,0,-1))),Swap(Q3.RotateVector(FVector(0,1,0)))).ToQuat();
+        if((Prev|Q)<0)Q=FQuat(-Q.X,-Q.Y,-Q.Z,-Q.W);
+        TourRotation.Add(Q);Prev=Q;
+    }
+    const TArray<TSharedPtr<FJsonValue>>* Markers=nullptr;
+    if(J->TryGetArrayField(TEXT("markers"),Markers))for(const auto& M:*Markers){const auto& A=M->AsArray();if(A.Num()==2)TourMarkers.Emplace((int32)A[0]->AsNumber(),A[1]->AsString());}
+    // The export is the one-time opening flight, then one loop that ends where it began
+    // (plus one sample). Find where the loop starts by matching its last two samples.
+    const int32 N=TourPosition.Num();double Best=1e30;TourLoopStart=0;
+    for(int32 K=0;K<N/2;K++){double E=FVector::Dist(TourPosition[K],TourPosition[N-2])+FVector::Dist(TourPosition[K+1],TourPosition[N-1]);if(E<Best){Best=E;TourLoopStart=K;}}
+    TourPeriod=N-2-TourLoopStart;
+    if(Best>50){TourLoopStart=0;TourPeriod=N-1;}
+    UE_LOG(LogTemp,Display,TEXT("QUIETWALK tour %d frames, loop %d..%d (match %.1f cm)"),N,TourLoopStart,TourLoopStart+TourPeriod,Best);
+    TourTime=0;return true;
+}
+void AWalkController::TickTour(float Delta) {
+    if(TourPosition.Num()<2||!TitleCamera)return;
+    TourTime+=FMath::Min(Delta,.25f);
+    const int32 End=TourLoopStart+TourPeriod;
+    if(TourTime*TourFps>=End)TourTime-=TourPeriod/(double)TourFps;
+    const double F=TourTime*TourFps;const int32 I=FMath::FloorToInt(F);const float T=F-I;
+    auto At=[&](int32 J){if(J>=End)J-=TourPeriod;return FMath::Clamp(J,0,TourPosition.Num()-1);};
+    const FVector P0=TourPosition[At(I-1)],P1=TourPosition[At(I)],P2=TourPosition[At(I+1)],P3=TourPosition[At(I+2)];
+    // Uniform Catmull-Rom through the 24 Hz samples, so motion has no per-sample corners.
+    const FVector P=.5f*(2*P1+(P2-P0)*T+(2*P0-5*P1+4*P2-P3)*T*T+(3*P1-P0-3*P2+P3)*T*T*T);
+    TitleCamera->SetActorLocationAndRotation(P,FQuat::Slerp(TourRotation[At(I)],TourRotation[At(I+1)],T));
+    // The tour's field of view is vertical (three.js); Unreal's is horizontal.
+    FVector2D Size(16,9);if(GEngine&&GEngine->GameViewport)GEngine->GameViewport->GetViewportSize(Size);
+    const float Aspect=Size.Y>0?Size.X/Size.Y:16.f/9;
+    TitleCamera->GetCameraComponent()->SetFieldOfView(FMath::RadiansToDegrees(2*FMath::Atan(FMath::Tan(FMath::DegreesToRadians(TourFov)/2)*Aspect)));
+}
+void AWalkController::StartTour() {
+    if(TourPosition.Num()<2)return;
+    if(Walking)Persist(true);
+    Walking=false;TourTime=0;TourShownAt=FPlatformTime::Seconds();TickTour(0);Show("");
+}
+void AWalkController::TakeOver() {
+    if(Walking||!Page.IsEmpty()||TourPosition.Num()<2||!TitleCamera)return;
+    // As on the web: leaving during the opening flight walks on from its landing spot on the lane.
+    const bool Intro=TourTime*TourFps<TourLoopStart;
+    const FVector Landing=TourPosition[TourLoopStart],Eye=Intro?Landing:TitleCamera->GetActorLocation();
+    const FRotator Look=TitleCamera->GetActorRotation(),R(FMath::Clamp(FRotator::NormalizeAxis(Look.Pitch),-75.f,75.f),Look.Yaw,0);
+    // Tour eyes are 162 cm above the feet; the capsule centre is 90 cm above them.
+    if(!RestorePosition(Eye-FVector(0,0,72),R)&&!RestorePosition(Landing-FVector(0,0,72),R))Travel(0);
+    if(Smoke)SmokePosition=Eye;
+    Walking=true;Save->HasWalk=true;SetViewTarget(GetPawn());ApplySettings();Persist(true);
+    Notify(TEXT("Walking from here  ·  Esc / Menu to pause  ·  the tour is in the pause menu"));
+}
+FString AWalkController::TourLabel() const {
+    const int32 F=FMath::FloorToInt(TourTime*TourFps);FString L;
+    for(const auto& M:TourMarkers){if(M.Key>F)break;L=M.Value;}
+    FString Left;if(L.Split(TEXT(" · "),&Left,nullptr))L=Left;  // drop photo timestamps
+    return L;
+}
+
 void AWalkController::SmokeTick() {
     // Runs only with -WalkSmoke, on a separate save slot. Real scene, collision and UI.
     double Now=FPlatformTime::Seconds();if(Now<BeginTime+8||Now<NextSmoke)return;NextSmoke=Now+1.5;
     auto Check=[this](bool Ok,const FString& What){UE_LOG(LogTemp,Display,TEXT("WALKTEST %s %s"),Ok?TEXT("PASS"):TEXT("FAIL"),*What);if(!Ok)SmokeFailures.Add(What);};
     const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
+    auto Press=[](const FKey& K,bool Down=true,bool Up=true){
+        if(Down)FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(K,FModifierKeysState(),0,false,0,0));
+        if(Up)FSlateApplication::Get().ProcessKeyUpEvent(FKeyEvent(K,FModifierKeysState(),0,false,0,0));};
     if(ResumeSmoke){
         if(SmokeStep++==0){Check(Save->HasWalk&&Save->Visited.Num()==Places.Num(),TEXT("cold restart loads the completed journal"));SmokePosition=Save->Position;StartWalk(true);return;}
         Check(Walking&&Page.IsEmpty()&&FVector::Dist(GetPawn()->GetActorLocation(),SmokePosition)<5,TEXT("cold restart restores saved position"));
@@ -351,26 +452,41 @@ void AWalkController::SmokeTick() {
         }
         Check(ActiveSkies==1&&MappedSkies==1,TEXT("one active skylight retains the overcast HDR after runtime load"));
         Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.ResidentGeometryMemoryPoolSizeInMB"))->GetInt()==1024,TEXT("ray-tracing geometry pool configured for this scene"));
-        Check(Page=="home"&&IsMoveInputIgnored()&&Menu.IsValid()&&bShowMouseCursor,TEXT("title blocks movement with cursor and native UI"));
+        Check(TourPosition.Num()>1000&&TourPeriod>1000&&TourLoopStart>0,TEXT("guided tour loaded: opening flight, then a loop"));
+        Check(!Walking&&Page.IsEmpty()&&!Menu.IsValid()&&!bShowMouseCursor&&!IsPaused()&&GetViewTarget()==TitleCamera,TEXT("tour starts on launch without a menu"));
+        Check(TourTime>3&&TitleCamera&&FVector::Dist(TitleCamera->GetActorLocation(),TourPosition[0])>100,TEXT("tour camera moves along the path"));
+        FScreenshotRequest::RequestScreenshot(Dir/TEXT("00-tour.png"),true,false);
+        Press(EKeys::Escape);break;
+    }
+    case 1: {
+        Check(Page=="home"&&Menu.IsValid()&&bShowMouseCursor&&IsPaused(),TEXT("Esc opens the menu over the paused tour"));
         Check(Menu&&Menu->Buttons[0]->HasKeyboardFocus(),TEXT("title primary action has keyboard focus"));
-        FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(EKeys::Down,FModifierKeysState(),0,false,0,0));
+        Press(EKeys::Down,true,false);
         Check(Menu&&Menu->Buttons[1]->HasKeyboardFocus(),TEXT("arrow key navigates menu"));
-        FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_DPad_Up,FModifierKeysState(),0,false,0,0));
+        Press(EKeys::Gamepad_DPad_Up,true,false);
         Check(Menu&&Menu->Buttons[0]->HasKeyboardFocus(),TEXT("controller D-pad navigates menu"));
         FScreenshotRequest::RequestScreenshot(Dir/TEXT("01-title.png"),true,false);break;
     }
-    case 1: {
-        FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(EKeys::Gamepad_FaceButton_Bottom,FModifierKeysState(),0,false,0,0));
-        FSlateApplication::Get().ProcessKeyUpEvent(FKeyEvent(EKeys::Gamepad_FaceButton_Bottom,FModifierKeysState(),0,false,0,0));break;
+    case 2: {
+        SmokeTourTime=TourTime;Press(EKeys::Escape);
+        Check(Page.IsEmpty()&&!Menu.IsValid()&&!Walking,TEXT("Esc in the menu returns to the tour"));break;
     }
-    case 2:Check(Walking&&Page.IsEmpty()&&!IsPaused()&&!bShowMouseCursor,TEXT("begin captures mouse and starts walk"));Check(GetPawn()&&GetPawn()->GetActorLocation().Z>-100,TEXT("player on ground"));Observe();break;
-    case 3:Check(Save->Visited.Contains("house"),TEXT("notice entrance adds journal entry"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("02-place.png"),true,false);Show("");break;
-    case 4:PauseWalk();Check(Page=="pause"&&IsPaused(),TEXT("pause stops world"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("03-pause.png"),true,false);break;
-    case 5:Action("settings");Action("fov");Action("invert");Check(Save->Fov==90&&Save->InvertY,TEXT("comfort settings change"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("04-settings.png"),true,false);break;
-    case 6:{auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));Check(Reload&&Reload->Fov==90&&Reload->Visited.Contains("house"),TEXT("settings and journal persist"));Action("defaults");Action("back");Action("title");Action("new");Check(Page=="new-confirm",TEXT("new walk protects existing save"));Action("back");Action("continue");break;}
-    case 7:Check(Walking&&Save->Visited.Contains("house"),TEXT("continue restores progress"));OpenJournal();FScreenshotRequest::RequestScreenshot(Dir/TEXT("05-journal.png"),true,false);break;
+    case 3: {
+        Check(!Walking&&Page.IsEmpty()&&TourTime>SmokeTourTime+.5,TEXT("tour resumes after the menu"));
+        Press(EKeys::Gamepad_Special_Right);break;
+    }
+    case 4: {
+        Check(Page=="home"&&Menu.IsValid()&&!Walking,TEXT("Start opens the menu during the tour"));
+        Press(EKeys::Gamepad_FaceButton_Bottom);break;
+    }
+    case 5:Check(Walking&&Page.IsEmpty()&&!IsPaused()&&!bShowMouseCursor,TEXT("begin captures mouse and starts walk"));Check(GetPawn()&&GetPawn()->GetActorLocation().Z>-100,TEXT("player on ground"));Observe();break;
+    case 6:Check(Save->Visited.Contains("house"),TEXT("notice entrance adds journal entry"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("02-place.png"),true,false);Show("");break;
+    case 7:PauseWalk();Check(Page=="pause"&&IsPaused(),TEXT("pause stops world"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("03-pause.png"),true,false);break;
+    case 8:Action("settings");Action("fov");Action("invert");Check(Save->Fov==90&&Save->InvertY,TEXT("comfort settings change"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("04-settings.png"),true,false);break;
+    case 9:{auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));Check(Reload&&Reload->Fov==90&&Reload->Visited.Contains("house"),TEXT("settings and journal persist"));Action("defaults");Action("back");Action("title");Action("new");Check(Page=="new-confirm",TEXT("new walk protects existing save"));Action("back");Action("continue");break;}
+    case 10:Check(Walking&&Save->Visited.Contains("house"),TEXT("continue restores progress"));OpenJournal();FScreenshotRequest::RequestScreenshot(Dir/TEXT("05-journal.png"),true,false);break;
     default:{
-        int32 I=SmokeStep-9;
+        int32 I=SmokeStep-12;
         if(I>0&&I<=Places.Num()){
             Check(Nearby==I-1,TEXT("discovery reachable: ")+Places[I-1].Title);
             Observe();Check(Save->Visited.Contains(Places[I-1].Id),TEXT("journal records: ")+Places[I-1].Title);Show("");
@@ -381,10 +497,28 @@ void AWalkController::SmokeTick() {
         if(I==Places.Num()+2){SmokeMoving=false;FVector P=GetPawn()->GetActorLocation();Check(P.X>-725&&P.Z<115,TEXT("walk down entry stairs: ")+P.ToString());Show("pause");SmokePosition=GetPawn()->GetActorLocation();return;}
         if(I==Places.Num()+3){Check(FVector::Dist(SmokePosition,GetPawn()->GetActorLocation())<.5,TEXT("pause keeps physical position fixed"));Action("rescue");Check(FVector::Dist2D(GetPawn()->GetActorLocation(),Places[0].Feet)<100,TEXT("return to entrance recovery"));return;}
         if(I==Places.Num()+4){
-            auto* C=Cast<AWalkCharacter>(GetPawn());SetControlRotation(FRotator::ZeroRotator);RotationInput=FRotator::ZeroRotator;Save->InvertY=false;C->LookY(1);UpdateRotation(1.f/60);
-            Check(GetControlRotation().Pitch>0,TEXT("mouse up looks up without inversion"));
-            SetControlRotation(FRotator::ZeroRotator);RotationInput=FRotator::ZeroRotator;Save->InvertY=true;C->LookY(1);UpdateRotation(1.f/60);
-            Check(FRotator::NormalizeAxis(GetControlRotation().Pitch)<0,TEXT("invert look reverses pitch"));Save->InvertY=false;RotationInput=FRotator::ZeroRotator;return;
+            auto* C=Cast<AWalkCharacter>(GetPawn());
+            auto Pitch=[&](bool Invert,bool Stick){SetControlRotation(FRotator::ZeroRotator);RotationInput=FRotator::ZeroRotator;Save->InvertY=Invert;
+                if(Stick)C->StickY(1);else C->LookY(1);UpdateRotation(1.f/60);RotationInput=FRotator::ZeroRotator;return FRotator::NormalizeAxis(GetControlRotation().Pitch);};
+            Check(Pitch(false,false)<0,TEXT("default: mouse up looks down"));
+            Check(Pitch(false,true)<0,TEXT("default: right stick up looks down"));
+            Check(Pitch(true,false)>0&&Pitch(true,true)>0,TEXT("invert look: up looks up"));
+            Save->InvertY=false;SetControlRotation(FRotator::ZeroRotator);
+            UWalkSave* Old=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));Old->InvertY=true;Old->LookVersion=0;UpgradeSave(Old);
+            UWalkSave* Current=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));UpgradeSave(Current);Current->InvertY=true;UpgradeSave(Current);
+            Check(!Old->InvertY&&Old->LookVersion==1&&Current->InvertY,TEXT("older saves get the new look default once; later choices stay"));return;
+        }
+        if(I==Places.Num()+5){
+            Show("pause");Action("tour");
+            Check(!Walking&&Page.IsEmpty()&&GetViewTarget()==TitleCamera,TEXT("pause menu starts the guided tour"));
+            // Jump into the walking loop, then hold W as a player would.
+            TourTime=(TourLoopStart+10*TourFps)/TourFps;TickTour(0);Press(EKeys::W,true,false);NextSmoke=Now+.25;return;
+        }
+        if(I==Places.Num()+6){
+            Press(EKeys::W,false,true);
+            Check(Walking&&Page.IsEmpty()&&GetViewTarget()==GetPawn(),TEXT("walking input leaves the tour"));
+            Check(FVector::Dist2D(GetPawn()->GetActorLocation(),SmokePosition)<120,TEXT("walk continues from the tour camera's spot: ")+GetPawn()->GetActorLocation().ToString()+TEXT(" vs ")+SmokePosition.ToString());
+            FScreenshotRequest::RequestScreenshot(Dir/TEXT("06-takeover.png"),true,false);return;
         }
         Check(Persist(true),TEXT("final save succeeds"));
         TSharedRef<FJsonObject> Report=MakeShared<FJsonObject>();Report->SetBoolField("passed",SmokeFailures.IsEmpty());TArray<TSharedPtr<FJsonValue>> Errors;for(auto& E:SmokeFailures)Errors.Add(MakeShared<FJsonValueString>(E));Report->SetArrayField("failures",Errors);
