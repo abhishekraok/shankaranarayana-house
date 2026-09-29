@@ -70,5 +70,6 @@ checks/*.png
 
 # Images explicitly approved for the blog.
 !/docs/images/blog/floor-plan.png
-!/docs/images/blog/window-comparison.jpg
-!/docs/images/blog/temple-porch-comparison.jpg
+!/docs/images/blog/alignment-tool.png
+!/docs/images/blog/lake-web.png
+!/docs/images/blog/temple-courtyard-comparison.jpg

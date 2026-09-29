@@ -5,6 +5,10 @@ My grandparents' house in the village of Shankaranarayana was demolished a decad
 
 *The neighborhood around the lake, photographed in September 2011.*
 
+![The lake and temple complex recreated in the browser](images/blog/lake-web.png)
+
+*The same neighborhood in the web reconstruction, viewed from across the lake.*
+
 Now with the advent of powerful coding agents like GPT-6 and Opus 5.5 and people showing off their 3D modelling capabilities, I thought let me see if I can re-create my childhood places from photos in 3D. 
 
 ## Process
@@ -22,9 +26,9 @@ Initially I renamed many of the photos by hand, describing the rough location an
 Later I created an align tool that lets me place the photo in the 3D world itself, making the process much easier. 
 The alignment tool records the exact position and angle with reference to the 3D model while displaying the photograph. 
 
-![A house window compared across the original photograph, browser model and Blender render](images/blog/window-comparison.jpg)
+![Photo-alignment tool showing the original road photograph beside the matching 3D view](images/blog/alignment-tool.png)
 
-*Left to right: the original photograph, browser reconstruction and Blender render. Matching the viewpoint makes differences in the window frame, proportions and lighting easier to spot.*
+*The alignment tool: original photograph on the left and the adjustable 3D view on the right. Saving the camera position and angle gives the agent a specific viewpoint to refine.*
 
 ### Light and heavy versions 
 Initially I created the webapp with the goal to make it easy to view for anyone.
@@ -32,9 +36,9 @@ Later I created a more photo realistic desktop version by using Blender and Unre
 These re-use the same 3D model, but add details like meshes, texture, lighting etc. 
 I added gamepad support to make it easy to navigate. Now I can play this like a game. 
 
-![The blue temple porch compared across the original photograph, browser model and Blender render](images/blog/temple-porch-comparison.jpg)
+![Temple courtyard and diagonal poles compared across the original photograph, browser reconstruction and Blender render](images/blog/temple-courtyard-comparison.jpg)
 
-*The blue temple porch: original photograph, browser reconstruction and Blender render. These saved development snapshots show the effect of materials and lighting; some shapes and details still differ from the photographs.*
+*The temple courtyard: original photograph, browser reconstruction and Blender render, from left to right. These saved development snapshots show the effect of materials and lighting; some shapes and details still differ from the photograph.*
 
 ## Release
 I used the ChatGPT Sites to deploy it as a [Webapp](https://shankaranarayana.abhishekraok.chatgpt.site/) so that my relatives can experience it easily on their phones. I have shared the source code on [Github](https://github.com/abhishekraok/shankaranarayana-house) and the photos without people(CC BY 4). Feel free to re-create your own child places and re-live in them.
