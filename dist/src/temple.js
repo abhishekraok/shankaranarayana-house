@@ -1566,8 +1566,9 @@ export function buildTemple(K) {
   // see the pass at the end), the bell hangs between two stepped white piers and the drum
   // hangs clear of it beside the right-hand pier.
   const bellX=36.55,bellZ=7.65;
-  box('Great bell heavy timber suspension beam',bellX,3.39,7.65,.31,.25,2.4,K.M.wood);
-  for(const z of [6.8,8.5]){
+  box('Great bell heavy timber suspension beam',bellX,3.39,7.25,.31,.25,1.6,K.M.wood);
+  // User's note: no pier on the court side of the bell; the beam is carried by the rear pier.
+  for(const z of [6.8]){
     box('Great bell white suspension pier',bellX,1.98,z,.5,2.75,.42,white,true);
     box('Great bell white pier stepped base',bellX,.95,z,.72,.7,.56,white);
     box('Great bell white pier middle step',bellX,1.55,z,.6,.5,.48,white);
@@ -1933,7 +1934,7 @@ export function buildTemple(K) {
   // lane wall and the part east of the hall (x > 24.2) stay solid.
   box('Temple road corner lower frontage',25.15,1.91,1.6,9.7,3.38,.3,edgeWhite,true);
   box('Temple road corner lower frontage east block',27.1,1.91,3.29,5.8,3.38,3.08,edgeWhite,true);
-  box('Temple road corner lower frontage rear',24.59,1.91,5.615,.78,3.38,1.57,edgeWhite,true);
+  // User's note: no white filler wall between the east block and the service bay.
   box('Temple road corner lane-side wall',20.27,1.91,4.075,.14,3.38,4.65,edgeWhite,true);
   floor('Covered hall front extension oxide floor',22.27,4.075,3.86,4.65,.60,hallFloor);
   for(const [x,z,w,d] of [[20.36,4.075,.02,4.65],[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
@@ -2166,7 +2167,9 @@ export function buildTemple(K) {
    box('Temple road corner lower frontage',xm,1.91,1.3,w,3.38,.24,edgeWhite,true);
    // 15.22.36 / 14.59.21: no windows here; a donor sign board over a small bench.
    box('Temple road donor sign board',33.85,2.6,1.15,2.6,.42,.05,edgeWhite);box('Temple road donor sign red border',33.85,2.6,1.17,2.7,.5,.03,balconyRed);
-   box('Temple road bench top',33.0,.95,.95,1.1,.05,.45,K.M.wood);for(const dx of [-.5,.5])for(const dz of [-.18,.18])box('Temple road bench leg',33.0+dx,.8,.95+dz,.05,.3,.05,K.M.wood);
+   // User's note: the tiled porch runs on under these piers (stopping at the wash trough);
+   // no bench.
+   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,stoneFloor);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
@@ -2240,7 +2243,13 @@ export function buildTemple(K) {
   // the facade so there is no opening through which the sanctum shows.
   {const XW=31.7,Z0=14.2,Z1=20.6,b3=new THREE.Box3();g.updateMatrixWorld(true);
    for(const o of [...g.children]){
-     if(o.isInstancedMesh||!/^(Inner |Maroon pierced transom)/.test(o.name))continue;
+     if(o.isInstancedMesh&&/^(Inner |Maroon pierced transom)/.test(o.name)){
+     // User's note: instanced transom uprights and parapet pieces west of the cut floated in the sky.
+     const m=new THREE.Matrix4(),p=new THREE.Vector3();let n=0;
+     for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);p.setFromMatrixPosition(m).applyMatrix4(o.matrixWorld);
+       if(p.x<XW-.1&&p.z>=Z0&&p.z<=Z1)continue;o.setMatrixAt(n++,m);}
+     if(n<o.count){o.count=n;o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();}continue;}
+   if(o.isInstancedMesh||!/^(Inner |Maroon pierced transom)/.test(o.name))continue;
      b3.setFromObject(o);if(b3.isEmpty()||b3.min.x>=XW-.02||b3.min.z<Z0||b3.max.z>Z1)continue;
      if(b3.max.x<=XW+.12){g.remove(o);continue;}
      if(!o.isMesh||Math.abs(Math.sin(o.rotation.y))>1e-3)continue;
@@ -2253,5 +2262,19 @@ export function buildTemple(K) {
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
    box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // User's note (upper gallery): the stair well is open to the hall below, so the blue name
+  // board shows from the entrance; no floor or ceiling spans it.
+  {const X0=37.6,X1=40.3,Z0=-1.63,Z1=.2,b3=new THREE.Box3(),parts=(x0,x1,z0,z1)=>
+     [[x0,X0,z0,z1],[X1,x1,z0,z1],[X0,X1,z0,Z0],[X0,X1,Z1,z1]].filter(([a,b,c,d])=>b-a>.01&&d-c>.01);
+   g.updateMatrixWorld(true);
+   for(const o of [...g.children]){
+     if(!o.isMesh||!/^(Upper gallery main floor|Entrance hall whitewashed ceiling under gallery|Upper hall worn gray concrete floor)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.min.x>X0||b3.max.x<X1||b3.min.z>Z0||b3.max.z<Z1)continue;
+     const y=(b3.min.y+b3.max.y)/2,h=b3.max.y-b3.min.y;
+     for(const [a,b,c,d] of parts(b3.min.x,b3.max.x,b3.min.z,b3.max.z))box(o.name,(a+b)/2,y,(c+d)/2,b-a,h,d-c,o.material);
+     g.remove(o);}
+   for(const r of [...K.surfaces]){const x0=r.x-r.w/2,x1=r.x+r.w/2,z0=r.z-r.d/2,z1=r.z+r.d/2;
+     if(r.y<3.5||x0>X0||x1<X1||z0>Z0||z1<Z1)continue;K.surfaces.splice(K.surfaces.indexOf(r),1);
+     for(const [a,b,c,d] of parts(x0,x1,z0,z1))K.surface((a+b)/2,(c+d)/2,b-a,d-c,r.y);}}
   return g;
 }

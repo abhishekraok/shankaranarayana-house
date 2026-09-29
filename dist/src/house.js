@@ -146,8 +146,12 @@ export function buildHouse(K) {
   // court pocket and north-south treads, not steps along the front edge.
   floor('Front range plinth',0,2.2,24,4.4);
   floor('Front range north return',-8.025,5.2,7.95,1.6);
-  floor('Front range south return',4.875,5.2,14.25,1.6);
+  // User's note (snake god pit): the grey pocket floor is the right tile and height, and it
+  // runs on across the front of the God room; red is only for the raised platforms.
+  floor('Front range south return',7.175,5.2,9.65,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
+  floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
+  floor('God room court grey stone ledge',.05,4.55,4.6,.3,F,'stone');
   floor('West rooms and passage',-10.2,12,3.6,12);
   floor('East passage and stair base',9.65,12,4.7,12);
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
@@ -218,7 +222,8 @@ export function buildHouse(K) {
   for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=F;o.position.z-=1.65;}
   for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=F;c.top+=F;c.minZ-=1.65;c.maxZ-=1.65;}
   b('Entrance pedestal supporting ledge',-3.00,(F+.075)/2,4.31,1.18,F-.075,.26,nicheOxide,true);
-  b('Entrance right pocket south riser',-2.25,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
+  b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
+  b('Entrance pocket plinth-edge riser',.05,(F+.075)/2,4.718,4.6,F-.075,.035,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
   K.cylinder(g,'Entrance court peach round column',-4.6,2.01,4.3,.125,.145,2.78,peachColumn,20,true);
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
@@ -480,8 +485,10 @@ export function buildHouse(K) {
     K.blocker(postX,postZ,.48,.48,.79,3.48);
     for(const y of [3.08,3.18,3.30])b('Inner entrance post capital moulding',side*1.40,y,3.71,.43,.06,.43,verandaTimber);
   }
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:-.7625,w:9.125,top:3.1},{c:5.5,w:1.65,top:2.5}]);
-  doorX(-6.15,4.05,1.65,F,2.45,1,false);doorX(5.5,4.05,1.65); // user's note: no leaves at the left doorway
+  // User's notes: no leaves at the left doorway; the blue pier and door in front of the God
+  // room are gone, so the opening runs on to x 6.325.
+  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:.5,w:11.65,top:3.1}]);
+  doorX(-6.15,4.05,1.65,F,2.45,1,false);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
@@ -612,6 +619,14 @@ export function buildHouse(K) {
     floor('God room red stair tread',0,z+.18,1.82,.36,top,'red',.045);
   }
   floor('God room threshold',0,6.84,1.84,.24,shrineFloor,'red',.08);
+  // The grey pocket now runs across the God room front at .075: one more step up to the
+  // old stair foot, and the platform masonry and cheeks carried down to it.
+  b('God room pale stair riser',0,(F+.075-.045)/2,5.5,1.78,F-.075-.045,.36,shrineWhite);
+  floor('God room red stair tread',0,5.5,1.82,.36,F,'red',.045);
+  for(const side of [-1,1]){
+    b('God room platform masonry foot',side*1.64,(F+.075)/2,5.845,1.40,F-.075,.31,shrineWhite);
+    b('God room stair cheek foot',side*1.06,(F+.075)/2,5.78,.35,F-.075,.44,'red');
+  }
   for(const side of [-1,1]){
     // White layered masonry carries the two side bays and heavy posts.
     b('God room platform masonry',side*1.64,.75,6.38,1.40,.60,1.38,shrineWhite);

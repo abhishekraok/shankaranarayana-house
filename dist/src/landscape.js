@@ -317,7 +317,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // the lane: the short run beside the gate's approach is the passage's lane-side wall,
   // and the gap between the two lines opens onto the lake.
   const houseBankZ=-8.3, waterRailZ=-10.0, bathingGateX=16.4, bathingGateZ=-9.65;
-  for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,14.4,houseBankZ]]){
+  // User's note: no opening from the lane between this run and the gate pier; the lower
+  // bank is reached from the bathing arcade stair.
+  for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,16.03,houseBankZ]]){
     for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,.38,fenceStone);
     for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,z,.19,.69,.29);
     K.blocker((a+b)/2,z,b-a,.39,0,1.13);
@@ -358,7 +360,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.28.13: the entrance crosses the bank at right angles to the
   // house-facing rail. Descend along +X, then follow the low waterside ledge.
-  for(const z of [-8.25,-11.05]){
+  for(const z of [-8.25]){ // user's note: no second (waterside) gate pier
     for(const [y,w,h] of [[.29,.75,.58],[.77,.62,.38],[1.10,.49,.28],[1.31,.39,.14]])box('Tank gate square stepped stone pier',bathingGateX,y,z,w,h,w,fenceWhite,true);
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
@@ -429,7 +431,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.blocker(39,-10.23,18.35,.27,-2.6,.99);
 
   // Opposite the mud road, the long low dark wall spans the temple's right wing.
-  box('Temple bank dark retaining parapet',23.2,.42,-8.3,10.8,.84,.26,materials.basalt,true);
+  // User's note: the parapet runs on to the lake entrance pedestal with no gap.
+  box('Temple bank dark retaining parapet',23.82,.42,-8.3,12.04,.84,.26,materials.basalt,true);
   for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-8.45,.055,.76,.015,materials.oldWhite);
   // 14.58.26: whitewashed pilaster strips about 5.6 m apart run down the full
   // retaining face, and every tier carries a worn white nosing.

@@ -234,7 +234,10 @@ const routes=[];
 const houseRoute=(name,points,...rest)=>checkRoute(name,points.map(([x,z])=>[x+HX,z]),...rest);
 function checkRoute(name,points,startFeet=.45,minimumFloor=.44){let feet=startFeet,samples=0;for(let j=1;j<points.length;j++){const a=points[j-1],b=points[j],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.04);for(let i=0;i<=n;i++){const t=i/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;assert.ok(!collision(x,z,feet),`${name}: collision at ${x}, ${z}`);assert.ok(!blockedRise(x,z,feet),`${name}: impassable rise at ${x}, ${z}`);feet=supportY(x,z,feet);assert.ok(feet>=minimumFloor,`${name}: missing floor`);samples++;}}routes.push({name,samples,finalHeight:feet});}
 houseRoute('Entrance to left veranda',[[0,1.1],[0,-.31],[8.2,-.31]]);
-houseRoute('Central entrance to inner hall',[[0,.5],[0,5.1]]);
+houseRoute('Central entrance to inner hall',[[0,.5],[0,4.6]]);
+// User's note: the grey pocket floor runs across the God room front, down at .075.
+houseRoute('Inner hall down into the God room court pocket',[[0,.5],[0,5.1]],.45,.07);
+assert.ok(supportY(HX,5.1,.1)<.1,'God room front is the low grey floor');
 // 175306: a lower open entrance passage between matching raised platforms.
 const innerPlatforms=house.children.filter(o=>o.name==='Inner entrance raised sitting platform');
 assert.equal(innerPlatforms.length,2);
@@ -310,7 +313,7 @@ assert.equal(entryTreads.length,3);
 assert.ok(entryTreads.every(o=>o.geometry.parameters.depth>o.geometry.parameters.width*4),'Tread lengths run east-west, with ascent along north-south');
 assert.ok(Math.abs(supportY(HX-2.7,5.2,.075)-.075)<.001,'Old front slab does not fill the lower entry pocket');
 assert.ok(collision(HX-2.9,4.18,.45),'Moved pedestal blocker follows the raised ledge');
-houseRoute('Three steps to the God room gate',[[0,5.15],[0,6.5]]);
+houseRoute('Four steps from the grey court floor to the God room gate',[[0,5.15],[0,6.5]],.075,.07);
 checkRoute('Lane to original temple entrance',[[20,-5],[39,-5],[39,3],[39,9]],0,0);
 checkRoute('Temple photo shoulder to house entrance',[[23,-3],[23,-5],[HX,-5],[HX,-2]],.051,0);
 const sideRoadRoute=[[17,-5],[17.2,1],[17.2,8],[16.9,18],[17.2,27],[17,33.5]];
@@ -338,9 +341,12 @@ checkRoute('Pavilion entry from raised bank',[[34,-37.4],[34,-32]],1.38,-1.28);
 checkRoute('Pavilion return to raised bank',[[34,-32],[34,-37.4]],-1.27,-1.28);
 for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
-const bathingRoute=[[0,-5],[15.2,-5],[15.2,-9.65],[16.4,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]];
-checkRoute('Temple-side bathing gate descent',bathingRoute,.051,-1.56);
-checkRoute('Temple-side bathing gate return',[...bathingRoute].reverse(),.065,-1.56);
+// User's note: no opening from the lane to the gate landing; the lower bank is reached from
+// the bathing arcade stair and the gate landing only from below.
+assert.ok(collision(15.2,-8.3,.055),'Lane-side run closes the old gate opening');
+const bathingRoute=[[30.7,-9.65],[27.5,-9.65],[19.3,-9.65],[16.4,-9.65],[15.2,-9.65]];
+checkRoute('Arcade stair down to the gate landing',bathingRoute,.065,-1.56);
+checkRoute('Gate landing back up to the arcade',[...bathingRoute].reverse(),.051,-1.56);
 assert.equal(supportY(23,-9.65,-1.55),-1.55,'The path between stairs stays down at the lower bank level');
 checkRoute('Road away from the house',[[-7,-5],[-24,-5.3],[-35,-5.8],[-43,-7.1]],.051,0);
 checkRoute('Downhill return to the house',[[-43,-7.1],[-35,-5.8],[-24,-5.3],[-7,-5]],1.71,0);
