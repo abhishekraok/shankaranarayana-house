@@ -31,6 +31,11 @@ for o in meta['objects']:
     for m in o['materials']: u = roof_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += hit
 tiled_roofs = {m for m, (n, r) in roof_use.items() if r / n >= 0.5}
 ROOF_WEATHER = (0.30, 0.27, 0.25)
+VEG = re.compile(r'frond|leaf|leaves|crown|palm|areca|coconut|tree|foliage|bush|shrub|canopy|fern|undergrowth', re.I)
+veg_use = {}
+for o in meta['objects']:
+    for m in o['materials']: u = veg_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += bool(VEG.search(o['name'])) and not re.search(r'trunk', o['name'], re.I)
+foliage_mats = {m for m, (n, v) in veg_use.items() if v / n >= 0.5}
 
 AT = unreal.AssetToolsHelpers.get_asset_tools(); MEL = unreal.MaterialEditingLibrary; EAL = unreal.EditorAssetLibrary
 DIR = '/Game/Materials'
@@ -95,7 +100,7 @@ def texture_sample(m, prefix, linear=False):
     MEL.connect_material_expressions(transformed, '', tex, 'Coordinates')
     return tex
 
-def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False):
+def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False):
     path = f'{DIR}/{name}'
     existing = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
     water_upgrade = water and existing and 'WaterSpecular' not in [str(n) for n in MEL.get_scalar_parameter_names(existing)]
@@ -127,6 +132,18 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         vc = MEL.create_material_expression(m, unreal.MaterialExpressionVertexColor, -700, 250)
         mul = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -350, 100)
         MEL.connect_material_expressions(out, '', mul, 'A'); MEL.connect_material_expressions(vc, '', mul, 'B'); out = mul
+    if foliage:
+        # Crowns are smooth web spheres: break them into leaf-scale speckle and clump-scale
+        # variation from world position (cm) and scatter the normals like leaf facets.
+        fpos = MEL.create_material_expression(m, unreal.MaterialExpressionWorldPosition, -900, 150)
+        out = custom(m, 'float a=frac(sin(dot(floor(P/60.0),float3(12.9898,78.233,37.719)))*43758.5453); float b=frac(sin(dot(floor(P/300.0),float3(39.3,11.7,83.1)))*24634.6345); return Col*(0.6+0.6*a)*(0.8+0.4*b);',
+            {'Col':out,'P':fpos}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+        if not mapped:  # mapped masters already drive the normal from the bump map
+            fn = MEL.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -900, 250)
+            leafy = custom(m, 'float3 q=floor(P/80.0); float3 r=frac(sin(float3(dot(q,float3(12.9,78.2,37.7)),dot(q,float3(39.3,11.7,83.1)),dot(q,float3(73.1,52.3,9.7))))*43758.5453)-0.5; return normalize(N+1.2*r);',
+                {'P':fpos,'N':fn}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+            m.set_editor_property('tangent_space_normal', False)
+            MEL.connect_material_property(leafy, '', unreal.MaterialProperty.MP_NORMAL)
     if emissive:
         glow = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -350, 300)
         strength = param(m, unreal.MaterialExpressionScalarParameter, 'EmissionStrength', -700, 300, 40.0)
@@ -210,6 +227,12 @@ def instance(i):
             kind += 'LinearData'
             if kind not in masters:
                 masters[kind] = master('M_'+kind, tint=i in tinted, two_sided=bool(web.get('doubleSided')), mapped=True, masked=bool(web.get('alphaTest')), linear_maps=True)
+    if i in foliage_mats and kind not in ('water', 'glow'):
+        leaf = kind + 'leaf'
+        if leaf not in masters:
+            masters[leaf] = master('M_' + leaf, tint=i in tinted, two_sided=bool(web.get('doubleSided')), mapped=kind.startswith('mapped'),
+                                   masked=kind.startswith('mapped') and bool(web.get('alphaTest')), linear_maps='LinearData' in kind, foliage=True)
+        kind = leaf
     name = 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
     path = f'{DIR}/Web/{name}'
     # Update in place: other meshes may already reference this instance.
