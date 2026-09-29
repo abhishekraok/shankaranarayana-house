@@ -64,7 +64,7 @@ async function loadModule(p){const src=(await fs.readFile(new URL(p,import.meta.
 const {createKit}=await loadModule('../dist/src/kit.js');
 const {buildHouse}=await loadModule('../dist/src/house.js');
 const {buildTemple}=await loadModule('../dist/src/temple.js');
-const {buildLandscape}=await loadModule('../dist/src/landscape.js');
+const {buildLandscape,farZ,farZinv}=await loadModule('../dist/src/landscape.js');
 
 const K=createKit();
 const roots=[buildLandscape(K,{mobile:false}),buildHouse(K),buildTemple(K)];
@@ -76,9 +76,13 @@ const main=await fs.readFile(new URL('../dist/src/main.js',import.meta.url),'utf
 const terrain=new THREE.Group();terrain.name='Ground';
 const groundMat=K.M.earth.clone();groundMat.name='ground laterite';
 const groundCalls=[...main.matchAll(/^(ground\([^;]*\);(?:ground\([^;]*\);)*)/gm)].map(m=>m[1]).join('\n');
-new Function('K','terrain','groundMat',`function ground(x,z,w,d){K.box(terrain,'Earth',x,-.22,z,w,.44,d,groundMat);}\n${groundCalls}`)(K,terrain,groundMat);
-const wm=main.match(/new Reflector\(new THREE\.PlaneGeometry\(([\d.]+),([\d.]+)\)[\s\S]*?water\.position\.set\(([-\d.]+),([-\d.]+),([-\d.]+)\)/);
+// main.js maps ground slabs through the far-bank remap (farZ); replay that too.
+new Function('K','terrain','groundMat','farZ',`function ground(x,z,w,d){const z0=farZ(z-d/2,x),z1=farZ(z+d/2,x);z=(z0+z1)/2;d=z1-z0;K.box(terrain,'Earth',x,-.22,z,w,.44,d,groundMat);}
+${groundCalls}`)(K,terrain,groundMat,farZ);
+// Sizes and position may be farZ expressions; evaluate them with the real remap.
+const wm=main.match(/new Reflector\(new THREE\.PlaneGeometry\(([^,]+),(.+?)\),\{[\s\S]*?water\.position\.set\(([^,]+),([^,]+),(.+?)\);/);
 if(!wm)throw Error('Lake plane not found in main.js');
+for(let i=1;i<=5;i++)wm[i]=new Function('farZ',`return (${wm[i]})`)(farZ);
 const water=new THREE.Mesh(new THREE.PlaneGeometry(+wm[1],+wm[2]),new THREE.MeshStandardMaterial({name:'lake water',color:0x5b8350}));
 water.name='Reflective lake water';water.rotation.x=-Math.PI/2;water.position.set(+wm[3],+wm[4],+wm[5]);
 roots.push(terrain,water);
@@ -178,7 +182,7 @@ console.log('procedural texture images',textureImages.size,'; approved web photo
 {
   const {createPhotoTour}=await loadModule('../dist/src/tour.js');
   const navigation=main.slice(main.indexOf('function inside('),main.indexOf('function lookAt('));
-  const {supportY}=new Function('K','THREE',navigation+';return {supportY};')(K,THREE);
+  const {supportY}=new Function('K','THREE','farZ','farZinv',navigation+';return {supportY};')(K,THREE,farZ,farZinv);
   const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
   for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
   // Photo poses and the webapp's destinations, for native captures from the same viewpoints.
@@ -188,11 +192,13 @@ console.log('procedural texture images',textureImages.size,'; approved web photo
   await fs.writeFile(new URL('views.json',out),JSON.stringify({...destinations,...photos}));
   const tour=createPhotoTour(photos,supportY,K.houseShiftX);
   const FPS=24,frames=[];let label=null;const markers=[];
-  for(let f=0;f<=Math.ceil(tour.duration*FPS);f++){
-    const s=tour.sample(f/FPS);
+  // As on the web: the one-time opening flight, then one loop from 'Along the lane'.
+  const laneStart=tour.spans.find(s=>s.a.label==='Along the lane').start,introFrames=tour.intro?Math.ceil(tour.intro.duration*FPS):0;
+  for(let f=0;f<=introFrames+Math.ceil(tour.duration*FPS);f++){
+    const s=f<introFrames?tour.intro.sample(f/FPS):tour.sample(laneStart+(f-introFrames)/FPS);
     frames.push([...s.position.toArray().map(v=>+v.toFixed(4)),...s.quaternion.toArray().map(v=>+v.toFixed(5))]);
     if(s.label!==label){label=s.label;markers.push([f,label]);}
   }
-  await fs.writeFile(new URL('tour.json',out),JSON.stringify({fps:FPS,fov:58,duration:tour.duration,frames,markers}));
+  await fs.writeFile(new URL('tour.json',out),JSON.stringify({fps:FPS,fov:58,duration:(tour.intro?.duration||0)+tour.duration,frames,markers}));
   console.log(`tour ${tour.duration.toFixed(0)} s, ${frames.length} frames, ${markers.length} labels`);
 }
