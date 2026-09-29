@@ -1,8 +1,31 @@
-# Handoff (2026-09-27)
+# Handoff (2026-09-28)
 
 Claude's reconstruction handoff, updated after the local Codex fidelity pass below.
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
+
+## Claude pass 3: user's notes (2026-09-28)
+
+The user now leaves notes from the walkthrough: press **N** in a local build (`node server.mjs
+--photos F:/Shankaranarayana`). Notes go to `F:/Shankaranarayana/align-model-notes.json` (each
+save auto-committed in the pose repo); the button never appears on the deployed site (no
+`/model-version`). `node tools/notes-to-poses.cjs` turns them into
+`checks/model-notes-poses.json`; render one with `POSE_FILE=checks/model-notes-poses.json
+PHOTO_NAMES='<note-id>' node tools/capture-fidelity.cjs <batch>`.
+
+All 15 walkthrough notes and 7 align-page notes are done and pushed (`622f44a`), not deployed.
+- `95a3977` Align notes: house stair railing, east door, clock-side room, rear fence; bank posts,
+  west verge, Vipra Bhavan +2 x; covered-hall stage bay to x 22.64.
+- `837202b` Old inner shrine 2.78 m longer toward the rear range.
+- `ec3584c` The N note tool (`dist/src/model-notes.js`, writable entry in `server.mjs`).
+- `a21af8f` West green platform cut at x 35; brown entrance walkway; brass lamp removed.
+- `43abf3e` Bell bay 1 m wider (more blocks the courtyard walkway); bell between two white piers.
+- `20b7701` House: facade right door, sitting-bay furniture, desk and inner door leaves removed.
+- `603e23f` Lake south-east: mound, hill stair, white block and shed removed.
+- `9b75a45` West veranda edge straight at 24.2; rear stair climbs straight back (not walkable,
+  `K.blocker`); sanctum front cut at x 31.7 with a red north side wall.
+- `622f44a` Covered hall runs north to the street wall through the road-corner block.
+- Deferred by the user: the house entrance roof.
 
 ## Claude pass 2 (2026-09-27 night)
 
