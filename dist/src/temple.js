@@ -621,7 +621,8 @@ export function buildTemple(K) {
   // Each entry is a continuous veranda section. The broad shaded front hall
   // remains on photo-right; the other stretches have slimmer flat-roof walks.
   const verandaRuns=[
-    {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,27.2,40.6]},
+    // 15.04.55: no access stair in front of the blue box at z 27.2; the plinth runs on.
+    {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,40.6]},
     {side:-1,wall:24.14,edge:28.45,a:6.4,b:16.2,stairs:[12],round:true},
     // User's note: the west veranda's court edge lines up with the covered hall's platform (x 24.2).
     {side:-1,wall:22.64,edge:24.2,a:16.2,b:45.4,stairs:[38.9],wallA:19.9},
