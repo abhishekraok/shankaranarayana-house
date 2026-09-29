@@ -1032,7 +1032,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.12.15 / 15.13.30: whitewashed pedestals carrying black stone elephants flank the stair.
   const elephantStone=new THREE.MeshStandardMaterial({color:'#1c1c1b',roughness:.45});
-  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-2.65,57.2,.9]]){
+  // 15.13.30: both elephants stand on the same (south) side, one above the other on stepped
+  // pedestals beside the plain lower flight; the north side is clear.
+  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-7.35,55.2,.5]]){
     box('Stage stair elephant pedestal',x0,top/2,z,1.3,top,.6,adjacentWhite,true);
     const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);group.add(el);
     const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);

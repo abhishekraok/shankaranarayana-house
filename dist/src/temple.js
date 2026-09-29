@@ -2262,6 +2262,26 @@ export function buildTemple(K) {
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
    box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
+  // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
+  // the bay to its north is open, with a steep concrete stair climbing inside it.
+  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95);
+   box('East porch raised deck',56.28,.725,10,2.84,.25,3.3,stoneFloor);K.surface(56.28,10,2.84,3.3,.85);
+   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.43,(z0+z1)/2,.7,.86,z1-z0,rubble,true);
+   box('East porch plinth rubble face',54.21,.43,10,.02,.84,3.6,rubble);
+   steps('East porch front steps',54.1,10,1.6,1.2,.1,.85,'x',3);
+   box('East porch projecting flat roof slab',56.0,3.8,10,3.6,.26,4.0,white);
+   box('East porch roof slab red edge',54.19,3.8,10,.04,.2,4.0,red);
+   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.6,2.7,'x',10);
+   K.ramps.splice(r0);K.blocker(56.55,13.05,2.0,1.1,.6,3.2);
+   box('East range open bay stair side wall',56.65,1.95,13.66,2.1,2.7,.12,white,true);
+   box('East range open bay red lintel band',54.98,3.32,13.25,.14,.22,3.0,red);}
+  // 15.15.11 / 15.14.30: the bell-hall and stair-enclosure walls stop behind the entrance hall's
+  // rear wall (z 5.98); their ends showed as posts beneath the paintings.
+  {const b3=new THREE.Box3();g.updateMatrixWorld(true);
+   for(const o of g.children){if(!/^(Bell hall white west wall|Stair enclosure white east wall)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.min.z>=5.98||b3.max.z<6.3)continue;
+     const f=(b3.max.z-6.0)/(b3.max.z-b3.min.z);o.scale.z*=f;o.position.z+=(6.0-b3.min.z)/2;}}
   // User's note (upper gallery): the stair well is open to the hall below, so the blue name
   // board shows from the entrance; no floor or ceiling spans it.
   {const X0=37.6,X1=40.3,Z0=-1.63,Z1=.2,b3=new THREE.Box3(),parts=(x0,x1,z0,z1)=>
