@@ -52,8 +52,13 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     material is mapped (procedural), so it needs the mapped masters; even with those the crown
     region was unchanged in captures. Check whether build_level assigns component material
     overrides to the instanced crowns before trying again. Reverted.
-  - Next: crown shapes (blobs) and colour, road/shoulder widths (a model item), water
-    reflections, shrine brass patina.
+  - Pass 2 (main `c6590e1`): foliage masters now apply (master graph edits need
+    `materials.py --rebuild`; `claude-rebuild.sh` passes it). Distant crowns are lumpy and
+    lighter in the model itself. Water retuned to a deep olive green (scattering
+    .006/.015/.005, absorption .42/.20/.38). Emission scales with the exported
+    `emissiveIntensity` (5x); oil-lamp lights 2 lm, so the sanctum reads dark. Blender leaf
+    saturation lifted. Full review at `sheets-a775558/unreal-20260929-002542/`.
+  - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
   component to a null cubemap on reload; a native skylight now retains the texture,
