@@ -33,6 +33,7 @@ http.createServer((req,res)=>{let rel;try{rel=decodeURIComponent(new URL(req.url
  // Alignment saves and the discard list are mirrored to the photo folder so they
  // survive browser changes. Discarding never deletes or moves a photo.
  const writable={'/local-photos/align-poses.json':d=>d.schema==='shankaranarayana-photo-poses'&&Array.isArray(d.poses),
+  '/local-photos/align-model-notes.json':d=>d.schema==='shankaranarayana-model-notes'&&Array.isArray(d.notes)&&d.notes.every(n=>typeof n.text==='string'&&n.text.length<5000&&Array.isArray(n.camera?.position)),
   '/local-photos/align-discarded.json':d=>d.schema==='shankaranarayana-align-discarded'&&Array.isArray(d.files)&&d.files.every(f=>typeof f==='string'&&f.length<300)};
  if(req.method==='POST'&&writable[rel]&&photoDir){
   let body='';req.setEncoding('utf8');

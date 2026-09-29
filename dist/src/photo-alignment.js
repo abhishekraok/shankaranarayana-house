@@ -40,7 +40,9 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
  async function loadQueue(){
   try{const r=await fetch('./local-photos/align-queue.json',{cache:'no-store'});if(r.ok){const data=await r.json();if(data.schema==='shankaranarayana-align-queue'&&Array.isArray(data.items)&&data.items.length)
    diskSync=true;
-   try{const d=await fetch('./local-photos/align-poses.json',{cache:'no-store'});if(d.ok){const disk=await d.json();for(const r of disk.poses||[])if(valid(r)&&(!saved.has(r.id)||saved.get(r.id).savedAt<r.savedAt))saved.set(r.id,r);}}catch{}
+   // Ties go to the folder: scripted pose fixes keep savedAt, and a stale browser copy with the
+   // same savedAt must not write the old camera back over them.
+   try{const d=await fetch('./local-photos/align-poses.json',{cache:'no-store'});if(d.ok){const disk=await d.json();for(const r of disk.poses||[])if(valid(r)&&(!saved.has(r.id)||saved.get(r.id).savedAt<=r.savedAt))saved.set(r.id,r);}}catch{}
    // The folder's discard list is authoritative, so discards follow you between browsers.
    try{const d=await fetch('./local-photos/align-discarded.json',{cache:'no-store'});if(d.ok){const disk=await d.json();if(disk.schema==='shankaranarayana-align-discarded'&&Array.isArray(disk.files)){for(const id of [...discarded])if(id.startsWith('file:'))discarded.delete(id);for(const f of disk.files)if(typeof f==='string')discarded.add('file:'+f);}}}catch{}
    return data.items.map(i=>({id:'file:'+i.file,filename:i.file,url:'./local-photos/'+encodeURIComponent(i.file),label:i.label,reason:i.reason,start:i.start}));}}catch{}

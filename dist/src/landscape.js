@@ -4,6 +4,13 @@ import * as THREE from 'three';
  * Ground and animated water are supplied by the application. Keep this group
  * at identity: all walkable surfaces and collision bounds use world metres.
  */
+// 15.30.09 and the satellite tank width (26.5 m of water): the far bank stands 2 m closer
+// than first built. West of FAR_X1 (the shop and east lane stay) everything past FAR_Z0 moves
+// FAR_SHIFT toward the house; between FAR_Z0 and FAR_Z1 the side banks stretch linearly. main.js maps its terrain through this.
+export const FAR_SHIFT=2,FAR_Z0=-29.5,FAR_Z1=-25.5,FAR_X1=52;
+export function farZ(z,x=0){if(x>=FAR_X1)return z;return z<=FAR_Z0?z+FAR_SHIFT:z>=FAR_Z1?z:z+FAR_SHIFT*(FAR_Z1-z)/(FAR_Z1-FAR_Z0);}
+export function farZinv(z,x=0){if(x>=FAR_X1)return z;const k=FAR_SHIFT/(FAR_Z1-FAR_Z0);return z<=FAR_Z0+FAR_SHIFT?z-FAR_SHIFT:z>=FAR_Z1?z:(z-k*FAR_Z1)/(1-k);}
+
 export function buildLandscape(K, {mobile=false}={}) {
   const group = new THREE.Group();
   group.name = 'Shankaranarayana · tank and coconut grove';
@@ -310,7 +317,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // the lane: the short run beside the gate's approach is the passage's lane-side wall,
   // and the gap between the two lines opens onto the lake.
   const houseBankZ=-8.3, waterRailZ=-10.0, bathingGateX=16.4, bathingGateZ=-9.65;
-  for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,14.4,houseBankZ]]){
+  // User's note: no opening from the lane between this run and the gate pier; the lower
+  // bank is reached from the bathing arcade stair.
+  for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,16.03,houseBankZ]]){
     for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,.38,fenceStone);
     for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,z,.19,.69,.29);
     K.blocker((a+b)/2,z,b-a,.39,0,1.13);
@@ -351,7 +360,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.28.13: the entrance crosses the bank at right angles to the
   // house-facing rail. Descend along +X, then follow the low waterside ledge.
-  for(const z of [-8.25,-11.05]){
+  for(const z of [-8.25]){ // user's note: no second (waterside) gate pier
     for(const [y,w,h] of [[.29,.75,.58],[.77,.62,.38],[1.10,.49,.28],[1.31,.39,.14]])box('Tank gate square stepped stone pier',bathingGateX,y,z,w,h,w,fenceWhite,true);
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
@@ -402,7 +411,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,.93);
+  // 14.59.39 / 15.11.58: a steep, deep tiled roof about as tall as the pillars.
+  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.75);
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
@@ -422,7 +432,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.blocker(39,-10.23,18.35,.27,-2.6,.99);
 
   // Opposite the mud road, the long low dark wall spans the temple's right wing.
-  box('Temple bank dark retaining parapet',23.2,.42,-8.3,10.8,.84,.26,materials.basalt,true);
+  // User's note: the parapet runs on to the lake entrance pedestal with no gap.
+  box('Temple bank dark retaining parapet',23.82,.42,-8.3,12.04,.84,.26,materials.basalt,true);
   for(let x=18.2;x<28.6;x+=2.5)box('Temple bank white vertical joint',x,.45,-8.45,.055,.76,.015,materials.oldWhite);
   // 14.58.26: whitewashed pilaster strips about 5.6 m apart run down the full
   // retaining face, and every tier carries a worn white nosing.
@@ -445,8 +456,10 @@ export function buildLandscape(K, {mobile=false}={}) {
     box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
     box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
     for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
-      box(name+' bank whitewashed square post',x,.72,z,.36,1.44,.36,fenceWhite);
-      box(name+' bank post cap',x,1.49,z,.44,.09,.44,fenceWhite);}
+      // User's 15.28.26 note: the posts are flush with the parapet faces and stand
+      // only a little above its coping (as on the east bank in that photo).
+      box(name+' bank whitewashed square post',x,.56,z,.31,1.12,.31,fenceWhite);
+      box(name+' bank post cap',x,1.14,z,.32,.05,.32,fenceWhite);}
     K.blocker(x,zc,.45,len+.3,0,1.4);
   }
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
@@ -829,6 +842,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     shrub(zone === 0 ? range(-27, 19) : zone === 1 ? range(-39, 25) : zone === 2 ? range(-37, -24.8) : range(62, 75),
       zone === 0 ? range(27, 63) : zone === 1 ? range(-70, -48.1) : zone === 2 ? range(-46, 24) : range(4, 60), range(.42, 1.28));
   }
+  // 15.22.00 / 15.23.08 / 15.25.49: dense weeds and shrubs fill the ground behind the far-bank
+  // footpath, up to the houses (lifted onto the far-bank terrace below). Authored 6 m out:
+  // the satellite-refit pass below brings everything past z -41.5 that much nearer.
+  const weedSeed = seed;
+  for (let i = 0; i < 140; i++) {
+    const x = i % 4 ? range(-4.6, 49.6) : range(-21, -5), z = range(-53.8, -46.9);
+    if (x > -19.4 && x < -16.4 || x > -17.6 && x < -6.4 && z < -50.4) continue;
+    shrub(x, z, range(.45, 1.15));
+  }
+  seed = weedSeed;
   // Small tufts on the wild edges, kept away from the walking paths.
   const grassPositions = [], grassIndices = [];
   for (let i = 0; i < 5; i++) {
@@ -842,6 +865,29 @@ export function buildLandscape(K, {mobile=false}={}) {
     const x = i % 2 ? range(-38, -22) : range(-30, 28), z = i % 2 ? range(-47, 23) : range(-68, -47.1), s = range(.55, 1.3);
     instance('grass and weeds along wild banks', grassGeometry, materials.grass, [x, .025, z], [s, s, s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
   }
+  const tuftSeed = seed;
+  for (let i = 0; i < 700; i++) {
+    const x = i % 4 ? range(-4.8, 49.8) : range(-21, -5), z = range(-55, -45.6), s = range(.6, 1.25);
+    if (x > -19.2 && x < -16.6 || x > -17.4 && x < -6.6 && z < -50.6) continue;
+    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [x, .025, z], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
+  }
+  seed = tuftSeed;
+  // 15.25.49: weeds, not bare laterite, between the hall and the tank path, beside its approach.
+  const weedyGround = new THREE.MeshStandardMaterial({ color: '#6d7443', roughness: 1 });
+  for (const [a, b] of [[-21, -19.2], [-16.6, -9.9]])
+    box('Opposite bank weedy ground before the hall', (a + b) / 2, .012, -42.45, b - a, .02, 4.7, weedyGround);
+  // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
+  // shrubs fill the ground beyond it.
+  box('West bank weedy ground beyond the path', -13.8, .012, -24.4, 10.4, .02, 26.8, weedyGround);
+  // User's 15.30.09 note: the mud road is slimmer, about 1.5 m, with a weedy verge along the wall.
+  box('West bank weedy verge beside the wall', -6.2, .012, -24.4, 2.1, .02, 26.8, weedyGround);
+  const westSeed = seed;
+  for (let i = 0; i < 60; i++) shrub(range(-18.6, -9.4), range(-37, -12), range(.5, 1.25));
+  for (let i = 0; i < 260; i++) {
+    const s = range(.6, 1.25);
+    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [range(-18.8, -8.9), .025, range(-37.5, -11.5)], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
+  }
+  seed = westSeed;
 
   // A few quiet white service houses frame the site beyond the main buildings.
   function ancillary(name, x, z, w, d, h) {
@@ -881,7 +927,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const hallRoof=K.gableRoof(group,'Opposite bank hall shallow gray roof',0,0,8.5,10.05,6.69,1.41,materials.roofConcrete);hallRoof.rotation.y=Math.PI/2;hallRoof.position.set(-12,0,-55);
   for(const side of [-1,1])K.beam(group,'Opposite bank hall pale sloping roof edge',[-12+side*4.92,6.74,-50.71],[-12,8.15,-50.71],.14,oppositeWhite,.20);
   for(const y of [2.65,3.18])ow('hall lower balcony white rail',-12,y,-50.15,9.9,.11,.13);
-  const hallSpindles=[];for(let x=-16.8;x<-7.1;x+=.235)hallSpindles.push([x,2.91,-50.15,.08,.47,.08]);
+  const hallSpindles=[];for(let x=-14.8;x<-5.1;x+=.235)hallSpindles.push([x,2.91,-50.15,.08,.47,.08]);
   for(const a of hallSpindles)instance('Opposite bank hall balcony balusters',cylinder,oppositeWhite,a.slice(0,3),a.slice(3));
   ow('hall red awning fascia',-12,2.59,-50.17,9.98,.08,.18,'red');
   // Original lettering and emblem, sampled only from the white hall in 15.30.09.
@@ -987,7 +1033,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.12.15 / 15.13.30: whitewashed pedestals carrying black stone elephants flank the stair.
   const elephantStone=new THREE.MeshStandardMaterial({color:'#1c1c1b',roughness:.45});
-  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-2.65,57.2,.9]]){
+  // 15.13.30: both elephants stand on the same (south) side, one above the other on stepped
+  // pedestals beside the plain lower flight; the north side is clear.
+  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-7.35,55.2,.5]]){
     box('Stage stair elephant pedestal',x0,top/2,z,1.3,top,.6,adjacentWhite,true);
     const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);group.add(el);
     const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);
@@ -1255,25 +1303,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   steps('Lane-end concrete steps down to the lawn',54.2,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
-  // 15.20.13 and 15.28.26: beyond the tank's south-east corner a steep wooded
-  // bank rises about 4.6 m, climbed by a laterite stair, with a small white
-  // building of the lake entrance group and a dark-roofed shed on top.
-  const bankProfile=new THREE.Shape([[0,0],[2.4,4.6],[13.5,4.6],[13.5,0]].map(([u,v])=>new THREE.Vector2(u,v)));
-  const bankGeo=new THREE.ExtrudeGeometry(bankProfile,{depth:12.2,bevelEnabled:false});bankGeo.rotateY(Math.PI/2);
-  const bankGreen=new THREE.MeshStandardMaterial({color:'#4c5a33',roughness:1});const hillBank=new THREE.Mesh(bankGeo,bankGreen);hillBank.name='South-east wooded bank';hillBank.position.set(49.8,0,-46.3);hillBank.castShadow=hillBank.receiveShadow=true;group.add(hillBank);
-  box('South-east bank grassy crest',55.9,4.62,-54.5,12.2,.04,11.4,verge);K.surface(55.9,-54.5,12.2,11.4,4.64);
-  K.blocker(55.9,-53.1,12.2,13.6,0,4.5);
-  steps('South-east laterite hill stair',50.55,-47.5,1.3,2.4,'-z',.05,4.62,14,materials.redSoil);
-  const entranceWhite=materials.oldWhite.clone();entranceWhite.color.set('#e9e6dc');
-  const entrancePink=materials.oldWhite.clone();entrancePink.color.set('#c77b7e');
-  box('Lake entrance small white block',53.5,4.62+1.35,-50.3,2.5,2.7,2.8,entranceWhite,true);
-  box('Lake entrance block pink dado',53.5,4.62+.25,-50.3,2.54,.5,2.84,entrancePink);
-  const slab=box('Lake entrance block flat roof',53.5,4.62+2.78,-50.3,2.8,.16,3.1,materials.roofConcrete);K.roofs.push(slab);
-  for(const x of [55.6,57.9])for(const z of [-49.3,-51.2])box('Entrance shed timber post',x,4.62+1.05,z,.12,2.1,.12,'wood',true);
-  const shedRoof=box('Entrance shed dark sheet roof',56.75,4.62+2.2,-50.25,2.9,.06,2.5,materials.basalt);shedRoof.rotation.x=-.12;K.roofs.push(shedRoof);
-  const shrubGreen=new THREE.MeshStandardMaterial({color:'#3d5a2a',roughness:.95,flatShading:true});
-  for(let i=0;i<14;i++){const bush=new THREE.Mesh(new THREE.IcosahedronGeometry(.55+(i%4)*.18,0),shrubGreen);bush.name='South-east bank shrub';
-    const t=i/13;bush.position.set(51.6+t*10.2+Math.sin(i*2.3)*.4,.4+(i%3)*1.2+(i%5)*.3,-46.5-(i%3)*.7);bush.scale.y=.8;bush.castShadow=true;group.add(bush);}
+  // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
+  // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
   // Broken grassy edges and the narrow concrete threshold step.
   sb('front entry shallow step',-.8,.075,-.42,2.1,.15,.42,materials.mortar);K.surface(59.58,-24.2,.42,2.1,.15);
   for(const a of [-5.1,-1.7,2.4,6.7,9.0]){
@@ -1396,6 +1427,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
+  // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
+  // beside the foot of the outside stair.
+  {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
+   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
+   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
+   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
+   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
+   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05);K.roofs.push(r);}
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
@@ -1417,10 +1456,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const cottageCanopy=box('Western cottage shallow grey shutter canopy',-24.95,2.72,-10.01,2.15,.065,.77,materials.roofConcrete);
   cottageCanopy.rotation.x=.13;K.roofs.push(cottageCanopy);
 
-  box('Western cottage recessed pink upper floor',-29.1,4.17,-15.2,6.2,1.62,3.8,'pink',true);
-  box('Western cottage pale terrace slab',-29.1,5.02,-15.2,6.5,.16,4.1,'plaster');
-  box('Western cottage pink terrace parapet',-29.1,5.29,-13.22,6.5,.52,.16,'pink');
-  K.cylinder(group,'Western cottage rooftop water tank',-30.5,5.48,-15.25,.54,.54,.77,'black',16);
+  // 14.46.51: a single-storey house under its hipped tile roof; no pink upper floor over it.
   const bendMeshes=group.children.length,bendColliders=K.colliders.length,bendSurfaces=K.surfaces.length;
   laneHouse('White porch at the lane bend',-44.5,-.7,6.4,5.4,2.7,-1);
   box('Lane bend porch red parapet',-44.5,.70,-4.65,5.8,.65,.20,'red');
@@ -1734,7 +1770,8 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const r of K.surfaces)if(r.z+r.d/2<edge)r.y+=lift(r.x);
    for(const r of K.ramps)if(r.z+r.d/2<edge){const l=lift(r.x);r.lowY+=l;r.highY+=l;}
    for(const l of K.labels)if(l.position[2]<edge)l.position=[l.position[0],l.position[1]+lift(l.position[0]),l.position[2]];
-   const earth=K.M.earth,zc=(edge+back)/2,d=edge-back;
+   // Weedy ground rather than bare laterite, with a worn footpath along the bank top.
+   const earth=new THREE.MeshStandardMaterial({color:'#6d7443',roughness:1}),zc=(edge+back)/2,d=edge-back;
    for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]]){
      box('Far bank raised earth terrace',(a+b)/2,(FAR_TOP-.3)/2,zc,b-a,FAR_TOP+.3,d,earth);K.surface((a+b)/2,zc,b-a,d,FAR_TOP);
    }
@@ -1742,6 +1779,45 @@ export function buildLandscape(K, {mobile=false}={}) {
    box('Far bank earth behind pavilion entry',34,(FAR_TOP-.3)/2,(-38.8+back)/2,2.2,FAR_TOP+.3,-38.8-back,earth);K.surface(34,(-38.8+back)/2,2.2,-38.8-back,FAR_TOP);
    for(let i=0;i<16;i++)for(const side of [-1,1]){const x=side<0?x0-(i+.5)*fall/16:x1+(i+.5)*fall/16,h=lift(x);
      box('Far bank earth slope',x,(h-.3)/2,zc,fall/16+.01,h+.3,d,earth);}
-   K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);}
+   K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);
+   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,materials.redSoil);}
+  // Bring the far bank closer (see farZ): move what lies beyond, stretch what spans.
+  {const b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
+   group.updateMatrixWorld(true);
+   for(const o of group.children){
+     if(o.isInstancedMesh){let moved=false;for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);p.setFromMatrixPosition(m);const z=farZ(p.z,p.x);
+       if(z!==p.z){m.elements[14]=z;o.setMatrixAt(i,m);moved=true;}}
+       if(moved){o.instanceMatrix.needsUpdate=true;o.computeBoundingBox?.();o.computeBoundingSphere?.();}continue;}
+     b3.setFromObject(o);if(b3.isEmpty()||b3.min.z>=FAR_Z1||(b3.min.x+b3.max.x)/2>=FAR_X1)continue;
+     if(b3.max.z<=FAR_Z0){o.position.z+=FAR_SHIFT;continue;}
+     const z0=farZ(b3.min.z),z1=farZ(b3.max.z),f=(z1-z0)/(b3.max.z-b3.min.z),e=o.rotation;
+     const flat=Math.abs(Math.abs(e.x)-Math.PI/2)<1e-3&&Math.abs(e.y)<1e-3&&Math.abs(e.z)<1e-3,upright=Math.abs(e.x)<1e-3&&Math.abs(e.z)<1e-3;
+     if(o.isMesh&&flat)o.scale.y*=f;
+     else if(o.isMesh&&upright&&Math.abs(Math.sin(e.y))<1e-3)o.scale.z*=f;
+     else if(o.isMesh&&upright&&Math.abs(Math.cos(e.y))<1e-3)o.scale.x*=f;
+     else{o.position.z+=farZ((b3.min.z+b3.max.z)/2)-(b3.min.z+b3.max.z)/2;continue;}
+     o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=z0-b3.min.z;}
+   for(const c of K.colliders){if(c.minZ<FAR_Z1&&(c.minX+c.maxX)/2<FAR_X1){c.minZ=farZ(c.minZ);c.maxZ=farZ(c.maxZ);}}
+   for(const r of [...K.surfaces,...K.ramps])if(r.z-r.d/2<FAR_Z1&&r.x<FAR_X1){const z0=farZ(r.z-r.d/2),z1=farZ(r.z+r.d/2);r.z=(z0+z1)/2;r.d=z1-z0;}
+   for(const l of K.labels)if(l.position[2]<FAR_Z1)l.position=[l.position[0],l.position[1],farZ(l.position[2],l.position[0])];}
+  // 15.23.35 / 15.23.38: the west bank steps down in broad tiers (~0.9 m treads), not the
+  // steep 0.45 m courses that read as one wall from across the water.
+  {const spans={'upper dark stone retaining course west':[-5,-4.1],'middle worn stone tread west':[-4.1,-3.2],
+     'low mossy stone tread west':[-3.2,-2.3],'submerged tank course west':[-2.3,-1.5]},b3=new THREE.Box3();group.updateMatrixWorld(true);
+   for(const o of group.children){const t=spans[o.name];if(!t||!o.isMesh)continue;b3.setFromObject(o);
+     o.scale.x*=(t[1]-t[0])/(b3.max.x-b3.min.x);o.position.x+=(t[0]+t[1])/2-(b3.min.x+b3.max.x)/2;
+     // The far-corner stair (x -3.4..-1.2, z < -32.8) stays clear of the wider tiers.
+     if(t[1]>-3.5&&b3.min.z<-32.8){const z0=-32.75;o.scale.z*=(b3.max.z-z0)/(b3.max.z-b3.min.z);o.position.z+=(z0-b3.min.z)/2;}}}
+  // Same on the house bank (15.23.35, 15.23.38): broad tiers under the parapet posts; the thin
+  // ledges that stood in front of the old courses are folded into them.
+  {const spans={'upper dark stone retaining course near':[-9.9,-9.0],'middle worn stone tread near':[-10.8,-9.9],
+     'low mossy stone tread near':[-11.7,-10.8],'submerged tank course near':[-12.5,-11.7]},b3=new THREE.Box3();group.updateMatrixWorld(true);
+   for(const o of [...group.children]){if(o.name==='House bank continuous retaining ledge'){group.remove(o);continue;}
+     const t=spans[o.name];if(!t||!o.isMesh)continue;b3.setFromObject(o);
+     o.scale.z*=(t[1]-t[0])/(b3.max.z-b3.min.z);o.position.z+=(t[0]+t[1])/2-(b3.min.z+b3.max.z)/2;}}
+  // User's 15.30.09 note: the hall (Vipra Bhavan) stands a little further right, about 2 m east.
+  {const DX=2,b3=new THREE.Box3();
+   for(const o of group.children){if(o.isInstancedMesh||!o.name.startsWith('Opposite bank hall')||o.name.endsWith('dirt approach'))continue;o.position.x+=DX;}
+   for(const c of K.colliders)if(c.minX>-17.2&&c.maxX<-6.8&&c.minZ>-52&&c.maxZ<-42.5){c.minX+=DX;c.maxX+=DX;}}
   return group;
 }

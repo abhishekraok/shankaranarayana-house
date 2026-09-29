@@ -37,7 +37,7 @@ export function buildTemple(K) {
   darkRoof.color.set('#554b40');
   const brass = mat('#8c7142', .49, { metalness: .52 });
   const stoneFloor = mat('#b7b0a0');
-  const blackFloor = mat('#38413f', .56);
+  const blackFloor = mat('#ffffff', .62); // worn brown tiles (user's note); the name is historical
   const oxideFloor = mat('#834b3c', .69);
 
   // Repeatable, geometry-native canvas finishes avoid hundreds of paving meshes.
@@ -83,9 +83,9 @@ export function buildTemple(K) {
     for(let i=0;i<220;i++){c.fillStyle=`rgba(60,66,54,${.015+mildew()*.03})`;c.fillRect(mildew()*s,mildew()*s,2+mildew()*5,2+mildew()*5);}
   },.35,.35);white.color.set('#ffffff');white.userData.worldAnchored=true;K.baseGrime(white,{top:1.8,strength:.55});
   blackFloor.map = canvasMap(256, (c,s) => {
-    c.fillStyle='#3b4442';c.fillRect(0,0,s,s);
+    c.fillStyle='#6f5242';c.fillRect(0,0,s,s);
     for(let x=0;x<4;x++)for(let y=0;y<4;y++){
-      c.strokeStyle='#68716b';c.lineWidth=1;c.strokeRect(x*64,y*64,64,64);
+      c.strokeStyle='#8c705d';c.lineWidth=1;c.strokeRect(x*64,y*64,64,64);
       c.fillStyle='#d5cfba';c.save();c.translate(x*64+32,y*64+32);c.rotate(Math.PI/4);c.fillRect(-4,-4,8,8);c.restore();
     }
   }, 8, 3);
@@ -571,7 +571,19 @@ export function buildTemple(K) {
    for(const x of [38.23,39.67])wellScreens.push([x,4.55,.3,.66,.82,1,0,0,0]);
    instances('Upper stair well white pierced screens',screenGeometry,entranceLace,wellScreens);
    box('Temple name board blue face',38.95,5.52,.38,3.4,.82,.12,mat('#2a45a8'));
-   box('Temple name board white edge',38.95,5.52,.45,3.5,.92,.04,whiteTrim);}
+   box('Temple name board white edge',38.95,5.52,.45,3.5,.92,.04,whiteTrim);
+   // 15.12.22: white Kannada lettering on the road-side face (the donor line is left off).
+   const lettering=canvasMap(1024,(c,S)=>{
+     c.fillStyle='#2a45a8';c.fillRect(0,0,S,S);c.fillStyle='#f2f2ee';c.textAlign='center';c.textBaseline='middle';
+     // The square canvas spans a 3.3 x 0.76 m face: squeeze x so the glyphs keep their shape.
+     const k=.76/3.3,W=S/k;c.scale(k,1);
+     const font=px=>`bold ${px}px "Noto Sans Kannada","Nirmala UI","Tunga","Kannada Sangam MN",sans-serif`;
+     c.font=font(96);c.fillText('॥ ಶ್ರೀ ಶಂಕರನಾರಾಯಣ ಪ್ರಸನ್ನ ॥',W/2,S*.13);
+     c.font=font(360);c.fillText('ಶ್ರೀ ಶಂಕರನಾರಾಯಣ ದೇವಸ್ಥಾನ',W/2,S*.46,W*.94);
+     c.font=font(120);c.fillText('ಶ್ರೀ ಕ್ಷೇತ್ರ, ಶಂಕರನಾರಾಯಣ, ಕುಂದಾಪುರ ತಾ॥',W/2,S*.8);
+   });
+   if(lettering){lettering.wrapS=lettering.wrapT=THREE.ClampToEdgeWrapping;
+     const face=mesh('Temple name board lettering',new THREE.PlaneGeometry(3.3,.76),mat('#ffffff',.8,{map:lettering}),38.95,5.52,.315);face.rotation.y=Math.PI;}}
 
   // 15.01.44–15.05.48: a rectangular, open-air circuit, with distinct shrine
   // bays on raised verandas. Extend the inferred rear court to leave a real
@@ -593,8 +605,9 @@ export function buildTemple(K) {
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
     while(y<s){const h=Math.min(s-y,58+rand()*20);let x=-rand()*120;
-      while(x<s){const w=78+rand()*72,v=168+rand()*30|0,t=rand()*8-3|0;
-        for(const ox of [0,s])if(x+ox<s+160){c.fillStyle=`rgb(${v+t+6},${v+t+2},${v-4})`;c.fillRect(x+ox+1.2,y+1.2,w-2.4,h-2.4);}
+      // 15.03.33 / 15.04.55 / 15.11.08: weathered grey-brown granite, darker than fresh stone.
+      while(x<s){const w=78+rand()*72,v=140+rand()*30|0,t=rand()*8-3|0;
+        for(const ox of [0,s])if(x+ox<s+160){c.fillStyle=`rgb(${v+t+10},${v+t+3},${v-9})`;c.fillRect(x+ox+1.2,y+1.2,w-2.4,h-2.4);}
         for(let k=0;k<4;k++){c.fillStyle=`rgba(${rand()<.3?80:60},${rand()<.3?88:66},62,${.04+rand()*.09})`;c.beginPath();c.ellipse(x+rand()*w,y+rand()*h,4+rand()*18,3+rand()*9,rand()*3,0,Math.PI*2);c.fill();}
         c.fillStyle='rgba(245,242,230,.12)';c.fillRect(x+4,y+3,w-8,2);
         c.fillStyle='rgba(60,60,52,.10)';c.fillRect(x+3,y+h-5,w-6,3);
@@ -610,7 +623,8 @@ export function buildTemple(K) {
   const verandaRuns=[
     {side:1,wall:53.86,edge:51.05,a:6.4,b:45.4,stairs:[16.2,21.4,27.2,40.6]},
     {side:-1,wall:24.14,edge:28.45,a:6.4,b:16.2,stairs:[12],round:true},
-    {side:-1,wall:22.64,edge:25.35,a:16.2,b:45.4,stairs:[38.9]},
+    // User's note: the west veranda's court edge lines up with the covered hall's platform (x 24.2).
+    {side:-1,wall:22.64,edge:24.2,a:16.2,b:45.4,stairs:[38.9],wallA:19.9},
   ];
   for(const r of verandaRuns){
     const xc=(r.wall+r.edge)/2,zc=(r.a+r.b)/2,d=r.b-r.a,w=Math.abs(r.wall-r.edge);
@@ -626,8 +640,10 @@ export function buildTemple(K) {
       }
       floor('Outer circuit raised red veranda',xc,(start+r.b)/2,w,r.b-start,.6,oxideFloor);
     }else if(!r.round)floor('Outer circuit raised red veranda',xc,zc,w,d,.6,oxideFloor);
-    if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,zc,.27,2.9,d,agedWhite,true);
-    if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,zc,.065,.6,d,red);
+    // The west wall starts behind the covered hall's deepened stage bay (wallA).
+    {const wa=r.wallA??r.a;
+    if(!r.round)box('Outer circuit weathered white wall',r.wall,2.05,(wa+r.b)/2,.27,2.9,r.b-wa,agedWhite,true);
+    if(!r.round)box('Outer circuit red wall skirting',r.wall-r.side*.16,.90,(wa+r.b)/2,.065,.6,r.b-wa,red);}
     // Real notches in the plinth align with steps instead of blocking them.
     const cuts=[r.a,...r.stairs.flatMap(z=>[z-.72,z+.72]),r.b];
     for(let i=0;!r.round&&i<cuts.length-1;i+=2){const lo=cuts[i],hi=cuts[i+1];
@@ -695,7 +711,7 @@ export function buildTemple(K) {
   for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
   // A real stairwell interrupts the slab, leaving the front terrace continuous.
-  for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.25,37.21,7.5,1.9],[46.65,37.21,22.7,1.9]]){
+  for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.3,37.21,7.6,1.9],[44.55,37.21,26.9,1.9]]){
     K.box(rearRoof,'Rear circuit flat soffit',x,3.57,z,w,.24,d,agedWhite);
     K.surface(x,z,w,d,3.69);
   }
@@ -732,11 +748,11 @@ export function buildTemple(K) {
    mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,27.4,7.29,37.25,rearRoof);
    mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,27.4,8.38,37.25,rearRoof);
   }
-  steps('Rear upper storey access stair',32.6,36.95,4.8,1.10,.6,3.69,'-x',18);
-  floor('Rear upper stair landing',29.7,36.95,1.0,1.10,3.69,oxideFloor);
-  // Physical guards leave the lower stair entry and upper exit open.
-  K.railing(g,'Rear upper stairwell front guard',30.2,36.26,35.1,36.26,3.69,.85,whiteTrim);
-  K.blocker(32.65,36.26,4.9,.12,3.69,4.54);
+  // User's note with 15.11.17: no sideways stair across the open bay. The photo's steep
+  // flight climbs straight back beside the door pier and vanishes into the floor above;
+  // it is shown but not walkable.
+  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12);
+  K.blocker(30.6,36.85,1.0,1.9,.6,3.5);
   // 15.11.08 / 15.11.17: enclosed white door/window bay in front of the
   // rear wall, with the stair bay open immediately to its east.
   for(const [a,b] of [[24.8,25.025],[25.975,27.15],[28.65,30.0]])
@@ -763,8 +779,9 @@ export function buildTemple(K) {
   K.box(rearRoof,'Rear corner white balcony base',49.6,4.04,35.30,3.1,.19,.22,whiteTrim);
   const rr=[];for(let i=0;i<16;i++)rr.push([48.16+i*.192,4.37,35.30,.055,.55,.055]);
   instances('Rear corner upper white balusters',new THREE.CylinderGeometry(.65,1,1,6),whiteTrim,rr);
-  moveAssembly(cornerStart,4,0);
-  for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=4;
+  // 15.03.33 (user): this two-storey bay sits centred at the end of the east passage (x 51.6).
+  moveAssembly(cornerStart,2,0);
+  for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=2;
   moveAssembly(rearStart,0,7.5);
   const rearObjects=new Set(g.children.slice(rearStart.children));
   const rearNav=new Set([...K.colliders.slice(rearStart.colliders),...K.surfaces.slice(rearStart.surfaces),...K.ramps.slice(rearStart.ramps)]);
@@ -907,7 +924,8 @@ export function buildTemple(K) {
   // Beyond the blue facade: older, narrower construction with red walls,
   // arched pale panels, black stone sill and deep, layered protective eaves.
   const wornRed=red.clone();wornRed.map=canvasMap(512,(c,s)=>{
-    c.fillStyle='#995346';c.fillRect(0,0,s,s);
+    // 15.03.33 / 15.04.55: a dark, weathered maroon rather than fresh red.
+    c.fillStyle='#7c4239';c.fillRect(0,0,s,s);
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
   // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
@@ -916,13 +934,15 @@ export function buildTemple(K) {
   floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
   for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
   box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
+  const stainedRecess=mat('#5a4a42',.95);
   for(const side of [-1,1]){
     const x=SX+side*(7.34+SE);
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
     for(let i=0;i<7;i++){
       const z=20.45+i*1.39,shape=new THREE.Shape();
       shape.moveTo(-.53,.87);shape.lineTo(.53,.87);shape.lineTo(.53,2.18);shape.absarc(0,2.18,.53,0,Math.PI,false);shape.closePath();
-      const painted=mesh('Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
+      // East side (15.03.33, 15.04.55): the arched recesses read dark and stained, not whitewashed.
+      const painted=mesh(side>0?'Old inner shrine dark stained arched recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?stainedRecess:agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
       box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,wornRed);
       K.beam(g,'Old inner shrine projecting eave corbel',[x,2.84,z+.62],[x+side*.65,3.12,z+.62],.17,weathered,.23);
     }
@@ -1060,12 +1080,18 @@ export function buildTemple(K) {
   steps('Covered hall inner platform access',24.86,9.8,1.40,1.20,.1,.6,'-x',3);
   // 15.11.08 is taken from the raised passage just inside this end, so the
   // wall closes only the hall itself; the passage continues into the circuit.
-  box('Covered hall rear end wall',22.2,2.03,16.10,3.9,2.86,.20,hallBlue,true);
-  box('Covered hall rear red dado',22.2,.88,15.985,3.9,.56,.025,red);
+  // User's 'temple right side facing opposite to the entrance' note: the end wall and
+  // stage stand further back, about 8 m from that camera. The hall runs on under the
+  // right hall's upper storey to z 19.9; the old end-wall line keeps only its beam.
+  const stageEnd=19.9;
+  box('Covered hall rear end wall',21.45,2.03,stageEnd-.1,2.4,2.86,.20,hallBlue,true);
+  box('Covered hall rear red dado',21.45,.88,stageEnd-.215,2.4,.56,.025,red);
+  floor('Covered hall stage bay oxide floor',21.45,(16.2+stageEnd)/2,2.3,stageEnd-16.2,.60,hallFloor);
+  box('Covered hall stage bay white ceiling',21.45,3.60,(16.2+stageEnd)/2,2.4,.16,stageEnd-16.2,white);
   // 180635: two high-silled windows, with a solid wall and beam pilaster
   // between them. The old third window occupied the electrical-board wall.
   const hallWindowCenters=[9.0,12.6],windowPaint=mat('#426577');
-  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,16.2]])
+  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,stageEnd]])
     box('Covered hall lane-side wall pier',20.30,2.03,(a+b)/2,.20,2.86,b-a,hallBlue,true);
   for(const z of hallWindowCenters){
     box('Covered hall window sill wall',20.30,1.22,z,.20,1.24,1.30,hallBlue,true);
@@ -1080,7 +1106,7 @@ export function buildTemple(K) {
   box('Covered hall central pilaster red foot',20.60,.88,11.0,.025,.56,.30,red);
   // Continuous wall heads meet the ceiling underside; the original wall
   // pieces stopped six centimetres short and leaked a strip of outdoor light.
-  box('Covered hall lane wall ceiling closure',20.30,3.51,11.3,.22,.14,9.8,hallBlue);
+  box('Covered hall lane wall ceiling closure',20.30,3.51,(6.4+stageEnd)/2,.22,.14,stageEnd-6.4,hallBlue);
   box('Covered hall rear wall ceiling closure',24.25,3.51,16.10,8.0,.14,.22,hallBlue);
   const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
   for(const z of [9.0,12.7]){
@@ -1149,23 +1175,23 @@ export function buildTemple(K) {
   // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay, against the
   // hall's far (+z) end wall, not the entrance end (15.11.00, IMG_20130720_180653 and the
   // family's 'temple right side' photos).
-  const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
+  const curtainMaterial=mat('#18161b',1,{side:THREE.DoubleSide}); // 15.10.49: black backdrop
   const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,1),cp=curtainGeometry.attributes.position;
   for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
-  mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,22.2,1.9,15.93);
-  for(const x of [20.6,23.8]){
-    box('Covered hall ceremonial bay decorated upright',x,1.95,15.75,.18,2.70,.20,blue);
-    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,15.63,.23,.07,.025,brass);
+  const curtain=mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,21.45,1.9,stageEnd-.17);curtain.scale.x=.75;
+  for(const x of [20.55,22.35]){
+    box('Covered hall ceremonial bay decorated upright',x,1.95,stageEnd-.35,.18,2.70,.20,blue);
+    for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,stageEnd-.47,.23,.07,.025,brass);
   }
   const parasolColors=[mat('#c5b99d'),mat('#c28b27'),mat('#a74f37')];
   for(let tier=0;tier<3;tier++){
     const radius=1.05-tier*.27,y=2.78+tier*.20;
     for(let j=0;j<18;j++){
       const segment=new THREE.ConeGeometry(radius,.26,2,1,true,j*Math.PI/9,Math.PI/9);
-      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],22.2,y,14.9);
+      mesh('Covered hall tiered cloth parasol',segment,parasolColors[j%3],21.45,y,stageEnd-1.2);
     }
   }
-  K.beam(g,'Covered hall parasol suspension',[22.2,3.54,14.9],[22.2,3.21,14.9],.014,dark);
+  K.beam(g,'Covered hall parasol suspension',[21.45,3.54,stageEnd-1.2],[21.45,3.21,stageEnd-1.2],.014,dark);
 
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
   for(const z of [10.0,23.2]){
@@ -1250,10 +1276,13 @@ export function buildTemple(K) {
   // of the left range. Their exact spacing is inferred from the walking sequence.
   const shrineTexture=new THREE.TextureLoader().load('./assets/temple-outer-shrines.jpg');shrineTexture.colorSpace=THREE.SRGBColorSpace;
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
+  const shrineStepGrey=mat('#9b9a93',.95);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
     const z=37.30+i*2.48;
-    box('Outer shrine raised altar base',52.23,1.02,z,2.72,.84,2.32,circuitStone,true);
+    // 15.04.59: two grey concrete steps below the red niche sill, not one tan block.
+    box('Outer shrine raised altar base',52.42,1.02,z,2.34,.84,2.32,shrineStepGrey,true);
+    box('Outer shrine altar base lower step',51.06,.81,z,.38,.42,2.32,shrineStepGrey,true);
     box('Outer shrine red altar front',51.61,1.49,z,.18,.62,2.30,red);
     box('Outer shrine pale niche backing',53.66,2.10,z,.08,1.32,2.22,agedWhite);
     // Retain the actual stones and painted background from the supplied image.
@@ -1291,8 +1320,8 @@ export function buildTemple(K) {
     for(let i=0;i<30;i++){c.fillStyle=`rgba(${r()<.5?'150,148,130':'40,44,36'},${.12+r()*.2})`;c.beginPath();c.ellipse(r()*s,r()*s,6+r()*24,4+r()*16,r()*3,0,7);c.fill();}
   });
   K.worldMap(markerGranite,1.6);
-  mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
-  K.blocker(48.9,24.31,.94,.22,.1,1.37);
+  const markerStone=mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
+  const markerNav=K.colliders.length;K.blocker(48.9,24.31,.94,.22,.1,1.37);
   // Two unequal upright stones stand outside the rear door/window bay.
   for(const [x,h] of [[26.05,1.10],[26.90,.88]]){
     const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,x,.10,42.06);
@@ -1536,10 +1565,18 @@ export function buildTemple(K) {
     box('Service window red dado',(left+right)/2,.87,z+.155,right-left,.5,.02,red);
     box('Service window tiled plinth',(left+right)/2,.31,z+.16,right-left,.62,.03,outlinedPlinth);
   }
-  const bellX=36.55,bellZ=6.8;
-  // 15.14.44, looking west from the entry: white piers flank the bell.
-  box('Great bell heavy timber suspension beam',bellX,3.39,bellZ-.2,.31,.25,1.7,K.M.wood);
-  box('Great bell white suspension pier',bellX,1.98,bellZ-.8,.46,2.75,.36,white,true);
+  // User's note with 15.14.44: the bell bay is wider (it runs 1.0 m further into the court,
+  // see the pass at the end), the bell hangs between two stepped white piers and the drum
+  // hangs clear of it beside the right-hand pier.
+  const bellX=36.55,bellZ=7.65;
+  box('Great bell heavy timber suspension beam',bellX,3.39,7.25,.31,.25,1.6,K.M.wood);
+  // User's note: no pier on the court side of the bell; the beam is carried by the rear pier.
+  for(const z of [6.8]){
+    box('Great bell white suspension pier',bellX,1.98,z,.5,2.75,.42,white,true);
+    box('Great bell white pier stepped base',bellX,.95,z,.72,.7,.56,white);
+    box('Great bell white pier middle step',bellX,1.55,z,.6,.5,.48,white);
+    box('Great bell pier red foot',bellX,.64,z,.78,.08,.62,red);
+  }
   bell('Great bronze temple bell',bellX,1.19,bellZ,1.10);
   for(const dx of [-.14,.14]){
     const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58,bellZ);handle.rotation.y=dx<0?-.3:.3;
@@ -1557,7 +1594,8 @@ export function buildTemple(K) {
   mesh('Great bell looped clapper rope',new THREE.TubeGeometry(pull,20,.017,6,false),rope);
   K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
   // The suspended drum is beside the large bell, as in the close-up 15.14.44.
-  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(bellX+.3,1.78,bellZ-.62);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
+  const drumX=bellX+.8,drumZ=6.6;
+  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(drumX,1.5,drumZ);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
   const shell=mesh('Temple drum wooden shell',new THREE.CylinderGeometry(.45,.31,.65,32),K.M.wood,0,0,0,drum);
   for(const y of [-.325,.325]){
     const radius=y>0?.45:.31;
@@ -1568,7 +1606,7 @@ export function buildTemple(K) {
     const a=i*Math.PI/11,b=a+.15;
     K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
   }
-  K.beam(g,'Temple drum hanging chain',[bellX+.3,3.32,bellZ-.62],[bellX+.3,2.18,bellZ-.62],.018,dark);
+  K.beam(g,'Temple drum hanging chain',[drumX,3.32,drumZ],[drumX,1.9,drumZ],.018,dark);
   for(const x of [41.5,44.5]){
     bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
@@ -1576,14 +1614,13 @@ export function buildTemple(K) {
   // Little lamp canopy projects toward the entrance from the black pole's base.
   const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.64,1.30,.07,1.70,brass);shelterRoof.rotation.x=-.07;
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
-  cyl('Small brass oil lamp base',lampX,.33,lampZ-.61,.13,.18,.16,brass,14);
-  cyl('Small brass oil lamp stem',lampX,.65,lampZ-.61,.035,.07,.54,brass,12);
-  cyl('Small brass oil lamp dish',lampX,.93,lampZ-.61,.19,.1,.06,brass,20);
+  // User's note: no small brass oil lamp here (it stood through the pole's plinth).
 
   // 15.08.04 / 15.08.10 / 15.08.42: lowered stone aisles surround a
   // raised pillared mandapa. The front hall has marble-clad column bases.
   // Footprint and bay spacing are inferred within the photographed exterior.
-  const sanctumStone=K.M.plaster.clone();sanctumStone.color.set('#aaa591');sanctumStone.roughness=.88;
+  // 15.08.10 / 15.08.42 / sanctum photos: weathered grey granite, not tan.
+  const sanctumStone=K.M.plaster.clone();sanctumStone.color.set('#8f928b');sanctumStone.roughness=.88;
   function innerColumn(n,x,z,base,h,scale=1){
     box(n+' shaft',x,base+h/2,z,.38*scale,h,.38*scale,sanctumStone,true);
     for(const [yy,w,hh] of [[.10,.75,.20],[.38,.58,.30],[h*.48,.52,.48],[h-.25,.62,.18],[h-.08,.88,.16]])
@@ -1633,7 +1670,7 @@ export function buildTemple(K) {
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
   for(const x of [34.3,43.7]){
-    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,sanctumStone,true);
+    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,laterite,true); // 15.08.10: red laterite faces
     floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
   }
   for(const x of [34.8,37.3,40.7,43.2]){
@@ -1689,10 +1726,13 @@ export function buildTemple(K) {
     for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
   }
   // Worn pale interior wall panels sit between the red masonry joints.
+  // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
+  // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
+  const innerDarkStone=mat('#6d6a62',.95),innerEastBlue=mat('#3a82ad',.85);
   for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
-    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,white);
+    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:white);
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
-    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,white);
+    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
   box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
   box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
@@ -1754,7 +1794,9 @@ export function buildTemple(K) {
   innerPaving('Inner mandapa raised paving',39,24,5.2,6.2,1.06);
   for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
   const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
-  for(const x of [36.6,41.4])for(const z of [22.55,25.45]){
+  // 15.08.42 shows the X-braced grilles on the west side; 'inner sanctum, left side' shows the
+  // east side open between its columns.
+  for(const x of [36.6])for(const z of [22.55,25.45]){
     for(const dz of [-1.1,0,1.1])box('Inner mandapa grille upright',x,2.18,z+dz,.06,2.08,.06,dark);
     for(const y of [1.18,2.20,3.22])box('Inner mandapa grille rail',x,y,z,.06,.07,2.25,dark);
     for(const sign of [-1,1])K.beam(g,'Inner mandapa X grille',[x,1.2,z-sign*1.1],[x,3.2,z+sign*1.1],.045,dark);
@@ -1850,7 +1892,7 @@ export function buildTemple(K) {
   for(let j=0;j<8;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),38.37+j*.18,3.08,24.02);
   const gateBlue=mat('#1b8fb8',.6);
   for(const side of [-1,1]){
-    const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.95);leaf.rotation.y=side*1.2;g.add(leaf);
+    const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.9);leaf.rotation.y=side*(Math.PI-.14);g.add(leaf); // folded back flat beside the frame, as in 'God room 2'
     const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
     const lw=-side*.9;
     for(const y of [.62,1.9,3.35])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
@@ -1896,8 +1938,19 @@ export function buildTemple(K) {
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
   // Leave the service porch's rear-west corner hollow; this frontage used
   // to be one solid block intersecting its newly recovered interior.
-  box('Temple road corner lower frontage',25.15,1.91,3.14,9.7,3.38,3.38,edgeWhite,true);
-  box('Temple road corner lower frontage rear',22.64,1.91,5.615,4.68,3.38,1.57,edgeWhite,true);
+  // User's note with 'temple right side facing -45 degrees from the entrance': the covered
+  // hall runs on north through this block to the road frontage. Only the street wall, the
+  // lane wall and the part east of the hall (x > 24.2) stay solid.
+  box('Temple road corner lower frontage',25.15,1.91,1.6,9.7,3.38,.3,edgeWhite,true);
+  box('Temple road corner lower frontage east block',27.1,1.91,3.29,5.8,3.38,3.08,edgeWhite,true);
+  // User's note: no white filler wall between the east block and the service bay.
+  box('Temple road corner lane-side wall',20.27,1.91,4.075,.14,3.38,4.65,edgeWhite,true);
+  floor('Covered hall front extension oxide floor',22.27,4.075,3.86,4.65,.60,hallFloor);
+  for(const [x,z,w,d] of [[20.36,4.075,.02,4.65],[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  box('Covered hall front extension ceiling',22.27,3.60,4.075,3.86,.16,4.65,white);
+  box('Covered hall front square blue pier',22.27,2.08,6.4,.38,2.96,.38,hallBlue,true);
+  box('Covered hall front pier red foot',22.27,.87,6.4,.40,.54,.40,red);
+  box('Covered hall transverse white ceiling beam',22.27,3.36,6.4,3.86,.32,.30,white);
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
@@ -2084,7 +2137,8 @@ export function buildTemple(K) {
    box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,zc,x1-x0+.6,.16,len+.4,white);K.roofs.push(roof);
    box('East range upper slab red edge',x0-.3,y1+.08,zc,.1,.18,len+.4,red);
-   for(const z of [8.3,11.2,14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
+   // 15.02.23: the wall over the porch is blank; one small window further along.
+   for(const z of [14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
   // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
   // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
   // projecting portico front starts there. The entrance hall and its paintings stay behind.
@@ -2104,6 +2158,13 @@ export function buildTemple(K) {
      if(o.isMesh&&!o.rotation.y&&b3.min.x<W1-.1&&b3.max.x>W1+.1&&b3.max.z<=2.8&&b3.min.z<-.3){
        const f=(b3.max.x-W1)/(b3.max.x-b3.min.x);o.scale.x*=f;o.position.x=W1+(o.position.x-b3.min.x)*f;}
    }
+   // User's note: the green marble side platform must not run out in front of the road
+   // frontage; west of the portico it keeps only the part inside the building (z > 1.42).
+   for(const o of [...g.children])if(o.name==='Entrance raised side marble platform'){b3.setFromObject(o);if(b3.min.x<30.5){
+     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/7.8;inner.position.x=(30+W1)/2;g.add(inner);
+     o.scale.x=(37.8-W1)/7.8;o.position.x=(W1+37.8)/2;}}
+   for(const r of K.surfaces)if(Math.abs(r.x-33.9)<.01&&Math.abs(r.w-7.8)<.01&&Math.abs(r.z-2.1)<.01){
+     r.x=(W1+37.8)/2;r.w=37.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
    for(const o of [...g.children])if(/^Upper hall (pale interior wall face|red interior wall skirt)/.test(o.name)){b3.setFromObject(o);if(b3.max.x<36.1)g.remove(o);}
    for(let i=K.colliders.length-1;i>=navStart.colliders;i--){const c=K.colliders[i];
      if(c.minX>29.2&&c.maxX<30.5&&c.minZ>-2.6&&c.maxZ<2.1){c.minX+=DX;c.maxX+=DX;continue;}
@@ -2116,7 +2177,9 @@ export function buildTemple(K) {
    box('Temple road corner lower frontage',xm,1.91,1.3,w,3.38,.24,edgeWhite,true);
    // 15.22.36 / 14.59.21: no windows here; a donor sign board over a small bench.
    box('Temple road donor sign board',33.85,2.6,1.15,2.6,.42,.05,edgeWhite);box('Temple road donor sign red border',33.85,2.6,1.17,2.7,.5,.03,balconyRed);
-   box('Temple road bench top',33.0,.95,.95,1.1,.05,.45,K.M.wood);for(const dx of [-.5,.5])for(const dz of [-.18,.18])box('Temple road bench leg',33.0+dx,.8,.95+dz,.05,.3,.05,K.M.wood);
+   // User's note: the tiled porch runs on under these piers (stopping at the wash trough);
+   // no bench.
+   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,stoneFloor);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
@@ -2130,5 +2193,148 @@ export function buildTemple(K) {
    for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
    for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road rooftop red baluster',x,7.25,-.25,.07,.6,.07,balconyRed);}
+  // 15.04.55 (south down the east passage) and 15.02.17: the passage ends at a two-storey block.
+  // Its ground floor is the closed return wall; above it are two windows under a tiled hip roof.
+  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2;
+   box('East passage end block ground floor',xm,1.95,zm-.1,x1-x0,3.7,z1-z0-.2,edgeWhite,true);
+   box('East passage end block upper storey',xm,5.45,zm,x1-x0,3.1,z1-z0,edgeWhite,true);
+   box('East passage end block red floor band',xm,4.0,z1+.02,x1-x0,.16,.05,balconyRed);
+   for(const x of [50.3,52.9]){
+     box('East passage end block upper window frame',x,5.35,z1+.03,1.2,1.4,.06,K.M.wood);
+     box('East passage end block dark window panes',x,5.35,z1+.05,1.0,1.2,.03,dark);
+     box('East passage end block window mullion',x,5.35,z1+.07,.05,1.2,.03,K.M.wood);
+   }
+   K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
+  // 15.03.33 (user): the marker stone stands in the middle of the east passage, not at its wall.
+  {const dx=51.8-markerStone.position.x;markerStone.position.x+=dx;K.colliders[markerNav].minX+=dx;K.colliders[markerNav].maxX+=dx;}
+  // User's 15.05.42 note: the old inner shrine runs further toward the rear range, leaving
+  // less open court behind it. Two more bays (2.78 m): the rear wall and the stones behind
+  // it move back, spanning parts stretch, and the last two bays' side details repeat.
+  {const DZ=2*1.39,Z0=29.2,b3=new THREE.Box3(),c=new THREE.Vector3();const skylights=[];let roofMap=null;
+   g.updateMatrixWorld(true);
+   const inShrine=o=>{b3.setFromObject(o);return !b3.isEmpty()&&b3.min.x>30.2&&b3.max.x<49.8&&b3.min.z>18.8&&b3.max.z<30.9;};
+   for(const o of [...g.children]){
+     if(o.isInstancedMesh)continue;
+     if(/^Small circuit (ritual stone foot|rounded stone)/.test(o.name)){b3.setFromObject(o);if(b3.min.z>30.3&&b3.max.z<32.5&&b3.min.x>35)o.position.z+=DZ;continue;}
+     if(/^Inner (aisle translucent corrugated skylights|skylight )/.test(o.name)){skylights.push(o);continue;}
+     if(!/^(Old inner shrine|Inner sanctum continuous stone aisle)/.test(o.name)||!inShrine(o))continue;
+     if(b3.min.z>=Z0){o.position.z+=DZ;continue;}
+     if(b3.min.z<20.6&&b3.max.z>29.3){
+       const len=b3.max.z-b3.min.z,f=(len+DZ)/len,ry=o.rotation.y;
+       if(o.isGroup){roofMap=z=>b3.min.z+(z-b3.min.z)*f;roofMap.lo=b3.min.z;roofMap.f=f;}
+       if((o.isMesh||o.isGroup)&&Math.abs(Math.sin(ry))<1e-3)o.scale.z*=f;else if((o.isMesh||o.isGroup)&&Math.abs(Math.cos(ry))<1e-3)o.scale.x*=f;else continue;
+       o.updateMatrixWorld(true);const lo=b3.min.z;b3.setFromObject(o);o.position.z+=lo-b3.min.z;continue;}
+     if(b3.getCenter(c).z>Z0-DZ&&b3.max.z<Z0+.5&&!/lamp rack/.test(o.name)){const d=o.clone();d.position.z+=DZ;g.add(d);}
+   }
+   // The aisle skylights sit in the roof, so they follow its stretch.
+   if(roofMap){const S=new THREE.Matrix4().makeTranslation(0,0,roofMap.lo).multiply(new THREE.Matrix4().makeScale(1,1,roofMap.f)).multiply(new THREE.Matrix4().makeTranslation(0,0,-roofMap.lo));
+     for(const o of skylights){o.updateMatrix();o.matrix.premultiply(S).decompose(o.position,o.quaternion,o.scale);}}
+   for(const q of K.colliders){if(q.minX<30.2||q.maxX>49.6||q.maxZ<29.2||q.maxZ>30.9||q.minZ<18.8)continue;
+     if(q.minZ>=Z0){q.minZ+=DZ;q.maxZ+=DZ;}else if(q.minZ<20.6)q.maxZ+=DZ;}
+   for(const r of [...K.surfaces,...K.ramps]){const lo=r.z-r.d/2,hi=r.z+r.d/2;
+     if(r.x>30.2&&r.x<49.6&&lo<20.6&&lo>18.8&&hi>29.3&&hi<30.9){r.d+=DZ;r.z+=DZ/2;}}}
+  // The bell bay's court front moves out 1.0 m (user's note with 15.14.44): its plinth,
+  // panels, lip, side steps, pier, carved column and arch move; floor, ceiling and west wall stretch.
+  {const DZ=1.0,b3=new THREE.Box3();g.updateMatrixWorld(true);
+   const inBay=()=>b3.min.x>=35.0&&b3.max.x<=38.1;
+   for(const o of g.children){if(o.isInstancedMesh)continue;b3.setFromObject(o);if(b3.isEmpty()||!inBay())continue;
+     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended)/.test(o.name))continue;
+     if(b3.min.z>=7.15&&b3.max.z<=8.7){o.position.z+=DZ;continue;}
+     if(/^(Courtyard portico raised marble platform|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
+       const lo=b3.min.z,f=(b3.max.z-lo+DZ)/(b3.max.z-lo);o.scale.z*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=lo-b3.min.z;}}
+   for(const c of K.colliders){if(c.minX<35.0||c.maxX>38.1)continue;
+     if(c.minZ>=7.15&&c.maxZ<=8.7&&!(c.minX>35.9&&c.maxX<37.2))c.minZ+=DZ,c.maxZ+=DZ;
+     else if(c.minZ>5.8&&c.minZ<6.3&&c.maxZ>7.5&&c.maxZ<8)c.maxZ+=DZ;}
+   for(const r of [...K.surfaces,...K.ramps]){if(r.x<35.0||r.x>38.0)continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;
+     if(lo>=7.15&&hi<=8.7){r.z+=DZ;continue;}
+     if(lo>6.1&&lo<6.3&&hi>7.7&&hi<7.9){r.d+=DZ;r.z+=DZ/2;}}}
+  // User's notes (west of the inner sanctum front): the front building starts at the old
+  // shrine's red wall line (x 31.7), not 2 m further west, and that red wall runs on north to
+  // the facade so there is no opening through which the sanctum shows.
+  {const XW=31.7,Z0=14.2,Z1=20.6,b3=new THREE.Box3();g.updateMatrixWorld(true);
+   for(const o of [...g.children]){
+     if(o.isInstancedMesh&&/^(Inner |Maroon pierced transom)/.test(o.name)){
+     // User's note: instanced transom uprights and parapet pieces west of the cut floated in the sky.
+     const m=new THREE.Matrix4(),p=new THREE.Vector3();let n=0;
+     for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);p.setFromMatrixPosition(m).applyMatrix4(o.matrixWorld);
+       if(p.x<XW-.1&&p.z>=Z0&&p.z<=Z1)continue;o.setMatrixAt(n++,m);}
+     if(n<o.count){o.count=n;o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();}continue;}
+   if(o.isInstancedMesh||!/^(Inner |Maroon pierced transom)/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.isEmpty()||b3.min.x>=XW-.02||b3.min.z<Z0||b3.max.z>Z1)continue;
+     if(b3.max.x<=XW+.12){g.remove(o);continue;}
+     if(!o.isMesh||Math.abs(Math.sin(o.rotation.y))>1e-3)continue;
+     const hi=b3.max.x,f=(hi-XW)/(hi-b3.min.x);o.scale.x*=Math.abs(Math.cos(o.rotation.y))>.5?f:1;
+     o.updateMatrixWorld(true);b3.setFromObject(o);o.position.x+=XW-b3.min.x;}
+   for(let i=K.colliders.length-1;i>=0;i--){const c=K.colliders[i];if(c.minX>=XW-.02||c.minZ<Z0||c.maxZ>Z1||c.maxX<28.9)continue;
+     if(c.maxX<=XW+.12)K.colliders.splice(i,1);else c.minX=XW;}
+   for(const list of [K.surfaces,K.ramps])for(let i=list.length-1;i>=0;i--){const r=list[i],lo=r.x-r.w/2,hi=r.x+r.w/2;
+     if(lo>=XW-.02||r.z-r.d/2<Z0||r.z+r.d/2>Z1||hi<28.9)continue;
+     if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
+   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
+   box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
+  // inside the upper storey.
+  {const b3=new THREE.Box3();for(const o of g.children)if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6)o.position.y+=7.16-3.79;}}
+  // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
+  // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
+  // the recessed shrine stair and the corner flight to the new height.
+  {const DY=.35,Y1=.95,b3=new THREE.Box3(),inR=b=>b.min.x>54.7&&b.max.x<58.3&&b.min.z>6.2&&b.max.z<20.9;g.updateMatrixWorld(true);
+   for(const o of [...g.children]){b3.setFromObject(o);if(b3.isEmpty()||!inR(b3))continue;
+     if(/^(Outer shrine recessed (access stair|stair side riser)|Entrance circuit (worn corner steps|corner landing))/.test(o.name)){g.remove(o);continue;}
+     if(/^Outer circuit (white red-outlined plinth)$/.test(o.name)){o.scale.y*=(.85-.1)/.4;o.position.y=(.1+.85)/2;continue;}
+     if(/^(Outer circuit raised red veranda|Outer shrine rear threshold|Outer circuit plinth white coping)$/.test(o.name)||(b3.min.y>.5&&b3.min.y<.7&&b3.max.y<1.6))o.position.y+=DY;}
+   for(const r of K.surfaces)if(Math.abs(r.y-.6)<.02&&r.x-r.w/2>54.7&&r.x+r.w/2<58.3&&r.z-r.d/2>6.2&&r.z+r.d/2<20.9)r.y=Y1;
+   for(let i=K.ramps.length-1;i>=0;i--){const r=K.ramps[i];if(r.x>54.7&&r.x<58.3&&r.z>6.2&&r.z<20.9)K.ramps.splice(i,1);}
+   steps('Outer shrine recessed access stair',55.75,16.2,1.4,1.4,.1,Y1,'x',5);
+   for(const z of [15.47,16.93])box('Outer shrine recessed stair side riser',55.75,(Y1+.1)/2,z,1.4,Y1-.1,.04,white);
+   box('Entrance circuit corner landing',56.2,Y1-.09,6.67,2.7,.18,.32,stoneFloor);K.surface(56.2,6.67,2.7,.32,Y1);
+   steps('Entrance circuit worn corner steps',56.2,7.6,2.7,1.5,.1,Y1,'-z',5);}
+  // 15.11.17 / 15.11.08: over the west veranda's slab the parapet is low (~0.5 m), not a
+  // tall pierced screen.
+  {const b3=new THREE.Box3(),Y0=3.63,Y1=4.13;g.updateMatrixWorld(true);
+   for(const o of [...g.children,...g.children.flatMap(c=>c.isGroup?c.children:[])]){
+     if(!/^West veranda (pierced parapet|parapet pier|parapet continuous coping)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.isEmpty())continue;
+     if(/coping/.test(o.name)){if(b3.min.y>4.2)o.position.y-=b3.min.y-(Y1-.02);continue;}
+     const f=(Y1-Y0)/(b3.max.y-Y0);o.scale.y*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.y+=Y0-b3.min.y;}}
+  // 15.05.42: the west veranda's southern stretch (z > 30.5) has plain openings and a solid,
+  // mossy parapet; the scallops and pierced panels belong to the northern part (15.11.17).
+  {const b3=new THREE.Box3(),Z0=30.5,mossy=mat('#b9b7a8',.97);g.updateMatrixWorld(true);
+   for(const rg of g.children.filter(c=>c.isGroup&&c.name==='Outer circuit veranda roof'))
+     for(const o of [...rg.children]){if(!/^West veranda (pierced parapet|parapet pier)$/.test(o.name))continue;b3.setFromObject(o);if(b3.min.z>Z0)rg.remove(o);}
+   for(const o of [...g.children]){if(o.name!=='West veranda blue scalloped bay')continue;b3.setFromObject(o);if(b3.min.z>Z0)g.remove(o);}
+   box('West veranda solid mossy parapet south',24.2,4.08,(Z0+45.4)/2,.22,.9,45.4-Z0,mossy);}
+  // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
+  // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
+  // the bay to its north is open, with a steep concrete stair climbing inside it.
+  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95);
+   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.48,(z0+z1)/2,.7,.96,z1-z0,rubble,true);
+   box('East porch plinth rubble face',54.21,.48,10,.02,.94,3.6,rubble);
+   steps('East porch front steps',54.1,10,1.6,1.2,.1,.95,'x',4);
+   box('East porch projecting flat roof slab',56.0,3.89,10,3.6,.46,4.0,white);
+   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.95,2.9,'x',9);
+   K.ramps.splice(r0);K.blocker(56.55,13.05,2.0,1.1,.6,3.2);
+   box('East range open bay stair side wall',56.65,1.95,13.66,2.1,2.7,.12,white,true);
+   box('East range open bay red lintel band',54.98,3.32,13.25,.14,.22,3.0,red);}
+  // 15.15.11 / 15.14.30: the bell-hall and stair-enclosure walls stop behind the entrance hall's
+  // rear wall (z 5.98); their ends showed as posts beneath the paintings.
+  {const b3=new THREE.Box3();g.updateMatrixWorld(true);
+   for(const o of g.children){if(!/^(Bell hall white west wall|Stair enclosure white east wall)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.min.z>=5.98||b3.max.z<6.3)continue;
+     const f=(b3.max.z-6.0)/(b3.max.z-b3.min.z);o.scale.z*=f;o.position.z+=(6.0-b3.min.z)/2;}}
+  // User's note (upper gallery): the stair well is open to the hall below, so the blue name
+  // board shows from the entrance; no floor or ceiling spans it.
+  {const X0=37.6,X1=40.3,Z0=-1.63,Z1=.2,b3=new THREE.Box3(),parts=(x0,x1,z0,z1)=>
+     [[x0,X0,z0,z1],[X1,x1,z0,z1],[X0,X1,z0,Z0],[X0,X1,Z1,z1]].filter(([a,b,c,d])=>b-a>.01&&d-c>.01);
+   g.updateMatrixWorld(true);
+   for(const o of [...g.children]){
+     if(!o.isMesh||!/^(Upper gallery main floor|Entrance hall whitewashed ceiling under gallery|Upper hall worn gray concrete floor)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.min.x>X0||b3.max.x<X1||b3.min.z>Z0||b3.max.z<Z1)continue;
+     const y=(b3.min.y+b3.max.y)/2,h=b3.max.y-b3.min.y;
+     for(const [a,b,c,d] of parts(b3.min.x,b3.max.x,b3.min.z,b3.max.z))box(o.name,(a+b)/2,y,(c+d)/2,b-a,h,d-c,o.material);
+     g.remove(o);}
+   for(const r of [...K.surfaces]){const x0=r.x-r.w/2,x1=r.x+r.w/2,z0=r.z-r.d/2,z1=r.z+r.d/2;
+     if(r.y<3.5||x0>X0||x1<X1||z0>Z0||z1<Z1)continue;K.surfaces.splice(K.surfaces.indexOf(r),1);
+     for(const [a,b,c,d] of parts(x0,x1,z0,z1))K.surface((a+b)/2,(c+d)/2,b-a,d-c,r.y);}}
   return g;
 }

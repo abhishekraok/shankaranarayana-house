@@ -1,8 +1,78 @@
-# Handoff (2026-09-27)
+# Handoff (2026-09-28)
 
 Claude's reconstruction handoff, updated after the local Codex fidelity pass below.
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
+
+## Claude pass 4: photo sweep (2026-09-28 night)
+
+Two full render sweeps of all 159 poses (`checks/fidelity/claude-all-38e7412`, `-54eb59a`),
+reviewed by agents; round 2 rated 98 poses as well aligned. Fixed, all tests passing:
+- `2e2c518` Align page: a folder pose wins a savedAt tie (stale browser copies had undone 26
+  scripted far-bank/hall pose fixes; restored in the pose repo `a3dcbc1`).
+- `fd1b62d` User's 10 walkthrough notes (lake gate closed, porch under road piers, courtyard
+  filler wall, bell pier, floating instanced railings, gallery stair well open, God room front).
+- `c9f649b` Tour opens with a one-time flight from the far bank to the front door
+  (`tour.intro`). Start uses the 15.26.04 spot; 15.26.12 itself is not aligned.
+- East range: veranda 0.95 m high (15.04.08), rubble-plinth porch with steps and slab roof,
+  open stair bay, rooftop scalloped pavilion (15.02.23, 15.01.44).
+- Inner temple grey granite, laterite bell-hall platforms, sanctum gates folded back, east
+  grilles removed, rear panels dark stone, east panels blue (15.08.10, 15.08.42, sanctum photos).
+- West veranda parapet lowered; its southern stretch solid with no scallops (15.05.42).
+- Tank west and house banks in broad 0.9 m tiers (15.23.35/38); lakeside arcade roof steep
+  (14.59.39); house west-end stair bay pale blue plus a laterite shed (15.28.36/49); naga
+  niche steps; stage curtain black; stair elephants both on the south side; west-lane
+  cottage has no pink upper floor.
+
+Left for the user (conflicts with earlier decisions or poses not trusted):
+- 14.58.48 / IMG_20130720_180708 show only trees and a trough right of the lane beside the
+  lodge, where the model has the house's temple-side wing and the clock-side room.
+- IMG_20130720_182845 looks up at the God room's tiled roof underside; the model's upper floor
+  slab covers that space (an upstairs trunk stands on it).
+- 15.15.51: side platforms match the plinth band; the saved camera is ~2 m too far inside.
+- 14.37.50: camera 0.1 m from the God room altar niche; needs re-aligning.
+- 15.30.02 / 15.26.12 disagree on the lake pavilion's position; left at the satellite fit.
+- 15.19.36 shows a window where the road-corner shutter is; the shutter was kept per the note.
+
+## Claude pass 3: user's notes (2026-09-28)
+
+The user now leaves notes from the walkthrough: press **N** in a local build (`node server.mjs
+--photos F:/Shankaranarayana`). Notes go to `F:/Shankaranarayana/align-model-notes.json` (each
+save auto-committed in the pose repo); the button never appears on the deployed site (no
+`/model-version`). `node tools/notes-to-poses.cjs` turns them into
+`checks/model-notes-poses.json`; render one with `POSE_FILE=checks/model-notes-poses.json
+PHOTO_NAMES='<note-id>' node tools/capture-fidelity.cjs <batch>`.
+
+All 15 walkthrough notes and 7 align-page notes are done and pushed (`622f44a`), not deployed.
+- `95a3977` Align notes: house stair railing, east door, clock-side room, rear fence; bank posts,
+  west verge, Vipra Bhavan +2 x; covered-hall stage bay to x 22.64.
+- `837202b` Old inner shrine 2.78 m longer toward the rear range.
+- `ec3584c` The N note tool (`dist/src/model-notes.js`, writable entry in `server.mjs`).
+- `a21af8f` West green platform cut at x 35; brown entrance walkway; brass lamp removed.
+- `43abf3e` Bell bay 1 m wider (more blocks the courtyard walkway); bell between two white piers.
+- `20b7701` House: facade right door, sitting-bay furniture, desk and inner door leaves removed.
+- `603e23f` Lake south-east: mound, hill stair, white block and shed removed.
+- `9b75a45` West veranda edge straight at 24.2; rear stair climbs straight back (not walkable,
+  `K.blocker`); sanctum front cut at x 31.7 with a red north side wall.
+- `622f44a` Covered hall runs north to the street wall through the road-corner block.
+- Deferred by the user: the house entrance roof.
+
+## Claude pass 2 (2026-09-27 night)
+
+Full web review of all 136 dated poses at `bb5edb6`: `checks/fidelity/claude-all-bb5edb6/`.
+- `bb5edb6` Far bank 2 m closer (user: "bring it closer"; satellite 26.5 m water). One mapping,
+  `farZ`/`farZinv` exported from landscape.js: past z -29.5 (x < 52) moves +2, -29.5..-25.5
+  stretches. main.js terrain, water, ground and `location` use it; tour, viewpoints and tests
+  converted. Pose repo `0db6b87` moved the 25 far-side poses the same way.
+- `325ffe5` Far and west banks: weedy ground, shrubs and tall weeds beside a dirt footpath
+  (15.22.00, 15.23.08, 15.25.49). Note: vegetation authored past z -41.5 is moved +6 by the
+  older satellite-refit pass, so author it 6 m further out.
+- `370583c` East passage south end: two-storey block with a tiled hip roof (15.04.55).
+- Poses: far-bank 15.21.50, 15.22.00, 15.22.06, 15.22.36 lifted 1.38 m again (`38c2ed4`; an
+  align-page save had restored old heights); 15.13.51 lifted 1.2 m (`28ffc17`).
+- Open: north end of the east passage (15.03.33). The photo's two-storey room with the blue
+  door sits centred at the passage end and reads ~36 m away; the model's is at the east edge
+  ~27 m away. Needs the user before moving the rear range again.
 
 ## Claude model pass on PHOTOREAL-NOTES (2026-09-27 evening)
 

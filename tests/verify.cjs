@@ -6,14 +6,14 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.goto('http://127.0.0.1:4173',{waitUntil:'networkidle'});await page.waitForFunction(()=>window.houseWalk?.ready);
  assert.equal(await page.evaluate(()=>houseWalk.getState().mode),'tour');
  const initial=await page.evaluate(()=>houseWalk.getState());
- assert.ok(initial.position[0]>=-.1&&initial.position[0]<8&&initial.position[2]<-5&&initial.position[1]<2,'Tour opens just outside the house');
+ assert.ok(Math.hypot(initial.position[0]+12.59,initial.position[2]+42.85)<1&&initial.position[1]>5,'Tour opens with the far-bank view across the lake (15.26.12)');
  await page.evaluate(()=>{document.getElementById('tour-btn').click();document.getElementById('tour-pause').click();});
  // Wait for rendered frames rather than wall time; headless frames can exceed 50 ms.
  await page.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
  const restart=await page.evaluate(()=>houseWalk.getState());
- assert.ok(Math.abs(restart.position[0])<.01&&restart.position[2]<-5,'Restart uses the lane just outside the house');
+ assert.ok(Math.hypot(restart.position[0]+12.59,restart.position[2]+42.85)<1,'Restart replays the opening flight from the far bank');
  const bank=await page.evaluate(()=>{
-  houseWalk.teleport({p:[23.1,1.38,-39.4],target:[25,2,-1]});
+  houseWalk.teleport({p:[23.1,1.38,-37.4],target:[25,2,-1]});
   const before=houseWalk.getState();houseWalk.moveFor('KeyD',.3);const moved=houseWalk.getState();
   houseWalk.setMode('orbit');houseWalk.setMode('walk');const returned=houseWalk.getState();
   houseWalk.teleport(houseWalk.destinations.front);const front=houseWalk.getState();
@@ -31,7 +31,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   const out=[];for(const [target,key] of [[[0,1.62,-20],'KeyW'],[[0,1.62,-20],'KeyD'],[[20,1.62,-5],'KeyW']]){houseWalk.teleport({p:[0,.051,-5],target});const before=houseWalk.camera.position.toArray();const after=houseWalk.moveFor(key,.5).position;out.push({before,after});}return out;
  });
  assert.ok(directions[0].after[2]<directions[0].before[2]-.7,'Forward -Z');assert.ok(directions[1].after[0]>directions[1].before[0]+.7,'Strafe +X');assert.ok(directions[2].after[0]>directions[2].before[0]+.7,'Forward +X');
- const plinth=await page.evaluate(()=>{houseWalk.teleport({p:[34,0,-4],target:[34,1.62,8]});return houseWalk.moveFor('KeyW',2.5);});assert.ok(plinth.position[2]<-2,'Cannot walk under temple platform: '+JSON.stringify(plinth));
+ const plinth=await page.evaluate(()=>{houseWalk.teleport({p:[36.2,0,-4],target:[36.2,1.62,8]});return houseWalk.moveFor('KeyW',2.5);});assert.ok(plinth.position[2]<-2,'Cannot walk under temple platform: '+JSON.stringify(plinth));
  const routes=await page.evaluate(()=>{
   const H=houseWalk;
   function route(name,start,points){H.teleport({p:start,target:[points[0][0],start[1]+1.62,points[0][1]]});let results=[];
@@ -40,7 +40,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
   }
   // House routes are authored in house coordinates (front door at x=0).
   const hroute=(name,start,points)=>route(name,[start[0]+H.K.houseShiftX,start[1],start[2]],points.map(([x,z])=>[x+H.K.houseShiftX,z]));
-  return [route('adjacent hall dais and return',[54.2,.051,-5],[[62.1,-5],[64.9,-5],[64.9,-1],[64.9,-5],[62.1,-5],[54.2,-5]]),route('side bay central and inner steps',[26.8,.1,9.1],[[26.8,7.1],[26.8,5.7],[26.8,7.1],[26.8,9.1]]),route('upper hall seating',[41.8,4.08,5.3],[[41.8,2.7],[44.6,2.7],[44.6,.37],[41.3,.37],[41.1,1.0],[37.0,1.0],[36.8,.37],[35.6,.37]]),route('inner sanctum aisles',[39,.1,13.6],[[39,20.2],[35.2,20.2],[35.2,27.8],[42.8,27.8],[42.8,20.2],[39,20.2],[39,13.6]]),route('covered hall',[24.6,.60,14.4],[[24.6,10.0],[23.7,10.0],[23.7,8.2]]),hroute('front passage',[0,0,-2],[[0,5.1]]),hroute('entrance to courtyard',[0,0,-2],[[0,5.15],[-4.9,5.15],[-2.7,5.15],[-2.7,7.0],[-3.7,7.0],[-3.7,11],[-5,10.8]]),hroute('house upstairs',[-13.3,.45,.95],[[-7.93,.95],[-2.65,.95]]),route('temple court',[39,0,-3.8],[[39,8.8],[33,8.8],[33,14]]),hroute('kitchen around courtyard stair',[-5,.035,10.8],[[-5,13],[-7.75,13],[-7.75,10.8],[-10.05,10.8],[-10.05,15.5]]),hroute('courtyard stair up',[-6.75,.035,12.8],[[-6.75,12.35],[-6.75,5.5]]),hroute('courtyard stair down',[-6.75,3.85,5.5],[[-6.75,12.35],[-6.75,12.8]]),route('lake paired stairs',[15.2,.055,-7.1],[[15.2,-9.65],[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]]),route('lake paired stairs return',[30.7,.065,-9.65],[[27.5,-9.65],[19.3,-9.65],[15.2,-9.65],[15.2,-7.1]]),route('pavilion entry',[34,1.38,-39.4],[[34,-34],[34,-39.4]])];
+  return [route('adjacent hall dais and return',[54.2,.051,-5],[[62.1,-5],[64.9,-5],[64.9,-1],[64.9,-5],[62.1,-5],[54.2,-5]]),route('side bay central and inner steps',[26.8,.1,9.1],[[26.8,7.1],[26.8,5.7],[26.8,7.1],[26.8,9.1]]),route('upper hall seating',[41.8,4.08,5.3],[[41.8,2.7],[44.6,2.7],[44.6,.37],[41.3,.37],[41.1,1.0],[37.0,1.0],[36.8,.37],[35.6,.37]]),route('inner sanctum aisles',[39,.1,13.6],[[39,20.2],[35.2,20.2],[35.2,27.8],[42.8,27.8],[42.8,20.2],[39,20.2],[39,13.6]]),route('covered hall',[24.6,.60,14.4],[[24.6,10.0],[23.7,10.0],[23.7,8.2]]),hroute('front passage',[0,0,-2],[[0,5.1]]),hroute('entrance to courtyard',[0,0,-2],[[0,5.15],[-4.9,5.15],[-2.7,5.15],[-2.7,7.0],[-3.7,7.0],[-3.7,11],[-5,10.8]]),hroute('house upstairs',[-13.3,.45,.95],[[-7.93,.95],[-2.65,.95]]),route('temple court',[39,0,-3.8],[[39,8.8],[37.6,9.35],[33,9.35],[33,14]]),hroute('kitchen around courtyard stair',[-5,.035,10.8],[[-5,13],[-7.75,13],[-7.75,10.8],[-10.05,10.8],[-10.05,15.5]]),hroute('courtyard stair up',[-6.75,.035,12.8],[[-6.75,12.35],[-6.75,5.5]]),hroute('courtyard stair down',[-6.75,3.85,5.5],[[-6.75,12.35],[-6.75,12.8]]),route('lake paired stairs',[15.2,.055,-9.65],[[19.3,-9.65],[27.5,-9.65],[30.7,-9.65]]),route('lake paired stairs return',[30.7,.065,-9.65],[[27.5,-9.65],[19.3,-9.65],[15.2,-9.65]]),route('pavilion entry',[34,1.38,-37.4],[[34,-32],[34,-37.4]])];
  });
  await page.click('#orbit-btn');await page.waitForTimeout(200);await page.screenshot({path:'checks/aerial-final.png'});await page.click('#roof-btn');assert.equal(await page.getAttribute('#roof-btn','aria-pressed'),'true');
  await page.click('#photos-btn');assert.equal(await page.locator('#photos').isVisible(),true);await page.selectOption('#photo-select','house');await page.waitForFunction(()=>{const i=document.getElementById('reference-photo');return i.complete&&i.naturalWidth>0;});assert.ok(await page.locator('#reference-photo').evaluate(i=>i.complete&&i.naturalWidth>0));await page.click('#close-photos');await page.click('#roof-btn');
@@ -48,7 +48,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
  await page.selectOption('#destination','house');await page.waitForTimeout(200);await page.screenshot({path:'checks/house-lower-attic.png'});
  await page.evaluate(()=>houseWalk.teleport({p:[11.0,.051,-6.9],target:[5.8,.95,-2.35],fov:43}));await page.waitForTimeout(200);await page.screenshot({path:'checks/ritz-rear.png'});
  await page.evaluate(()=>houseWalk.teleport(houseWalk.photos.laneleft));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-front.png'});
- await page.evaluate(()=>houseWalk.teleport({p:[-7,.055,-36],target:[28,1.2,-11.7],fov:62}));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-across.png'});
+ await page.evaluate(()=>houseWalk.teleport({p:[-7,.055,-34],target:[28,1.2,-11.7],fov:62}));await page.waitForTimeout(200);await page.screenshot({path:'checks/lake-access-across.png'});
  await page.selectOption('#destination','courtyard');await page.waitForTimeout(200);await page.screenshot({path:'checks/courtyard-final.png'});
  await page.setViewportSize({width:390,height:844});
  await page.waitForFunction(()=>document.getElementById('explore-controls').hidden);

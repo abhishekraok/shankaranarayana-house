@@ -88,13 +88,13 @@ export function buildHouse(K) {
     }
     if(cursor<z2)b(name+' pier',x,y+h/2,(cursor+z2)/2,t,h,z2-cursor,m,true);
   };
-  function doorX(x,z,width=1.65,y=F,h=2.45,side=1) {
+  function doorX(x,z,width=1.65,y=F,h=2.45,side=1,leaves=true) {
     detail(x-width/2-.075,y+h/2,z,.15,h,.37,'wood');
     detail(x+width/2+.075,y+h/2,z,.15,h,.37,'wood');
     detail(x,y+h+.06,z,width+.3,.18,.4,'wood');
     detail(x,y+h+.21,z,width+.42,.12,.32,'wood');
     // Open double shutters sit against the jambs and leave the route clear.
-    for(const s of [-1,1]) {
+    for(const s of leaves?[-1,1]:[]) {
       if(side===0){detail(x+s*(width*.75+.10),y+h*.48,z-.21,width*.46,h*.96,.075,'wood');continue;}
       const px=x+s*(width/2+.025),pz=z+side*width*.23;
       detail(px,y+h*.48,pz,.075,h*.96,width*.46,'wood');
@@ -146,8 +146,12 @@ export function buildHouse(K) {
   // court pocket and north-south treads, not steps along the front edge.
   floor('Front range plinth',0,2.2,24,4.4);
   floor('Front range north return',-8.025,5.2,7.95,1.6);
-  floor('Front range south return',4.875,5.2,14.25,1.6);
+  // User's note (snake god pit): the grey pocket floor is the right tile and height, and it
+  // runs on across the front of the God room; red is only for the raised platforms.
+  floor('Front range south return',7.175,5.2,9.65,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
+  floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
+  floor('God room court grey stone ledge',.05,4.55,4.6,.3,F,'stone');
   floor('West rooms and passage',-10.2,12,3.6,12);
   floor('East passage and stair base',9.65,12,4.7,12);
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
@@ -218,7 +222,8 @@ export function buildHouse(K) {
   for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=F;o.position.z-=1.65;}
   for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=F;c.top+=F;c.minZ-=1.65;c.maxZ-=1.65;}
   b('Entrance pedestal supporting ledge',-3.00,(F+.075)/2,4.31,1.18,F-.075,.26,nicheOxide,true);
-  b('Entrance right pocket south riser',-2.25,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
+  b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
+  b('Entrance pocket plinth-edge riser',.05,(F+.075)/2,4.718,4.6,F-.075,.035,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
   K.cylinder(g,'Entrance court peach round column',-4.6,2.01,4.3,.125,.145,2.78,peachColumn,20,true);
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
@@ -256,16 +261,12 @@ export function buildHouse(K) {
     }
   }
   stairSideFence(6.35,9.3,7.3);
-  // 14.48.11: behind the God room the east side is a plastered aqua wall on a dark plinth
-  // with a small timber-barred window, not railing.
-  b('East rear strip aqua wall',7.3,(F+2.95)/2,12.75,.22,F+2.95,3.5,verandaAqua,true);
-  b('East rear strip wall dark plinth',7.18,.3,12.75,.04,.6,3.5,'stone');
-  b('East rear strip small window dark opening',7.18,1.6,12.6,.03,1.2,.9,'black');
-  for(let k=0;k<6;k++)b('East rear strip window timber bar',7.16,1.6,12.2+k*.16,.04,1.2,.04,'wood');
-  for(const y of [.98,2.22])b('East rear strip window timber frame',7.16,y,12.6,.05,.08,1.02,'wood');
-  for(const z of [12.13,13.07])b('East rear strip window timber frame',7.16,1.6,z,.05,1.3,.08,'wood');
+  // User's 14.31.14 note: the blue railing runs on along the whole east veranda edge,
+  // with no wall and no opening into the courtyard.
+  stairSideFence(9.3,14.28,7.3);
   // 14.46.04: the rear veranda is screened by weathered horizontal boards.
-  for(const [a,end] of [[-8.3,-3.6],[-1.8,7.3]]) {
+  // User's 14.48.07 note: the screen is unbroken, with no opening into the courtyard.
+  for(const [a,end] of [[-8.3,7.3]]) {
     for(let row=0;row<7;row++) {
       const board=b('Courtyard weathered horizontal timber board',(a+end)/2,F+.10+row*.135,14.55,end-a,.112,.075,verandaTimber);
       board.rotation.z=.004*Math.sin(row*2.1);
@@ -274,7 +275,7 @@ export function buildHouse(K) {
     K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
   }
   // Court entry steps match every deliberate veranda opening.
-  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55],[7.15,10.15,.75,1.55],[-2.7,14.35,1.65,.75]]) {
+  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55]]) {
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
   }
 
@@ -285,7 +286,19 @@ export function buildHouse(K) {
 
   // Ground floor enclosing walls. All rooms have usable openings.
   wallZ('West exterior wall',-11.88,1.95,17.85,F,3.02,[{c:8.4,w:1.6,bottom:1.05,top:2.45},{c:15.1,w:1.4,bottom:1.05,top:2.4}]);
-  wallZ('East exterior wall',11.88,.15,17.85,F,3.02,[{c:14.75,w:1.7,top:2.55}],'plaster');
+  wallZ('East exterior wall',11.88,.15,17.85,F,3.02,[{c:10.45,w:.95,top:2.3}],'plaster');
+  // User's 14.31.14 / 14.31.25 notes: that door leads into a room on the clock side.
+  // Its size is not photographed; a small store room is assumed.
+  {const x0=12.0,x1=15.3,z0=8.6,z1=12.4,xm=(x0+x1)/2,zm=(z0+z1)/2,h=3.02;
+   wallZ('Clock-side room outer wall',x1,z0,z1,F,h,[{c:10.5,w:.9,bottom:1.1,top:2.1}],'plaster');
+   for(const z of [z0,z1])wallX('Clock-side room end wall',x0-.12,x1+.12,z,F,h,[],'plaster');
+   floor('Clock-side room floor',xm,zm,x1-x0,z1-z0,F,'red',.2);
+   b('Clock-side room ceiling boards',xm,F+h-.02,zm,x1-x0,.04,z1-z0,'wood');
+   K.hipRoof(g,'Clock-side room tiled roof',xm,zm,x1-x0+.9,z1-z0+.9,F+h,.9);
+   for(const z of [9.905,10.995])b('Clock-side room door dark timber jamb',11.72,F+1.15,z,.1,2.3,.09,'wood');
+   b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
+   const leaf=b('Clock-side room open door leaf',12.3,F+1.12,10.0,.9,2.22,.05,'wood');leaf.rotation.y=-.35;
+   for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
   wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}],rearWash);
   doorX(0,17.86,1.9,F,2.5,-1);
   grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
@@ -294,7 +307,8 @@ export function buildHouse(K) {
   // IMG_20130720_175306: the doorway is substantially narrower than the
   // lower entry passage. Its leaves must not project across the sitting bays.
   const mainDoorWidth=1.20,mainJambInset=(2.05-mainDoorWidth)/2;
-  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95},{c:7,w:1.5,top:2.5}],verandaAqua);
+  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95}],verandaAqua);
+  // User's note: no doorway at the facade's right end (x 7); that front room opens only inward.
   // 14.56.56 / 14.57.08: only the +x sitting-bay window has this rounded,
   // splayed plaster recess. Cut the facade rather than laying trim over it.
   {const cx=3,front=1.925,back=2.105,bottom=1.005,shoulder=3.13,rise=.23,half=.95;
@@ -318,7 +332,7 @@ export function buildHouse(K) {
     b('Sitting window oxide sill surface',cx,bottom+.003,(front+back)/2,1.90,.012,back-front,verandaRed);
     K.blocker(cx,2.08,1.90,.31,F,3.4);
   }
-  doorX(0,2.03,mainDoorWidth,F,2.7,1);doorX(7,2.03,1.5,F,2.5,1);
+  doorX(0,2.03,mainDoorWidth,F,2.7,1);
   grilleX(-7.9,1.90,1.7,F+.9,1.5);
   const entranceOchre=new THREE.MeshStandardMaterial({color:0x988258,roughness:.98});
   // 14.56.56 / 14.57.08: warm worn ochre and rounded blue mouldings on
@@ -471,8 +485,10 @@ export function buildHouse(K) {
     K.blocker(postX,postZ,.48,.48,.79,3.48);
     for(const y of [3.08,3.18,3.30])b('Inner entrance post capital moulding',side*1.40,y,3.71,.43,.06,.43,verandaTimber);
   }
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:-.7625,w:9.125,top:3.1},{c:5.5,w:1.65,top:2.5}]);
-  doorX(-6.15,4.05,1.65);doorX(5.5,4.05,1.65);
+  // User's notes: no leaves at the left doorway; the blue pier and door in front of the God
+  // room are gone, so the opening runs on to x 6.325.
+  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:.5,w:11.65,top:3.1}]);
+  doorX(-6.15,4.05,1.65,F,2.45,1,false);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
@@ -603,6 +619,14 @@ export function buildHouse(K) {
     floor('God room red stair tread',0,z+.18,1.82,.36,top,'red',.045);
   }
   floor('God room threshold',0,6.84,1.84,.24,shrineFloor,'red',.08);
+  // The grey pocket now runs across the God room front at .075: one more step up to the
+  // old stair foot, and the platform masonry and cheeks carried down to it.
+  b('God room pale stair riser',0,(F+.075-.045)/2,5.5,1.78,F-.075-.045,.36,shrineWhite);
+  floor('God room red stair tread',0,5.5,1.82,.36,F,'red',.045);
+  for(const side of [-1,1]){
+    b('God room platform masonry foot',side*1.64,(F+.075)/2,5.845,1.40,F-.075,.31,shrineWhite);
+    b('God room stair cheek foot',side*1.06,(F+.075)/2,5.78,.35,F-.075,.44,'red');
+  }
   for(const side of [-1,1]){
     // White layered masonry carries the two side bays and heavy posts.
     b('God room platform masonry',side*1.64,.75,6.38,1.40,.60,1.38,shrineWhite);
@@ -673,34 +697,7 @@ export function buildHouse(K) {
   K.cylinder(g,'God room bowl hollow',-1.72,1.315,6.60,.16,.16,.015,'stone',18);
   const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
   grindingStone.name='God room grinding stone';grindingStone.position.set(-1.76,1.42,6.62);g.add(grindingStone);
-  // 14.52.11: worn desk beside the God-room approach, with open drawer
-  // and a green basin below. Position beside the side platform is inferred.
-  const desk=new THREE.Group();desk.name='God room side desk';desk.position.set(-6.1,F,5.15);desk.rotation.y=0;g.add(desk);
-  const deskWood=verandaTimber.clone();deskWood.color.set('#c0ada0');
-  const deskFrame=new THREE.MeshStandardMaterial({color:'#a6aaa0',roughness:.95});
-  K.box(desk,'Desk worn timber top',0,.76,0,1.03,.06,.53,deskWood);
-  K.box(desk,'Desk front apron',0,.64,-.23,.98,.19,.035,deskWood);
-  for(const x of [-.45,.45])for(const z of [-.20,.20])K.box(desk,'Desk pale square leg',x,.37,z,.045,.74,.045,deskFrame);
-  for(const z of [-.20,.20])K.box(desk,'Desk low cross brace',0,.15,z,.92,.035,.035,deskWood);
-  K.box(desk,'Desk partly open drawer shadow',0,.665,-.26,.40,.14,.015,'black');
-  K.box(desk,'Desk open drawer face',0,.615,-.31,.43,.13,.025,deskWood);
-  K.beam(desk,'Desk drawer brass pull',[-.065,.62,-.335],[.065,.62,-.335],.016,'brass');
-  const basinMat=new THREE.MeshStandardMaterial({color:'#559c56',side:THREE.DoubleSide,roughness:.65});
-  const basinProfile=[[.05,0],[.15,.025],[.25,.09],[.28,.16],[.265,.16],[.235,.095],[.14,.035],[.05,.012]].map(p=>new THREE.Vector2(...p));
-  const basin=new THREE.Mesh(new THREE.LatheGeometry(basinProfile,28),basinMat);basin.name='Desk green hollow basin';basin.position.set(.05,.17,.015);desk.add(basin);
-  for(const x of [-.265,.265])K.beam(desk,'Desk basin handle',[x,.31,-.10],[x,.40,.10],.018,'wood');
-  const jugMat=new THREE.MeshStandardMaterial({color:'#e4e6dc',roughness:.68});
-  K.box(desk,'Desk white water container',.28,.99,.075,.22,.40,.19,jugMat);
-  const handle=new THREE.Mesh(new THREE.TorusGeometry(.072,.018,8,16,Math.PI),jugMat);handle.name='Desk water container handle';handle.position.set(.28,1.20,.075);desk.add(handle);
-  K.cylinder(desk,'Desk water container red cap',.18,1.20,.075,.031,.031,.04,'red',12);
-  K.cylinder(desk,'Desk green lidded jar',.01,.90,-.03,.052,.052,.22,basinMat,16);
-  K.cylinder(desk,'Desk jar red lid',.01,1.016,-.03,.058,.058,.025,'red',16);
-  K.cylinder(desk,'Desk red cup',-.15,.84,-.12,.049,.039,.10,'red',16);
-  K.cylinder(desk,'Desk cup dark interior',-.15,.893,-.12,.039,.039,.005,'wood',16);
-  for(let i=0;i<3;i++){
-    const paper=K.box(desk,'Desk blank paper',-.31,.797+i*.002,-.08,.20,.002,.14,'cream');paper.rotation.y=i*.15;
-  }
-  K.blocker(-6.1,5.15,1.06,.55,F,F+.80);
+  // User's note: no desk beside the God-room approach.
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
   const roofGrey=new THREE.MeshStandardMaterial({color:'#81857c',roughness:.96,side:THREE.DoubleSide});
@@ -1088,9 +1085,6 @@ export function buildHouse(K) {
   const garden=new THREE.InstancedMesh(new THREE.SphereGeometry(1,7,4),mat('leaf'),gardenLeaves.length);
   gardenLeaves.forEach((p,i)=>{helper.position.set(p.x,p.y,p.z);helper.rotation.set(.5,p.a,.6);helper.scale.set(.11,.045,.35);helper.updateMatrix();garden.setMatrixAt(i,helper.matrix);});
   garden.name='Courtyard leafy garden strips';garden.castShadow=true;g.add(garden);
-  for(let i=0;i<5;i++) {
-    b('Worn courtyard paving slab',-2.72,.065,11.0+i*.66,.78,.075,.51,'paleStone');
-  }
 
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
@@ -1361,7 +1355,7 @@ export function buildHouse(K) {
   const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(scallopedBeam,{depth:.10,bevelEnabled:false}),ceilingTimber);
   beamFrieze.name='Clock-side veranda scalloped timber wall beam';beamFrieze.rotation.y=-Math.PI/2;
   beamFrieze.position.set(11.68,0,6.0);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
-  b('Clock-side veranda turquoise wall finish',11.735,1.97,9.82,.016,3.02,8.24,verandaAqua);
+  for(const [a,e] of [[5.7,9.86],[11.04,13.94]])b('Clock-side veranda turquoise wall finish',11.735,1.97,(a+e)/2,.016,3.02,e-a,verandaAqua);
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
@@ -1416,42 +1410,9 @@ export function buildHouse(K) {
     for(let xx=-.2;xx<.25;xx+=.1)place(xx,F+.9,.255,.04,.55,.045);
     K.blocker(x,z,.78,.78,base,base+1.2);
   }
-  // User-labelled 14.33.35 / 14.33.42: red steel cupboard and open
-  // curved-arm chairs in the raised sitting bay left of the main entry.
-  const cupboardRed=new THREE.MeshStandardMaterial({color:'#783438',roughness:.72,metalness:.15});
-  b('Inner sitting bay red steel cupboard',-3.43,1.56,3.27,.55,1.54,.83,cupboardRed,true);
-  for(const z of [3.06,3.48]){
-    b('Cupboard recessed door',-3.147,1.58,z,.026,1.43,.395,cupboardRed);
-    b('Cupboard small silver handle',-3.122,1.67,z+(z<3.27?.15:-.15),.028,.095,.027,'metal');
-  }
-  b('Cupboard dark central door seam',-3.131,1.58,3.27,.008,1.42,.012,'black');
-  b('Cupboard projecting top lip',-3.43,2.35,3.27,.59,.045,.88,cupboardRed);
-  // 175306: both raised platforms hold household objects, while the lower
-  // middle passage stays empty. The right of that outward view is +X here.
-  const trunkPaint=new THREE.MeshStandardMaterial({color:'#696b62',roughness:.9});
-  b('Inner sitting platform storage trunk',2.28,1.04,3.00,.72,.50,.57,trunkPaint,true);
-  b('Inner platform trunk raised lid',2.28,1.302,3.00,.74,.025,.59,trunkPaint);
-  for(const x of [2.04,2.52])b('Inner platform trunk dark strap',x,1.318,3.00,.036,.008,.59,'wood');
-  b('Inner platform trunk handle',1.907,1.07,3.00,.022,.045,.16,'metal');
-  K.cylinder(g,'Inner platform metal storage vessel',-1.94,1.03,3.36,.13,.12,.48,'metal',24);
-  K.cylinder(g,'Inner platform vessel lid',-1.94,1.28,3.36,.135,.135,.025,'metal',24);
-  const sittingChairWood=verandaTimber.clone();sittingChairWood.color.set('#6f6153');
-  for(const z of [2.48,3.40]){
-    const c=new THREE.Group();c.name='Inner sitting bay curved-arm wooden chair';c.position.set(-2.75,.79,z);c.rotation.y=-Math.PI/2;g.add(c);
-    K.box(c,'Sitting chair solid seat',0,.43,0,.59,.065,.63,sittingChairWood);
-    for(const x of [-.255,.255]){
-      const legProfile=[[.034,0],[.046,.025],[.031,.07],[.029,.19],[.046,.22],[.030,.25],[.028,.39],[.045,.44],[.034,.49],[.028,.68]];
-      const leg=new THREE.Mesh(new THREE.LatheGeometry(legProfile.map(p=>new THREE.Vector2(...p)),8),sittingChairWood);leg.name='Sitting chair turned front leg';leg.position.set(x,0,-.25);c.add(leg);
-      K.beam(c,'Sitting chair inclined back upright',[x,0,.24],[x,1.05,.37],.05,sittingChairWood,.06);
-      const armCurve=new THREE.CatmullRomCurve3([new THREE.Vector3(x,.67,-.32),new THREE.Vector3(x,.73,-.20),new THREE.Vector3(x,.74,.09),new THREE.Vector3(x,.86,.31),new THREE.Vector3(x,1.02,.37)]);
-      const arm=new THREE.Mesh(new THREE.TubeGeometry(armCurve,12,.034,6,false),sittingChairWood);arm.name='Sitting chair sweeping curved arm';c.add(arm);
-      K.beam(c,'Sitting chair lower stretcher',[x,.20,-.25],[x,.20,.27],.038,sittingChairWood);
-    }
-    for(const [y,zz,h] of [[.56,.31,.085],[.98,.36,.12]])K.box(c,'Sitting chair open back crossrail',0,y,zz,.56,h,.045,sittingChairWood);
-    K.blocker(-2.75,z,.82,.65,.79,1.86);
-  }
+  // User's notes: the raised sitting bays either side of the entry are empty (the red
+  // cupboard, curved-arm chairs, metal vessel and grey trunk were removed).
   chair(-10.85,6.0,Math.PI/2);chair(-10.85,7.45,Math.PI/2);
-  chair(-5.1,4.48,Math.PI);chair(4.0,4.48,Math.PI);
   chair(-6.7,16.95,Math.PI);chair(-5.5,16.95,Math.PI);
   // In the left bay the bench and chair stand against the transverse end wall.
   // 14.56.22 / 14.56.30: seat ~0.46 m above the bay, arms ~0.71 m,
@@ -1497,9 +1458,9 @@ export function buildHouse(K) {
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
   // 14.31.43: arched timber case, ivory numbered dial and floral lower glass.
-  b('Clock bay vertical timber mounting strip',11.71,1.97,6.7,.055,3.02,.19,verandaTimber);
+  b('Clock bay vertical timber mounting strip',11.71,1.97,8.1,.055,3.02,.19,verandaTimber);
   const clock=new THREE.Group();clock.name='Photographed veranda pendulum clock';
-  clock.position.set(11.68,2.25,6.7);clock.rotation.y=-Math.PI/2;g.add(clock);
+  clock.position.set(11.68,2.25,8.1);clock.rotation.y=-Math.PI/2;g.add(clock);
   const caseShape=new THREE.Shape();caseShape.moveTo(-.215,-.415);
   caseShape.quadraticCurveTo(-.215,-.455,-.17,-.455);caseShape.lineTo(.17,-.455);
   caseShape.quadraticCurveTo(.215,-.455,.215,-.415);caseShape.lineTo(.215,.397);
@@ -1525,10 +1486,10 @@ export function buildHouse(K) {
   for(const x of [88,168]){dial.fillStyle='#51493c';dial.beginPath();dial.arc(x,166,5,0,Math.PI*2);dial.fill();}
   const dialMap=new THREE.CanvasTexture(dialCanvas);dialMap.colorSpace=THREE.SRGBColorSpace;
   const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,40),new THREE.MeshStandardMaterial({map:dialMap,roughness:.51}));
-  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,6.7);clockFace.name='Ivory wall clock face';g.add(clockFace);
+  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,8.1);clockFace.name='Ivory wall clock face';g.add(clockFace);
   const rim=new THREE.Mesh(new THREE.TorusGeometry(.168,.006,7,40),caseWood);rim.position.set(0,.21,.115);clock.add(rim);
-  K.beam(g,'Clock minute hand',[11.55,2.46,6.7],[11.55,2.46,6.555],.008,'black');
-  K.beam(g,'Clock hour hand',[11.54,2.46,6.7],[11.54,2.402,6.625],.013,'black');
+  K.beam(g,'Clock minute hand',[11.55,2.46,8.1],[11.55,2.46,7.955],.008,'black');
+  K.beam(g,'Clock hour hand',[11.54,2.46,8.1],[11.54,2.402,8.025],.013,'black');
   const pendulumRod=new THREE.Mesh(new THREE.CylinderGeometry(.003,.003,.24,6),mat('gold'));pendulumRod.position.set(0,-.14,.008);clock.add(pendulumRod);
   const bob=new THREE.Mesh(new THREE.CircleGeometry(.052,20),mat('gold'));bob.position.set(0,-.26,.013);clock.add(bob);
   const etched=new THREE.MeshStandardMaterial({color:'#dddac1',roughness:.56});
@@ -1585,6 +1546,11 @@ export function buildHouse(K) {
   }
   g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
   K.labels.push({text:'Grandparents’ house',position:[0,7.8,2.5]},{text:'Open courtyard',position:[-3.2,1.0,11.8]},{text:'Family shrine',position:[0,3.9,8.0]},{text:'Tulsi',position:[-5.2,2.2,8]},{text:'Kitchen',position:[-10.2,3.25,15.2]});
+  // 15.28.36 / 15.28.49: the west end bay carrying the outside stair is a pale-blue block from
+  // ground to eaves, not white. (Local coordinates: the bay is x < -7.8.)
+  {const paleBlue=K.M.plaster.clone();paleBlue.color.set('#a4d6de');const b3=new THREE.Box3();
+   for(const o of g.children){if(!o.isMesh||!/^(Front room facade pier|Upper room front wall pier|Upper west gable pier|West exterior wall pier|Upper stair-side wall dark lower band)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.max.x<-8.1)o.material=o.name.includes('dark lower band')?o.material:paleBlue;}}
   // Place the house (authored with its front door at x=0) at K.houseShiftX, with its navigation.
   const hs=K.houseShiftX||0;g.position.x+=hs;
   for(const c of K.colliders.slice(navStart.colliders)){c.minX+=hs;c.maxX+=hs;}

@@ -76,15 +76,15 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0) {
     at([49,1.671,-6.5],[56,2,-15],'Along the lake bank'),
     at([56.2,1.671,-6.5],[56.2,2,-20],'Rounding the lake corner'),
     at([56.2,1.671,-15],[56.2,2,-35],'Past the lakeside shop'),
-    at([56.2,1.671,-33.5],[45,2,-39.4],'Around the far corner'),
+    at([56.2,1.671,-33.5],[45,2,-37.4],'Around the far corner'),
     at([56.2,1.671,-39.4],[42,3,-2],'The opposite bank'),
     photo('templeacross'),
-    at([37,3.052,-39.4],[39,3,0],'Up the gentle bank'),
-    at([31.6,3.0,-39.4],[39,3,0],'Across the lake'),
+    at([37,3.052,-37.4],[39,3,0],'Up the gentle bank'),
+    at([31.6,3.0,-37.4],[39,3,0],'Across the lake'),
     photo('lakeleft'),photo('lakemiddle'),photo('lakehouse'),
-    at([8.6,3.0,-39.4],[0,3,1],'The house across the water'),
-    at([3.2,3.052,-39.4],[0,3,1],'Down the bank'),
-    at([-7,2.522,-39.4],[8,2,-23],'Around the western bank'),
+    at([8.6,3.0,-37.4],[0,3,1],'The house across the water'),
+    at([3.2,3.052,-37.4],[0,3,1],'Down the bank'),
+    at([-7,2.522,-37.4],[8,2,-23],'Around the western bank'),
     photo('shoplake'),
     at([-7,1.671,-8],[0,3,1],'Back towards the house'),
     at([-7,1.671,-7.8],[0,3,1],'Returning to the house'),
@@ -127,5 +127,33 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0) {
     const smooth=f2*(3-2*f);
     return {position,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:s.a.photo||null};
   }
-  return {duration,points,spans,sample};
+  // User's request: the tour opens once with a flight. From the raised far-bank view of
+  // 15.26.12 it turns to the house, floats across the lake and lands on the lane before the
+  // front door, then joins the loop at 'Along the lane'.
+  const hx=houseShiftX;
+  const introRoute=[
+    {p:[-12.59,5.6,-42.85],look:[-3.2,2.8,-25.2],label:'Across the lake from the far bank',hold:2.5},
+    {p:[-12.59,5.6,-42.85],look:[hx,3,1],label:'Towards the house',hold:.3},
+    {p:[-7,6.4,-25],look:[hx,3,1],label:'Over the lake',hold:0},
+    {p:[hx,3.6,-11],look:[hx,2.6,1],label:'Towards the house',hold:0},
+    {p:[hx,1.671,-6],look:[hx,2.3,1],label:'In front of the house',hold:1.2},
+    {p:[0,1.671,-6],look:[15,2,-6],label:'Along the lane',hold:0}];
+  const introPositions=introRoute.map(p=>new THREE.Vector3(...p.p)),introSpans=[];let introDuration=0;
+  for(let i=0;i<introRoute.length-1;i++){
+    const a=introRoute[i],b=introRoute[i+1],qa=qFor(a),qb=qFor(b);
+    const travel=Math.max(.8,introPositions[i].distanceTo(introPositions[i+1])/4.5,qa.angleTo(qb)/.5);
+    introSpans.push({a,b,qa,qb,start:introDuration,hold:a.hold,travel});introDuration+=a.hold+travel;
+  }
+  // Catmull-Rom through the flight points gives one continuous glide, not a stop at each.
+  const introCurve=new THREE.CatmullRomCurve3(introPositions,false,'centripetal');
+  const introU=introPositions.map((_,i)=>i/(introPositions.length-1));
+  function sampleIntro(time){
+    const t=THREE.MathUtils.clamp(time,0,introDuration);
+    const found=introSpans.findIndex(s=>t<s.start+s.hold+s.travel),i=found<0?introSpans.length-1:found,s=introSpans[i];
+    const f=THREE.MathUtils.clamp((t-s.start-s.hold)/s.travel,0,1),smooth=f*f*(3-2*f);
+    const position=introCurve.getPoint(introU[i]+(introU[i+1]-introU[i])*smooth);
+    if(supportY)position.y=Math.max(position.y,supportY(position.x,position.z,position.y-1.62)+1.62);
+    return {position,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:null};
+  }
+  return {duration,points,spans,sample,intro:{duration:introDuration,sample:sampleIntro,points:introRoute}};
 }
