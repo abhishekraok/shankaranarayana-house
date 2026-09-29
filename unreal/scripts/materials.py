@@ -22,6 +22,16 @@ for o in meta['objects']:
     if o['name'].startswith('Altar ') and 'brass' in o['name'].lower(): altar_brass.update(o['materials'])
     if o['name'] == 'Shrine warm bulb': bulb_materials.update(o['materials'])
 
+# 15.11.58 and the lake views: clay tile roofs are dark and weathered, not the pale web tint.
+# A material counts as tiled roof when most of its users are tiled roofs, tile courses or ridges.
+TILED = re.compile(r'til(e|ed)|mangalore', re.I); ROOFISH = re.compile(r'roof|ridge|course', re.I)
+roof_use = {}
+for o in meta['objects']:
+    hit = bool(TILED.search(o['name']) and ROOFISH.search(o['name']))
+    for m in o['materials']: u = roof_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += hit
+tiled_roofs = {m for m, (n, r) in roof_use.items() if r / n >= 0.5}
+ROOF_WEATHER = (0.30, 0.27, 0.25)
+
 AT = unreal.AssetToolsHelpers.get_asset_tools(); MEL = unreal.MaterialEditingLibrary; EAL = unreal.EditorAssetLibrary
 DIR = '/Game/Materials'
 
@@ -212,7 +222,13 @@ def instance(i):
         MEL.set_material_instance_scalar_parameter_value(mi, 'BumpCentimetres', float(web['bumpScale'])*100 if web.get('bumpMap') else 0.0)
         MEL.set_material_instance_scalar_parameter_value(mi, 'UseRoughnessMap', float(bool(web.get('roughnessMap'))))
     c = colour(web)
+    if i in tiled_roofs: c = unreal.LinearColor(c.r * ROOF_WEATHER[0], c.g * ROOF_WEATHER[1], c.b * ROOF_WEATHER[2], 1)
     if kind == 'water': c = unreal.LinearColor(0.025, 0.065, 0.018, 1)
+    if kind == 'water':
+        # The tank photographs show an opaque, saturated algae green, not a milky mint:
+        # scatter green strongly and absorb red and blue.
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.016, .045, .012, 1))
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.34, .12, .30, 1))
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
         # The small bulb previously emitted 40x saturated orange in addition to

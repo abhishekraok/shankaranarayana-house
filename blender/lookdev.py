@@ -6,7 +6,7 @@ edges and occlusion grime over the blockout's own colours.
 Writes blender/build/lookdev.blend. Assets come from Poly Haven (CC0) into
 blender/build/assets/. Existing approved photo cards and procedural maps are preserved.
 """
-import bpy, os, json, math, hashlib
+import bpy, re, os, json, math, hashlib
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 A = os.path.join(HERE, 'build', 'assets')
@@ -30,6 +30,12 @@ def is_floor_material(mat):
     return names and hits / len(names) >= 0.5
 
 ROOF_WORDS = ('roof', 'mangalore', 'tile course', 'ridge')
+TILED = re.compile(r'til(e|ed)|mangalore', re.I); ROOFISH = re.compile(r'roof|ridge|course', re.I)
+def is_tiled_roof(mat):
+    # Same rule as unreal/scripts/materials.py: most users are tiled roofs, tile courses or ridges.
+    names = [o.name for o in bpy.data.objects if o.type == 'MESH' and mat.name in o.data.materials]
+    return names and sum(bool(TILED.search(n) and ROOFISH.search(n)) for n in names) / len(names) >= 0.5
+ROOF_WEATHER = (0.30, 0.27, 0.25, 1)
 def is_roof_material(mat):
     names = [o.name.lower() for o in bpy.data.objects if o.type == 'MESH' and mat.name in o.data.materials]
     return names and sum(any(wd in n for wd in ROOF_WORDS) for n in names) / len(names) >= 0.5
@@ -171,6 +177,10 @@ for mat in bpy.data.materials:
         for l in list(bsdf.inputs['Roughness'].links): nt.links.remove(l)
         bsdf.inputs['Roughness'].default_value = 0.93
         if 'Specular IOR Level' in bsdf.inputs: bsdf.inputs['Specular IOR Level'].default_value = 0.2
+    if kind != 'leaf' and is_tiled_roof(mat):
+        # 15.11.58 and the lake views: weathered clay tiles are dark, not the pale web tint.
+        rw = nt.nodes.new('ShaderNodeMix'); rw.data_type = 'RGBA'; rw.blend_type = 'MULTIPLY'; rw.inputs['Factor'].default_value = 1
+        rw.inputs[7].default_value = ROOF_WEATHER; nt.links.new(col_out, rw.inputs[6]); col_out = rw.outputs[2]
     # Grime: darken crevices and corners the way monsoon damp collects in them.
     ao = nt.nodes.new('ShaderNodeAmbientOcclusion'); ao.inputs['Distance'].default_value = 0.35; ao.samples = 8
     aoc = nt.nodes.new('ShaderNodeMapRange'); aoc.inputs['To Min'].default_value = 0.55 if lum > 0.3 else 0.8

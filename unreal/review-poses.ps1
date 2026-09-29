@@ -2,18 +2,20 @@ param(
     [string]$Engine = 'I:/Epic/UE_5.8',
     [string]$Poses = 'F:/Shankaranarayana/align-poses.json',
     [int]$Width = 768,
-    [double]$Delay = 3
+    [double]$Delay = 3,
+    # Capture the scene as exported, without merging a main that has moved on since.
+    [switch]$NoMerge
 )
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
 Push-Location $taskRoot
 try {
     if ((git branch --show-current) -ne 'photoreal') { throw 'Run this from the photoreal branch.' }
-    git merge main
+    if (-not $NoMerge) { git merge main }
     if ($LASTEXITCODE) { throw 'Resolve the merge first; use main for conflicts in dist/ and tests/.' }
     python unreal/scripts/check_model_source.py
     if ($LASTEXITCODE) { throw 'Generated scene is stale.' }
-    $mainHash = git rev-parse --short main
+    $mainHash = if ($NoMerge) { git rev-parse --short HEAD } else { git rev-parse --short main }
     $reviewRoot = Join-Path $taskRoot "blender/build/sheets-$mainHash"
     $reviewOut = Join-Path $reviewRoot ('unreal-' + (Get-Date -Format 'yyyyMMdd-HHmmss'))
     New-Item -ItemType Directory -Force $reviewOut | Out-Null
