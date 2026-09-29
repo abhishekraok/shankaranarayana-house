@@ -98,6 +98,16 @@ s = pp.settings
 s.set_editor_property('override_auto_exposure_method', True); s.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
 s.set_editor_property('override_auto_exposure_apply_physical_camera_exposure', True); s.set_editor_property('auto_exposure_apply_physical_camera_exposure', False)
 s.set_editor_property('override_auto_exposure_bias', True); s.set_editor_property('auto_exposure_bias', EXPOSURE)
+# Hit lighting gives the tank real reflections of the banks and pavilion (the surface cache
+# alone reflects them as flat blobs); higher gather quality trims the GI noise in captures.
+def pp_set(name, value):
+    try: s.set_editor_property('override_' + name, True); s.set_editor_property(name, value)
+    except Exception as e: unreal.log_warning(f'post-process {name}: {e}')
+modes = getattr(unreal, 'LumenRayLightingModeOverride', None)
+if modes: pp_set('lumen_ray_lighting_mode', getattr(modes, 'HIT_LIGHTING', None) or getattr(modes, 'HIT_LIGHTING_FOR_REFLECTIONS'))
+pp_set('lumen_reflection_quality', 2.0)
+pp_set('lumen_final_gather_quality', 2.0)
+pp_set('lumen_scene_lighting_quality', 2.0)
 pp.set_editor_property('settings', s)
 
 sp = nav['spawn']

@@ -62,6 +62,11 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     gold, metallic .9, roughness .3 in Unreal. Blender crowns get a Voronoi leaf-cluster bump
     (scale 4) so they read as clumps. Next: water reflections, native-capture GI noise,
     per-photo exposure differences.
+  - Pass 4 (main `31def1a`): Lumen hit lighting and quality 2 (reflections, final gather,
+    scene lighting) in the post-process volume; tank ripples halved and body colour greyer
+    (scattering .010/.014/.009, absorption .30/.22/.29). The pavilion now mirrors in
+    14.57.50 as in the photo; the photo water is still brighter (sky sheen). Captures:
+    `blender/build/claude-water2/`.
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its

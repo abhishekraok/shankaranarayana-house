@@ -187,7 +187,7 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         m.set_editor_property('tangent_space_normal', False)
         position = MEL.create_material_expression(m, unreal.MaterialExpressionWorldPosition, -900, 700)
         time = MEL.create_material_expression(m, unreal.MaterialExpressionTime, -900, 850)
-        normal = custom(m, 'float2 p=P.xy; float a=dot(p,float2(.13,.07))+T*.7; float b=dot(p,float2(-.11,.21))-T*.53; float c=dot(p,float2(.29,-.17))+T*.91; return normalize(float3(-.025*cos(a)+.017*cos(b)-.012*cos(c),-.013*cos(a)-.032*cos(b)+.007*cos(c),1));',
+        normal = custom(m, 'float2 p=P.xy; float a=dot(p,float2(.13,.07))+T*.7; float b=dot(p,float2(-.11,.21))-T*.53; float c=dot(p,float2(.29,-.17))+T*.91; return normalize(float3(-.012*cos(a)+.008*cos(b)-.006*cos(c),-.006*cos(a)-.015*cos(b)+.0035*cos(c),1));',
             {'P':position,'T':time}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
         MEL.connect_material_property(normal, '', unreal.MaterialProperty.MP_NORMAL)
     MEL.recompile_material(m); EAL.save_loaded_asset(m)
@@ -253,10 +253,10 @@ def instance(i):
     if i in tiled_roofs: c = unreal.LinearColor(c.r * ROOF_WEATHER[0], c.g * ROOF_WEATHER[1], c.b * ROOF_WEATHER[2], 1)
     if kind == 'water': c = unreal.LinearColor(0.025, 0.065, 0.018, 1)
     if kind == 'water':
-        # The tank photographs show an opaque, saturated algae green, not a milky mint:
-        # scatter green strongly and absorb red and blue.
-        MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.006, .015, .005, 1))
-        MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.42, .20, .38, 1))
+        # The tank photographs show an opaque algae green under a pale sky sheen (HSV
+        # saturation about 0.2): scatter a greyish green and absorb red and blue only mildly.
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.010, .014, .009, 1))
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.30, .22, .29, 1))
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
         # The small bulb previously emitted 40x saturated orange in addition to
