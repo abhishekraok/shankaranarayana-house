@@ -121,7 +121,12 @@ for mat in bpy.data.materials:
         bsdf.inputs['Roughness'].default_value = 0.55
         for name, val in (('Transmission Weight', 0.12), ('Subsurface Weight', 0.0)):
             if name in bsdf.inputs: bsdf.inputs[name].default_value = val
-        nt.links.new(bev.outputs['Normal'], bsdf.inputs['Normal'])
+        # Leaf clusters: a Voronoi bump at ~25 cm breaks the smooth web crowns into clumps.
+        vor = nt.nodes.new('ShaderNodeTexVoronoi'); vor.inputs['Scale'].default_value = 4.0
+        nt.links.new(coord.outputs['Object'], vor.inputs['Vector'])
+        lb = nt.nodes.new('ShaderNodeBump'); lb.inputs['Strength'].default_value = 0.8; lb.inputs['Distance'].default_value = 0.15
+        nt.links.new(vor.outputs['Distance'], lb.inputs['Height']); nt.links.new(bev.outputs['Normal'], lb.inputs['Normal'])
+        nt.links.new(lb.outputs['Normal'], bsdf.inputs['Normal'])
         # The photos' canopy is a lush, saturated green; under the overcast world the web
         # tints read grey. Lift saturation and value a little.
         hs = nt.nodes.new('ShaderNodeHueSaturation'); hs.inputs['Saturation'].default_value = 1.4; hs.inputs['Value'].default_value = 1.1
