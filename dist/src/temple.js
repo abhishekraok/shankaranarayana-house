@@ -1175,10 +1175,10 @@ export function buildTemple(K) {
   // Dark pleated curtain and hanging tiered parasol mark the ceremonial bay, against the
   // hall's far (+z) end wall, not the entrance end (15.11.00, IMG_20130720_180653 and the
   // family's 'temple right side' photos).
-  const curtainMaterial=mat('#302731',1,{side:THREE.DoubleSide});
+  const curtainMaterial=mat('#18161b',1,{side:THREE.DoubleSide}); // 15.10.49: black backdrop
   const curtainGeometry=new THREE.PlaneGeometry(3.10,2.50,60,1),cp=curtainGeometry.attributes.position;
   for(let i=0;i<cp.count;i++)cp.setZ(i,.07*Math.sin(cp.getX(i)*25));curtainGeometry.computeVertexNormals();
-  const curtain=mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,21.45,1.9,stageEnd-.17);curtain.scale.x=.68;
+  const curtain=mesh('Covered hall pleated ceremonial curtain',curtainGeometry,curtainMaterial,21.45,1.9,stageEnd-.17);curtain.scale.x=.75;
   for(const x of [20.55,22.35]){
     box('Covered hall ceremonial bay decorated upright',x,1.95,stageEnd-.35,.18,2.70,.20,blue);
     for(const y of [.75,3.22])box('Covered hall ceremonial bay gold border',x,y,stageEnd-.47,.23,.07,.025,brass);
