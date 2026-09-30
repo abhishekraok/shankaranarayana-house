@@ -945,6 +945,11 @@ export function buildLandscape(K, {mobile=false}={}) {
   ow('low house body',6,1.73,-55.4,11.5,2.96,6.0,oppositeWhite,true);
   ow('low house worn plinth',6,.25,-55.4,11.65,.5,6.12,materials.path);
   ow('low house flat roof',6,3.28,-55.4,12.0,.20,6.5,materials.roofConcrete);K.roofs.push(group.children[group.children.length-1]);
+  // 15.11.58 / 15.22.00: it rises two storeys, with a brick-lattice band under a tiled hip roof.
+  ow('low house upper storey',6,4.95,-55.4,11.5,3.1,6.0,oppositeWhite,true);
+  for(const x of [2.2,6,9.8])ow('low house upper window',x,4.75,-52.37,.95,1.1,.055,K.M.wood);
+  ow('low house brick lattice band',6,6.05,-52.38,6.2,.8,.06,new THREE.MeshStandardMaterial({color:'#9c5a44',roughness:.95}));
+  {const r=K.hipRoof(group,'Opposite bank low house tiled roof',6,-55.4,12.6,7.0,6.5,1.5);K.roofs.push(r);}
   for(const x of [2.0,10.0]){
     ow('low house brown shutter',x,1.92,-52.365,.85,1.16,.06,K.M.wood);
     for(let j=0;j<9;j++)ow('low house shutter slat',x,1.41+j*.124,-52.32,.79,.043,.035,materials.mortar);
@@ -953,7 +958,6 @@ export function buildLandscape(K, {mobile=false}={}) {
   ow('low house porch slab',-.85,.15,-55.0,2.6,.15,5.4,materials.path);K.surface(-.85,-55,2.6,5.4,.225);
   for(const z of [-52.65,-56.9])ow('low house slender porch column',-1.8,1.50,z,.18,2.64,.18,oppositeWhite,true);
   ow('low house porch canopy',-1.15,2.93,-55,3.1,.16,5.8,materials.roofConcrete);
-  K.cylinder(group,'Opposite bank low house black water tank',9.4,3.64,-57.1,.42,.45,.61,'black',14);
   ow('low house laundry line',6,.98,-51.95,5.5,.022,.022,materials.mortar);
   for(const [x,c] of [[4.7,'#797e88'],[5.6,'#62afba'],[6.5,'#b9b6ae']])ow('low house hanging cloth',x,.66,-51.95,.71,.63,.018,new THREE.MeshStandardMaterial({color:c,roughness:1,side:THREE.DoubleSide}));
   // Houses beyond the pavilion: a pink tall section and connected low tiled rooms.
