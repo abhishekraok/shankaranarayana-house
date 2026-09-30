@@ -1932,9 +1932,10 @@ export function buildTemple(K) {
     const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.9);leaf.rotation.y=side*(Math.PI-.14);g.add(leaf); // folded back flat beside the frame, as in 'God room 2'
     const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
     const lw=-side*.9;
-    for(const y of [.62,1.9,3.35])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
-    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.0,.1,2.9,gateBlue);
-    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.0,.045,2.7,whiteTrim);
+    // 'God room 2': the leaves rise to the lintel above the bossed frame (~0.45 m taller).
+    for(const y of [.62,2.1,3.8])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
+    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.22,.1,3.35,gateBlue);
+    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.22,.045,3.15,whiteTrim);
   }
   // User-labelled right side of inner sanctum: large horizontal drum,
   // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
