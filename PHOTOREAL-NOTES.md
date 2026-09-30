@@ -91,6 +91,11 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     temple.glb the largest primitive using the paving material has UVs of about 0..1.4, not the
     metre-scale (+-9.9) UVs in scene.json, so the Blender join/export step rewrites these UVs.
     Fixed: black roof undersides (two-sided sheets get a faint self-lit fill, b393649).
+  - ROOT CAUSE FOUND: materials.py wired the UV transform into the texture sample's
+    'Coordinates' pin, which does not exist ('UVs'); the connection failed silently, so every
+    mapped material in Unreal ignored its three.js repeat/offset since the start. Fixed (now
+    asserted): flagstones at the web's scale, the facade stair's diamond tiles appear. Earlier
+    workarounds (UV-baked photo crops) remain valid.
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its

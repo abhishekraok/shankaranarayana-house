@@ -102,7 +102,9 @@ def texture_sample(m, prefix, linear=False):
     tex.set_editor_property('parameter_name', (prefix or 'Base')+'Map')
     tex.set_editor_property('texture', next(t for t in textures.values() if t.get_editor_property('srgb') != linear))
     tex.set_editor_property('sampler_type', unreal.MaterialSamplerType.SAMPLERTYPE_LINEAR_COLOR if linear else unreal.MaterialSamplerType.SAMPLERTYPE_COLOR)
-    MEL.connect_material_expressions(transformed, '', tex, 'Coordinates')
+    # The texture sample's input pin is 'UVs'; 'Coordinates' silently failed, so every map ignored
+    # its three.js repeat/offset (flagstones tiled 3.3x too small, photo crops showed whole photos).
+    assert MEL.connect_material_expressions(transformed, '', tex, 'UVs') or MEL.connect_material_expressions(transformed, '', tex, 'Coordinates'), 'texture UV hookup failed'
     return tex
 
 def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False):
