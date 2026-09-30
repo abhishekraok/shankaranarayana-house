@@ -209,6 +209,7 @@ export function buildTemple(K) {
       for(let i=0;i<40;i++){c.fillStyle=`rgba(${rand()<.5?20:150},${rand()<.5?30:110},25,${.05+rand()*.12})`;c.fillRect(x+7+rand()*(w-20),r*h+7+rand()*(h-20),3+rand()*9,2+rand()*6);}
     }
   },7.8/1.6,1);
+  const EP=.85;
   // 15.15.51: the raised side platforms are polished green-grey veined marble.
   const greenMarble=mat('#ffffff',.42);
   greenMarble.map=canvasMap(512,(c,s)=>{let n=5821;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
@@ -219,20 +220,30 @@ export function buildTemple(K) {
   });
   K.worldMap(greenMarble,.3);
   for(const x of [33.9,44.1]){
-    floor('Entrance raised side marble platform',x,2.1,7.8,8.2,.602,greenMarble);
-    box('Entrance side platform laterite riser',x,.35,-1.95,7.8,.48,.24,laterite);
+    // 15.15.51 / 15.16.09: the side platforms stand ~0.65 m above the aisle (top .85).
+    // Notch for the access steps on the aisle side (z 2.425-3.575, 1 m deep).
+    const inner=x<39?37.8:40.2,notch=x<39?inner-1:inner+1,outer=x<39?30:48;
+    const span=(a,b)=>[Math.min(a,b),Math.max(a,b)];
+    {const [a,b]=span(notch,outer);floor('Entrance raised side marble platform',(a+b)/2,2.1,b-a,8.2,EP,greenMarble);}
+    {const [a,b]=span(inner,notch);for(const [z0,z1] of [[-2.0,2.425],[3.575,6.2]])floor('Entrance raised side marble platform',(a+b)/2,(z0+z1)/2,b-a,z1-z0,EP,greenMarble);}
+    box('Entrance side platform laterite riser',x,.47,-1.95,7.8,.72,.24,laterite);
     box('Entrance side platform white moulding',x,.12,-1.99,7.9,.13,.34,whiteTrim);
   }
   floor('Entrance recessed middle passage',39,2.1,2.4,8.2,.20,blackFloor);
-  for(const x of [37.8,40.2]){
-    box('Entrance marble platform inward riser',x,.40,2.1,.08,.40,8.2,whiteTrim);
-    box('Entrance marble platform red edge',x,.57,2.1,.12,.055,8.2,red);
+  // Aisle faces: a pink carved relief band under a white band and the marble coping (15.16.09).
+  const reliefPink=mat('#b98277',.95),reliefPanel=mat('#d6a79a',.95);
+  for(const x of [37.8,40.2])for(const [z0,z1] of [[-2.0,2.425],[3.575,6.2]]){
+    const zc=(z0+z1)/2,zl=z1-z0;
+    box('Entrance marble platform carved pink relief band',x,.42,zc,.08,.44,zl,reliefPink);
+    for(let z=z0+.35;z<z1-.2;z+=.62)box('Entrance platform relief panel',x+(x<39?.045:-.045),.42,z,.012,.3,.44,reliefPanel);
+    box('Entrance marble platform inward riser',x,.73,zc,.08,.22,zl,whiteTrim);
+    box('Entrance marble platform red edge',x,.66,zc,.12,.03,zl,red);
   }
   steps('Front central stair',39,-2.75,2.7,1.5,0,.20,'z',2);
   floor('Stair upper landing',39,-1.77,2.4,.45,.20,blackFloor);
   // Two shallow transverse steps keep both platforms and gallery accessible.
-  steps('Entrance right platform access',37.55,3,1.0,1.15,.20,.602,'-x',2);
-  steps('Entrance left platform access',40.45,3,1.0,1.15,.20,.602,'x',2);
+  steps('Entrance right platform access',37.3,3,1.0,1.15,.20,EP,'-x',4);
+  steps('Entrance left platform access',40.7,3,1.0,1.15,.20,EP,'x',4);
   // The deeper service porch occupies the rear corner below the gallery.
   // Keep the upper wall but open its lower rear section into the porch.
   box('Portico west wall',30.1,3.70,3.355,.24,6.2,2.99,white,true);
@@ -242,7 +253,7 @@ export function buildTemple(K) {
     const w=x<39?4.995:7.15,cx=x<39?34.7975:x;
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
-    box('Rear grey marble dado',cx,.80,5.955,w,.40,.05,mat('#9a9a92',.4));
+    box('Rear grey marble dado',cx,1.05,5.955,w,.40,.05,mat('#9a9a92',.4));
     box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
@@ -270,7 +281,7 @@ export function buildTemple(K) {
     for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
     const x=39+side*2.05;
 
-    box('Entrance doorway pillar red base',x,1.02,5.36,.58,.72,.58,red,true);
+    box('Entrance doorway pillar red base',x,1.115,5.36,.58,.53,.58,red,true);
     box('Entrance doorway silver carved shaft',x,2.20,5.36,.40,1.67,.40,silver);
     box('Entrance doorway silver relief block',x,1.62,5.36,.50,.52,.50,silver);
     for(const y of [1.43,1.88,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
