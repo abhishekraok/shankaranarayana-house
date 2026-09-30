@@ -702,10 +702,10 @@ export function buildHouse(K) {
   b('God room iron latch',0,2.26,screenZ-.17,.23,.035,.035,'metal');
   b('God room worn centre door strip',0,2.25,screenZ-.15,.024,2.14,.02,shrineTimber);
   // Photograph-right is -X when looking into the house.
-  K.cylinder(g,'God room grinding bowl',-1.72,1.20,6.60,.23,.17,.22,'paleStone',18);
-  K.cylinder(g,'God room bowl hollow',-1.72,1.315,6.60,.16,.16,.015,'stone',18);
+  K.cylinder(g,'God room grinding bowl',-1.25,1.20,6.05,.23,.17,.22,'paleStone',18); // clear of the slender red post
+  K.cylinder(g,'God room bowl hollow',-1.25,1.315,6.05,.16,.16,.015,'stone',18);
   const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
-  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.76,1.42,6.62);g.add(grindingStone);
+  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.29,1.42,6.07);g.add(grindingStone);
   // User's note: no desk beside the God-room approach.
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
@@ -1387,7 +1387,7 @@ export function buildHouse(K) {
   const endWhite=mat('plaster').clone();endWhite.color.set('#f1eced');
   const dampBase=new THREE.MeshStandardMaterial({color:'#2f302c',roughness:1});
   b('Temple-side long white wing',wingCx,1.36,wingCz,wingX1-wingX0,2.42,wingZ1-wingZ0,endWhite,true);
-  b('Temple-side wing black dado',wingCx,.43,wingCz,wingX1-wingX0+.05,.86,wingZ1-wingZ0+.05,dampBase);
+  b('Temple-side wing black dado',wingCx,.23,wingCz,wingX1-wingX0+.05,.46,wingZ1-wingZ0+.05,dampBase); // 14.58.40: a low dark plinth band, ~0.45 m
   b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');

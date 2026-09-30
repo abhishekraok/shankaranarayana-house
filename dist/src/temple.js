@@ -359,7 +359,9 @@ export function buildTemple(K) {
   box('Entrance hall whitewashed ceiling under gallery',37.79,3.892,2.08,15.23,.012,8.0,white);
   box('Entrance hall whitewashed ceiling under gallery',47.39,3.892,2.08,.87,.012,8.0,white);
   steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
-  for(const x of [45.32,47.06])K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.10,5.92],.065,K.M.wood);
+  // Rails stay inside the stair well (x 45.42-46.94) and stop at the landing, clear of the
+  // gallery slab and the upper stairwell guard.
+  for(const x of [45.50,46.86])K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.01,5.80],.065,K.M.wood);
   K.railing(g,'Upper stairwell guard',45.33,1.25,45.33,5.35,4.08,.94,paleBlue);
   // Courtyard-facing balcony in 15.02.27 / 15.03.51, distinct from the street facade.
   box('Courtyard gallery white terrace parapet',32.95,4.53,6.13,5.20,.90,.22,white,true);
@@ -929,7 +931,7 @@ export function buildTemple(K) {
   // arched pale panels, black stone sill and deep, layered protective eaves.
   const wornRed=red.clone();wornRed.map=canvasMap(512,(c,s)=>{
     // 15.03.33 / 15.04.55: a dark, weathered maroon rather than fresh red.
-    c.fillStyle='#7c4239';c.fillRect(0,0,s,s);
+    c.fillStyle='#5e4640';c.fillRect(0,0,s,s); // 15.03.38 / 15.04.55: dark weathered brown, not brick red
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
   // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
@@ -1278,9 +1280,9 @@ export function buildTemple(K) {
   }
   // Three photographed shrines sit below real half-cylinder vaults at the rear
   // of the left range. Their exact spacing is inferred from the walking sequence.
-  const shrineTexture=new THREE.TextureLoader().load('./assets/temple-outer-shrines.jpg');shrineTexture.colorSpace=THREE.SRGBColorSpace;
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
   const shrineStepGrey=mat('#9b9a93',.95);
+  const nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#76695a',.85),nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
     const z=37.30+i*2.48;
@@ -1289,11 +1291,12 @@ export function buildTemple(K) {
     box('Outer shrine altar base lower step',51.06,.81,z,.38,.42,2.32,shrineStepGrey,true);
     box('Outer shrine red altar front',51.61,1.49,z,.18,.62,2.30,red);
     box('Outer shrine pale niche backing',53.66,2.10,z,.08,1.32,2.22,agedWhite);
-    // Retain the actual stones and painted background from the supplied image.
-    const region=[[.267,.474,.373,.541],[.422,.469,.536,.538],[.579,.47,.684,.538]][i];
-    const geo=new THREE.PlaneGeometry(2.08,.83),uv=geo.attributes.uv;
-    for(let j=0;j<uv.count;j++)uv.setXY(j,region[0]+uv.getX(j)*(region[2]-region[0]),1-region[3]+uv.getY(j)*(region[3]-region[1]));
-    const picture=mesh('Photographed outer shrine stones and painted recess',geo,new THREE.MeshBasicMaterial({map:shrineTexture,side:THREE.DoubleSide}),51.95,2.16,z);picture.rotation.y=-Math.PI/2;
+    // Modelled naga stones (rounded dark tablets) on a stone ledge above the red front, against a
+    // blue-painted recess, instead of a photograph pasted flat into the niche.
+    box('Outer shrine naga stone ledge',52.15,1.83,z,.72,.06,2.20,shrineStepGrey);
+    box('Outer shrine blue painted recess',53.60,2.16,z,.04,.86,2.12,nagaBlue);
+    for(let k=0;k<6;k++){const zz=z-.85+k*.34,h=.17+((k*7+i*3)%5)*.03;
+      const stone=mesh('Outer shrine carved naga stone',nagaStoneGeo,nagaStone,52.25+((k+i)%2)*.14,1.86+.37*h,zz);stone.scale.set(.06,h,.13+((k+i)%3)*.015);}
     sideScallop('Outer shrine niche pale blue scallops',51.05,z,2.30,3.32,.62);
     if(i===0)blueColumn('Outer shrine niche blue pier',51.05,z-1.24,.6,2.85);
     blueColumn('Outer shrine niche blue pier',51.05,z+1.24,.6,2.85);
@@ -1616,7 +1619,7 @@ export function buildTemple(K) {
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
   }
   // Little lamp canopy projects toward the entrance from the black pole's base.
-  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.64,1.30,.07,1.70,brass);shelterRoof.rotation.x=-.07;
+  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,brass); // starts at the shaft face, not through itshelterRoof.rotation.x=-.07;
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
   // User's note: no small brass oil lamp here (it stood through the pole's plinth).
 
@@ -1677,7 +1680,7 @@ export function buildTemple(K) {
   for(const x of [34.3,43.7]){
     // User: these platforms stand about a metre above the aisle (15.08.10).
     box('Inner entrance raised platform',x,1.05,18.15,7.5,.96,2.5,innerPlatformStone,true); // 15.08.10: pinkish-brown carved stone faces
-    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.55,dado);
+    floor('Inner entrance polished platform',x,18.15,7.58,2.58,1.55,dado); // coping overhangs the faces (no coplanar flicker)
   }
   for(const x of [34.8,37.3,40.7,43.2]){
     box('Inner hall marble column pedestal',x,1.83,18.8,.78,.56,.78,dado,true);
@@ -1686,7 +1689,7 @@ export function buildTemple(K) {
   // The two front platforms leave the central entrance passage lower and clear.
   for(const x of [33.05,44.95]){
     box('Inner side raised stone ledge',x,1.05,24.5,2.25,.96,8.0,sanctumStone,true);
-    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.55);
+    innerPaving('Inner side ledge paving',x,24.5,2.33,8.08,1.55);
     for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
