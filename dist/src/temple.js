@@ -374,7 +374,8 @@ export function buildTemple(K) {
   steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
   // Rails stay inside the stair well (x 45.42-46.94) and stop at the landing, clear of the
   // gallery slab and the upper stairwell guard.
-  for(const x of [45.50,46.86])K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.01,5.80],.065,K.M.wood);
+  for(const x of [45.50,46.86]){K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.01,5.80],.065,K.M.wood);
+    box('Gallery stair handrail newel post',x,1.21,1.06,.09,.76,.09,K.M.wood);box('Gallery stair handrail newel post',x,4.56,5.80,.09,.96,.09,K.M.wood);}
   K.railing(g,'Upper stairwell guard',45.33,1.25,45.33,5.35,4.08,.94,paleBlue);
   // Courtyard-facing balcony in 15.02.27 / 15.03.51, distinct from the street facade.
   box('Courtyard gallery white terrace parapet',32.95,4.53,6.13,5.20,.90,.22,white,true);
@@ -679,7 +680,7 @@ export function buildTemple(K) {
       if(r.round&&z>8&&z<15)continue; // 15.02.00 / IMG_20130720_180653: the mid-span column stands at z 10.1 (added below).
       if(r.round){cyl('Right hall round red column foot',r.edge,.36,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,1.96,z,.14,.17,2.68,paleBlue,16);K.blocker(r.edge,z,.38,.38,.1,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
-      if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.23,1.13,z,.37,.35,.38,blue);
+      if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.47,.78,z,.37,.35,.38,blue); // beside the pillar, on the plinth
     }
     if(r.round){const z=10.1;cyl('Right hall round red column foot',r.edge,.36,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,1.96,z,.14,.17,2.68,paleBlue,16);K.blocker(r.edge,z,.38,.38,.1,3.4);}
     if(r.side>0)for(const center of [16.2,21.4])for(const side of [-1,1])
@@ -1632,7 +1633,7 @@ export function buildTemple(K) {
     const a=i*Math.PI/11,b=a+.15;
     K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
   }
-  K.beam(g,'Temple drum hanging chain',[drumX,3.32,drumZ],[drumX,1.9,drumZ],.018,dark);
+  K.beam(g,'Temple drum hanging chain',[drumX,3.89,drumZ],[drumX,1.9,drumZ],.018,dark); // up to the ceiling
   for(const x of [41.5,44.5]){
     bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);

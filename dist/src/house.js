@@ -522,7 +522,7 @@ export function buildHouse(K) {
     mesh.position.set(x,F,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
     b('Courtyard post broad beam seat',x,F+2.94,z,.65,.12,.43,passageTimber);
     for(const side of [-1,1])for(const offset of [-.105,.105])
-      b('Courtyard post recessed vertical groove',x+offset,F+1.17,z+side*.19,.012,1.64,.012,'black');
+      b('Courtyard post recessed vertical groove',x+offset*.5,F+1.17,z+side*.186,.012,1.64,.012,'black'); // on the octagon's face, not floating off its corners
     K.blocker(x,z,.40,.40,F,F+2.88);
   }
   const passageFloor=K.M.cream.clone();passageFloor.color.set('#99958a');passageFloor.roughness=.94;
