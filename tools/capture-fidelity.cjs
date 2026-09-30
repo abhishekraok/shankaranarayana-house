@@ -77,7 +77,7 @@ for (const dir of ['src', 'vendor']) {
     await page.waitForTimeout(250);
     await page.addStyleTag({content: 'body > :not(#world){visibility:hidden!important} #world{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important}'});
     fs.mkdirSync(out, {recursive: true});
-    for (const {t, pose} of captures) {
+    for (const {t, pose} of captures) for (let attempt = 0; ; attempt++) try {
       await page.evaluate(p => {
         const h = houseWalk;
         h.camera.position.fromArray(p.camera.position);
@@ -97,6 +97,11 @@ for (const dir of ['src', 'vendor']) {
       }
       if (actual.verticalFov !== pose.camera.verticalFov) throw Error(`Camera FOV changed during ${t}`);
       report.push({capture: t, filename: pose.filename, camera: pose.camera, actualCamera: actual});
+      break;
+    } catch (error) {
+      // The first frames after load can still be settling the walker; retry a few times.
+      if (attempt >= 3 || !/moved|changed/.test(error.message)) throw error;
+      await page.waitForTimeout(1500);
     }
     const sourceAfter = fs.readFileSync(posePath);
     const sourceAudit = {beforeSha256: hash(sourceBefore), afterSha256: hash(sourceAfter),

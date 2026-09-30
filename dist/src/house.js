@@ -223,9 +223,11 @@ export function buildHouse(K) {
   b('Pedestal ledge continuous dark coping',-3.50,.466,5.90,1.20,.032,.36,'stone');
   // User's fixed 175312 pose: shift the complete niche/stepped pedestal
   // east onto the entry ledge. The 2013 reference is pale, unlike 2011 aqua.
-  for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=F;o.position.z-=1.65;}
-  for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=F;c.top+=F;c.minZ-=1.65;c.maxZ-=1.65;}
-  b('Entrance pedestal supporting ledge',-3.00,(F+.075)/2,4.31,1.18,F-.075,.26,nicheOxide,true);
+  // 175312 / 'house, after entering, turning 135 degrees 2/3': the niche is set into the plinth face
+  // and the stand sits directly on the platform edge, not on a raised box (lift .02, not a storey).
+  const pedLift=.02;
+  for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=pedLift;o.position.z-=1.65;}
+  for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=pedLift;c.top+=pedLift;c.minZ-=1.65;c.maxZ-=1.65;}
   b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
   b('Entrance pocket plinth-edge riser',.05,(F+.075)/2,4.718,4.6,F-.075,.035,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
@@ -363,7 +365,7 @@ export function buildHouse(K) {
     const windowStart=g.children.length;
     for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,side>0?sittingOchre:entranceOchre);
     for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
-    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,side>0?verandaShutter:'black');
+    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,verandaShutter); // closed shutters on both windows: a black slab read as a hole from inside
     if(side>0){
       // 14.56.56 / 14.57.08 / 14.57.13: closed red-brown shutters
       // behind a dense grille, with stepped blue mouldings and a grey crossrail.
@@ -1393,7 +1395,7 @@ export function buildHouse(K) {
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
   b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
-  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',wingCx-.05,wingCz,wingX1-wingX0+2.1,wingZ1-wingZ0+1.9,2.42,1.3);
+  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.0+wingX1+1.0)/2,wingCz,wingX1+1.0-9.0,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops at the house wall (it poked into the front room)
   wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
