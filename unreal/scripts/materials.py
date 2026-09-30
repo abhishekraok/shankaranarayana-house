@@ -160,6 +160,12 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         MEL.connect_material_expressions(col, '', glow, 'A')
         MEL.connect_material_expressions(strength, '', glow, 'B')
         MEL.connect_material_property(glow, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if two_sided and not (masked or emissive or water or foliage):
+        # Thin two-sided sheets (roof undersides, awnings) get almost no Lumen bounce on their back
+        # faces and render pitch black from below; a faint self-lit fill keeps them readable.
+        fill2 = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -100, 200)
+        MEL.connect_material_expressions(out, '', fill2, 'A'); fill2.set_editor_property('const_b', 0.12)
+        MEL.connect_material_property(fill2, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     MEL.connect_material_property(out, '', unreal.MaterialProperty.MP_BASE_COLOR)
     r = param(m, unreal.MaterialExpressionScalarParameter, 'Roughness', -700, 400, 0.05 if water else 0.85)
     if mapped:
