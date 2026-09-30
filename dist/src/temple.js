@@ -117,15 +117,15 @@ export function buildTemple(K) {
     const o=new THREE.Mesh(geo,m);o.name=n;o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;parent.add(o);return o;
   }
   function floor(n,x,z,w,d,top,m){box(n,x,top-.09,z,w,.18,d,m);K.surface(x,z,w,d,top);}
-  function steps(n,x,z,w,d,low,high,axis='z',count=4){
+  function steps(n,x,z,w,d,low,high,axis='z',count=4,treadMat=stoneFloor,riserMat=oldStone){
     const alongX = axis.includes('x'), sign = axis.startsWith('-') ? -1 : 1;
     for(let i=0;i<count;i++){
       const t=(i+.5)/count-.5, h=low+(high-low)*(i+1)/count;
       const cap=Math.min(.12,h-low),baseHeight=h-cap-low;
-      box(`${n} tread ${i+1}`, x+(alongX?sign*t*w:0),h-cap/2,z+(alongX?0:sign*t*d),alongX?w/count:w,cap,alongX?d:d/count,stoneFloor);
+      box(`${n} tread ${i+1}`, x+(alongX?sign*t*w:0),h-cap/2,z+(alongX?0:sign*t*d),alongX?w/count:w,cap,alongX?d:d/count,treadMat);
       // Shallow first steps need only a cap. Never generate inverted boxes or
       // bury a staircase's infill below the landing it actually rises from.
-      if(baseHeight>1e-6)box(`${n} riser ${i+1}`,x+(alongX?sign*t*w:0),low+baseHeight/2+.001,z+(alongX?0:sign*t*d),alongX?w/count:w,baseHeight+.002,alongX?d:d/count,oldStone);
+      if(baseHeight>1e-6)box(`${n} riser ${i+1}`,x+(alongX?sign*t*w:0),low+baseHeight/2+.001,z+(alongX?0:sign*t*d),alongX?w/count:w,baseHeight+.002,alongX?d:d/count,riserMat);
     }
     K.ramp(x,z,w,d,axis,low,high);
   }
@@ -618,7 +618,7 @@ export function buildTemple(K) {
   // 15.01.44–15.03.38: pale grey granite slabs, about 0.5–1 m by 0.4–0.5 m,
   // laid in running rows across the courtyard with thin dark joints, a faint
   // warm cast and soft grey-green weathering; not a regular tile grid.
-  const flagstones=mat('#b3a898',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
+  const flagstones=mat('#aba69d',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
   flagstones.map=canvasMap(1024,(c,s)=>{
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
@@ -688,7 +688,7 @@ export function buildTemple(K) {
       if(r.side>0&&[16.2,21.4].includes(z)){
         steps('Outer shrine recessed access stair',51.75,z,1.4,1.4,.1,.6,'x',3);
       }else{
-        steps('Outer circuit veranda access stair',r.edge-r.side*.57,z,1.2,1.4,.1,.6,r.side<0?'-x':'x',3);
+        steps('Outer circuit veranda access stair',r.edge-r.side*.57,z,1.2,1.4,.1,.6,r.side<0?'-x':'x',3,oxideFloor,red); // 15.05.42: red-painted steps
         floor('Outer circuit stair landing',r.edge+r.side*.12,z,.38,1.4,.6,oxideFloor);
       }
     }
@@ -727,7 +727,7 @@ export function buildTemple(K) {
     box('Rear circuit outlined plinth',(a+b)/2,.30,35.3,b-a,.40,.22,outlinedPlinth);
     box('Rear circuit white plinth coping',(a+b)/2,.56,35.3,b-a,.09,.29,whiteTrim);
   }
-  for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3);
+  for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3,oxideFloor,red);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
   // A real stairwell interrupts the slab, leaving the front terrace continuous.
   for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.3,37.21,7.6,1.9],[44.55,37.21,26.9,1.9]]){
@@ -798,6 +798,10 @@ export function buildTemple(K) {
   K.box(rearRoof,'Rear corner white balcony base',49.6,4.04,35.30,3.1,.19,.22,whiteTrim);
   const rr=[];for(let i=0;i<16;i++)rr.push([48.16+i*.192,4.37,35.30,.055,.55,.055]);
   instances('Rear corner upper white balusters',new THREE.CylinderGeometry(.65,1,1,6),whiteTrim,rr);
+  // 15.03.38: a small white room stands behind the balustrade under the red-edged roof.
+  K.box(rearRoof,'Rear corner upper room back wall',49.6,4.84,37.85,3.1,1.62,.18,white);
+  for(const x of [48.12,51.08])K.box(rearRoof,'Rear corner upper room side wall',x,4.84,36.6,.18,1.62,2.5,white);
+  K.box(rearRoof,'Rear corner upper room blue window',49.6,4.75,37.75,.9,.8,.05,blue);
   // 15.03.33 (user): this two-storey bay sits centred at the end of the east passage (x 51.6).
   moveAssembly(cornerStart,2,0);
   for(const o of rearRoof.children.slice(cornerRoofStart))o.position.x+=2;
@@ -1960,7 +1964,7 @@ export function buildTemple(K) {
   // Viewed down the road (+Z), the temple (+X) is on the photograph's left.
   // This replaces the estimated roadside annex; the entrance alignment is retained.
   const edgeWhite=K.M.plaster.clone();edgeWhite.color.set('#f4f1eb');
-  const balconyRed=mat('#b65f61'),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
+  const balconyRed=mat('#9a4541'),balconyCement=mat('#7b7a74',.95),frostedGlass=mat('#c8d0cd',.25),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
   // 15.19.36 / 14.59.21: a red-oxide floor, not white tiles.
   floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,oxideFloor);
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
@@ -2002,14 +2006,16 @@ export function buildTemple(K) {
     instances('Temple road horizontal window bars',new THREE.BoxGeometry(1,1,1),whiteTrim,grille);
     box('Temple road window centre mullion',x,y,z-.15,.065,h+.12,.08,K.M.wood);
     if(leaves)for(const side of [-1,1]){
+      // 15.12.03: dark-framed casements glazed with frosted panes, not solid timber leaves.
       const leaf=box('Temple road open timber shutter',x+side*(w*.52+.22),y,z-.39,.085,h+.08,.68,K.M.wood);leaf.rotation.y=side*.42;
+      const pane=box('Temple road casement frosted glass',x+side*(w*.52+.22),y,z-.39,.095,h-.12,.52,frostedGlass);pane.rotation.y=side*.42;
     }
   }
   // 15.22.36 / 14.59.21: two narrow barred windows without leaves in the second bay, and one
   // broad blue-framed upper window centred on each bay, its timber leaves open.
   for(const x of [26.1,29.7])edgeWindow(x,1.73,1.28,.95,1.55,false);
   for(const x of [22.4,26.4])edgeWindow(x,5.23,1.30,1.55,1.85);
-  floor('Temple road upper balcony',25.15,.64,9.98,1.85,3.46,stoneFloor);
+  floor('Temple road upper balcony',25.15,.64,9.98,1.85,3.46,balconyCement); // 15.12.03: dark grey cement
   box('Temple road balcony white soffit',25.15,3.32,.64,10.05,.18,1.9,edgeWhite);
   box('Temple road balcony red fascia',25.15,3.46,-.32,10.05,.25,.16,balconyRed);
   const balusterProfile=[[.067,0],[.067,.07],[.04,.14],[.043,.27],[.074,.33],[.052,.43],[.037,.52],[.059,.63],[.069,.68]].map(p=>new THREE.Vector2(...p));
@@ -2210,7 +2216,7 @@ export function buildTemple(K) {
    floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,oxideFloor);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
-   floor('Temple road upper balcony',xm,.4,w,1.4,3.46,stoneFloor);
+   floor('Temple road upper balcony',xm,.4,w,1.4,3.46,balconyCement);
    for(const y of [3.63,4.4])box('Temple road balcony front rail',xm,y,-.25,w,.15,.19,balconyRed);
    for(const x of [32.3,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road white front balcony baluster',x,4.0,-.25,.07,.62,.07,whiteTrim);
