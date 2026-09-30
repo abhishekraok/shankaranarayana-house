@@ -1281,7 +1281,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.20.13 and 15.28.26: the same shop, beside the adjacent two-storey
   // building, on the lake's eastern edge. The frontage faces -X, like its neighbor.
   // In the across-lake view, the shop is left of the adjacent building (-Z).
-  const shopCream=K.M.plaster.clone();shopCream.color.set('#ddd7bd');
+  const shopCream=K.M.plaster.clone();shopCream.color.set('#ebe8e0'); // 14.59.54 / 15.02.00: whitewashed, not cream
   const shopWhite=K.M.plaster.clone();shopWhite.color.set('#e4e0d5');
   const shopBlue=K.M.blue.clone();shopBlue.color.set('#849b96');
   const shopWood=K.M.wood.clone();shopWood.color.set('#665046');
@@ -1433,6 +1433,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
+  // 14.28.26 / 15.15.26: a salmon-pink two-storey house stands up the slope behind the western
+  // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
+  {const salmon=K.M.plaster.clone();salmon.color.set('#e7a08e');
+   box('Slope salmon-pink house walls',-36,2.2,-21.5,7.2,6.4,6.4,salmon,true);
+   box('Slope salmon-pink house red parapet band',-36,5.25,-21.5,7.3,.3,6.5,'red');
+   for(const xx of [-38.2,-33.8])for(const y of [1.6,4.2])box('Slope salmon-pink house window',xx,y,-18.28,1.0,1.1,.05,'wood');
+   const r=K.hipRoof(group,'Slope salmon-pink house tiled roof',-36,-21.5,8.2,7.4,5.4,1.3);K.roofs.push(r);}
   // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
   // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
   {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
