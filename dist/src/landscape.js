@@ -529,7 +529,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // be placed on the confirmed near bank, left in the first panorama frame.
   const pavilionChildren=group.children.length,pavilionColliders=K.colliders.length,pavilionSurfaces=K.surfaces.length,pavilionRamps=K.ramps.length;
   const px = -14.7, pz = -39.55, pw = 5.0, pd = 4.45, floor = -.29;
-  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, materials.basalt);
+  // 14.58.26: the pavilion stands on grey-brown dressed stone, clearly lighter than the water.
+  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#7d7468',roughness:1}));
   box('pavilion pale floor', px, floor - .07, pz, pw, .14, pd, materials.oldWhite);
   K.surface(px, pz, pw, pd, floor);
   // The bank entry is rebuilt in final coordinates below, after placement.
@@ -906,7 +907,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.30.09/06/02: opposite-bank hall, low white house and the pink/tiled
   // houses form one continuous view from the same upstairs balcony position.
   const oppositeWhite=K.M.plaster.clone();oppositeWhite.color.set('#e9e7de');
-  const oppositePink=K.M.pink.clone();oppositePink.color.set('#d9789f');
+  const oppositePink=K.M.pink.clone();oppositePink.color.set('#e59ab4'); // 14.58.26 / 15.30.02: pale pink
   const ow=(n,x,y,z,w,h,d,m=oppositeWhite,solid=false)=>box('Opposite bank '+n,x,y,z,w,h,d,m,solid);
   // Tall white hall, with gabled facade, two barred upper windows and balcony.
   ow('hall foundation',-12,.18,-55,9.5,.36,8.2,materials.mortar,true);
@@ -1829,17 +1830,6 @@ export function buildLandscape(K, {mobile=false}={}) {
      o.scale.x*=(t[1]-t[0])/(b3.max.x-b3.min.x);o.position.x+=(t[0]+t[1])/2-(b3.min.x+b3.max.x)/2;
      // The far-corner stair (x -3.4..-1.2, z < -32.8) stays clear of the wider tiers.
      if(t[1]>-3.5&&b3.min.z<-32.8){const z0=-32.75;o.scale.z*=(b3.max.z-z0)/(b3.max.z-b3.min.z);o.position.z+=(z0-b3.min.z)/2;}}}
-  // 15.26.49 looks along the west bank from the far corner: south of the water stair it is a
-  // plain vertical wall with a low timber rail, not tiers or a masonry parapet (the tiers and
-  // stair of 15.23.35 / 15.23.38 are north of z -25.2).
-  {const b3=new THREE.Box3();group.updateMatrixWorld(true);
-   const lower=/^(middle worn stone tread|low mossy stone tread|submerged tank course) west$/,rail=/^West bank (solid dark parapet|parapet coping|whitewashed square post|post cap)$/;
-   for(const o of [...group.children]){if(!o.isMesh||o.isInstancedMesh)continue;b3.setFromObject(o);
-     if(lower.test(o.name)&&b3.max.z<-25)group.remove(o);
-     else if(rail.test(o.name)&&b3.min.z<-25.5&&b3.max.z<-25.15)group.remove(o);}
-   const railWood=new THREE.MeshStandardMaterial({color:'#4a3a2c',roughness:.95});
-   for(let z=-25.6;z>-35.6;z-=2.0)box('West bank timber rail post',-5.08,.4,z,.13,.8,.13,railWood);
-   for(const y of [.42,.74])box('West bank timber log rail',-5.08,y,-30.5,.11,.1,10.3,railWood);}
   // Same on the house bank (15.23.35, 15.23.38): broad tiers under the parapet posts; the thin
   // ledges that stood in front of the old courses are folded into them.
   {const spans={'upper dark stone retaining course near':[-9.9,-9.0],'middle worn stone tread near':[-10.8,-9.9],

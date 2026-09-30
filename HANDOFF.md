@@ -18,8 +18,8 @@ committed) still apply.
 - Pavilion: the user says 15.30.02 and 15.26.12 agree and it stands at the tank's east-south
   corner (far bank, temple end). The model has it on the far bank at x 31-37 (south end x 49.4);
   not moved yet, as 15.30.02 would put it further north. Ask whether it should hug the corner.
-- West bank: south of the water stair (z < -25.2) it is a vertical wall with a low timber rail
-  (15.26.49); the tiers and stair north of it stay (15.23.35/38).
+- West bank keeps its tiers the full length: 15.23.38 clearly shows them from the corner stair
+  to the far bank. The wall with a rail in 15.26.49 is probably not this stretch (tried and reverted).
 - Re-aligned by the user: 14.37.50, 15.04.59, 15.26.12, 15.30.02. Pavilion position confirmed as is.
 - User's 14.37.50 note: God room deeper east-west. Altar, rear wall and everything behind z 9.3
   moved back 1.4 m (house.js end pass; side walls, floor and the roof's rear half stretched);

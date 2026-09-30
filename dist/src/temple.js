@@ -243,7 +243,7 @@ export function buildTemple(K) {
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
     box('Rear grey marble dado',cx,.80,5.955,w,.40,.05,mat('#9a9a92',.4));
-    box('Black upper wall band',cx,3.62,5.955,w,.19,.05,dark);
+    box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
@@ -603,7 +603,7 @@ export function buildTemple(K) {
   // 15.01.44–15.03.38: pale grey granite slabs, about 0.5–1 m by 0.4–0.5 m,
   // laid in running rows across the courtyard with thin dark joints, a faint
   // warm cast and soft grey-green weathering; not a regular tile grid.
-  const flagstones=mat('#ffffff',.9);
+  const flagstones=mat('#b3a898',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
   flagstones.map=canvasMap(1024,(c,s)=>{
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
@@ -1673,9 +1673,10 @@ export function buildTemple(K) {
     uv.needsUpdate=true;
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
+  const innerPlatformStone=mat('#a8776a',.95);
   for(const x of [34.3,43.7]){
     // User: these platforms stand about a metre above the aisle (15.08.10).
-    box('Inner entrance raised platform',x,1.05,18.15,7.5,.96,2.5,laterite,true); // 15.08.10: red laterite faces
+    box('Inner entrance raised platform',x,1.05,18.15,7.5,.96,2.5,innerPlatformStone,true); // 15.08.10: pinkish-brown carved stone faces
     floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.55,dado);
   }
   for(const x of [34.8,37.3,40.7,43.2]){

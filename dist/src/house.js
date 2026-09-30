@@ -515,6 +515,7 @@ export function buildHouse(K) {
       [.21,2.29],[.26,2.39],[.27,2.49],[.235,2.57],[.20,2.61],
       [.22,2.65],[.27,2.69],[.27,2.76],[.23,2.80],[.23,2.88]];
     const mesh=new THREE.Mesh(new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),8),passageTimber);
+    mesh.material=verandaTimber; // 14.30.57 / 14.31.01: dark weathered timber
     mesh.name='Courtyard octagonal timber post with turned capital';mesh.rotation.y=Math.PI/8;
     mesh.position.set(x,F,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
     b('Courtyard post broad beam seat',x,F+2.94,z,.65,.12,.43,passageTimber);
@@ -868,7 +869,7 @@ export function buildHouse(K) {
   // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z.
   const atZ=(u,v,z)=>{pv.set(u/1000-1,1-v/750,.5).unproject(altarCam);const o=altarCam.position,d=pv.clone().sub(o).normalize();return o.clone().addScaledVector(d,(z-o.z)/d.z);};
   const altarY0=1.434,rise=.361,run=.16,ledgeRun=.26,altarBack=9.88,altarFront=altarBack-ledgeRun-4*run;
-  const treadWood=mat('wood').clone();treadWood.color.set('#3d2d23');
+  const treadWood=mat('wood').clone();treadWood.color.set('#d8d3c8'); // 14.35.26: the shelf treads are painted off-white like the risers
   const tierWhite=shrineWhite.clone();tierWhite.color.set('#d9dad4');
   // The niche is only about 1.85 m wide between the two carved pillars.
   const altarX0=-.83,altarX1=1.02,altarCX=(altarX0+altarX1)/2,altarW=altarX1-altarX0;
