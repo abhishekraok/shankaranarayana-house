@@ -2,7 +2,7 @@
 
 A walkable 3D reconstruction of the house, lake and temple as remembered from 2011–2013, created by Abhishek Rao from photographs and memories.
 
-[Explore the live site](https://shankaranarayana.abhishekraok.chatgpt.site/)
+[Explore the live site](https://shankaranarayana.abhishekraok.chatgpt.site/) · [Read the story](https://atomicgalaxy.substack.com/p/recreating-lost-grandparents-house)
 
 ## Run locally
 
