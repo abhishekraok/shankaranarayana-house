@@ -81,6 +81,14 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     specular 0.25 (no visible change, reverted); exposure EV 0.4 (little change); a gentle grade
     (contrast 1.12, saturation 1.1, gamma 0.94) kept: soil/tiers slightly darker, water slightly
     darker than the photos. Still open: Lumen/sky ambient on dark rough surfaces.
+    2026-09-30 diagnostics (capture_poses.py CAPTURE_CONSOLE / CAPTURE_PP, 15.23.35 and covered
+    views 14.56.30, 15.05.42, 15.15.51, 14.31.25): the pale tank tread is not lighting-specific:
+    fog, reflections, sky light, Lumen GI and local exposure off each leave it pale; base colour
+    is right (#444945). Frame means already match the photos (UE 96-115 vs photo 102-132), so
+    exposure offsets only trade dark-surface match for overall darkness (r.ExposureOffset -1 took
+    means to ~60). What was wrong and is fixed: a warm cast (blue ~10% low against red);
+    white_temp 5900 (5c01c89). Remaining per-surface gap: covered verandas read ~2x the photo
+    (14.56.30 floor and pillars); no global setting found that fixes it without darkening the rest.
   - Open (Unreal tour QA 2): courtyard flagstones tile ~3.3x smaller than the web. Export is
     right (matrix repeat 0.3, UVs in metres) and MI_MeshStandardMaterial_333 has UVRow 0.3, but
     stale MIs from earlier exports (e.g. MI_MeshBasicMaterial_333, identity UVRow) remain in
