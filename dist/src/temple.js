@@ -90,6 +90,7 @@ export function buildTemple(K) {
     }
   }, 8, 3);
   const relief = mat('#d8cdb8');
+  const darkRelief = mat('#6f6152');
   relief.map = canvasMap(256, (c,s) => {
     c.fillStyle='#d9d5c9';c.fillRect(0,0,s,s);
     c.strokeStyle='#8d8371';c.lineWidth=3;
@@ -160,8 +161,9 @@ export function buildTemple(K) {
     box(n+' shaft',x,(shaftBottom+capY)/2,z,.31*s,capY-shaftBottom,.31*s,whiteTrim);
     const blockY=baseY+height*.50;
     box(n+' inset block',x,blockY,z,.60*s,.65*s,.60*s,whiteTrim);
-    panel(n+' black inset',x,blockY,z-.308*s,.43*s,.45*s,plaque);
-    panel(n+' side inset',x+.308*s,blockY,z,.43*s,.45*s,plaque,true);
+    // 15.02.27: the column blocks carry carved relief panels, not black plaques.
+    panel(n+' black inset',x,blockY,z-.308*s,.43*s,.45*s);
+    panel(n+' side inset',x+.308*s,blockY,z,.43*s,.45*s,relief,true);
     for(const [yy,ww,hh] of [[shaftBottom,.65,.10],[blockY-.38*s,.65,.12],[blockY+.38*s,.65,.12],[capY,.50,.15],[baseY+height-.13*s,.67,.16]]){
       box(n+' moulding',x,yy,z,ww*s,hh*s,ww*s,whiteTrim);
     }
@@ -1442,10 +1444,11 @@ export function buildTemple(K) {
   // central entry. West of the entry (to the right on entering) the carved
   // frieze platform is the narrow great-bell hall; beyond it come the white
   // stair wall and the blue service bay. The east hall has two smaller bells.
+  darkRelief.map=relief.map;
   for(const [x,w,n] of [[36.525,2.65,3],[44.0,7.5,10]]){
     floor('Courtyard portico raised marble platform',x,7.02,w,1.62,.602,stoneFloor);
     box('Courtyard portico dark carved plinth',x,.32,7.80,w,.45,.14,oldStone,true);
-    for(let i=0;i<n;i++)panel('Courtyard portico inset relief panel',x-(n-1)*.37+i*.74,.33,7.88,.60,.31,relief);
+    for(let i=0;i<n;i++)panel('Courtyard portico inset relief panel',x-(n-1)*.37+i*.74,.33,7.88,.60,.31,darkRelief); // 15.02.27: dark brown carved stone
     box('Courtyard portico marble lip',x,.59,7.87,w+.1,.10,.18,whiteTrim);
     steps('Courtyard portico side access',x<39?35.75:46.8,8.19,.90,.85,.1,.602,'-z',3);
   }
