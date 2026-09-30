@@ -67,6 +67,12 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     (scattering .010/.014/.009, absorption .30/.22/.29). The pavilion now mirrors in
     14.57.50 as in the photo; the photo water is still brighter (sky sheen). Captures:
     `blender/build/claude-water2/`.
+  - Pass 5 (overnight): tour-frame QA in Unreal. Fixed at the source (main): photo crops are
+    baked into UVs (texture repeat/offset was lost, so the facade guardian figures showed a whole
+    photo); photo panels are lit and single-sided facing the viewer (unlit/back faces were black);
+    the pasted naga-stone photo is replaced by modelled stones. Unreal: masked two-sided screens
+    get a small self-lit fill (pierced balcony screens read black in shade). Remaining: Unreal
+    reads red oxide floors, soil and tank steps lighter/more washed out than the web.
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
