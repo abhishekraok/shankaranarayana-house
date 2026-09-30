@@ -87,6 +87,10 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     /Game/Materials/Web; check which MI the paving mesh slot is bound to, and purge stale MIs.
     Also: a black lean-to roof underside (tour 90 s), a pale east awning (108 s), a dark void
     behind the naga pavilion column (54 s), missing straw tufts on the rear roof ridge (198 s).
+    Lead on the flagstones: MI bindings are correct (slot N -> MI N), but in the Blender-exported
+    temple.glb the largest primitive using the paving material has UVs of about 0..1.4, not the
+    metre-scale (+-9.9) UVs in scene.json, so the Blender join/export step rewrites these UVs.
+    Fixed: black roof undersides (two-sided sheets get a faint self-lit fill, b393649).
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
