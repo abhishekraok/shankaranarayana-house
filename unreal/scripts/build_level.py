@@ -108,6 +108,11 @@ if modes: pp_set('lumen_ray_lighting_mode', getattr(modes, 'HIT_LIGHTING', None)
 pp_set('lumen_reflection_quality', 2.0)
 pp_set('lumen_final_gather_quality', 2.0)
 pp_set('lumen_scene_lighting_quality', 2.0)
+# The overcast photographs keep dark stone, soil and lawns dark and saturated; the renders lift
+# those mid-tones towards grey. A gentle global contrast/saturation grade restores them.
+pp_set('color_contrast', unreal.Vector4(1.12, 1.12, 1.12, 1.0))
+pp_set('color_saturation', unreal.Vector4(1.1, 1.1, 1.1, 1.0))
+pp_set('color_gamma', unreal.Vector4(0.94, 0.94, 0.94, 1.0))
 pp.set_editor_property('settings', s)
 
 sp = nav['spawn']

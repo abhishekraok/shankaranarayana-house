@@ -77,6 +77,10 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     sRGB on; wet stone #293b30), so the pale look comes from lighting (Lumen/sky) or a slot
     mismatch on the merged landscape meshes, not the export. Next: view base colour in the
     buffer visualiser at 15.23.35. Package rebuilt (ead700a); smoke test passed.
+    Base-colour buffer at 15.23.35 shows the tiers dark, so the pale look is lighting. Tried:
+    specular 0.25 (no visible change, reverted); exposure EV 0.4 (little change); a gentle grade
+    (contrast 1.12, saturation 1.1, gamma 0.94) kept: soil/tiers slightly darker, water slightly
+    darker than the photos. Still open: Lumen/sky ambient on dark rough surfaces.
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
