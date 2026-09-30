@@ -136,7 +136,8 @@ export function installPhotoAlignment({camera,photos,enter,release,resize,setAli
   await refreshModel();
   let last=null;try{last=localStorage.getItem(POSITION);}catch{}
   const match=f=>items.findIndex(it=>it.filename.toLowerCase().includes(f.toLowerCase()));
-  const parts=find.split(',').map(f=>f.trim()).filter(Boolean);
+  // Filenames can contain commas: '|' separates a list, and a whole string that names a photo wins.
+  const parts=(find.includes('|')?find.split('|'):match(find)>=0?[find]:find.split(',')).map(f=>f.trim()).filter(Boolean);
   route=parts.length>1?parts.map(match).filter(i=>i>=0):null;if(route&&!route.length)route=null;
   const wanted=route?route[0]:find?match(find):-1;
   const at=wanted>=0?wanted:items.findIndex(it=>it.id===last);

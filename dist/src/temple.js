@@ -243,11 +243,11 @@ export function buildTemple(K) {
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
     box('Rear grey marble dado',cx,.80,5.955,w,.40,.05,mat('#9a9a92',.4));
-    box('Black upper wall band',cx,3.62,5.955,w,.19,.05,dark);
+    box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),silver=mat('#ffffff',.63,{metalness:.25});
+  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),silver=mat('#ffffff',.63,{metalness:.25});
   // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
   silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
@@ -262,9 +262,12 @@ export function buildTemple(K) {
   box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
   for(const side of [-1,1]){
     // 15.15.51 / 15.16.13: the opening is about 1.45 m clear, framed by blue reveals.
-    box('Entrance doorway blue inner reveal',39+side*.99,2.00,5.87,.42,2.80,.23,doorwayBlue,true);
-    box('Entrance doorway red inner jamb',39+side*.78,1.78,5.73,.12,2.36,.17,red);
-    box('Entrance doorway open timber leaf',39+side*.84,1.78,6.1,.09,2.36,.72,K.M.wood);
+    // User: full-length timber doors stand open against the passage sides (the earlier teal
+    // reveals read as blue half-doors in front of hidden leaves).
+    box('Entrance doorway timber frame',39+side*.99,2.00,5.87,.42,2.80,.23,doorLeafWood,true);
+    box('Entrance doorway red inner jamb',39+side*.76,1.74,5.73,.07,2.26,.17,red);
+    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafWood);
+    for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
     const x=39+side*2.05;
 
     box('Entrance doorway pillar red base',x,1.02,5.36,.58,.72,.58,red,true);
@@ -600,7 +603,7 @@ export function buildTemple(K) {
   // 15.01.44–15.03.38: pale grey granite slabs, about 0.5–1 m by 0.4–0.5 m,
   // laid in running rows across the courtyard with thin dark joints, a faint
   // warm cast and soft grey-green weathering; not a regular tile grid.
-  const flagstones=mat('#ffffff',.9);
+  const flagstones=mat('#b3a898',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
   flagstones.map=canvasMap(1024,(c,s)=>{
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
@@ -793,7 +796,7 @@ export function buildTemple(K) {
   const vividBlue=mat('#087ead'),maroon=mat('#633a38'),pink=mat('#b57d80');
   const dado=K.M.paleStone.clone();dado.color.set('#c6cbd0');
   const greenBand=mat('#435b55'),sheet=mat('#929ea2',.91,{side:THREE.DoubleSide});
-  const greySheet=mat('#666d68',.96,{side:THREE.DoubleSide});
+  const greySheet=mat('#4f5452',.96,{side:THREE.DoubleSide}); // 15.13.11: dark grey corrugated sheets
   const weathered=K.M.stone.clone();weathered.color.set('#83857f');
   const metalPole=mat('#b7af91',.5,{metalness:.45});
   // Ribbons form actual openings in the floral lattice, not an opaque picture.
@@ -1670,19 +1673,21 @@ export function buildTemple(K) {
     uv.needsUpdate=true;
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
+  const innerPlatformStone=mat('#a8776a',.95);
   for(const x of [34.3,43.7]){
-    box('Inner entrance raised platform',x,.79,18.15,7.5,.44,2.5,laterite,true); // 15.08.10: red laterite faces
-    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.03,dado);
+    // User: these platforms stand about a metre above the aisle (15.08.10).
+    box('Inner entrance raised platform',x,1.05,18.15,7.5,.96,2.5,innerPlatformStone,true); // 15.08.10: pinkish-brown carved stone faces
+    floor('Inner entrance polished platform',x,18.15,7.5,2.5,1.55,dado);
   }
   for(const x of [34.8,37.3,40.7,43.2]){
-    box('Inner hall marble column pedestal',x,1.57,18.8,.78,1.08,.78,dado,true);
+    box('Inner hall marble column pedestal',x,1.83,18.8,.78,.56,.78,dado,true);
     innerColumn('Inner hall carved stone column',x,18.8,2.11,1.58,.63);
   }
   // The two front platforms leave the central entrance passage lower and clear.
   for(const x of [33.05,44.95]){
-    box('Inner side raised stone ledge',x,.79,24.5,2.25,.44,8.0,sanctumStone,true);
-    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.03);
-    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.03,2.45,.77);
+    box('Inner side raised stone ledge',x,1.05,24.5,2.25,.96,8.0,sanctumStone,true);
+    innerPaving('Inner side ledge paving',x,24.5,2.25,8.0,1.55);
+    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
   box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
@@ -1736,6 +1741,9 @@ export function buildTemple(K) {
     box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
   box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
   box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
+  // 15.08.42: the west corridor also ends at a blue door beside its last pillar.
+  box('Inner rear west closed blue double door',34.55,2.13,29.40,1.35,2.2,.06,blue);
+  box('Inner rear west blue door stile',34.55,2.13,29.34,.05,2.2,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);

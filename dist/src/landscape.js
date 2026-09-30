@@ -529,7 +529,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // be placed on the confirmed near bank, left in the first panorama frame.
   const pavilionChildren=group.children.length,pavilionColliders=K.colliders.length,pavilionSurfaces=K.surfaces.length,pavilionRamps=K.ramps.length;
   const px = -14.7, pz = -39.55, pw = 5.0, pd = 4.45, floor = -.29;
-  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, materials.basalt);
+  // 14.58.26: the pavilion stands on grey-brown dressed stone, clearly lighter than the water.
+  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#7d7468',roughness:1}));
   box('pavilion pale floor', px, floor - .07, pz, pw, .14, pd, materials.oldWhite);
   K.surface(px, pz, pw, pd, floor);
   // The bank entry is rebuilt in final coordinates below, after placement.
@@ -906,7 +907,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.30.09/06/02: opposite-bank hall, low white house and the pink/tiled
   // houses form one continuous view from the same upstairs balcony position.
   const oppositeWhite=K.M.plaster.clone();oppositeWhite.color.set('#e9e7de');
-  const oppositePink=K.M.pink.clone();oppositePink.color.set('#d9789f');
+  const oppositePink=K.M.pink.clone();oppositePink.color.set('#e59ab4'); // 14.58.26 / 15.30.02: pale pink
   const ow=(n,x,y,z,w,h,d,m=oppositeWhite,solid=false)=>box('Opposite bank '+n,x,y,z,w,h,d,m,solid);
   // Tall white hall, with gabled facade, two barred upper windows and balcony.
   ow('hall foundation',-12,.18,-55,9.5,.36,8.2,materials.mortar,true);
@@ -1431,8 +1432,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
-  // 15.28.49 shows a small laterite shed beside the west stair foot, but 14.46.51 looks down on
-  // that ground and shows open garden; left out until the user places it.
+  // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
+  // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
+  {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
+   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
+   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
+   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
+   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
+   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05);K.roofs.push(r);}
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
@@ -1729,6 +1736,13 @@ export function buildLandscape(K, {mobile=false}={}) {
       new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.66,.92)));
   }
 
+  // User (15.21.53 centre, 14.58.48): a dense clump of trees and undergrowth fills the ground
+  // behind the temple-side wing, between the house and the temple road. Own seed, restored
+  // after, so the rest of the vegetation keeps its placement.
+  {const saved=seed;seed=40517;
+   for(const [x,z,h,r] of [[13.9,8.2,6.8,2.9],[14.6,13.2,7.6,3.2],[13.4,18.4,6.4,2.8],[15.4,5.4,5.2,2.2],[16.1,9.6,6.2,2.7],[15.9,12.0,5.6,2.5]])broadleaf(x,z,h,r);
+   for(let i=0;i<46;i++){const x=range(12.2,16.1),z=range(6.2,20.5),size=range(.7,1.45);if(x>13.2&&Math.abs(z-7.2)<1.3)continue;shrub(x,z,size);} // the roadside taps stay open
+   seed=saved;}
   // Flush all repeat details into one draw call per geometry/material family.
   for (const [name, batch] of batches) {
     const mesh = new THREE.InstancedMesh(batch.geometry, batch.material, batch.instances.length);
