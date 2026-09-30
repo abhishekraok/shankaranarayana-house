@@ -2170,16 +2170,26 @@ export function buildTemple(K) {
   // 15.01.44 / 15.02.23: the east range's north part (z 6.5-16.5) is a full two-storey
   // block: an upper front wall with a heavy balcony band over the shutter bay, small
   // windows, and a flat red-edged slab. Placed after the east shift, in final coordinates.
+  // 15.01.44 / 15.02.17 (re-checked): not one broad storey. A narrow full-height block stands at
+  // the far end (z 14.3-16.5) with one small window; a set-back arched rooftop pavilion sits over
+  // the shutter bay (z 8.6-12.4); the rest is open terrace behind the balcony band.
   {const x0=55.1,x1=57.9,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
-   box('East range upper storey front wall',x0+.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
-   box('East range upper storey back wall',x1-.11,(y0+y1)/2,zc,.22,y1-y0,len,white);
-   box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z1-.11,x1-x0,y1-y0,.22,white);
    box('East range upper balcony band',x0-.05,4.6,zc,.3,1.2,len,white);
    box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
-   const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,zc,x1-x0+.6,.16,len+.4,white);K.roofs.push(roof);
-   box('East range upper slab red edge',x0-.3,y1+.08,zc,.1,.18,len+.4,red);
-   // 15.02.23: the wall over the porch is blank; one small window further along.
-   for(const z of [14.1]){box('East range upper window blue frame',x0-.01,6.0,z,.05,1.0,1.1,blue);box('East range upper window dark glass',x0-.02,6.0,z,.03,.8,.9,dark);}}
+   {const a=14.3,b=z1,c=(a+b)/2,l=b-a;
+    box('East range upper storey front wall',x0+.11,(y0+y1)/2,c,.22,y1-y0,l,white);
+    box('East range upper storey back wall',x1-.11,(y0+y1)/2,c,.22,y1-y0,l,white);
+    for(const z of [a+.11,b-.11])box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z,x1-x0,y1-y0,.22,white);
+    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,c,x1-x0+.6,.16,l+.4,white);K.roofs.push(roof);
+    box('East range upper slab red edge',x0-.3,y1+.08,c,.1,.18,l+.4,red);
+    box('East range upper window blue frame',x0-.01,6.0,15.3,.05,.8,.8,blue);box('East range upper window dark glass',x0-.02,6.0,15.3,.03,.6,.6,dark);}
+   {const a=8.6,b=12.4,c=(a+b)/2,l=b-a,px0=56.2,py1=6.3;
+    box('East range rooftop pavilion back wall',x1-.11,(y0+py1)/2,c,.22,py1-y0,l,white);
+    for(const z of [a+.11,b-.11])box('East range rooftop pavilion end wall',(px0+x1)/2,(y0+py1)/2,z,x1-px0,py1-y0,.22,white);
+    {const sc=scallop('East range rooftop pavilion scalloped arches',px0,c,l,py1-.1,.18,white,.55);sc.rotation.y=Math.PI/2;sc.position.set(px0-.09,0,c);}
+    const r=box('East range rooftop pavilion slab',(px0+x1)/2,py1+.07,c,x1-px0+.5,.14,l+.4,white);K.roofs.push(r);
+    box('East range rooftop pavilion red edge',px0-.25,py1+.07,c,.1,.16,l+.4,red);}
+   box('East range open terrace floor',(x0+x1)/2,y0-.05,(z0+14.3)/2,x1-x0,.1,14.3-z0,white);}
   // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
   // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
   // projecting portico front starts there. The entrance hall and its paintings stay behind.
