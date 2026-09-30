@@ -866,7 +866,7 @@ export function buildHouse(K) {
   // camera, fitted to the tier edges, places each object where it was seen.
   const shrineMap=new THREE.TextureLoader().load('./assets/shrine.jpg');
   shrineMap.colorSpace=THREE.SRGBColorSpace;
-  const printMat=new THREE.MeshStandardMaterial({map:shrineMap,roughness:.8,emissive:0xffffff,emissiveMap:shrineMap,emissiveIntensity:.25}); // lit prints (unlit panels rendered black in Unreal)
+  const printMat=new THREE.MeshStandardMaterial({map:shrineMap,roughness:.8}); // lit prints: unlit panels rendered black in Unreal, and any glow is blown out there
   const altarCam=new THREE.PerspectiveCamera(47.1,2048/1536,.05,20);altarCam.position.set(.35,3.0,7.34);altarCam.lookAt(.05,2.01,9.9);altarCam.updateMatrixWorld();
   const pv=new THREE.Vector3();
   // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z.
