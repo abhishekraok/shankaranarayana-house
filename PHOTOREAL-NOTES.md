@@ -81,6 +81,12 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
     specular 0.25 (no visible change, reverted); exposure EV 0.4 (little change); a gentle grade
     (contrast 1.12, saturation 1.1, gamma 0.94) kept: soil/tiers slightly darker, water slightly
     darker than the photos. Still open: Lumen/sky ambient on dark rough surfaces.
+  - Open (Unreal tour QA 2): courtyard flagstones tile ~3.3x smaller than the web. Export is
+    right (matrix repeat 0.3, UVs in metres) and MI_MeshStandardMaterial_333 has UVRow 0.3, but
+    stale MIs from earlier exports (e.g. MI_MeshBasicMaterial_333, identity UVRow) remain in
+    /Game/Materials/Web; check which MI the paving mesh slot is bound to, and purge stale MIs.
+    Also: a black lean-to roof underside (tour 90 s), a pale east awning (108 s), a dark void
+    behind the naga pavilion column (54 s), missing straw tufts on the rear roof ridge (198 s).
   - Next: shrine brass patina, Cycles crown shape/colour, water reflections, GI noise.
 
 - Lighting follow-up: repaired the missing HDR skylight. HDRIBackdrop reset its
