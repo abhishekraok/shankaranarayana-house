@@ -400,7 +400,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 14.59.39 / 15.11.58: the west end is only a tiled pedestal carrying a stepped white
   // pillar, with a black plaque. 15.14.02 / 15.14.07 / 15.13.26: the east end bay is a
   // whitewashed room under the roof's gable, with the orange sign and the tap on its lane face.
-  box('Lake entrance west tiled pedestal',30.15,.065+.55,-7.9,.62,1.1,.62,dadoTiles,true);
+  box('Lake entrance west tiled pedestal',30.15,.065+.55,-7.9,.62,1.1,.62,materials.oldWhite,true); // plain whitewash (15.11.58)
   box('Lake entrance west stepped white pillar',30.15,1.85,-7.9,.3,1.5,.3,materials.oldWhite,true);
   box('Lake entrance west pillar collar',30.15,1.25,-7.9,.38,.16,.38,materials.oldWhite);
   box('Lake entrance black plaque',30.15,1.3,-7.585,.5,.32,.02,new THREE.MeshStandardMaterial({color:'#1b1b1a',roughness:.5}));
@@ -415,7 +415,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25);
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
-  const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#c0b39f');
+  const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#e4e0d6'); // 15.11.58 / 15.22.36: whitewashed
   const arcadeScreen=new THREE.Shape();arcadeScreen.moveTo(-9.10,.20);
   arcadeScreen.lineTo(9.10,.20);arcadeScreen.lineTo(9.10,.89);arcadeScreen.lineTo(-9.10,.89);arcadeScreen.closePath();
   for(let row=0;row<3;row++)for(let x=-8.92+(row%2)*.17;x<8.99;x+=.34){

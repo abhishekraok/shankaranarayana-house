@@ -4,6 +4,20 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Overnight pass (2026-09-29 night)
+
+- Tour-frame QA (every 3 s) twice, plus photo review rounds 4-5 of the trusted poses and the
+  user's 19 new alignments. Fixed: floating/clipping parts (stair rails, grinding stone, donation
+  boxes, post grooves, wing roof inside the front room, lamp canopy), coplanar copings, tour
+  stops staring into walls, many colours/materials, entrance-hall platforms 0.65 m, God room
+  1.4 m deeper, east-range upper level re-read, modelled naga stones.
+- Export-safe photo panels: crops baked into UVs; lit, single-sided panels (Unreal showed whole
+  photos and black boards). See photoreal PHOTOREAL-NOTES pass 5.
+- Skipped (conflict or needs the user): back-courtyard tin lean-to (14.44.14/48, 14.46.10),
+  bell-hall pillar material (15.14.51), covered-hall depth (temple right side -45), far-bank
+  building heights (15.11.58 vs 14.58.26), house balcony lattice colour, porch bell position.
+- Needs re-aligning: 15.15.26 (camera too far east).
+
 ## User answers (2026-09-29)
 
 - Temple-side wing stays one storey (the four lane photos notwithstanding).

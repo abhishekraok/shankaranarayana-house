@@ -77,6 +77,9 @@ for (const dir of ['src', 'vendor']) {
     await page.waitForTimeout(250);
     await page.addStyleTag({content: 'body > :not(#world){visibility:hidden!important} #world{position:fixed!important;inset:0!important;width:100vw!important;height:100vh!important}'});
     fs.mkdirSync(out, {recursive: true});
+    // Size the canvas once and let it settle, so the first capture is not drawn at the old size.
+    await page.evaluate(() => { houseWalk.renderer.setSize(1000, 750); houseWalk.camera.aspect = 4 / 3; houseWalk.camera.updateProjectionMatrix(); });
+    await page.waitForTimeout(1200);
     for (const {t, pose} of captures) for (let attempt = 0; ; attempt++) try {
       await page.evaluate(p => {
         const h = houseWalk;
