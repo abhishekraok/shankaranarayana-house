@@ -1496,7 +1496,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let i=1;i<poles.length;i++)for(let wire=0;wire<4;wire++){
     const [ax,az]=poles[i-1],[bx,bz]=poles[i],points=[];
     for(let j=0;j<=12;j++){const t=j/12;points.push(new THREE.Vector3(THREE.MathUtils.lerp(ax,bx,t),6.66-.46*Math.sin(t*Math.PI),THREE.MathUtils.lerp(az,bz,t)+(wire-1.5)*.29));}
-    const cable=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:'#343c32'}));cable.name='Sagging roadside utility wire';group.add(cable);
+    const cable=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),points.length*2,.008,4),new THREE.MeshStandardMaterial({color:'#343c32',roughness:.8}));cable.name='Sagging roadside utility wire';group.add(cable);
   }
   // The photographed canopy encloses the lane instead of sitting far behind it.
   for(const [x,z,h,r] of [[-17,5,10,4.7],[-27,4,11,5.0],[-37,3.5,12,5.4],[-52,0,10,4.5],[-62,-3,12,5],[-41,-19,9,4.3],[-60,-25,10,5]])broadleaf(x,z,h,r);
