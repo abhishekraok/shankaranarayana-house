@@ -934,8 +934,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Original lettering and emblem, sampled only from the white hall in 15.30.09.
   function hallPhoto(n,x,y,w,h,rect){
     const tex=new THREE.TextureLoader().load('./assets/house-upper-ahead.jpg');tex.colorSpace=THREE.SRGBColorSpace;
-    const [x0,y0,x1,y1]=rect;tex.repeat.set((x1-x0)/1824,(y1-y0)/1368);tex.offset.set(x0/1824,1-y1/1368);
-    const panel=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,-50.04);group.add(panel);
+    // Crop through the UVs, not texture repeat/offset, so exported scenes keep the crop.
+    const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(w,h),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
+    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,-50.04);group.add(panel);
   }
   hallPhoto('Opposite bank hall original sign',-12,2.94,3.50,.79,[408,567,611,641]);
   hallPhoto('Opposite bank hall original relief emblem',-12,6.41,1.28,1.40,[444,320,545,432]);
@@ -1210,8 +1211,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // photograph. Only the architectural figures, not people in its forecourt.
   function stageFigure(name,a,y,rect){
     const map=new THREE.TextureLoader().load('./assets/temple.jpg');map.colorSpace=THREE.SRGBColorSpace;
-    const [x0,y0,x1,y1]=rect;map.repeat.set((x1-x0)/1824,(y1-y0)/1368);map.offset.set(x0/1824,1-y1/1368);
-    const panel=new THREE.Mesh(new THREE.PlaneGeometry(.76,1.80),new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(59.135,y,-5-a);group.add(panel);
+    const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(.76,1.80),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
+    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(59.135,y,-5-a);group.add(panel);
   }
   stageFigure('Stage upper left photographed figure',2,6.68,[696,303,755,462]);
   stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);

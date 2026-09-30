@@ -863,7 +863,7 @@ export function buildHouse(K) {
   // camera, fitted to the tier edges, places each object where it was seen.
   const shrineMap=new THREE.TextureLoader().load('./assets/shrine.jpg');
   shrineMap.colorSpace=THREE.SRGBColorSpace;
-  const printMat=new THREE.MeshBasicMaterial({map:shrineMap});printMat.color.setScalar(1.3);
+  const printMat=new THREE.MeshStandardMaterial({map:shrineMap,roughness:.8,emissive:0xffffff,emissiveMap:shrineMap,emissiveIntensity:.25}); // lit prints (unlit panels rendered black in Unreal)
   const altarCam=new THREE.PerspectiveCamera(47.1,2048/1536,.05,20);altarCam.position.set(.35,3.0,7.34);altarCam.lookAt(.05,2.01,9.9);altarCam.updateMatrixWorld();
   const pv=new THREE.Vector3();
   // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z.
@@ -1468,8 +1468,8 @@ export function buildHouse(K) {
   }
   // Use only the photographed calendar region, without inventing its text.
   const calendarMap=new THREE.TextureLoader().load('./assets/veranda.jpg');calendarMap.colorSpace=THREE.SRGBColorSpace;
-  calendarMap.repeat.set(.026,.101);calendarMap.offset.set(.591,1-.344);
-  const calendar=new THREE.Mesh(new THREE.PlaneGeometry(.16,.42),new THREE.MeshStandardMaterial({map:calendarMap,roughness:1}));
+  const calGeo=new THREE.PlaneGeometry(.16,.42);{const g=calGeo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,.591+g.getX(i)*.026,.656+g.getY(i)*.101);}
+  const calendar=new THREE.Mesh(calGeo,new THREE.MeshStandardMaterial({map:calendarMap,roughness:1}));
   calendar.name='Photographed veranda calendar';calendar.rotation.y=Math.PI;calendar.position.set(3.91,2.32,1.914);g.add(calendar);
   b('Small veranda table',-10.83,F+.57,8.85,.90,.09,.72,'wood',true);
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
