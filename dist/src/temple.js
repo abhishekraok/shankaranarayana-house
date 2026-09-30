@@ -260,7 +260,7 @@ export function buildTemple(K) {
   }
   box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),silver=mat('#ffffff',.63,{metalness:.25});
+  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),doorLeafBlue=mat('#2e5f96',.72),doorStud=mat('#b8a26a',.45,{metalness:.6}),silver=mat('#ffffff',.63,{metalness:.25});
   // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
   silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
@@ -279,7 +279,10 @@ export function buildTemple(K) {
     // reveals read as blue half-doors in front of hidden leaves).
     box('Entrance doorway timber frame',39+side*.99,2.00,5.87,.42,2.80,.23,doorLeafWood,true);
     box('Entrance doorway red inner jamb',39+side*.76,1.74,5.73,.07,2.26,.17,red);
-    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafWood);
+    // 15.16.13 / 15.16.09: the leaves are painted blue and studded with rows of metal bosses.
+    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafBlue);
+    {const studs=[];for(let y=.78;y<2.8;y+=.29)for(let z=5.9;z<6.5;z+=.18)studs.push([39+side*.695,y,z,.035,.035,.035]);
+     instances('Entrance door leaf metal studs',new THREE.SphereGeometry(1,6,4),doorStud,studs);}
     for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
     const x=39+side*2.05;
 
@@ -619,7 +622,7 @@ export function buildTemple(K) {
   // 15.01.44–15.03.38: pale grey granite slabs, about 0.5–1 m by 0.4–0.5 m,
   // laid in running rows across the courtyard with thin dark joints, a faint
   // warm cast and soft grey-green weathering; not a regular tile grid.
-  const flagstones=mat('#aba69d',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
+  const flagstones=mat('#b4afa7',.9); // 15.03.47 / 15.12.56 / 15.05.42 / 15.04.55: grey-brown granite, well below the walls
   flagstones.map=canvasMap(1024,(c,s)=>{
     c.fillStyle='#5d5a53';c.fillRect(0,0,s,s);
     let y=0;
@@ -1301,7 +1304,7 @@ export function buildTemple(K) {
   // of the left range. Their exact spacing is inferred from the walking sequence.
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
   const shrineStepGrey=mat('#9b9a93',.95);
-  const nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#76695a',.85),nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
+  const nagaYellow=mat('#d9b03c',.8),nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#76695a',.85),nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
     const z=37.30+i*2.48;
@@ -1320,7 +1323,7 @@ export function buildTemple(K) {
     if(i===0)blueColumn('Outer shrine niche blue pier',51.05,z-1.24,.6,2.85);
     blueColumn('Outer shrine niche blue pier',51.05,z+1.24,.6,2.85);
     const arc=[];for(let j=0;j<=28;j++){const a=Math.PI*j/28;arc.push(new THREE.Vector3(51.045,2.56+.28*Math.sin(a),z+1.03*Math.cos(a)));}
-    mesh('Outer shrine gold niche border',new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arc),28,.045,6,false),brass);
+    mesh('Outer shrine gold niche border',new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arc),28,.065,6,false),nagaYellow); // 15.04.59: painted yellow band
     // Vault axis runs through the veranda, with its arch facing the circuit.
     const vs=new THREE.Shape();vs.moveTo(-1.24,0);vs.absarc(0,0,1.24,Math.PI,0,true);vs.lineTo(1.11,0);vs.absarc(0,0,1.11,0,Math.PI,false);vs.closePath();
     const shell=mesh('Outer shrine white barrel vault',new THREE.ExtrudeGeometry(vs,{depth:2.84,bevelEnabled:false,curveSegments:24}),agedWhite,53.84,4.32,z,vaults);shell.rotation.y=-Math.PI/2;
@@ -1339,7 +1342,7 @@ export function buildTemple(K) {
   // Weathered upright stone in the circumambulatory passage, as in 15.03.33.
   const stoneShape=new THREE.Shape();stoneShape.moveTo(-.47,0);stoneShape.lineTo(.47,0);stoneShape.lineTo(.47,.80);stoneShape.absarc(0,.80,.47,0,Math.PI,false);stoneShape.closePath();
   // 15.03.33: dark grey granite, pitted and lichen-blotched.
-  const markerGranite=mat('#ffffff',.93);
+  const markerGranite=mat('#6c6259',.93); // 15.04.55: dark weathered stone, not pale granite
   markerGranite.map=canvasMap(256,(c,s)=>{let n=6113;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#6d6c66';c.fillRect(0,0,s,s);
     for(let i=0;i<2600;i++){c.fillStyle=r()<.5?'rgba(35,35,32,.35)':'rgba(170,168,158,.3)';c.fillRect(r()*s,r()*s,1+r()*2,1+r()*2);}
@@ -1392,9 +1395,11 @@ export function buildTemple(K) {
   box('Flagstaff dark rounded shoulder',flagX,1.09,flagZ,.80,.26,.80,oldStone);
   // 15.21.50 / 15.22.33 / 15.22.36: the flagstaff rises about 18-19 m, above the temple roofs;
   // 15.03.47: a slimmer shaft.
-  cyl('Tall pink banded pillar',flagX,9.95,flagZ,.15,.25,17.5,pink,8);
+  // 15.03.47 / 15.12.56 / 15.13.03: a dark copper-brown shaft ringed with raised bands.
+  const copperPole=mat('#74402f',.6,{metalness:.35}),copperBand=mat('#9b5f3c',.5,{metalness:.45});
+  cyl('Tall pink banded pillar',flagX,9.95,flagZ,.15,.25,17.5,copperPole,8);
   const bands=[];for(let i=0;i<38;i++)bands.push([flagX,1.2+i*.46,flagZ,.72-i*.012,1,.72-i*.012]);
-  instances('Pink pillar pale bands',new THREE.CylinderGeometry(.355,.355,.044,8),dado,bands);
+  instances('Pink pillar pale bands',new THREE.CylinderGeometry(.355,.355,.044,8),copperBand,bands);
   K.beam(g,'Pink pillar rope',[flagX+.22,18.5,flagZ],[flagX+.3,.95,flagZ],.012,K.M.cream);
   K.blocker(flagX,flagZ,1.68,1.68,.1,1.0);
   K.blocker(flagX,flagZ,.6,.6,1.0,18.7);
