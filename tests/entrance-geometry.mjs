@@ -404,7 +404,7 @@ assert.equal(aisleRay.intersectObject(temple,true)[0]?.object.name,'Rounded cour
 const shrineEye=new THREE.Vector3(...photos.templeoutershrines.p).add(new THREE.Vector3(0,1.62,0));
 for(const z of [37.3,39.78,42.26]){
   const ray=new THREE.Raycaster(shrineEye,new THREE.Vector3(55.95,2.16,z).sub(shrineEye).normalize());
-  assert.equal(ray.intersectObject(temple,true)[0]?.object.name,'Photographed outer shrine stones and painted recess','All three shrine niches must be visible');
+  assert.match(ray.intersectObject(temple,true)[0]?.object.name??'',/^Outer shrine (carved naga stone|blue painted recess)$/,'All three shrine niches must be visible');
 }
 // The new viewpoint must look into the house, see the actual gate and remain
 // outside collision geometry. Use rays to catch foreground walls hiding it.

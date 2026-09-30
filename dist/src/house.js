@@ -702,10 +702,10 @@ export function buildHouse(K) {
   b('God room iron latch',0,2.26,screenZ-.17,.23,.035,.035,'metal');
   b('God room worn centre door strip',0,2.25,screenZ-.15,.024,2.14,.02,shrineTimber);
   // Photograph-right is -X when looking into the house.
-  K.cylinder(g,'God room grinding bowl',-1.72,1.20,6.60,.23,.17,.22,'paleStone',18);
-  K.cylinder(g,'God room bowl hollow',-1.72,1.315,6.60,.16,.16,.015,'stone',18);
+  K.cylinder(g,'God room grinding bowl',-1.25,1.20,6.05,.23,.17,.22,'paleStone',18); // clear of the slender red post
+  K.cylinder(g,'God room bowl hollow',-1.25,1.315,6.05,.16,.16,.015,'stone',18);
   const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
-  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.76,1.42,6.62);g.add(grindingStone);
+  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.29,1.42,6.07);g.add(grindingStone);
   // User's note: no desk beside the God-room approach.
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
@@ -863,7 +863,7 @@ export function buildHouse(K) {
   // camera, fitted to the tier edges, places each object where it was seen.
   const shrineMap=new THREE.TextureLoader().load('./assets/shrine.jpg');
   shrineMap.colorSpace=THREE.SRGBColorSpace;
-  const printMat=new THREE.MeshBasicMaterial({map:shrineMap});printMat.color.setScalar(1.3);
+  const printMat=new THREE.MeshStandardMaterial({map:shrineMap,roughness:.8,emissive:0xffffff,emissiveMap:shrineMap,emissiveIntensity:.25}); // lit prints (unlit panels rendered black in Unreal)
   const altarCam=new THREE.PerspectiveCamera(47.1,2048/1536,.05,20);altarCam.position.set(.35,3.0,7.34);altarCam.lookAt(.05,2.01,9.9);altarCam.updateMatrixWorld();
   const pv=new THREE.Vector3();
   // Photo pixel (2000×1500 frame) to the world point where its ray meets depth z.
@@ -1387,7 +1387,7 @@ export function buildHouse(K) {
   const endWhite=mat('plaster').clone();endWhite.color.set('#f1eced');
   const dampBase=new THREE.MeshStandardMaterial({color:'#2f302c',roughness:1});
   b('Temple-side long white wing',wingCx,1.36,wingCz,wingX1-wingX0,2.42,wingZ1-wingZ0,endWhite,true);
-  b('Temple-side wing black dado',wingCx,.43,wingCz,wingX1-wingX0+.05,.86,wingZ1-wingZ0+.05,dampBase);
+  b('Temple-side wing black dado',wingCx,.23,wingCz,wingX1-wingX0+.05,.46,wingZ1-wingZ0+.05,dampBase); // 14.58.40: a low dark plinth band, ~0.45 m
   b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
@@ -1468,8 +1468,8 @@ export function buildHouse(K) {
   }
   // Use only the photographed calendar region, without inventing its text.
   const calendarMap=new THREE.TextureLoader().load('./assets/veranda.jpg');calendarMap.colorSpace=THREE.SRGBColorSpace;
-  calendarMap.repeat.set(.026,.101);calendarMap.offset.set(.591,1-.344);
-  const calendar=new THREE.Mesh(new THREE.PlaneGeometry(.16,.42),new THREE.MeshStandardMaterial({map:calendarMap,roughness:1}));
+  const calGeo=new THREE.PlaneGeometry(.16,.42);{const g=calGeo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,.591+g.getX(i)*.026,.656+g.getY(i)*.101);}
+  const calendar=new THREE.Mesh(calGeo,new THREE.MeshStandardMaterial({map:calendarMap,roughness:1}));
   calendar.name='Photographed veranda calendar';calendar.rotation.y=Math.PI;calendar.position.set(3.91,2.32,1.914);g.add(calendar);
   b('Small veranda table',-10.83,F+.57,8.85,.90,.09,.72,'wood',true);
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
