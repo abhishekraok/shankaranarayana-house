@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
 import sys
 import time
@@ -25,6 +26,8 @@ parser.add_argument('--width', type=int, default=768)
 parser.add_argument('--delay', type=float, default=3)
 parser.add_argument('--warmup', type=float, default=30)
 parser.add_argument('--temporal-frames', type=int, default=32)
+parser.add_argument('--console', default=os.environ.get('CAPTURE_CONSOLE', ''),
+                    help='semicolon-separated console commands (diagnostics); or CAPTURE_CONSOLE')
 args = parser.parse_args()
 out = Path(args.out).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -75,6 +78,17 @@ levels.editor_set_viewport_realtime(True)
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
 unreal.SystemLibrary.execute_console_command(world, 't.IdleWhenNotForeground 0')
 unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
+for command in filter(None, (c.strip() for c in args.console.split(';'))):
+    unreal.SystemLibrary.execute_console_command(world, command)
+# Diagnostics: CAPTURE_PP='{"white_temp": 5600}' overrides the global volume for this run only.
+for volume in (a for a in actors.get_all_level_actors() if isinstance(a, unreal.PostProcessVolume)):
+    settings = volume.settings
+    for key, value in json.loads(os.environ.get('CAPTURE_PP') or '{}').items():
+        if isinstance(value, list):
+            value = unreal.Vector4(*value)
+        settings.set_editor_property('override_' + key, True)
+        settings.set_editor_property(key, value)
+    volume.set_editor_property('settings', settings)
 camera = actors.spawn_actor_from_class(unreal.CameraActor, unreal.Vector(), unreal.Rotator(), transient=True)
 component = camera.get_component_by_class(unreal.CameraComponent)
 component.set_editor_property('constrain_aspect_ratio', True)
