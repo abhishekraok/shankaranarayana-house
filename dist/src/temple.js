@@ -889,9 +889,10 @@ export function buildTemple(K) {
   const sourceTexture=new THREE.TextureLoader().load('./assets/temple-upper-center.jpg');sourceTexture.colorSpace=THREE.SRGBColorSpace;
   function referencePanel(n,x,y,z,w,h,region){
     const geometry=new THREE.PlaneGeometry(w,h),uv=geometry.attributes.uv;
-    const [l,t,r,b]=region;for(let i=0;i<uv.count;i++)uv.setXY(i,l+(1-uv.getX(i))*(r-l),1-b+uv.getY(i)*(b-t));
-    const m=new THREE.MeshStandardMaterial({map:sourceTexture,roughness:.9,side:THREE.DoubleSide}); // lit, so it survives export (unlit panels rendered black in Unreal)
-    return mesh(n,geometry,m,x,y,z);
+    const [l,t,r,b]=region;for(let i=0;i<uv.count;i++)uv.setXY(i,l+uv.getX(i)*(r-l),1-b+uv.getY(i)*(b-t));
+    // Lit and single-sided, facing the entrance (-z): back faces and unlit panels render black in Unreal.
+    const m=new THREE.MeshStandardMaterial({map:sourceTexture,roughness:.9});
+    const panel=mesh(n,geometry,m,x,y,z);panel.rotation.y=Math.PI;return panel;
   }
   box('Inner doorway painting backing',39,3.23,15.26,2.3,.88,.10,white);
   referencePanel('Photographed inner doorway painting',39,3.23,15.19,2.28,.86,[.414,.458,.518,.568]);
