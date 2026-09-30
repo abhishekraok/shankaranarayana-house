@@ -133,6 +133,11 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         if masked:
             m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
             MEL.connect_material_property(tex, 'A', unreal.MaterialProperty.MP_OPACITY_MASK)
+            # Thin pierced screens get little Lumen bounce light and read black in shade; a small
+            # self-lit fill keeps them the painted white seen in the photographs.
+            fill = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -100, 150)
+            MEL.connect_material_expressions(mul, '', fill, 'A'); fill.set_editor_property('const_b', 0.35)
+            MEL.connect_material_property(fill, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     if tint:
         vc = MEL.create_material_expression(m, unreal.MaterialExpressionVertexColor, -700, 250)
         mul = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -350, 100)
