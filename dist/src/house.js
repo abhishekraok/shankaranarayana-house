@@ -1344,14 +1344,18 @@ export function buildHouse(K) {
       const angle=roofRand()*Math.PI*2,len=.065+roofRand()*.14,lean=.14+roofRand()*.23;
       const c=new THREE.Color(j%3?'#939079':'#6f795d');
       const point=u=>[px+Math.cos(angle)*lean*u,py+Math.sin(angle)*lean*u*1.05/2.125+len*Math.sin(u*Math.PI*.85),pz+Math.sin(angle)*lean*u];
+      // Tapered double-sided ribbons, not GL lines: lines alias to 1 px and drop out of the Unreal export.
+      const side=[-Math.sin(angle),0,Math.cos(angle)],half=u=>.014*(1-u*.8);
       for(let segment=0;segment<4;segment++){
-        stems.push(...point(segment/4),...point((segment+1)/4));
-        for(let k=0;k<2;k++)stemColors.push(c.r,c.g,c.b);
+        const u0=segment/4,u1=(segment+1)/4,a=point(u0),b=point(u1);
+        const a0=a.map((v,k)=>v-side[k]*half(u0)),a1=a.map((v,k)=>v+side[k]*half(u0)),b0=b.map((v,k)=>v-side[k]*half(u1)),b1=b.map((v,k)=>v+side[k]*half(u1));
+        stems.push(...a0,...a1,...b1,...a0,...b1,...b0);
+        for(let k=0;k<6;k++)stemColors.push(c.r,c.g,c.b);
       }
     }
   }
-  const grassGeom=new THREE.BufferGeometry();grassGeom.setAttribute('position',new THREE.Float32BufferAttribute(stems,3));grassGeom.setAttribute('color',new THREE.Float32BufferAttribute(stemColors,3));
-  const roofGrass=new THREE.LineSegments(grassGeom,new THREE.LineBasicMaterial({vertexColors:true}));roofGrass.name='Rear roof scattered dry grass between tiles';rearRoof.add(roofGrass);
+  const grassGeom=new THREE.BufferGeometry();grassGeom.setAttribute('position',new THREE.Float32BufferAttribute(stems,3));grassGeom.setAttribute('color',new THREE.Float32BufferAttribute(stemColors,3));grassGeom.computeVertexNormals();
+  const roofGrass=new THREE.Mesh(grassGeom,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}));roofGrass.name='Rear roof scattered dry grass between tiles';rearRoof.add(roofGrass);
   const gutterMat=K.M.plaster.clone();gutterMat.color.set('#b9c0b0');
   const gutter=K.cylinder(rearRoof,'Rear veranda pale rain gutter',2.1,3.48,14.19,.065,.065,8.3,gutterMat,16);gutter.rotation.z=Math.PI/2;
   for(const x of [-1.8,.4,2.6,4.8,6.15])K.beam(rearRoof,'Rear gutter timber support',[x,3.42,14.52],[x,3.42,14.10],.045,verandaTimber);
