@@ -42,7 +42,7 @@ ground(-73.675,0,136.65,240);ground(-5.175,-72.6,.35,94.8);ground(-5.175,48.6,.3
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(-4.25,-77,1.5,80);ground(5.5,-77,13.2,80);ground(-2.3,-77.7,2.4,78.6);ground(23.65,-77,18.5,80);ground(44.55,-77,18.9,80);ground(34,-79.4,2.2,81.2);ground(13.25,-77.1,2.3,79.8);
 // Leave an actual opening under the small forecourt pond (21.2..26.2, 3 m deep, set back with the temple).
-ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);{const ts=K.templeShiftZ;ground(24.5,-3+ts/2,59,ts);ground(24.5,60+ts/2,59,120-ts);ground(8.1,ts-1.5,26.2,3);ground(40.1,ts-1.5,27.8,3);}
+ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);ground(24.5,-3+K.templeShiftZ/2,59,K.templeShiftZ);ground(24.5,60+K.templeShiftZ/2,59,120-K.templeShiftZ);ground(8.1,K.templeShiftZ-1.5,26.2,3);ground(40.1,K.templeShiftZ-1.5,27.8,3);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
