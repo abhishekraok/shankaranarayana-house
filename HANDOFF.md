@@ -16,6 +16,14 @@ committed) still apply.
 - Skipped (conflict or needs the user): back-courtyard tin lean-to (14.44.14/48, 14.46.10),
   bell-hall pillar material (15.14.51), covered-hall depth (temple right side -45), far-bank
   building heights (15.11.58 vs 14.58.26), house balcony lattice colour, porch bell position.
+- 2026-10-01, notes re-checked after the setback (all 22 noted photos re-rendered):
+  - Front room: the last wall stub at z 4.05 is gone ('left hand side when entering 2'); the wing doorway
+    is shut with a timber door.
+  - God room: the shelf now stands behind a front wall with a stepped dark doorway; the two metal plates
+    and a framed print hang on that wall ('God room, left side'). The altar's blockers had stayed 1.4 m
+    in front of it since the deepening pass; they now move with it.
+  - Still open: 'temple right side facing opposite to the entrance' (the covered hall would have to be
+    about twice as wide; it belongs with the corner-building redesign below), and 15.14.51 (pose).
 - Temple setback (2026-10-01, user's note on 15.15.26: "the house is clearly a bit ahead of these temple
   outside pillars"): the whole temple complex, its corner building, the forecourt pond and the low white
   outbuilding sit `K.templeShiftZ` = 4.5 m back from the lane (measured 3.5-6 m). temple.js stays authored
