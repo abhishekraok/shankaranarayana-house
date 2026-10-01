@@ -190,7 +190,7 @@ console.log('procedural texture images',textureImages.size,'; approved web photo
   const destinations=new Function('return ('+main.slice(dm+'const destinations='.length,de+1)+')')();
   for(const m of main.matchAll(/destinations\.(\w+)=(\{[^;]*?\});/g)){try{destinations[m[1]]=new Function('return ('+m[2]+')')();}catch{}}
   await fs.writeFile(new URL('views.json',out),JSON.stringify({...destinations,...photos}));
-  const tour=createPhotoTour(photos,supportY,K.houseShiftX);
+  const tour=createPhotoTour(photos,supportY,K.houseShiftX,K.templeShiftZ);
   const FPS=24,frames=[];let label=null;const markers=[];
   // As on the web: the one-time opening flight, then one loop from 'Along the lane'.
   const laneStart=tour.spans.find(s=>s.a.label==='Along the lane').start,introFrames=tour.intro?Math.ceil(tour.intro.duration*FPS):0;
