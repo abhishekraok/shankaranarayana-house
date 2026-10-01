@@ -1674,6 +1674,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // Prevent walking into the open water while retaining the visible depth.
   K.blocker(PX,PZ,4.2,2.2,-1.1,.35);
+  // 15.20.01 / 15.15.26 / 14.59.21: grass grows round the pond on its lane and road-corner sides;
+  // the porch side stays trodden earth. Own PRNG keeps the other planting where it is.
+  patch('Temple pond grassy verge',PX+.3,PZ-1.75,3.3,.95,materials.turf,.03);
+  patch('Temple pond grassy verge',PX-2.75,PZ-.3,.75,1.5,materials.turf,.031);
+  {let n=15201;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   for(let i=0;i<110;i++){const lane=i%4!==0,x=lane?PX-2.6+r()*5.9:PX-3.3+r()*.9,z=lane?PZ-2.55+r()*1.35:PZ-1.5+r()*2.4,h=.28+r()*.4;
+     if(Math.abs(x-PX)<2.55&&Math.abs(z-PZ)<1.2)continue;
+     instance('Temple pond verge grass tufts',grassGeometry,materials.grass,[x,.03,z],[.8+r()*.5,h,.8+r()*.5],new THREE.Quaternion().setFromAxisAngle(up,r()*6.28));}}
 
   // Overlapping distant belts close the horizon when panning from the house.
   // Planting is inferred, beyond the photographed buildings and walking routes.
