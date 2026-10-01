@@ -1134,9 +1134,27 @@ export function buildHouse(K) {
       gardenLeaves.push({x:cx+Math.cos(a)*r,y:.17+(i%4)*.13,z:cz+Math.sin(a)*r,a});
     }
   }
-  const garden=new THREE.InstancedMesh(new THREE.SphereGeometry(1,7,4),mat('leaf'),gardenLeaves.length);
-  gardenLeaves.forEach((p,i)=>{helper.position.set(p.x,p.y,p.z);helper.rotation.set(.5,p.a,.6);helper.scale.set(.11,.045,.35);helper.updateMatrix();garden.setMatrixAt(i,helper.matrix);});
+  // Broad pointed leaves fanning up and outwards from each clump (they were stretched spheres,
+  // which read as green lumps).
+  const garden=new THREE.InstancedMesh(weedGeometry,weedMaterial,gardenLeaves.length);
+  gardenLeaves.forEach((p,i)=>{helper.position.set(p.x,p.y*.8+.06,p.z);helper.rotation.set(-.55-(i%3)*.12,p.a,0,'YXZ');helper.scale.set(.10+(i%3)*.02,.03,.24+(i%4)*.03);helper.updateMatrix();garden.setMatrixAt(i,helper.matrix);});
   garden.name='Courtyard leafy garden strips';garden.castShadow=true;g.add(garden);
+  // 14.30.57 / 14.31.01: the open court is overgrown with shin- to knee-high grass and weeds, not
+  // bare soil with a few leaves. Tufts of tapered blades stand over the ground cover on the same
+  // deterministic spots, so the walking strips and crossings stay clear.
+  {const blades=[],tris=[];
+   for(let i=0;i<5;i++){const a=i*2.4,dx=Math.cos(a),dz=Math.sin(a),n=blades.length/3;
+     blades.push(-dz*.035,0,dx*.035, dz*.035,0,-dx*.035, dx*.09,.34+(i%3)*.07,dz*.09, dx*.17,.55+(i%3)*.08,dz*.17);tris.push(n,n+1,n+2,n+1,n+3,n+2);}
+   const tuftGeometry=new THREE.BufferGeometry();tuftGeometry.setAttribute('position',new THREE.Float32BufferAttribute(blades,3));tuftGeometry.setIndex(tris);tuftGeometry.computeVertexNormals();
+   const tuftMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.95,side:THREE.DoubleSide});
+   // Taller and thicker in the west court (14.30.57); low and patchy beside the God room, where
+   // 14.44.19 / 14.48.07 show mud between the weeds.
+   const spots=weeds.filter((p,i)=>i%3===1&&(p.x<-3||(i*13)%7<4)),tufts=new THREE.InstancedMesh(tuftGeometry,tuftMaterial,spots.length),tint=new THREE.Color();
+   const greens=['#55803a','#6f9644','#86a850','#4b7434','#7a9a4a'];
+   spots.forEach((p,i)=>{const tall=(p.x<-3?.34:.2)+((i*7)%11)/11*(p.x<-3?.42:.24);
+     helper.position.set(p.x,.04,p.z);helper.rotation.set(0,p.a*1.7,0);helper.scale.set(.8+(i%4)*.15,tall,.8+(i%3)*.2);helper.updateMatrix();tufts.setMatrixAt(i,helper.matrix);
+     tufts.setColorAt(i,tint.set(greens[i%greens.length]));});
+   tufts.name='Courtyard overgrown grass tufts';tufts.receiveShadow=true;g.add(tufts);}
 
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
