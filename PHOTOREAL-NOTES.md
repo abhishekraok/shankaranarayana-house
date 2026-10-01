@@ -36,6 +36,18 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
 | 2011-09-21 15.11.45.jpg | The photographed stair opening is framed by white perforated railings; the model view shows broad plain red rails and a different opening. Check saved-pose/model compatibility and railing placement. | [Render](<blender/build/sheets-20769d9/unreal-20260927-164751/033-2011-09-21 15.11.45.png>) |
 | 2011-09-21 15.14.51.jpg | Photo centers the hanging bell and carved support; the model view is largely occluded by a nearby plain column/wall. Check the saved eye and the support position before detailing. | [Render](<blender/build/sheets-20769d9/unreal-20260927-164751/058-2011-09-21 15.14.51.png>) |
 
+## 2026-10-01 pass
+
+- Game: photo alignment mode and notes (see `unreal/README.md`); temple places follow the web
+  model's 4.5 m setback; white balance 5900 K.
+- `blender/build/claude-rebuild.sh` judges `configure_lumen` by its audit file: the full editor can
+  segfault while quitting after the script has finished, which used to stop the whole rebuild.
+- Checked in Unreal after rebuilds (capture_poses.py): God room front wall and doorway, front room,
+  forecourt with the set-back temple, road-corner frontage bays, courtyard grass tufts. All render as
+  on the web. Tinted instanced tufts (white base, per-instance colour) come through correctly.
+- Still open: covered areas about twice as bright as the photos (see the lighting diagnostics below);
+  forecourt soil reads smoother than on the web.
+
 ## Remaining photoreal work
 
 - Claude pass (2026-09-28 night; Codex no longer works on this project). Merged main
