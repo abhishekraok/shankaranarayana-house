@@ -30,6 +30,10 @@
 #include "Widgets/Layout/SScaleBox.h"
 #include "Widgets/Text/STextBlock.h"
 #include "Widgets/Input/SButton.h"
+#include "Widgets/Input/SMultiLineEditableTextBox.h"
+#include "Widgets/Images/SImage.h"
+#include "Engine/Texture2D.h"
+#include "ImageUtils.h"
 #include "Styling/CoreStyle.h"
 #include "Misc/FileHelper.h"
 #include "Misc/Paths.h"
@@ -58,6 +62,7 @@ public:
     TWeakObjectPtr<AWalkController> Owner;
     TArray<TSharedPtr<SButton>> Buttons;
     TSharedPtr<SVerticalBox> Rows;
+    TSharedPtr<SMultiLineEditableTextBox> NoteBox;
     void Construct(const FArguments& Args) {
         Owner=Args._Owner;
         ChildSlot [ SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(0.008f,.018f,.016f,.28f)).Padding(0)
@@ -98,11 +103,13 @@ public:
             if(S->HasWalk) Add(TEXT("Continue your walk"),"continue");
             Add(S->HasWalk?TEXT("Begin a new walk"):TEXT("Begin your walk"),"new");
             if(O->TourPosition.Num()>1) Add(TEXT("Return to the guided tour"),"tour");
+            if(!O->PhotoDir.IsEmpty()) Add(TEXT("Photo alignment"),"photos");
             Add(TEXT("Settings"),"settings"); Add(TEXT("How to walk"),"controls"); Add(TEXT("Quit"),"quit");
             Rows->AddSlot().AutoHeight().Padding(0,24,0,0)[Label(TEXT("A reconstruction from photographs, 2011–2013.\nSome spaces and details are approximate."),14,Muted)];
         } else if(O->Page=="pause") {
             Heading(TEXT("Take a breath"),TEXT("Your walk is paused."));
-            Add(TEXT("Resume"),"resume"); Add(TEXT("Places journal"),"journal");
+            Add(TEXT("Resume"),"resume"); Add(TEXT("Places journal"),"journal"); Add(TEXT("Leave a note here"),"walknote");
+            if(!O->PhotoDir.IsEmpty()) Add(TEXT("Photo alignment"),"photos");
             if(O->TourPosition.Num()>1) Add(TEXT("Watch the guided tour"),"tour"); Add(TEXT("Settings"),"settings"); Add(TEXT("How to walk"),"controls");
             Add(TEXT("Return to the house entrance"),"rescue"); Add(TEXT("Save & return to title"),"title"); Add(TEXT("Save & quit"),"quit");
         } else if(O->Page=="settings") {
@@ -119,7 +126,7 @@ public:
             Rows->AddSlot().AutoHeight().Padding(0,10)[Label(TEXT("Select a setting to cycle its choices."),13,Muted)];
         } else if(O->Page=="controls") {
             Heading(TEXT("How to walk"),TEXT("Mouse & keyboard, or a controller."));
-            Rows->AddSlot().AutoHeight().Padding(0,0,0,24)[Label(TEXT("W A S D / left stick     Walk\nMouse / right stick      Look around\nShift / right trigger      Walk a little faster\nE / A                            Notice a place\nJ / Y                             Places journal\nEsc / Menu                  Pause & resume\n\nThe guided tour plays on launch. Walk or move a stick to leave it and walk on from there.\n\nIn menus: arrows or D-pad, Enter / A to select, Esc / B to go back.\n\nStairs are walked, not jumped. If you lose your way, use Return to the house entrance from Pause.\n\nProgress saves while walking, when you notice a place, and when you leave."),18)];
+            Rows->AddSlot().AutoHeight().Padding(0,0,0,24)[Label(TEXT("W A S D / left stick     Walk\nMouse / right stick      Look around\nShift / right trigger      Walk a little faster\nE / A                            Notice a place\nJ / Y                             Places journal\nEsc / Menu                  Pause & resume\n\nPhoto alignment (in the menus) flies a free camera beside a photograph; its keys are shown on screen.\n\nThe guided tour plays on launch. Walk or move a stick to leave it and walk on from there.\n\nIn menus: arrows or D-pad, Enter / A to select, Esc / B to go back.\n\nStairs are walked, not jumped. If you lose your way, use Return to the house entrance from Pause.\n\nProgress saves while walking, when you notice a place, and when you leave."),18)];
             Add(TEXT("Back"),"back");
         } else if(O->Page=="journal") {
             Heading(TEXT("Places along the way"),FString::Printf(TEXT("%d of %d noticed. Visit in any order."),S->Visited.Num(),O->Places.Num()));
@@ -135,6 +142,35 @@ public:
             Rows->AddSlot().AutoHeight().Padding(0,0,0,30)[Label(Seen?P.Note:TEXT("Follow the lane and explore at your own pace. When you reach this place, pause for a moment with E / A."),20)];
             if(Seen) Add(TEXT("Return to this place"),FString::Printf(TEXT("travel:%d"),I));
             Add(TEXT("Back to journal"),"journal");
+        } else if(O->Page=="photos") {
+            int32 Done=0; for(const auto& F:O->PhotoFiles) if(O->PoseFor(F).IsValid()) Done++;
+            const int32 Pages=FMath::Max(1,(O->PhotoFiles.Num()+O->PhotosPerPage-1)/O->PhotosPerPage);
+            Heading(TEXT("Photo alignment"),FString::Printf(TEXT("%d photographs, %d aligned.  Page %d of %d."),O->PhotoFiles.Num(),Done,O->PhotoPage+1,Pages));
+            for(int32 I=O->PhotoPage*O->PhotosPerPage;I<FMath::Min(O->PhotoFiles.Num(),(O->PhotoPage+1)*O->PhotosPerPage);I++) {
+                const auto R=O->PoseFor(O->PhotoFiles[I]); FString Note; if(R.IsValid()) R->TryGetStringField(TEXT("notes"),Note);
+                Add((R.IsValid()?TEXT("✓  "):TEXT("○  "))+FPaths::GetBaseFilename(O->PhotoFiles[I])+(Note.IsEmpty()?TEXT(""):TEXT("   ✎")),FString::Printf(TEXT("photo:%d"),I));
+            }
+            if(O->PhotoPage+1<Pages) Add(TEXT("Next page"),"photos-next");
+            if(O->PhotoPage>0) Add(TEXT("Previous page"),"photos-prev");
+            Add(TEXT("Back"),"back");
+        } else if(O->Page.StartsWith("photo:")) {
+            const FString File=O->PhotoName(); const auto R=O->PoseFor(File); FString Note,When;
+            if(R.IsValid()){R->TryGetStringField(TEXT("notes"),Note);R->TryGetStringField(TEXT("savedAt"),When);}
+            Heading(FPaths::GetBaseFilename(File),R.IsValid()?TEXT("Aligned ")+When.Left(10)+TEXT("."):TEXT("No saved alignment yet."));
+            if(O->PhotoBrush.IsValid()&&O->PhotoTexture) Rows->AddSlot().AutoHeight().Padding(0,0,0,14)
+                [SNew(SBox).WidthOverride(530).HeightOverride(FMath::Min(300.f,530/O->AlignAspect))[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[SNew(SImage).Image(O->PhotoBrush.Get())]]];
+            if(!Note.IsEmpty()) Rows->AddSlot().AutoHeight().Padding(0,0,0,14)[Label(TEXT("Note: ")+Note,15,Muted)];
+            if(R.IsValid()) Add(TEXT("Go to saved position"),"align-saved");
+            Add(R.IsValid()?TEXT("Align again from the current view"):TEXT("Align from the current view"),"align-here");
+            Add(Note.IsEmpty()?TEXT("Add a note"):TEXT("Edit the note"),"note"); Add(TEXT("Back to photographs"),"photos");
+        } else if(O->Page=="note"||O->Page=="walknote") {
+            const bool Walk=O->Page=="walknote";
+            Heading(Walk?TEXT("Leave a note here"):TEXT("Note"),Walk?TEXT("Saved with where you stand and where you are looking."):FPaths::GetBaseFilename(O->PhotoName()));
+            Rows->AddSlot().AutoHeight().Padding(0,0,0,16)
+                [SNew(SBox).HeightOverride(220)[SAssignNew(NoteBox,SMultiLineEditableTextBox).Text(Txt(O->NoteDraft)).AutoWrapText(true)
+                  .Font(FCoreStyle::GetDefaultFontStyle("Regular",15)).HintText(Txt(TEXT("Type your note…")))
+                  .OnTextChanged_Lambda([Weak=Owner](const FText& T){if(Weak.IsValid())Weak->NoteDraft=T.ToString();})]];
+            Add(TEXT("Save note"),Walk?"walknote-save":"note-save"); Add(TEXT("Cancel"),"back");
         } else if(O->Page=="new-confirm") {
             Heading(TEXT("Begin again?"),TEXT("This replaces your saved walk and places journal. Your settings stay."));
             Add(TEXT("Keep my current walk"),"back"); Add(TEXT("Begin a new walk"),"new-confirmed");
@@ -144,7 +180,7 @@ public:
             [SNew(STextBlock).Text_Lambda([Weak=Owner](){auto* C=Weak.Get();return Txt(C&&FPlatformTime::Seconds()<C->ToastUntil?C->Toast:TEXT("↑ ↓   Choose      Enter / A   Select      Esc / B   Back"));})
              .Font(FCoreStyle::GetDefaultFontStyle("Regular",13)).ColorAndOpacity(Muted).AutoWrapText(true)];
     }
-    void Focus(int32 Index=0) { if(Buttons.Num()) FSlateApplication::Get().SetKeyboardFocus(Buttons[FMath::Clamp(Index,0,Buttons.Num()-1)],EFocusCause::SetDirectly); }
+    void Focus(int32 Index=0) { if(NoteBox.IsValid()&&Index==0){FSlateApplication::Get().SetKeyboardFocus(NoteBox,EFocusCause::SetDirectly);return;} if(Buttons.Num()) FSlateApplication::Get().SetKeyboardFocus(Buttons[FMath::Clamp(Index,0,Buttons.Num()-1)],EFocusCause::SetDirectly); }
 };
 
 AWalkGameMode::AWalkGameMode() { DefaultPawnClass=AWalkCharacter::StaticClass(); PlayerControllerClass=AWalkController::StaticClass(); }
@@ -166,17 +202,20 @@ void AWalkCharacter::SetupPlayerInputComponent(UInputComponent* I) {
 // While the guided tour plays, walking input (keys or either stick) leaves it and walks on
 // from the tour camera's spot; the mouse alone does not, so a nudge cannot end the tour.
 static bool Touring(AController* Controller,float V,bool TakesOver) {
-    auto* C=Cast<AWalkController>(Controller); if(!C||C->Walking) return false;
+    auto* C=Cast<AWalkController>(Controller); if(!C) return false;
+    if(C->Aligning) return true;  // the alignment camera takes the input instead (see Aligner)
+    if(C->Walking) return false;
     if(TakesOver&&FMath::Abs(V)>.25f) C->TakeOver();
     return !C->Walking;
 }
-void AWalkCharacter::Forward(float V) { if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::X),V); }
-void AWalkCharacter::Right(float V) { if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::Y),V); }
-void AWalkCharacter::LookX(float V) { if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*C->Save->Sensitivity*2.0f); }
+static AWalkController* Aligner(AController* Controller){auto* C=Cast<AWalkController>(Controller);return C&&C->Aligning&&C->Page.IsEmpty()?C:nullptr;}
+void AWalkCharacter::Forward(float V) { if(auto* A=Aligner(Controller))A->AlignMove.X=V; if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::X),V); }
+void AWalkCharacter::Right(float V) { if(auto* A=Aligner(Controller))A->AlignMove.Y=V; if(Touring(Controller,V,true))return; AddMovementInput(FRotationMatrix(FRotator(0,GetControlRotation().Yaw,0)).GetUnitAxis(EAxis::Y),V); }
+void AWalkCharacter::LookX(float V) { if(auto* A=Aligner(Controller))A->AlignTurn(V*A->Save->Sensitivity*2.f,0); if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*C->Save->Sensitivity*2.0f); }
 // Default vertical look: pushing the mouse or right stick up looks down. InvertY flips it.
-void AWalkCharacter::LookY(float V) { if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*C->Save->Sensitivity*(C->Save->InvertY?2.f:-2.f)); }
-void AWalkCharacter::StickX(float V) { if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*GetWorld()->GetDeltaSeconds()*90*C->Save->Sensitivity); }
-void AWalkCharacter::StickY(float V) { if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*GetWorld()->GetDeltaSeconds()*70*C->Save->Sensitivity*(C->Save->InvertY?1:-1)); }
+void AWalkCharacter::LookY(float V) { if(auto* A=Aligner(Controller))A->AlignTurn(0,V*A->Save->Sensitivity*(A->Save->InvertY?2.f:-2.f)); if(Touring(Controller,V,false))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*C->Save->Sensitivity*(C->Save->InvertY?2.f:-2.f)); }
+void AWalkCharacter::StickX(float V) { if(auto* A=Aligner(Controller))A->AlignTurn(V*GetWorld()->GetDeltaSeconds()*90*A->Save->Sensitivity,0); if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerYawInput(V*GetWorld()->GetDeltaSeconds()*90*C->Save->Sensitivity); }
+void AWalkCharacter::StickY(float V) { if(auto* A=Aligner(Controller))A->AlignTurn(0,V*GetWorld()->GetDeltaSeconds()*70*A->Save->Sensitivity*(A->Save->InvertY?1:-1)); if(Touring(Controller,V,true))return; if(auto* C=Cast<AWalkController>(Controller)) AddControllerPitchInput(V*GetWorld()->GetDeltaSeconds()*70*C->Save->Sensitivity*(C->Save->InvertY?1:-1)); }
 void AWalkCharacter::Brisk(){GetCharacterMovement()->MaxWalkSpeed=300;}
 void AWalkCharacter::Slow(){GetCharacterMovement()->MaxWalkSpeed=180;}
 
@@ -190,12 +229,14 @@ void AWalkController::BeginPlay() {
     UpgradeSave(Save);
     Save->Sensitivity=FMath::Clamp(Save->Sensitivity,.5f,2.f); Save->Fov=FMath::Clamp(Save->Fov,70.f,100.f); Save->Volume=FMath::Clamp(Save->Volume,0.f,1.f); Save->Quality=FMath::Clamp(Save->Quality,0,3);
     // Feet positions come from the authored web viewpoints, in centimetres (x,z,y).
+    // The temple complex stands 4.5 m back from the lane (K.templeShiftZ in the web model), so its
+    // three places carry that offset.
     Places={
         {"house",TEXT("The house entrance"),TEXT("Two raised sitting platforms flank the entrance. Notice the timber supports, red floor and the lower passage between them."),FVector(-380,-200,0),90},
         {"courtyard",TEXT("The inner courtyard"),TEXT("The roof opens to the sky. Look for the Tulsi and the covered passages around this smaller, quieter court."),FVector(-720,685,3.5),90},
-        {"temple",TEXT("The temple entrance"),TEXT("The lane opens toward the temple. Look up at the layered roof before going through the entrance."),FVector(4230,-650,5.1),125},
-        {"court",TEXT("The temple courtyard"),TEXT("Follow the covered edge of the courtyard. Columns, changing floor levels and the Tulsi organize the open space."),FVector(3000,1400,10),15},
-        {"rear",TEXT("The rear veranda"),TEXT("At the far end of the circuit, the upper screened room and small dome sit above the ground-floor bays."),FVector(3150,3200,10),90},
+        {"temple",TEXT("The temple entrance"),TEXT("The lane opens toward the temple. Look up at the layered roof before going through the entrance."),FVector(4230,-200,5.1),125},
+        {"court",TEXT("The temple courtyard"),TEXT("Follow the covered edge of the courtyard. Columns, changing floor levels and the Tulsi organize the open space."),FVector(3000,1850,10),15},
+        {"rear",TEXT("The rear veranda"),TEXT("At the far end of the circuit, the upper screened room and small dome sit above the ground-floor bays."),FVector(3150,3650,10),90},
         {"pavilion",TEXT("The lakeside pavilion"),TEXT("The steps descend toward the water. Pause here to see how the temple and the lake face one another."),FVector(3400,-3400,-127),90},
         {"lake",TEXT("Across the lake"),TEXT("From the opposite bank, the water opens a long view back toward the roofs and the temple."),FVector(-700,-3600,200),45}
     };
@@ -211,11 +252,31 @@ void AWalkController::BeginPlay() {
     Hud=SNew(SOverlay)
         + SOverlay::Slot().HAlign(HAlign_Left).VAlign(VAlign_Top).Padding(32,26)
           [SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.01f,.025f,.02f,.78f)).Padding(14)
-           .Visibility_Lambda([this](){return Page.IsEmpty()&&Walking&&Save->Guidance?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+           .Visibility_Lambda([this](){return Page.IsEmpty()&&Walking&&!Aligning&&Save->Guidance?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
            [SNew(STextBlock).Text_Lambda([this](){return Txt(Status());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",16)).ColorAndOpacity(Cream)]]
         + SOverlay::Slot().HAlign(HAlign_Center).VAlign(VAlign_Bottom).Padding(24,28)
           [SNew(STextBlock).Text_Lambda([this](){return Txt(Prompt());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",18)).ColorAndOpacity(Cream).ShadowOffset(FVector2D(1,1)).ShadowColorAndOpacity(FLinearColor::Black)];
     GEngine->GameViewport->AddViewportWidgetContent(Hud.ToSharedRef(),1); Hud->SetVisibility(EVisibility::HitTestInvisible);
+    // The private photographs stay outside the package: -WalkPhotos=<folder>, else the usual folder.
+    if(!FParse::Value(FCommandLine::Get(),TEXT("WalkPhotos="),PhotoDir)) PhotoDir=TEXT("F:/Shankaranarayana");
+    if(Smoke){
+        // The smoke run aligns one generated picture in its own folder, never the real poses.
+        PhotoDir=FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()/TEXT("WalkReview/align-smoke"));IFileManager::Get().DeleteDirectory(*PhotoDir,false,true);IFileManager::Get().MakeDirectory(*PhotoDir,true);
+        TArray<FColor> Pixels;Pixels.Init(FColor(120,150,110),64*48);TArray64<uint8> Png;FImageUtils::PNGCompressImageArray(64,48,TArrayView64<const FColor>(Pixels.GetData(),Pixels.Num()),Png);
+        FFileHelper::SaveArrayToFile(Png,*(PhotoDir/TEXT("smoke photo.png")));
+    }
+    if(!IFileManager::Get().DirectoryExists(*PhotoDir)) PhotoDir.Empty();
+    if(!Smoke)FParse::Value(FCommandLine::Get(),TEXT("WalkReviewPhoto="),ReviewPhoto);
+    PhotoBrush=MakeShared<FSlateBrush>();
+    AlignHud=SNew(SOverlay)
+        + SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+          [SNew(SScaleBox).Stretch(EStretch::ScaleToFit).Visibility_Lambda([this](){return Aligning&&AlignOverlay&&Page.IsEmpty()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+           [SNew(SImage).Image(PhotoBrush.Get()).ColorAndOpacity(FLinearColor(1,1,1,.5f))]]
+        + SOverlay::Slot().HAlign(HAlign_Right).VAlign(VAlign_Top).Padding(24)
+          [SNew(SBox).WidthOverride(440).HeightOverride_Lambda([this](){return FOptionalSize(440.f/AlignAspect);})
+           .Visibility_Lambda([this](){return Aligning&&!AlignOverlay&&Page.IsEmpty()?EVisibility::HitTestInvisible:EVisibility::Collapsed;})
+           [SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.01f,.02f,.018f,.9f)).Padding(4)[SNew(SImage).Image(PhotoBrush.Get())]]];
+    GEngine->GameViewport->AddViewportWidgetContent(AlignHud.ToSharedRef(),2); AlignHud->SetVisibility(EVisibility::HitTestInvisible);
     TitleCamera=GetWorld()->SpawnActor<ACameraActor>(FVector(-700,-3700,300),FRotator(-3,35,0));
     if(TitleCamera)TitleCamera->GetCameraComponent()->SetFieldOfView(75);
     Travel(0);
@@ -225,7 +286,7 @@ void AWalkController::BeginPlay() {
 }
 void AWalkController::EndPlay(const EEndPlayReason::Type R) {
     if(Save&&Walking&&!Smoke) Persist(true);
-    if(GEngine&&GEngine->GameViewport) {if(Menu)GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); if(Hud)GEngine->GameViewport->RemoveViewportWidgetContent(Hud.ToSharedRef());}
+    if(GEngine&&GEngine->GameViewport) {if(Menu)GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); if(Hud)GEngine->GameViewport->RemoveViewportWidgetContent(Hud.ToSharedRef()); if(AlignHud)GEngine->GameViewport->RemoveViewportWidgetContent(AlignHud.ToSharedRef());}
     Super::EndPlay(R);
 }
 void AWalkController::SetupInputComponent() {
@@ -242,7 +303,7 @@ void AWalkController::Show(const FString& P) {
     if(Menu&&Page==P)for(int32 I=0;I<Menu->Buttons.Num();I++)if(Menu->Buttons[I]->HasKeyboardFocus())FocusIndex=I;
     if(Menu) { GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); Menu.Reset(); }
     Page=P; bool Open=!P.IsEmpty(); SetPause(Open&&(Walking||TourPosition.Num()>1)); bShowMouseCursor=Open;
-    if(!Walking&&TitleCamera)SetViewTarget(TitleCamera);else if(GetPawn())SetViewTarget(GetPawn());
+    if(Aligning&&AlignCamera)SetViewTarget(AlignCamera);else if(!Walking&&TitleCamera)SetViewTarget(TitleCamera);else if(GetPawn())SetViewTarget(GetPawn());
     ResetIgnoreMoveInput();ResetIgnoreLookInput();SetIgnoreMoveInput(Open);SetIgnoreLookInput(Open);
     FocusAt=FPlatformTime::Seconds()+.3;PendingFocus=FocusIndex;
     if(auto* C=Cast<AWalkCharacter>(GetPawn())) {C->Slow();C->GetCharacterMovement()->StopMovementImmediately();}
@@ -250,9 +311,15 @@ void AWalkController::Show(const FString& P) {
     if(Open) { Menu=SNew(SQuietMenu).Owner(this); GEngine->GameViewport->AddViewportWidgetContent(Menu.ToSharedRef(),10); FInputModeUIOnly M; M.SetWidgetToFocus(Menu); M.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock); SetInputMode(M); Menu->Focus(FocusIndex); }
     else {SetInputMode(FInputModeGameOnly()); FSlateApplication::Get().SetAllUserFocusToGameViewport();}
 }
-void AWalkController::Back(){if(Page=="home"){if(!Walking&&TourPosition.Num()>1)Show("");return;}if(Page=="pause")Show("");else if(Page.StartsWith("place:"))Show("journal");else Show(Walking?"pause":"home");}
-void AWalkController::PauseWalk(){if(Walking){if(Page.IsEmpty())Show("pause");else Back();}else if(Page.IsEmpty())Show("home");else Back();}
-void AWalkController::OpenJournal(){if(Walking)Show("journal");}
+void AWalkController::Back(){
+    if(Page=="home"){if(!Walking&&TourPosition.Num()>1)Show("");return;}
+    if(Page=="pause")Show("");else if(Page.StartsWith("place:"))Show("journal");
+    else if(Page.StartsWith("photo:"))Action("photos");
+    else if(Page=="note")Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));
+    else{if(Page=="photos")StopAlign();Show(Walking?"pause":"home");}
+}
+void AWalkController::PauseWalk(){if(Aligning&&Page.IsEmpty()){Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));return;}if(Walking){if(Page.IsEmpty())Show("pause");else Back();}else if(Page.IsEmpty())Show("home");else Back();}
+void AWalkController::OpenJournal(){if(Walking&&!Aligning)Show("journal");}
 void AWalkController::Notify(const FString& T){Toast=T;ToastUntil=FPlatformTime::Seconds()+6;}
 bool AWalkController::RestorePosition(FVector P, FRotator R) {
     auto* C=Cast<AWalkCharacter>(GetPawn()); if(!C||P.ContainsNaN()||R.ContainsNaN()||P.Size()>100000)return false;
@@ -268,6 +335,7 @@ bool AWalkController::Travel(int32 I) {
     const auto& P=Places[I];return RestorePosition(P.Feet+FVector(0,0,90),FRotator(0,P.Yaw,0));
 }
 void AWalkController::StartWalk(bool Continue) {
+    StopAlign();
     if(!Continue){Save->Visited.Empty();if(!Travel(0)){Notify(TEXT("Entrance unavailable. Please reload the walk."));return;}}
     else if(!RestorePosition(Save->Position,Save->Look)){Travel(0);Notify(TEXT("Returned to the entrance; your journal is safe."));}
     Walking=true;Save->HasWalk=true;Show("");Persist(true);Notify(TEXT("WASD / left stick to walk · Look around · Esc / Menu to pause"));
@@ -285,7 +353,7 @@ void AWalkController::ApplySettings() {
     if(Ambience)Ambience->SetVolumeMultiplier(Save->Volume);
 }
 void AWalkController::Observe() {
-    if(!Walking||!Page.IsEmpty()||!Places.IsValidIndex(Nearby))return;
+    if(Aligning||!Walking||!Page.IsEmpty()||!Places.IsValidIndex(Nearby))return;
     const auto& P=Places[Nearby];Save->Visited.AddUnique(P.Id);Persist(true);
     if(Save->Visited.Num()==Places.Num())Notify(TEXT("A full circle. Every place noticed; stay as long as you like."));
     Show(FString::Printf(TEXT("place:%d"),Nearby));
@@ -298,10 +366,32 @@ void AWalkController::Action(const FString& Id) {
     else if(Id=="tour"&&TourPosition.Num()>1){if(Walking)StartTour();else Show("");}
     else if(Id=="back")Back();
     else if(Id=="settings"||Id=="controls"||Id=="journal"||Id.StartsWith("place:"))Show(Id);
-    else if(Id=="title"){if(Persist(true)){Walking=false;Travel(0);Show("home");}}
+    else if(Id=="title"){StopAlign();if(Persist(true)){Walking=false;Travel(0);Show("home");}}
     else if(Id=="quit"){if(Persist(Walking))UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);}
     else if(Id=="rescue"&&Walking){if(Travel(0)){Show("");Persist(true);Notify(TEXT("Back at the house entrance."));}else Notify(TEXT("Could not find safe ground at the entrance."));}
     else if(Id.StartsWith("travel:")&&Walking){int32 I=FCString::Atoi(*Id.Mid(7));if(Places.IsValidIndex(I)&&Save->Visited.Contains(Places[I].Id)){if(Travel(I)){Show("");Persist(true);}else Notify(TEXT("This landing is blocked. Your position is unchanged."));}}
+    else if(Id=="photos"&&!PhotoDir.IsEmpty()){
+        if(!Page.StartsWith("photo")&&Page!="note"){
+            PhotoFiles.Reset();TArray<FString> Found;
+            for(const TCHAR* Ext:{TEXT("*.jpg"),TEXT("*.jpeg"),TEXT("*.png")}){Found.Reset();IFileManager::Get().FindFiles(Found,*(PhotoDir/Ext),true,false);PhotoFiles.Append(Found);}
+            PhotoFiles.Sort();
+        }
+        LoadPoses();PhotoPage=FMath::Clamp(PhotoPage,0,FMath::Max(0,(PhotoFiles.Num()-1)/PhotosPerPage));Show("photos");
+    }
+    else if(Id=="photos-next"&&Page=="photos"){PhotoPage++;Action("photos");}
+    else if(Id=="photos-prev"&&Page=="photos"){PhotoPage=FMath::Max(0,PhotoPage-1);Action("photos");}
+    else if(Id.StartsWith("photo:")){if(OpenPhoto(FCString::Atoi(*Id.Mid(6))))Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));else Notify(TEXT("Could not read that photograph."));}
+    else if((Id=="align-saved"||Id=="align-here")&&Page.StartsWith("photo:"))StartAlign(Id=="align-saved");
+    else if(Id=="note"&&Page.StartsWith("photo:")){NoteDraft.Empty();if(const auto R=PoseFor(PhotoName()))R->TryGetStringField(TEXT("notes"),NoteDraft);Show("note");}
+    else if(Id=="note-save"&&Page=="note"){
+        const FString File=PhotoName();const bool Ok=PoseFor(File).IsValid()?SavePose(File,false,&NoteDraft):SaveLooseNote(NoteDraft,File);
+        Notify(Ok?TEXT("Note saved."):TEXT("Could not save the note."));Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));
+    }
+    else if(Id=="walknote"){NoteDraft.Empty();Show("walknote");}
+    else if(Id=="walknote-save"&&Page=="walknote"){
+        const bool Ok=!NoteDraft.TrimStartAndEnd().IsEmpty()&&SaveLooseNote(NoteDraft,FString());
+        Notify(Ok?TEXT("Note saved with this spot."):TEXT("Nothing saved."));Show(Walking?"pause":"home");
+    }
     else if(Page=="settings") {
         if(Id=="sensitivity") Save->Sensitivity=Save->Sensitivity>=2?.5f:Save->Sensitivity+.25f;
         else if(Id=="fov") Save->Fov=Save->Fov>=100?70:Save->Fov+5;
@@ -325,6 +415,10 @@ FString AWalkController::Status() const {
 }
 FString AWalkController::Prompt() const {
     if(!Page.IsEmpty())return TEXT("");
+    if(Aligning){
+        if(FPlatformTime::Seconds()<ToastUntil)return Toast;
+        return FString::Printf(TEXT("%s   ·   lens %.1f°\nWASD / left stick  Move      Q E / bumpers  Down, up      Mouse / right stick  Look      Shift / RT  Faster\n− =  / D-pad  Lens      Z C  Tilt      Tab / X  Photo size      Enter / A  Save alignment      Esc / Menu  Photo menu"),*FPaths::GetBaseFilename(PhotoName()),AlignVFov);
+    }
     if(!Walking){
         if(TourPosition.Num()<2||!Save->Guidance)return TEXT("");
         FString L=TourLabel();
@@ -340,6 +434,8 @@ void AWalkController::PlayerTick(float D) {
     if(!InitialViewReady&&GetPawn()){InitialViewReady=Travel(0);ApplySettings();}
     if(Menu&&FocusAt>0&&FPlatformTime::Seconds()>=FocusAt){Menu->Focus(PendingFocus);FocusAt=0;}
     if(Smoke)SmokeTick();
+    if(!ReviewPhoto.IsEmpty())ReviewTick();
+    if(Aligning){if(Page.IsEmpty())TickAlign(D);return;}
     if(!Walking){if(Page.IsEmpty())TickTour(D);return;}
     if(!Page.IsEmpty())return;
     if(!Smoke&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
@@ -350,6 +446,171 @@ void AWalkController::PlayerTick(float D) {
     if(C->GetActorLocation().Z<-850||C->GetActorLocation().Size2D()>16000){Travel(0);Notify(TEXT("Back on the path. Your journal is safe."));}
     SaveTimer+=D;if(SaveTimer>20){Persist(true);SaveTimer=0;}
     if(C->GetCharacterMovement()->IsMovingOnGround()&&C->GetVelocity().Size2D()>40){FootstepTimer+=D;if(FootstepTimer> (C->GetVelocity().Size2D()>210?.43f:.65f)){FootstepTimer=0; if(auto* Sound=LoadObject<USoundWave>(nullptr,TEXT("/Game/WalkAudio/Footstep.Footstep")))UGameplayStatics::PlaySound2D(this,Sound,Save->Volume*.3f,FMath::FRandRange(.92f,1.08f));}}else FootstepTimer=.3f;
+}
+
+
+// ---- Photo alignment and notes -------------------------------------------------------------
+namespace {
+// three.js metres, y up  <->  Unreal centimetres, z up (as in LoadTour and capture_poses.py).
+FVector Swap3(const FVector& V){return FVector(V.X,V.Z,V.Y);}
+FString NowIso(){return FDateTime::UtcNow().ToString(TEXT("%Y-%m-%dT%H:%M:%S.000Z"));}
+TArray<TSharedPtr<FJsonValue>> Numbers(const TArray<double>& V){TArray<TSharedPtr<FJsonValue>> A;for(double N:V)A.Add(MakeShared<FJsonValueNumber>(N));return A;}
+bool WriteJson(const TSharedRef<FJsonObject>& Root,const FString& Path){
+    FString Out;auto Writer=TJsonWriterFactory<>::Create(&Out);
+    if(!FJsonSerializer::Serialize(Root,Writer))return false;
+    // Write beside the target, then swap, so a failed write never truncates the poses.
+    const FString Temp=Path+TEXT(".tmp");
+    return FFileHelper::SaveStringToFile(Out,*Temp,FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM)&&IFileManager::Get().Move(*Path,*Temp,true,true);
+}
+TSharedPtr<FJsonObject> ReadJson(const FString& Path){
+    FString Text;TSharedPtr<FJsonObject> J;
+    if(!FFileHelper::LoadFileToString(Text,*Path)||!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),J))return nullptr;
+    return J;
+}
+}
+bool AWalkController::LoadPoses() {
+    PoseRoot=PhotoDir.IsEmpty()?nullptr:ReadJson(PhotoDir/TEXT("align-poses.json"));
+    return PoseRoot.IsValid();
+}
+TSharedPtr<FJsonObject> AWalkController::PoseFor(const FString& File) const {
+    const TArray<TSharedPtr<FJsonValue>>* Poses=nullptr;
+    if(!PoseRoot.IsValid()||!PoseRoot->TryGetArrayField(TEXT("poses"),Poses))return nullptr;
+    for(const auto& V:*Poses){const TSharedPtr<FJsonObject>* R=nullptr;FString Name;if(V->TryGetObject(R)&&(*R)->TryGetStringField(TEXT("filename"),Name)&&Name==File&&(*R)->HasField(TEXT("camera")))return *R;}
+    return nullptr;
+}
+void AWalkController::ThreeCamera(TArray<double>& Position,TArray<double>& Quaternion,TArray<double>& Direction) const {
+    const bool Free=Aligning&&AlignCamera;
+    const FVector Eye=Free?AlignCamera->GetActorLocation():(PlayerCameraManager?PlayerCameraManager->GetCameraLocation():FVector::ZeroVector);
+    const FQuat Q=Free?AlignCamera->GetActorQuat():(PlayerCameraManager?PlayerCameraManager->GetCameraRotation().Quaternion():FQuat::Identity);
+    const FVector P=Swap3(Eye)/100;
+    // A three.js camera looks along -z with +y up: the columns of its rotation are right, up, -forward.
+    const FVector F=Swap3(Q.GetForwardVector()),U=Swap3(Q.GetUpVector()),R=FVector::CrossProduct(F,U),B=-F;
+    const double M00=R.X,M10=R.Y,M20=R.Z,M01=U.X,M11=U.Y,M21=U.Z,M02=B.X,M12=B.Y,M22=B.Z,Trace=M00+M11+M22;
+    double X,Y,Z,W;
+    if(Trace>0){const double S=.5/FMath::Sqrt(Trace+1);W=.25/S;X=(M21-M12)*S;Y=(M02-M20)*S;Z=(M10-M01)*S;}
+    else if(M00>M11&&M00>M22){const double S=2*FMath::Sqrt(1+M00-M11-M22);W=(M21-M12)/S;X=.25*S;Y=(M01+M10)/S;Z=(M02+M20)/S;}
+    else if(M11>M22){const double S=2*FMath::Sqrt(1+M11-M00-M22);W=(M02-M20)/S;X=(M01+M10)/S;Y=.25*S;Z=(M12+M21)/S;}
+    else{const double S=2*FMath::Sqrt(1+M22-M00-M11);W=(M10-M01)/S;X=(M02+M20)/S;Y=(M12+M21)/S;Z=.25*S;}
+    const double N=FMath::Sqrt(X*X+Y*Y+Z*Z+W*W);
+    Position={P.X,P.Y,P.Z};Quaternion={X/N,Y/N,Z/N,W/N};Direction={F.X,F.Y,F.Z};
+}
+bool AWalkController::SavePose(const FString& File,bool Camera,const FString* Notes) {
+    if(PhotoDir.IsEmpty()||File.IsEmpty())return false;
+    const FString Path=PhotoDir/TEXT("align-poses.json");
+    // Re-read first: the web align tool may have saved other photographs meanwhile.
+    TSharedPtr<FJsonObject> Root=ReadJson(Path);
+    if(!Root.IsValid()){
+        if(IFileManager::Get().FileExists(*Path))return false;  // unreadable: never overwrite it
+        Root=MakeShared<FJsonObject>();Root->SetStringField(TEXT("schema"),TEXT("shankaranarayana-photo-poses"));Root->SetNumberField(TEXT("version"),1);
+        Root->SetStringField(TEXT("coordinates"),TEXT("Three.js world metres; Y up; camera position is eye position (not feet)"));
+    }
+    TArray<TSharedPtr<FJsonValue>> Poses;const TArray<TSharedPtr<FJsonValue>>* Old=nullptr;
+    if(Root->TryGetArrayField(TEXT("poses"),Old))Poses=*Old;
+    TSharedPtr<FJsonObject> Record;
+    for(const auto& V:Poses){const TSharedPtr<FJsonObject>* R=nullptr;FString Name;if(V->TryGetObject(R)&&(*R)->TryGetStringField(TEXT("filename"),Name)&&Name==File){Record=*R;break;}}
+    if(!Record.IsValid()){
+        if(!Camera)return false;  // a pose record needs a camera; loose notes go to unreal-notes.json
+        Record=MakeShared<FJsonObject>();Record->SetStringField(TEXT("id"),TEXT("file:")+File);Record->SetStringField(TEXT("filename"),File);
+        Record->SetField(TEXT("sha256"),MakeShared<FJsonValueNull>());Record->SetStringField(TEXT("notes"),TEXT(""));
+        Poses.Add(MakeShared<FJsonValueObject>(Record));
+    }
+    if(Camera){
+        TArray<double> P,Q,D;ThreeCamera(P,Q,D);
+        auto Cam=MakeShared<FJsonObject>();Cam->SetArrayField(TEXT("position"),Numbers(P));Cam->SetArrayField(TEXT("quaternion"),Numbers(Q));Cam->SetArrayField(TEXT("direction"),Numbers(D));
+        Cam->SetNumberField(TEXT("verticalFov"),AlignVFov);Cam->SetNumberField(TEXT("aspect"),AlignAspect);Record->SetObjectField(TEXT("camera"),Cam);
+        auto Image=MakeShared<FJsonObject>();Image->SetNumberField(TEXT("width"),PhotoTexture?PhotoTexture->GetSizeX():0);Image->SetNumberField(TEXT("height"),PhotoTexture?PhotoTexture->GetSizeY():0);Image->SetStringField(TEXT("fit"),TEXT("exact"));
+        Record->SetObjectField(TEXT("image"),Image);
+        FVector2D Size(1600,900);if(GEngine&&GEngine->GameViewport)GEngine->GameViewport->GetViewportSize(Size);
+        auto View=MakeShared<FJsonObject>();View->SetNumberField(TEXT("width"),Size.X);View->SetNumberField(TEXT("height"),Size.Y);Record->SetObjectField(TEXT("viewport"),View);
+        Record->SetStringField(TEXT("tool"),TEXT("unreal"));
+    }
+    if(Notes)Record->SetStringField(TEXT("notes"),*Notes);
+    // The web tool keeps its own copy unless the file's is at least as new.
+    Record->SetStringField(TEXT("savedAt"),NowIso());Root->SetStringField(TEXT("exportedAt"),NowIso());
+    Root->SetArrayField(TEXT("poses"),Poses);
+    if(!WriteJson(Root.ToSharedRef(),Path))return false;
+    PoseRoot=Root;return true;
+}
+bool AWalkController::SaveLooseNote(const FString& Text,const FString& Photo) {
+    // Notes that have no pose to hang on: a spot in the walk, or a photograph not aligned yet.
+    const FString Path=(PhotoDir.IsEmpty()?FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()):PhotoDir)/TEXT("unreal-notes.json");
+    TSharedPtr<FJsonObject> Root=ReadJson(Path);
+    if(!Root.IsValid()){
+        if(IFileManager::Get().FileExists(*Path))return false;
+        Root=MakeShared<FJsonObject>();Root->SetStringField(TEXT("schema"),TEXT("shankaranarayana-unreal-notes"));Root->SetNumberField(TEXT("version"),1);
+        Root->SetStringField(TEXT("coordinates"),TEXT("Three.js world metres; Y up; position is the eye"));
+    }
+    TArray<TSharedPtr<FJsonValue>> Notes;const TArray<TSharedPtr<FJsonValue>>* Old=nullptr;if(Root->TryGetArrayField(TEXT("notes"),Old))Notes=*Old;
+    TArray<double> P,Q,D;ThreeCamera(P,Q,D);
+    auto Note=MakeShared<FJsonObject>();Note->SetStringField(TEXT("savedAt"),NowIso());Note->SetStringField(TEXT("text"),Text);
+    if(!Photo.IsEmpty())Note->SetStringField(TEXT("photo"),Photo);
+    Note->SetArrayField(TEXT("position"),Numbers(P));Note->SetArrayField(TEXT("quaternion"),Numbers(Q));Note->SetArrayField(TEXT("direction"),Numbers(D));
+    Note->SetStringField(TEXT("mode"),Aligning?TEXT("aligning"):Walking?TEXT("walking"):TEXT("tour"));
+    if(!Walking&&!Aligning)Note->SetStringField(TEXT("tourLabel"),TourLabel());
+    Notes.Add(MakeShared<FJsonValueObject>(Note));Root->SetArrayField(TEXT("notes"),Notes);
+    return WriteJson(Root.ToSharedRef(),Path);
+}
+bool AWalkController::OpenPhoto(int32 Index) {
+    if(!PhotoFiles.IsValidIndex(Index))return false;
+    UTexture2D* T=FImageUtils::ImportFileAsTexture2D(PhotoDir/PhotoFiles[Index]);
+    if(!T||T->GetSizeX()<2||T->GetSizeY()<2)return false;
+    PhotoIndex=Index;PhotoTexture=T;AlignAspect=float(T->GetSizeX())/T->GetSizeY();
+    PhotoBrush->SetResourceObject(T);PhotoBrush->ImageSize=FVector2D(T->GetSizeX(),T->GetSizeY());PhotoBrush->DrawAs=ESlateBrushDrawType::Image;
+    return true;
+}
+void AWalkController::ApplyAlignLens() {
+    if(!AlignCamera)return;
+    AlignVFov=FMath::Clamp(AlignVFov,20.f,110.f);
+    auto* C=AlignCamera->GetCameraComponent();
+    // Frame exactly what the photograph frames: its aspect, and the saved vertical field of view.
+    C->SetConstraintAspectRatio(true);C->SetAspectRatio(AlignAspect);
+    C->SetFieldOfView(FMath::RadiansToDegrees(2*FMath::Atan(FMath::Tan(FMath::DegreesToRadians(AlignVFov)/2)*AlignAspect)));
+}
+void AWalkController::StartAlign(bool FromSaved) {
+    if(!PhotoTexture||!PlayerCameraManager)return;
+    FVector P=PlayerCameraManager->GetCameraLocation();FQuat Q=PlayerCameraManager->GetCameraRotation().Quaternion();
+    if(Aligning&&AlignCamera){P=AlignCamera->GetActorLocation();Q=AlignCamera->GetActorQuat();}
+    const TSharedPtr<FJsonObject> R=PoseFor(PhotoName());const TSharedPtr<FJsonObject>* Cam=nullptr;
+    if(R.IsValid()&&R->TryGetObjectField(TEXT("camera"),Cam)){
+        double V=AlignVFov;if((*Cam)->TryGetNumberField(TEXT("verticalFov"),V))AlignVFov=V;
+        // Legacy cover-fitted poses: widen the lens as capture_poses.py does.
+        const TSharedPtr<FJsonObject>* Image=nullptr;const TSharedPtr<FJsonObject>* View=nullptr;FString Fit;
+        if(FromSaved&&R->TryGetObjectField(TEXT("image"),Image)&&(*Image)->TryGetStringField(TEXT("fit"),Fit)&&Fit==TEXT("cover")&&R->TryGetObjectField(TEXT("viewport"),View)){
+            const double Ratio=(*View)->GetNumberField(TEXT("width"))/FMath::Max(1.0,(*View)->GetNumberField(TEXT("height")));
+            if(Ratio>AlignAspect)AlignVFov=FMath::RadiansToDegrees(2*FMath::Atan(FMath::Tan(FMath::DegreesToRadians(AlignVFov)/2)*Ratio/AlignAspect));
+        }
+        const TArray<TSharedPtr<FJsonValue>>* A=nullptr;const TArray<TSharedPtr<FJsonValue>>* B=nullptr;
+        if(FromSaved&&(*Cam)->TryGetArrayField(TEXT("position"),A)&&A->Num()==3&&(*Cam)->TryGetArrayField(TEXT("quaternion"),B)&&B->Num()==4){
+            P=Swap3(FVector((*A)[0]->AsNumber(),(*A)[1]->AsNumber(),(*A)[2]->AsNumber()))*100;
+            const FQuat Q3((*B)[0]->AsNumber(),(*B)[1]->AsNumber(),(*B)[2]->AsNumber(),(*B)[3]->AsNumber());
+            Q=FRotationMatrix::MakeFromXZ(Swap3(Q3.RotateVector(FVector(0,0,-1))),Swap3(Q3.RotateVector(FVector(0,1,0)))).ToQuat();
+        }
+    }
+    if(!AlignCamera)AlignCamera=GetWorld()->SpawnActor<ACameraActor>(P,Q.Rotator());
+    if(!AlignCamera)return;
+    if(Walking)Persist(true);
+    AlignCamera->SetActorLocationAndRotation(P,Q);Aligning=true;AlignMove=FVector2D::ZeroVector;ApplyAlignLens();
+    Show("");Notify(FromSaved?TEXT("At the saved position. Adjust, then Enter / A to save."):TEXT("Move until the view matches the photograph, then Enter / A to save."));
+}
+void AWalkController::StopAlign() { Aligning=false;AlignOverlay=false;AlignMove=FVector2D::ZeroVector; }
+void AWalkController::AlignTurn(float Yaw,float Pitch) {
+    if(!AlignCamera)return;
+    FRotator R=AlignCamera->GetActorRotation();R.Yaw+=Yaw;R.Pitch=FMath::Clamp(R.Pitch+Pitch,-89.f,89.f);AlignCamera->SetActorRotation(R);
+}
+void AWalkController::TickAlign(float Delta) {
+    if(!AlignCamera)return;
+    const float D=FMath::Min(Delta,.1f);
+    const bool Fast=IsInputKeyDown(EKeys::LeftShift)||IsInputKeyDown(EKeys::Gamepad_RightTrigger);
+    const float Rise=(IsInputKeyDown(EKeys::E)||IsInputKeyDown(EKeys::Gamepad_RightShoulder)?1.f:0.f)-(IsInputKeyDown(EKeys::Q)||IsInputKeyDown(EKeys::Gamepad_LeftShoulder)?1.f:0.f);
+    const FRotator R=AlignCamera->GetActorRotation();const FRotationMatrix M(R);
+    AlignCamera->AddActorWorldOffset((M.GetUnitAxis(EAxis::X)*AlignMove.X+M.GetUnitAxis(EAxis::Y)*AlignMove.Y+FVector(0,0,Rise))*(Fast?450.f:110.f)*D);
+    const float Lens=(IsInputKeyDown(EKeys::Equals)||IsInputKeyDown(EKeys::Gamepad_DPad_Up)?1.f:0.f)-(IsInputKeyDown(EKeys::Hyphen)||IsInputKeyDown(EKeys::Gamepad_DPad_Down)?1.f:0.f);
+    if(Lens!=0){AlignVFov+=Lens*8*D;ApplyAlignLens();}
+    const float Tilt=(IsInputKeyDown(EKeys::C)?1.f:0.f)-(IsInputKeyDown(EKeys::Z)?1.f:0.f);
+    if(Tilt!=0){FRotator T=R;T.Roll=FMath::Clamp(T.Roll+Tilt*12*D,-30.f,30.f);AlignCamera->SetActorRotation(T);}
+    if(WasInputKeyJustPressed(EKeys::Tab)||WasInputKeyJustPressed(EKeys::Gamepad_FaceButton_Left))AlignOverlay=!AlignOverlay;
+    if(WasInputKeyJustPressed(EKeys::Enter)||WasInputKeyJustPressed(EKeys::Gamepad_FaceButton_Bottom))
+        Notify(SavePose(PhotoName(),true,nullptr)?TEXT("Alignment saved."):TEXT("Could not save the alignment (is align-poses.json readable?)."));
 }
 
 bool AWalkController::LoadTour() {
@@ -403,6 +664,7 @@ void AWalkController::TickTour(float Delta) {
 }
 void AWalkController::StartTour() {
     if(TourPosition.Num()<2)return;
+    StopAlign();
     if(Walking)Persist(true);
     Walking=false;TourTime=0;TourShownAt=FPlatformTime::Seconds();TickTour(0);Show("");
 }
@@ -425,6 +687,22 @@ FString AWalkController::TourLabel() const {
     return L;
 }
 
+void AWalkController::ReviewTick() {
+    const double Now=FPlatformTime::Seconds();if(Now<BeginTime+10||Now<NextReview)return;
+    const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
+    const FString Stem=TEXT("review-")+ReviewPhoto.Replace(TEXT(" "),TEXT("_"));
+    switch(ReviewStep++){
+    case 0:{Action("photos");const int32 I=PhotoFiles.IndexOfByPredicate([this](const FString& F){return F.Contains(ReviewPhoto);});
+        if(I==INDEX_NONE){UE_LOG(LogTemp,Warning,TEXT("WALKREVIEW no photograph matches %s"),*ReviewPhoto);ReviewPhoto.Empty();UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);return;}
+        PhotoPage=I/PhotosPerPage;Action(FString::Printf(TEXT("photo:%d"),I));NextReview=Now+1.5;break;}
+    case 1:FScreenshotRequest::RequestScreenshot(Dir/(Stem+TEXT("-menu.png")),true,false);NextReview=Now+1;break;
+    case 2:Action(PoseFor(PhotoName()).IsValid()?"align-saved":"align-here");ToastUntil=0;NextReview=Now+5;break;
+    case 3:FScreenshotRequest::RequestScreenshot(Dir/(Stem+TEXT("-side.png")),true,false);NextReview=Now+1;break;
+    case 4:AlignOverlay=true;NextReview=Now+1;break;
+    case 5:FScreenshotRequest::RequestScreenshot(Dir/(Stem+TEXT("-overlay.png")),true,false);NextReview=Now+1.5;break;
+    default:UE_LOG(LogTemp,Display,TEXT("WALKREVIEW done %s"),*PhotoName());ReviewPhoto.Empty();UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);
+    }
+}
 void AWalkController::SmokeTick() {
     // Runs only with -WalkSmoke, on a separate save slot. Real scene, collision and UI.
     double Now=FPlatformTime::Seconds();if(Now<BeginTime+8||Now<NextSmoke)return;NextSmoke=Now+1.5;
@@ -519,6 +797,35 @@ void AWalkController::SmokeTick() {
             Check(Walking&&Page.IsEmpty()&&GetViewTarget()==GetPawn(),TEXT("walking input leaves the tour"));
             Check(FVector::Dist2D(GetPawn()->GetActorLocation(),SmokePosition)<120,TEXT("walk continues from the tour camera's spot: ")+GetPawn()->GetActorLocation().ToString()+TEXT(" vs ")+SmokePosition.ToString());
             FScreenshotRequest::RequestScreenshot(Dir/TEXT("06-takeover.png"),true,false);return;
+        }
+        if(I==Places.Num()+7){
+            // Photo alignment and notes, against the generated picture in the smoke folder.
+            const FVector Before=GetPawn()->GetActorLocation();
+            Show("pause");Action("photos");
+            Check(Page=="photos"&&PhotoFiles.Num()==1&&!PoseFor(PhotoFiles[0]).IsValid(),TEXT("photo browser lists the folder's pictures"));
+            Action("photo:0");Check(Page=="photo:0"&&PhotoTexture&&FMath::IsNearlyEqual(AlignAspect,64.f/48,.01f),TEXT("photo page loads the picture"));
+            Action("align-here");Check(Aligning&&Page.IsEmpty()&&AlignCamera&&GetViewTarget()==AlignCamera&&!IsPaused(),TEXT("alignment mode flies a free camera"));
+            AlignCamera->SetActorLocationAndRotation(FVector(1234,-567,321),FRotator(-10,37,2));AlignVFov=52;ApplyAlignLens();
+            Check(SavePose(PhotoName(),true,nullptr),TEXT("alignment saves"));
+            PoseRoot.Reset();LoadPoses();const auto R=PoseFor(PhotoFiles[0]);const TSharedPtr<FJsonObject>* Cam=nullptr;const TArray<TSharedPtr<FJsonValue>>* P=nullptr;
+            const bool Stored=R.IsValid()&&R->TryGetObjectField(TEXT("camera"),Cam)&&(*Cam)->TryGetArrayField(TEXT("position"),P)&&P->Num()==3
+                &&FMath::IsNearlyEqual((*P)[0]->AsNumber(),12.34,1e-3)&&FMath::IsNearlyEqual((*P)[1]->AsNumber(),3.21,1e-3)&&FMath::IsNearlyEqual((*P)[2]->AsNumber(),-5.67,1e-3)
+                &&FMath::IsNearlyEqual((*Cam)->GetNumberField(TEXT("verticalFov")),52.0,1e-3)&&R->GetStringField(TEXT("id"))==TEXT("file:smoke photo.png");
+            Check(Stored,TEXT("saved pose uses the web tool's record and coordinates"));
+            AlignCamera->SetActorLocationAndRotation(FVector(0,0,500),FRotator::ZeroRotator);PauseWalk();
+            Check(Page=="photo:0"&&IsPaused(),TEXT("Esc opens the photo menu while aligning"));
+            Action("align-saved");
+            Check(Aligning&&FVector::Dist(AlignCamera->GetActorLocation(),FVector(1234,-567,321))<.5&&AlignCamera->GetActorQuat().AngularDistance(FRotator(-10,37,2).Quaternion())<.002f,TEXT("go to saved position restores the saved view"));
+            PauseWalk();Action("note");NoteDraft=TEXT("smoke note");Action("note-save");
+            PoseRoot.Reset();LoadPoses();FString Note;const auto R2=PoseFor(PhotoFiles[0]);
+            Check(Page=="photo:0"&&R2.IsValid()&&R2->TryGetStringField(TEXT("notes"),Note)&&Note==TEXT("smoke note"),TEXT("photo note saves into the pose"));
+            FScreenshotRequest::RequestScreenshot(Dir/TEXT("07-photo.png"),true,false);
+            Action("photos");Back();
+            Check(!Aligning&&Page=="pause"&&Walking&&GetViewTarget()==GetPawn()&&FVector::Dist(Before,GetPawn()->GetActorLocation())<1,TEXT("leaving alignment returns to the paused walk where it was"));
+            Action("walknote");NoteDraft=TEXT("smoke walk note");Action("walknote-save");
+            const auto Loose=ReadJson(PhotoDir/TEXT("unreal-notes.json"));const TArray<TSharedPtr<FJsonValue>>* Notes=nullptr;
+            Check(Page=="pause"&&Loose.IsValid()&&Loose->TryGetArrayField(TEXT("notes"),Notes)&&Notes->Num()==1&&(*Notes)[0]->AsObject()->GetStringField(TEXT("text"))==TEXT("smoke walk note"),TEXT("walk note saves with its spot"));
+            Show("");return;
         }
         Check(Persist(true),TEXT("final save succeeds"));
         TSharedRef<FJsonObject> Report=MakeShared<FJsonObject>();Report->SetBoolField("passed",SmokeFailures.IsEmpty());TArray<TSharedPtr<FJsonValue>> Errors;for(auto& E:SmokeFailures)Errors.Add(MakeShared<FJsonValueString>(E));Report->SetArrayField("failures",Errors);

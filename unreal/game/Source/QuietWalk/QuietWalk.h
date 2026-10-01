@@ -11,6 +11,9 @@ class UAudioComponent;
 class SWidget;
 class SQuietMenu;
 class ACameraActor;
+class UTexture2D;
+class FJsonObject;
+struct FSlateBrush;
 
 UCLASS()
 class QUIETWALK_API UWalkSave : public USaveGame {
@@ -105,6 +108,34 @@ public:
     void Notify(const FString& Text);
     FString Slot() const;
     UFUNCTION(Exec) void WalkAction(const FString& Id);
+    // Photo alignment (start and pause menus): browse the private photo folder, fly to a photo's
+    // saved pose, compare the view with the photo and save a new alignment or a note. Poses are
+    // read from and written to the web align tool's align-poses.json, so both tools share them.
+    FString PhotoDir;
+    TArray<FString> PhotoFiles;
+    TSharedPtr<FJsonObject> PoseRoot;
+    UPROPERTY() TObjectPtr<UTexture2D> PhotoTexture;
+    UPROPERTY() TObjectPtr<ACameraActor> AlignCamera;
+    TSharedPtr<FSlateBrush> PhotoBrush;
+    TSharedPtr<SWidget> AlignHud;
+    int32 PhotoIndex = 0, PhotoPage = 0;
+    bool Aligning = false, AlignOverlay = false;
+    float AlignVFov = 48, AlignAspect = 4.f/3;
+    FVector2D AlignMove = FVector2D::ZeroVector;
+    FString NoteDraft;
+    static constexpr int32 PhotosPerPage = 9;
+    FString PhotoName() const { return PhotoFiles.IsValidIndex(PhotoIndex)?PhotoFiles[PhotoIndex]:FString(); }
+    bool LoadPoses();
+    TSharedPtr<FJsonObject> PoseFor(const FString& File) const;
+    bool SavePose(const FString& File,bool Camera,const FString* Notes);
+    bool SaveLooseNote(const FString& Text,const FString& Photo);
+    bool OpenPhoto(int32 Index);
+    void StartAlign(bool FromSaved);
+    void StopAlign();
+    void TickAlign(float Delta);
+    void AlignTurn(float Yaw,float Pitch);
+    void ApplyAlignLens();
+    void ThreeCamera(TArray<double>& Position,TArray<double>& Quaternion,TArray<double>& Direction) const;
 private:
     float SaveTimer = 0;
     float FootstepTimer = 0;
@@ -121,6 +152,12 @@ private:
     FVector SmokePosition;
     double SmokeTourTime = 0;
     void SmokeTick();
+    // -WalkReviewPhoto=<part of a file name>: open that photograph at its saved pose, capture the
+    // photo page, the side-by-side view and the overlay into Saved/WalkReview, then quit. Saves nothing.
+    FString ReviewPhoto;
+    int32 ReviewStep = 0;
+    double NextReview = 0;
+    void ReviewTick();
 };
 
 UCLASS()

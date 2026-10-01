@@ -104,3 +104,25 @@ checks a fresh load, packaging runs that preflight, and captures and the native 
 test check that exactly one active sky still has its texture. After lighting edits,
 run `finish_game.py` and rebuild the package; after emissive graph edits, also run
 `materials.py --rebuild` first.
+
+## Photo alignment and notes in the game
+
+`Photo alignment` on the start and pause menus opens a browser of the private photographs
+(`F:/Shankaranarayana`, or `-WalkPhotos=<folder>`; the entry is hidden when the folder is absent).
+Each photograph offers:
+
+- **Go to saved position**: a free camera at the saved pose, framed to the photograph's aspect and
+  lens, with the photograph in a corner (`Tab` / `X` switches to a half-transparent overlay).
+- **Align from the current view**: the same camera, starting where you are.
+- `Enter` / `A` saves the alignment; `Esc` / `Menu` returns to the photograph's page.
+- **Add a note**.
+
+Poses and photo notes are read from and written to the web align tool's `align-poses.json` (same
+record format, three.js coordinates), so either tool sees the other's work. `Leave a note here` in the
+pause menu, and notes on photographs that have no pose yet, go to `unreal-notes.json` in the same
+folder, with eye position and view direction in three.js metres.
+
+`-WalkReviewPhoto=<part of a file name>` opens that photograph at its saved pose, writes
+`review-<name>-menu.png`, `-side.png` and `-overlay.png` to `Saved/WalkReview`, and quits without
+saving anything. The smoke test exercises alignment and notes on a generated picture in
+`Saved/WalkReview/align-smoke`, never the real poses.
