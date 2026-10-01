@@ -640,7 +640,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   {
     const clearings = [
       [-22, 58, -48.8, -8.5], [-125, 125, -8.1, -1.9],
-      [-16.5, 59, -2, 25.8], [21, 59, 25.8, 46],
+      [-16.5, 59, -2, 25.8], [21, 59, 25.8, 46 + (K.templeShiftZ || 0)],
       [-43, -31, 22.8, 33.2], [-2, 10, -65, -55], [60.5, 73.5, 36.5, 47.5],
     ];
     const positions = [], colors = [], indices = [];
@@ -835,8 +835,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   function shrub(x, z, size) {
     z=clearOppositeBuildings(x,z);
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(range(-.3, .3), range(0, 6.28), range(-.3, .3)));
-    instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], [size, size * range(.55, .9), size * range(.7, 1.15)], q,
-      foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3));
+    const scale = [size, size * range(.55, .9), size * range(.7, 1.15)], tint = foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3);
+    // Nothing grows inside the temple complex, wherever it is placed (same random draws either way).
+    if (x > 20.5 && x < 58.5 && z > (K.templeShiftZ || 0) && z < 46.2 + (K.templeShiftZ || 0)) return;
+    instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], scale, q, tint);
   }
   for (let i = 0; i < 220; i++) {
     const zone = i % 4;
@@ -1433,9 +1435,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // Its placement is estimated; keep this low outbuilding clear of the now
   // family-confirmed road on the house-facing side of the temple.
-  laneHouse('Temple-side low white outbuilding',51.8,.10,6.7,4.2,2.70,-1);
+  laneHouse('Temple-side low white outbuilding',51.8,.10+(K.templeShiftZ||0),6.7,4.2,2.70,-1);
   // Damp black base is visible on the close wall in the left-facing photograph.
-  box('Temple-side outbuilding black damp base',51.8,.47,-2.025,6.73,.83,.035,materials.wetStone);
+  box('Temple-side outbuilding black damp base',51.8,.47,-2.025+(K.templeShiftZ||0),6.73,.83,.035,materials.wetStone);
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
   // 14.28.26 / 15.15.26: a salmon-pink two-storey house stands up the slope behind the western
   // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
@@ -1630,7 +1632,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.20.01: one recessed stepped-outline pond, right of the temple entrance.
   // main.js cuts out the ground beneath this basin, so the water is below grade.
   // 14.59.21 / 14.59.36 / 15.00.01: the pond sits about 1.8 m further west than first placed.
-  const PX=23.7;
+  const PX=23.7,PZ=-1.5+(K.templeShiftZ||0); // the pond belongs to the temple forecourt and follows it
   const pondOutline=[[-2,-1],[-.3,-1],[.3,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.3,1],[-.3,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
   // Reusable procedural finish: mineral patches interrupted by long wet streaks.
   const pondCanvas=document.createElement('canvas');pondCanvas.width=256;pondCanvas.height=256;
@@ -1657,21 +1659,21 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   const pondShape=new THREE.Shape(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z)));
   const water=new THREE.Mesh(new THREE.ShapeGeometry(pondShape),new THREE.MeshStandardMaterial({color:'#354d31',roughness:.26,metalness:.16}));
-  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(PX,-.94,-1.5);group.add(water);
+  water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(PX,-.94,PZ);group.add(water);
   const soil=new THREE.Shape([new THREE.Vector2(-2.5,-1.5),new THREE.Vector2(2.5,-1.5),new THREE.Vector2(2.5,1.5),new THREE.Vector2(-2.5,1.5)]);
   soil.holes.push(new THREE.Path(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z))));
-  const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(PX,0,-1.5);group.add(surround);
-  box('Temple small pond deep bottom',PX,-1.11,-1.5,4.98,.12,2.98,materials.wetStone);
+  const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(PX,0,PZ);group.add(surround);
+  box('Temple small pond deep bottom',PX,-1.11,PZ,4.98,.12,2.98,materials.wetStone);
   for(let i=0;i<pondOutline.length;i++){
-    const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=PX+(a[0]+b[0])/2,z=-1.5+(a[1]+b[1])/2;
+    const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=PX+(a[0]+b[0])/2,z=PZ+(a[1]+b[1])/2;
     const w=Math.abs(a[0]-b[0])+.15,d=Math.abs(a[1]-b[1])+.15;
-    const notch=Math.abs(x-PX)<.01&&Math.abs(z+1.5)>.95,top=notch?.10:.32;
+    const notch=Math.abs(x-PX)<.01&&Math.abs(z-PZ)>.95,top=notch?.10:.32;
     pondWallUV(box('Temple small pond weathered retaining wall',x,(top-1.05)/2,z,w,top+1.05,d,pondStone,true));
     box('Temple small pond worn pale coping',x,top,z,w+.035,.07,d+.035,pondCoping);
     box('Temple small pond algae waterline',x,-.94,z,w+.006,.08,d+.006,materials.wetStone);
   }
   // Prevent walking into the open water while retaining the visible depth.
-  K.blocker(PX,-1.5,4.2,2.2,-1.1,.35);
+  K.blocker(PX,PZ,4.2,2.2,-1.1,.35);
 
   // Overlapping distant belts close the horizon when panning from the house.
   // Planting is inferred, beyond the photographed buildings and walking routes.

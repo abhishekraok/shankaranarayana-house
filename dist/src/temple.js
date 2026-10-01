@@ -2390,5 +2390,11 @@ export function buildTemple(K) {
    for(const r of [...K.surfaces]){const x0=r.x-r.w/2,x1=r.x+r.w/2,z0=r.z-r.d/2,z1=r.z+r.d/2;
      if(r.y<3.5||x0>X0||x1<X1||z0>Z0||z1<Z1)continue;K.surfaces.splice(K.surfaces.indexOf(r),1);
      for(const [a,b,c,d] of parts(x0,x1,z0,z1))K.surface((a+b)/2,(c+d)/2,b-a,d-c,r.y);}}
+  // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
+  // further back from the lane, with its navigation.
+  const ts=K.templeShiftZ||0;g.position.z+=ts;
+  for(const c of K.colliders.slice(navStart.colliders)){c.minZ+=ts;c.maxZ+=ts;}
+  for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)])r.z+=ts;
+  for(const l of K.labels.slice(navStart.labels))l.position=[l.position[0],l.position[1],l.position[2]+ts];
   return g;
 }
