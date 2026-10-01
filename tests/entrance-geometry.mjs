@@ -13,6 +13,9 @@ const {buildTemple}=await loadModule('../dist/src/temple.js');
 const {buildLandscape,farZ,farZinv}=await loadModule('../dist/src/landscape.js');
 const {createPhotoTour}=await loadModule('../dist/src/tour.js');
 const K=createKit(),house=buildHouse(K);house.updateMatrixWorld(true);
+// The temple's own geometry does not depend on where the complex sits, so these checks run with
+// it at its authored position. tests/temple-setback.mjs covers the shipped placement.
+const SHIPPED_TEMPLE_SHIFT=K.templeShiftZ;K.templeShiftZ=0;
 const temple=buildTemple(K),landscape=buildLandscape(K);temple.updateMatrixWorld(true);landscape.updateMatrixWorld(true);
 // The inner aisle skylights must replace opaque roofing, not overlay it.
 for(const x of [35.25,42.75])for(const z of [22.1,24.0,27.1]){
@@ -35,6 +38,10 @@ const navigation=main.slice(main.indexOf('function inside('),main.indexOf('funct
 const {collision,supportY,blockedRise}=new Function('K','THREE','farZinv',navigation+';return {collision,supportY,blockedRise};')(K,THREE,farZinv);
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
+// main.js stores temple viewpoints at the shipped placement; bring them back to authored coordinates.
+const inTempleXZ=(x,z)=>x>20.1&&x<58.4&&z>-.6&&z<46.5;
+const authored=v=>{const facing=v===photos.temple||v===photos.templepond;for(const k of ['p','target'])if(v[k]&&(facing||inTempleXZ(v[k][0],v[k][2]-SHIPPED_TEMPLE_SHIFT)))v[k]=[v[k][0],v[k][1],+(v[k][2]-SHIPPED_TEMPLE_SHIFT).toFixed(4)];return v;};
+for(const v of Object.values(photos))authored(v);
 // The house is authored with its front door at x=0 and placed at K.houseShiftX.
 const HX=K.houseShiftX,HV=(x,y,z)=>new THREE.Vector3(x+HX,y,z);
 // 2013 entrance close-up: the painted gable must be visible, not buried in a hip roof or beam.
@@ -63,7 +70,7 @@ const returnWallRay=new THREE.Raycaster(new THREE.Vector3(49.8,1.8,10),new THREE
 assert.equal(returnWallRay.intersectObject(temple,true)[0]?.object.name,'Entrance circuit closed return wall');
 for(const key of ['houseexitleft','templeentryreturn']){
   const expression=main.match(new RegExp('destinations\\.'+key+'=(\\{.*\\});'))[1];
-  const v=new Function('return ('+expression+')')();
+  const v=authored(new Function('return ('+expression+')')());
   assert.ok(!collision(v.p[0],v.p[2],v.p[1]),key+' viewpoint clear');
   assert.ok(Math.abs(supportY(v.p[0],v.p[2],v.p[1])-v.p[1])<.06,key+' viewpoint supported');
 }
@@ -514,7 +521,7 @@ const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.g
 assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
 const bellTarget=bellBounds.getCenter(new THREE.Vector3());
 for(const key of ['templebellreturn','templebellwide','templepoles','templebell']){
-  const view=new Function('return ('+main.match(new RegExp('destinations\\.'+key+'=(\\{.*\\});'))[1]+')')();
+  const view=authored(new Function('return ('+main.match(new RegExp('destinations\\.'+key+'=(\\{.*\\});'))[1]+')')());
   assert.ok(!collision(view.p[0],view.p[2],view.p[1]),key+' viewpoint is walkable');
   const eye=new THREE.Vector3(...view.p).add(new THREE.Vector3(0,1.62,0));
   const c=new THREE.PerspectiveCamera(view.fov,4/3,.06,400);c.position.copy(eye);c.lookAt(new THREE.Vector3(...view.target));c.updateMatrixWorld();
@@ -570,7 +577,7 @@ for(let z=1.35;z<=5.72;z+=.10){
   const ray=new THREE.Raycaster(new THREE.Vector3(46.18,height+.24,z),new THREE.Vector3(0,1,0),0,1.50);
   assert.equal(ray.intersectObject(temple,true).length,0,'Gallery stair must have physical head clearance');
 }
-const tour=createPhotoTour(photos,supportY,HX),tourProblems=[];
+const tour=createPhotoTour(photos,supportY,HX,K.templeShiftZ),tourProblems=[];
 assert.ok(Number.isFinite(tour.duration)&&tour.duration>0,'Tour duration follows its route');
 assert.equal(tour.points[0].photo,'house','A visitor starts at the house');
 const ordered=['godroom','courtyard','temple','templeouterrear','templeleft','templeacross','lakehouse'];

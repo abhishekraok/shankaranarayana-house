@@ -41,8 +41,8 @@ function ground(x,z,w,d){const z0=farZ(z-d/2,x),z1=farZ(z+d/2,x);z=(z0+z1)/2;d=z
 ground(-73.675,0,136.65,240);ground(-5.175,-72.6,.35,94.8);ground(-5.175,48.6,.35,142.8);ground(108,0,108,240);
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(-4.25,-77,1.5,80);ground(5.5,-77,13.2,80);ground(-2.3,-77.7,2.4,78.6);ground(23.65,-77,18.5,80);ground(44.55,-77,18.9,80);ground(34,-79.4,2.2,81.2);ground(13.25,-77.1,2.3,79.8);
-// Leave an actual opening under the small forecourt pond (23..28, -3..0).
-ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);ground(24.5,60,59,120);ground(8.1,-1.5,26.2,3);ground(40.1,-1.5,27.8,3);
+// Leave an actual opening under the small forecourt pond (21.2..26.2, 3 m deep, set back with the temple).
+ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);{const ts=K.templeShiftZ;ground(24.5,-3+ts/2,59,ts);ground(24.5,60+ts/2,59,120-ts);ground(8.1,ts-1.5,26.2,3);ground(40.1,ts-1.5,27.8,3);}
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
@@ -66,24 +66,24 @@ const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,last
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
- front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-6.5],target:[39,3.7,5]},templecourt:{p:[30,.1,14],target:[41,2,17]}
+ front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-2],target:[39,3.7,9.5]},templecourt:{p:[30,.1,18.5],target:[41,2,21.5]}
 
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
 // Entering faces +Z, so the photographer's left is +X; the room wall is on the right.
-const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-5.2,.051,-7.7],target:[-4.2,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[-3.8,.45,1.18],target:[0.5,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-34],target:[30,2,0]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-6.5],target:[38.8,3.85,-1.2],fov:84}};
+const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-5.2,.051,-7.7],target:[-4.2,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[-3.8,.45,1.18],target:[0.5,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-34],target:[30,2,4.5]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-2],target:[38.8,3.85,3.3],fov:84}};
 photos.houseleft={url:'house-front-left.jpg',caption:'September 2011 · Front of the house, looking left towards the temple · 15.28.45',p:[-6,.051,-7.6],target:[40,3.2,-1.5],fov:76};
 destinations.house=photos.house;destinations.houseleft=photos.houseleft;
 photos.verandaleft={url:'veranda-left-passage.jpg',caption:'September 2011 · Before the main door, along the left walkway · 14.56.07',p:[-1.9,.455,-.25],target:[0.4,1.68,1.05],fov:68};
 photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[-3.75,.45,1.32],target:[0.3,1.65,1.15],fov:72};
 photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-3.85,.45,1.32],target:[-7.9,1.65,1.15],fov:72};
 for(const key of ['veranda','verandaleft','verandaseat','verandaright'])destinations[key]=photos[key];
-destinations.templesanctum={p:[35.2,.55,22],target:[39,2.3,24.2],fov:72};
-destinations.templesanctumfront={p:[43,.55,21],target:[39,2.25,16.3],fov:76};
-destinations.templeupperhall={p:[44.55,4.08,.37],target:[32.0,5.45,.80],fov:72};
-destinations.templesidebay={p:[29.8,.1,10.9],target:[26.2,1.9,6.5],fov:70};
-destinations.templehall={p:[24.6,.10,14.4],target:[22.3,2.1,7.8],fov:76};
-destinations.templehallbay={p:[25.7,.10,11.5],target:[24.6,2.1,6.85],fov:70};
+destinations.templesanctum={p:[35.2,.55,26.5],target:[39,2.3,28.7],fov:72};
+destinations.templesanctumfront={p:[43,.55,25.5],target:[39,2.25,20.8],fov:76};
+destinations.templeupperhall={p:[44.55,4.08,4.87],target:[32.0,5.45,5.3],fov:72};
+destinations.templesidebay={p:[29.8,.1,15.4],target:[26.2,1.9,11],fov:70};
+destinations.templehall={p:[24.6,.10,18.9],target:[22.3,2.1,12.3],fov:76};
+destinations.templehallbay={p:[25.7,.10,16],target:[24.6,2.1,11.35],fov:70};
 destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};
 destinations.godroomdesk={p:[-8.8,.45,5.55],target:[-9.9,1.20,5.15],fov:65};
 destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
@@ -93,38 +93,38 @@ photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and c
 photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.45,4.45],target:[-3.8,1.80,6.92],fov:92};
 photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[4.2,0,-7],target:[60,3.5,-5],fov:54};
 photos.laneright={url:'lane-right.jpg',caption:'September 2011 · Front of the house, right away from the temple',p:[-10.8,.051,-5],target:[-42,2,-6.7],fov:60};
-photos.templeleft={url:'temple-upper-left.jpg',caption:'September 2011 · Temple upper gallery, looking left at the inner building',p:[44.4,4.08,5.4],target:[46,2.6,16.5],fov:62};
-photos.templecenter={url:'temple-upper-center.jpg',caption:'September 2011 · Temple upper gallery, facing the inner building',p:[39,4.08,5.4],target:[39,3.3,16.5],fov:62};
-photos.templeright={url:'temple-upper-right.jpg',caption:'September 2011 · Temple upper gallery, looking right at the inner building',p:[33.5,4.08,5.4],target:[31,3.6,18],fov:62};
+photos.templeleft={url:'temple-upper-left.jpg',caption:'September 2011 · Temple upper gallery, looking left at the inner building',p:[44.4,4.08,9.9],target:[46,2.6,21],fov:62};
+photos.templecenter={url:'temple-upper-center.jpg',caption:'September 2011 · Temple upper gallery, facing the inner building',p:[39,4.08,9.9],target:[39,3.3,21],fov:62};
+photos.templeright={url:'temple-upper-right.jpg',caption:'September 2011 · Temple upper gallery, looking right at the inner building',p:[33.5,4.08,9.9],target:[31,3.6,22.5],fov:62};
 photos.templeroad={url:'temple-side-road.jpg',caption:'September 2011 · Small road between the house and the temple, beside its right edge',p:[20.5,.051,-6.5],target:[17.5,2.4,11.5],fov:72};
 photos.templehouse={url:'temple-towards-house.jpg',caption:'September 2011 · In front of the temple, looking right towards the house',p:[23,.051,-3],target:[-30,1.8,-6],fov:80};
 destinations.templehouse=photos.templehouse;
 // Manual views from the newly identified photos; source images remain local references.
-destinations.templebellreturn={p:[40.6,.1,9.2],target:[36.6,2.0,7.6],fov:72};
-destinations.templebellwide={p:[38.9,.1,13.4],target:[36.7,2.1,7.6],fov:76};
-destinations.templepoles={p:[45.8,.1,14.3],target:[30.5,2.6,10.7],fov:74};
-destinations.templebell={p:[39.74,.1,7.78],target:[36.6,1.8,7.6],fov:66};
+destinations.templebellreturn={p:[40.6,.1,13.7],target:[36.6,2.0,12.1],fov:72};
+destinations.templebellwide={p:[38.9,.1,17.9],target:[36.7,2.1,12.1],fov:76};
+destinations.templepoles={p:[45.8,.1,18.8],target:[30.5,2.6,15.2],fov:74};
+destinations.templebell={p:[39.74,.1,12.28],target:[36.6,1.8,12.1],fov:66};
 
-photos.templeoldwall={url:'temple-old-wall.jpg',caption:'September 2011 · The older inner wall and standing stone',p:[49.9,.1,22.4],target:[46.4,1.85,28.7],fov:76};
-photos.templeoutershrines={url:'temple-outer-shrines.jpg',caption:'September 2011 · The three vaulted shrine bays',p:[49,.1,40.2],target:[56.2,2.95,39.7],fov:76};
-photos.templeouterrear={url:'temple-outer-rear.jpg',caption:'September 2011 · Around the rear of the inner building',p:[40,.1,40.5],target:[24.6,1.9,42.7],fov:68};
-photos.templeouterreturn={url:'temple-outer-return.jpg',caption:'September 2011 · Looking back along the outer circuit',p:[49.8,.1,28.7],target:[48.9,1.9,9.5],fov:68};
+photos.templeoldwall={url:'temple-old-wall.jpg',caption:'September 2011 · The older inner wall and standing stone',p:[49.9,.1,26.9],target:[46.4,1.85,33.2],fov:76};
+photos.templeoutershrines={url:'temple-outer-shrines.jpg',caption:'September 2011 · The three vaulted shrine bays',p:[49,.1,44.7],target:[56.2,2.95,44.2],fov:76};
+photos.templeouterrear={url:'temple-outer-rear.jpg',caption:'September 2011 · Around the rear of the inner building',p:[40,.1,45],target:[24.6,1.9,47.2],fov:68};
+photos.templeouterreturn={url:'temple-outer-return.jpg',caption:'September 2011 · Looking back along the outer circuit',p:[49.8,.1,33.2],target:[48.9,1.9,14],fov:68};
 for(const key of ['templeoldwall','templeoutershrines','templeouterrear','templeouterreturn'])destinations[key]=photos[key];
 destinations.templeroad=photos.templeroad;
 destinations.godroom=photos.godroom;destinations.laneleft=photos.laneleft;destinations.laneright=photos.laneright;
 destinations.templeleft=photos.templeleft;destinations.templecenter=photos.templecenter;destinations.templeright=photos.templeright;
-photos.templedoor={url:'temple-doorway.jpg',caption:'September 2011 · Just before the temple entrance door · 15.15.51',p:[39,.20,3.05],target:[39,2.18,6.1],fov:84};
+photos.templedoor={url:'temple-doorway.jpg',caption:'September 2011 · Just before the temple entrance door · 15.15.51',p:[39,.20,7.55],target:[39,2.18,10.6],fov:84};
 photos.adjacent={url:'temple.jpg',caption:'September 2011 · The building adjacent to the temple · 15.19.57',p:[51,.047,-5],target:[60,5,-5],fov:75};
 destinations.temple=photos.temple;destinations.templedoor=photos.templedoor;
 photos.lakeleft={url:'lakeleft.jpg',caption:'September 2011 · Across the lake, left of the temple · 15.22.33',p:[23.1,1.38,-37.4],target:[44,2.3,-2],fov:60};
 photos.lakemiddle={url:'lakemiddle.jpg',caption:'September 2011 · Across the lake, right side of the temple · 15.22.36',p:[23.1,1.38,-37.4],target:[25,2.3,-1],fov:54};
 photos.lakehouse={url:'lakehouse.jpg',caption:'September 2011 · Across the lake, the house · 15.22.40',p:[23.1,1.38,-37.4],target:[1,2.8,1],fov:50};
 for(const key of ['lakeleft','lakemiddle','lakehouse'])destinations[key]=photos[key];
-photos.templepicturesleft={url:'temple-ganesh-shiva.jpg',caption:'September 2011 · Ganesh and Shiva, left of the entrance · 15.14.30',p:[42.8,.85,3.25],target:[43.3,2.25,5.82],fov:76};
-photos.templevishnu={url:'temple-vishnu.jpg',caption:'September 2011 · Vishnu, right of the entrance · 15.15.11',p:[35.5,.85,3.25],target:[35.65,2.25,5.82],fov:58};
-photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuman, far right · 15.15.17',p:[33.8,.85,3.25],target:[33.8,2.25,5.82],fov:58};
-photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[23.7,.051,-4.1],target:[23.7,-.25,-1.3],fov:78};
-photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,1.38,-37.4],target:[36,3.6,1],fov:58};
+photos.templepicturesleft={url:'temple-ganesh-shiva.jpg',caption:'September 2011 · Ganesh and Shiva, left of the entrance · 15.14.30',p:[42.8,.85,7.75],target:[43.3,2.25,10.32],fov:76};
+photos.templevishnu={url:'temple-vishnu.jpg',caption:'September 2011 · Vishnu, right of the entrance · 15.15.11',p:[35.5,.85,7.75],target:[35.65,2.25,10.32],fov:58};
+photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuman, far right · 15.15.17',p:[33.8,.85,7.75],target:[33.8,2.25,10.32],fov:58};
+photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[23.7,.051,0.4],target:[23.7,-.25,3.2],fov:78};
+photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,1.38,-37.4],target:[36,3.6,5.5],fov:58};
 for(const key of ['templepicturesleft','templevishnu','templehanuman','templepond','templeacross'])destinations[key]=photos[key];
 photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.036,-12.6],target:[59.6,2.57,-21.1],fov:60};
 photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-6.3,0,-23],target:[59.8,-.8,-25.4],fov:34};
@@ -135,8 +135,8 @@ photos.upperright={url:'house-upper-right.jpg',caption:'September 2011 · Same u
 destinations.upstairs=photos.upperahead;destinations.upperahead=photos.upperahead;destinations.upperright=photos.upperright;
 destinations.upperfarther={p:[-4.8,3.85,.72],target:[52,1.4,-35],fov:70};
 destinations.houseexitleft={p:[5.4,.051,-5.3],target:[-40,2.8,-6.8],fov:68};
-destinations.templeentryreturn={p:[48.5,.1,10.7],target:[50.7,2.0,6.4],fov:75};
-const tour=createPhotoTour(photos,supportY,K.houseShiftX);
+destinations.templeentryreturn={p:[48.5,.1,15.2],target:[50.7,2.0,10.9],fov:75};
+const tour=createPhotoTour(photos,supportY,K.houseShiftX,K.templeShiftZ);
 // Change only the entry time: the route, segment order and loop stay intact.
 const tourStartTime=tour.spans.find(s=>s.a.label==='Along the lane').start;
 tourTime=tourStartTime;
@@ -148,7 +148,7 @@ function lakeCameraLift(x,z){z=farZinv(z,x);
 }
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
-function terrainY(x,z){z=farZinv(z,x);if(x>32.9&&x<35.1&&z>-38.8&&z<=-37)return -8;if(x>-5.35&&x<=-5&&z>-25.2&&z<-22.8||x>=49.4&&x<50.35&&z>-23.5&&z<-20.8||x>-3.5&&x<-1.1&&z>-38.4&&z<=-37||x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(x>23&&x<28&&z>-3&&z<0)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
+function terrainY(x,z){z=farZinv(z,x);if(x>32.9&&x<35.1&&z>-38.8&&z<=-37)return -8;if(x>-5.35&&x<=-5&&z>-25.2&&z<-22.8||x>=49.4&&x<50.35&&z>-23.5&&z<-20.8||x>-3.5&&x<-1.1&&z>-38.4&&z<=-37||x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(x>21.3&&x<26.1&&z>K.templeShiftZ-3&&z<K.templeShiftZ)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
 function supportY(x,z,previous){let best=terrainY(x,z);for(const s of K.surfaces){if(inside(x,z,s)&&s.y<=previous+.38&&s.y>best)best=s.y;}
  for(const r of K.ramps)if(inside(x,z,r)){let t=r.axis.endsWith('x')?(x-(r.x-r.w/2))/r.w:(z-(r.z-r.d/2))/r.d;if(r.axis.startsWith('-'))t=1-t;const h=THREE.MathUtils.lerp(r.lowY,r.highY,THREE.MathUtils.clamp(t,0,1));if(h<=previous+.38&&h>best)best=h;}
  return best;
@@ -277,7 +277,7 @@ function move(dt){if(aligning)alignPad(dt);else if(['walk','fly'].includes(mode)
  if(mode==='fly')return;
  const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62+lakeCameraLift(camera.position.x,camera.position.z),16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
 }
-function location(x,z,y){z=farZinv(z,x);const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';if(x>14.6&&x<21&&z>-7&&z<34)return x>17.3&&z>11&&z<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>21&&x<58.2&&z>-1&&z<45.8){if(z<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(z>37.8)return x>50?'The three vaulted shrines':'The rear temple circuit';if(z>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
+function location(x,z,y){z=farZinv(z,x);const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';const tz=z-K.templeShiftZ;if(x>14.6&&x<21&&z>-7&&z<34+K.templeShiftZ)return x>17.3&&tz>11&&tz<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>21&&x<58.2&&tz>-1&&tz<45.8){if(tz<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(tz>37.8)return x>50?'The three vaulted shrines':'The rear temple circuit';if(tz>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){

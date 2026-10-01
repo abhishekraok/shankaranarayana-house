@@ -16,7 +16,15 @@ committed) still apply.
 - Skipped (conflict or needs the user): back-courtyard tin lean-to (14.44.14/48, 14.46.10),
   bell-hall pillar material (15.14.51), covered-hall depth (temple right side -45), far-bank
   building heights (15.11.58 vs 14.58.26), house balcony lattice colour, porch bell position.
-- Needs re-aligning: 15.15.26 (camera too far east).
+- Temple setback (2026-10-01, user's note on 15.15.26: "the house is clearly a bit ahead of these temple
+  outside pillars"): the whole temple complex, its corner building, the forecourt pond and the low white
+  outbuilding sit `K.templeShiftZ` = 4.5 m back from the lane (measured 3.5-6 m). temple.js stays authored
+  on the house's front line and is shifted at the end of `buildTemple`, like `K.houseShiftX`. 61 saved
+  poses moved with it (backup: `F:/Shankaranarayana/align-poses.before-temple-setback-2026-10-01.json`).
+  `tests/entrance-geometry.mjs` runs the temple at its authored position; `tests/temple-setback.mjs`
+  checks the shipped placement. The user rejected sliding the house along the lane, although 15.00.01,
+  15.12.03 and 15.15.26 still show the wing end further from the corner building than modelled.
+  Worth re-aligning now: 14.58.48, 14.59.36, 15.00.01 (lane views that include the corner building).
 
 ## User answers (2026-09-29)
 
