@@ -1409,12 +1409,12 @@ export function buildHouse(K) {
   b('Temple-facing block door threshold',wingX1+.12,.19,1.5,.38,.10,1.12,'stone');
   b('Temple-facing block stone boundary post',wingX1+.3,.70,wingZ0-.5,.24,1.38,.26,'stone',true);
   const tarp=new THREE.MeshStandardMaterial({color:'#218fad',roughness:.88,side:THREE.DoubleSide});
-  const tarpGeometry=new THREE.PlaneGeometry(2.5,2.3,18,18),tp=tarpGeometry.attributes.position;
+  const tarpGeometry=new THREE.PlaneGeometry(2.5,1.8,18,18),tp=tarpGeometry.attributes.position;
   for(let i=0;i<tp.count;i++){
     const x=tp.getX(i),y=tp.getY(i),fold=.12*Math.sin(x*8+y*2)+.045*Math.sin(y*14);
     tp.setXYZ(i,x,y-.15*Math.cos(x*2.4),fold);
   }
-  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(wingX1+.07,1.9,3.6);g.add(tarpSheet);
+  tarpGeometry.computeVertexNormals();const tarpSheet=new THREE.Mesh(tarpGeometry,tarp);tarpSheet.name='Blue tarp beside the temple-facing block';tarpSheet.rotation.y=Math.PI/2;tarpSheet.position.set(wingX1+.26,1.38,3.6);g.add(tarpSheet);
   // Roof framing is grouped with the cutaway roofs.
   const roofTimber=new THREE.Group();roofTimber.name='Exposed veranda roof rafters';g.add(roofTimber);K.roofs.push(roofTimber);
   for(let z=6.3;z<17.8;z+=.55) {
