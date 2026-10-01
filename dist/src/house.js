@@ -498,9 +498,14 @@ export function buildHouse(K) {
   }
   // User's notes: no leaves at the left doorway; the blue pier and door in front of the God
   // room are gone, so the opening runs on to x 6.325.
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:.5,w:11.65,top:3.1}]);
+  // User's note ('left hand side when entering 2'): no wall stub in the middle either; the room runs
+  // open to the stair-wing partition, so the opening now ends at x 9.05.
+  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:1.8625,w:14.375,top:3.1}]);
   doorX(-6.15,4.05,1.65,F,2.45,1,false);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
+  // The wing's rooms are not photographed: its doorway stays shut behind a plain timber door.
+  b('Front room closed door to the wing',9.07,F+1.3,4.8,.07,2.6,1.7,verandaTimber);
+  for(const z of [4.23,4.8,5.37])b('Front room wing door batten',9.02,F+1.3,z,.03,2.5,.07,'wood');
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
   doorX(-10.05,12.1,1.55);
@@ -1400,7 +1405,7 @@ export function buildHouse(K) {
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
   b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
-  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.0+wingX1+1.0)/2,wingCz,wingX1+1.0-9.0,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops at the house wall (it poked into the front room)
+  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.28+wingX1+1.0)/2,wingCz,wingX1+1.0-9.28,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops behind the house wall (its fascia showed inside the front room)
   wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
