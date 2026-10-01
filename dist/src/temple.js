@@ -1993,8 +1993,9 @@ export function buildTemple(K) {
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
   box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
-  // 15.22.36 (head-on across the lake): four-metre bays, measured against the 2.72 m shutter.
-  for(const x of [20.38,24.4,28.4]){
+  // 14.59.21 / 15.19.36 / 15.20.01 (close, from the forecourt): five slim piers on even bays of
+  // about 3.6 m, one thing per bay from the road corner: shutter, window, sign board, window.
+  for(const x of [20.38,24.0,27.63]){
     box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);
     box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);
   }
@@ -2020,7 +2021,7 @@ export function buildTemple(K) {
   }
   // 15.22.36 / 14.59.21: two narrow barred windows without leaves in the second bay, and one
   // broad blue-framed upper window centred on each bay, its timber leaves open.
-  for(const x of [26.1,29.7])edgeWindow(x,1.73,1.28,.95,1.55,false);
+  edgeWindow(25.05,1.73,1.28,.95,1.55,false);
   for(const x of [22.4,26.4])edgeWindow(x,5.23,1.30,1.55,1.85);
   floor('Temple road upper balcony',25.15,.64,9.98,1.85,3.46,balconyCement); // 15.12.03: dark grey cement
   box('Temple road balcony white soffit',25.15,3.32,.64,10.05,.18,1.9,edgeWhite);
@@ -2035,7 +2036,7 @@ export function buildTemple(K) {
     box('Temple road balcony front rail',25.15,y,-.25,10.02,.15,.19,balconyRed);
     box('Temple road balcony side rail',20.20,y,4.34,.19,.15,9.1,balconyRed);
   }
-  for(const x of [20.20,24.4,28.4])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
+  for(const x of [20.20,24.0,27.63])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
   K.blocker(25.15,-.25,10.02,.20,3.46,4.49);
   K.blocker(20.20,4.34,.2,9.1,3.46,4.49);
   const edgeRoof=box('Temple road corner flat roof',25.13,6.72,4.43,10.05,.21,9.48,edgeWhite);K.roofs.push(edgeRoof);
@@ -2224,10 +2225,12 @@ export function buildTemple(K) {
    // Road-corner frontage carried across W0..W1: porch piers, balcony, roof and parapet,
    // and an upper front wall set back behind the balcony with shuttered windows.
    const xm=(W0+W1)/2,w=W1-W0;
-   for(const x of [32.3,W1-.12]){box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);}
+   for(const x of [31.25,W1-.12]){box('Temple road porch white pier',x,1.78,.06,.25,3.13,.25,edgeWhite,true);box('Temple road porch red foot',x,.48,.04,.27,.52,.29,red);}
    box('Temple road corner lower frontage',xm,1.91,1.3,w,3.38,.24,edgeWhite,true);
-   // 15.22.36 / 14.59.21: no windows here; a donor sign board over a small bench.
-   box('Temple road donor sign board',33.85,2.6,1.15,2.6,.42,.05,edgeWhite);box('Temple road donor sign red border',33.85,2.6,1.17,2.7,.5,.03,balconyRed);
+   // 14.59.21 / 15.19.36: the red-lettered sign board hangs in the third bay; the fourth has a
+   // barred window like the second.
+   box('Temple road donor sign board',28.85,2.6,1.42,2.2,.42,.05,edgeWhite);box('Temple road donor sign red border',28.85,2.6,1.44,2.3,.5,.03,balconyRed);
+   edgeWindow(33.05,1.73,1.11,.95,1.55,false);
    // User's note: the tiled porch runs on under these piers (stopping at the wash trough);
    // no bench.
    floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,oxideFloor);
@@ -2235,7 +2238,7 @@ export function buildTemple(K) {
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,balconyCement);
    for(const y of [3.63,4.4])box('Temple road balcony front rail',xm,y,-.25,w,.15,.19,balconyRed);
-   for(const x of [32.3,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
+   for(const x of [31.25,W1])box('Temple road red balcony post',x,4.01,-.25,.22,.95,.23,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road white front balcony baluster',x,4.0,-.25,.07,.62,.07,whiteTrim);
    K.blocker(xm,-.25,w,.25,3.46,4.5);
    box('Temple road upper front wall',xm,5.15,1.1,w,2.9,.24,edgeWhite,true);
