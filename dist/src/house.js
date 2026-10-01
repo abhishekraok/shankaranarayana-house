@@ -498,9 +498,14 @@ export function buildHouse(K) {
   }
   // User's notes: no leaves at the left doorway; the blue pier and door in front of the God
   // room are gone, so the opening runs on to x 6.325.
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:.5,w:11.65,top:3.1}]);
+  // User's note ('left hand side when entering 2'): no wall stub in the middle either; the room runs
+  // open to the stair-wing partition, so the opening now ends at x 9.05.
+  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:1.8625,w:14.375,top:3.1}]);
   doorX(-6.15,4.05,1.65,F,2.45,1,false);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
+  // The wing's rooms are not photographed: its doorway stays shut behind a plain timber door.
+  b('Front room closed door to the wing',9.07,F+1.3,4.8,.07,2.6,1.7,verandaTimber);
+  for(const z of [4.23,4.8,5.37])b('Front room wing door batten',9.02,F+1.3,z,.03,2.5,.07,'wood');
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
   doorX(-10.05,12.1,1.55);
@@ -850,14 +855,18 @@ export function buildHouse(K) {
   const discMap=new THREE.CanvasTexture(discCanvas);discMap.colorSpace=THREE.SRGBColorSpace;
   const discMetal=new THREE.MeshStandardMaterial({map:discMap,bumpMap:discMap,bumpScale:.003,metalness:.42,roughness:.87});
   const discRim=new THREE.MeshStandardMaterial({color:'#807259',metalness:.45,roughness:.85});
-  b('God room disc hanging timber rail',1.915,3.34,9.14,.07,.34,1.05,shrineTimber);
-  for(const [z,r,y] of [[8.91,.145,3.12],[9.29,.205,3.10]]){
+  // User's note ('God room, left side'): the two metal plates hang on the wall ahead, beside the
+  // doorway of the small shrine room, above a framed print. Named 'Altar ...' so they move with it.
+  const altarWallZ=8.58;
+  b('Altar wall disc hanging timber rail',1.545,3.04,altarWallZ-.065,.74,.07,.05,shrineTimber);
+  for(const [x,r,y] of [[1.72,.145,2.84],[1.38,.205,2.80]]){
+    const z=altarWallZ-.07;
     const metalDisc=new THREE.Mesh(new THREE.CylinderGeometry(r,r,.014,48),discMetal);
-    metalDisc.name='God room hanging weathered metal disc';metalDisc.rotation.z=Math.PI/2;metalDisc.position.set(1.848,y,z);metalDisc.castShadow=true;metalDisc.receiveShadow=true;g.add(metalDisc);
-    const rim=new THREE.Mesh(new THREE.TorusGeometry(r-.007,.007,7,48),discRim);rim.name='God room disc rounded worn rim';rim.rotation.y=-Math.PI/2;rim.position.set(1.836,y,z);g.add(rim);
-    const hole=new THREE.Mesh(new THREE.CircleGeometry(.009,12),new THREE.MeshStandardMaterial({color:'#302e28',roughness:1}));hole.name='God room disc suspension hole';hole.rotation.y=-Math.PI/2;hole.position.set(1.835,y+r-.023,z);g.add(hole);
-    const loop=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,16),discRim);loop.name='God room disc suspension loop';loop.rotation.y=-Math.PI/2;loop.position.set(1.843,y+r-.008,z);g.add(loop);
-    K.beam(g,'God room disc short hanging wire',[1.85,y+r+.01,z],[1.90,3.44,z],.005,discRim);
+    metalDisc.name='Altar wall hanging weathered metal disc';metalDisc.rotation.x=Math.PI/2;metalDisc.position.set(x,y,z);metalDisc.castShadow=true;metalDisc.receiveShadow=true;g.add(metalDisc);
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(r-.007,.007,7,48),discRim);rim.name='Altar wall disc rounded worn rim';rim.position.set(x,y,z-.012);g.add(rim);
+    const hole=new THREE.Mesh(new THREE.CircleGeometry(.009,12),new THREE.MeshStandardMaterial({color:'#302e28',roughness:1}));hole.name='Altar wall disc suspension hole';hole.rotation.y=Math.PI;hole.position.set(x,y+r-.023,z-.013);g.add(hole);
+    const loop=new THREE.Mesh(new THREE.TorusGeometry(.018,.003,6,16),discRim);loop.name='Altar wall disc suspension loop';loop.position.set(x,y+r-.008,z-.005);g.add(loop);
+    const wire=K.beam(g,'Altar wall disc short hanging wire',[x,y+r+.01,z],[x,3.04,z+.01],.005,discRim);if(wire)wire.name='Altar wall disc short hanging wire';
   }
   // 14.35.26 (shrine.jpg): a low ledge and four white stepped tiers with dark
   // timber treads carry brass bells, standing plates, a flame-edged arch, bronze
@@ -959,6 +968,37 @@ export function buildHouse(K) {
   for(const x of [altarX0-.02,altarX1+.02]){K.column(g,'Altar pale fluted pillar',x,altarFront-.2,shrineFloor,2.34,.13,pillarPaint);
     for(let i=0;i<3;i++)b('Altar pillar carved capital ring',x,2.28+i*.09,altarFront-.2,.36-i*.05,.06,.36-i*.05,pillarPaint);}
   for(const x of [altarX0-.1,altarX1+.1])b('Altar niche dark side panel',x,2.30,(altarFront+altarBack)/2-.1,.06,2.44,altarBack-altarFront+.2,frameBack);
+  // User's note: the God shelf stands inside a small room. Its front wall runs across the God room
+  // at the pillar line: turquoise plaster below dark boards either side, and a doorway of three
+  // stepped dark timber frames in front of the shelf ('God room, left side' shows it on the right).
+  {const z=altarWallZ,top=3.52,band=2.72,d0=altarX0-.14,d1=altarX1+.14;
+   for(const [x0,x1] of [[-1.93,d0],[d1,1.93]]){
+     b('Altar room front wall turquoise plaster',(x0+x1)/2,(shrineFloor+band)/2,z,x1-x0,band-shrineFloor,.10,verandaAqua);
+     b('Altar room front wall dark upper boards',(x0+x1)/2,(band+top)/2,z,x1-x0,top-band,.10,frameWood);
+     b('Altar room front wall red skirting',(x0+x1)/2,shrineFloor+.09,z-.056,x1-x0,.18,.012,'red');
+   }
+   const head=3.16;
+   b('Altar room wall above the doorway',(d0+d1)/2,(head+top)/2,z,d1-d0,top-head,.10,frameWood);
+   for(let k=0;k<3;k++){
+     const inset=k*.075,zz=z-.07+k*.045,h=head-inset-shrineFloor;
+     for(const x of [d0+.05+inset,d1-.05-inset])b('Altar room stepped doorway jamb',x,shrineFloor+h/2,zz,.10,h,.06,frameWood);
+     b('Altar room stepped doorway lintel',(d0+d1)/2,head-inset-.05,zz,d1-d0-2*inset,.10,.06,frameWood);
+   }
+   // Flat framed prints on the wall ahead: painted stand-ins, not the photograph.
+   const print=(name,x,y,w,h,ground,figure,tilt)=>{
+     const c=document.createElement('canvas');c.width=128;c.height=160;const q=c.getContext('2d');
+     q.fillStyle='#e9e2cf';q.fillRect(0,0,128,160);q.fillStyle=ground;q.fillRect(8,8,112,144);
+     q.fillStyle=figure;q.beginPath();q.arc(64,62,17,0,Math.PI*2);q.fill();q.beginPath();q.moveTo(30,138);q.quadraticCurveTo(64,58,98,138);q.closePath();q.fill();
+     q.fillStyle='#f3d9a2';q.beginPath();q.arc(64,62,9,0,Math.PI*2);q.fill();q.fillStyle='#b8862f';q.fillRect(22,136,84,8);
+     const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
+     const frame=b(name+' dark frame',x,y,z-.065,w+.07,h+.07,.03,frameWood);
+     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:.75}));
+     sheet.name=name;sheet.rotation.y=Math.PI;sheet.position.set(x,y,z-.082);g.add(sheet);
+     if(tilt&&frame){frame.rotation.x=-tilt;sheet.rotation.x=tilt;}
+   };
+   print('Altar wall framed saint print',1.53,2.06,.42,.56,'#2f8f8b','#e2812d',0);
+   print('Altar wall upper framed print',1.50,3.30,.56,.34,'#35589a','#d9b24a',.16);
+  }
   detail(0,3.38,9.6,3.82,.2,.24,'wood');
   const lampMat=new THREE.MeshStandardMaterial({color:0xffe0a3,emissive:0xffb34a,emissiveIntensity:1.2});
   const lamp=new THREE.Mesh(new THREE.SphereGeometry(.075,10,8),lampMat);
@@ -1400,7 +1440,7 @@ export function buildHouse(K) {
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
   b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
-  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.0+wingX1+1.0)/2,wingCz,wingX1+1.0-9.0,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops at the house wall (it poked into the front room)
+  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.28+wingX1+1.0)/2,wingCz,wingX1+1.0-9.28,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops behind the house wall (its fascia showed inside the front room)
   wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
@@ -1576,7 +1616,9 @@ export function buildHouse(K) {
    for(const items of batches.values())for(const p of items){const z0=p.z-p.d/2,z1=p.z+p.d/2;if(!inX(p.x-p.w/2,p.x+p.w/2)||z0<5.4||z1>10.8)continue;
      if(z0>=CUT)p.z+=DEEP;else if(z1>CUT+.2){p.d+=DEEP;p.z+=DEEP/2;}}
    for(const c of K.colliders.slice(navStart.colliders)){if(!inX(c.minX,c.maxX)||c.minZ<5.4||c.maxZ>10.8)continue;
-     if(c.minZ>=CUT){c.minZ+=DEEP;c.maxZ+=DEEP;}else if(c.maxZ>CUT+.2)c.maxZ+=DEEP;}
+     const ofAltar=c.minZ>=8.6&&Math.abs(c.minX+c.maxX)<2.6; // pillars and ledge, in front of CUT but part of the altar
+     if(c.minZ>=CUT||ofAltar){c.minZ+=DEEP;c.maxZ+=DEEP;}else if(c.maxZ>CUT+.2)c.maxZ+=DEEP;}
+   for(const [x0,x1] of [[-1.93,altarX0-.14],[altarX1+.14,1.93]])K.blocker((x0+x1)/2,altarWallZ+DEEP,x1-x0,.14,shrineFloor,3.52);
    for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const z0=r.z-r.d/2,z1=r.z+r.d/2;if(!inX(r.x-r.w/2,r.x+r.w/2)||z0<5.4||z1>10.8)continue;
      if(z0>=CUT)r.z+=DEEP;else if(z1>CUT+.2){r.d+=DEEP;r.z+=DEEP/2;}}}
   // All tiny repeated timber, grille and furniture parts are instanced by material.
