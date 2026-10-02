@@ -1437,7 +1437,7 @@ export function buildHouse(K) {
   // 15.22.40 (the Ritz as a 1.62 m ruler) and 15.28.36: a deep, steep awning whose eave
   // hangs about 2.35 m above the lane, rising some 1.4 m to meet the wall under the lattice.
   const porchEndX=9.2,porchEaveZ=-1.8,porchHeight=z=>z<.5?2.35+(z-porchEaveZ)*1.4/(.5-porchEaveZ):3.75+(z-.5)*.23/1.58;
-  for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])for(const [x,z] of [[-7.8,za],[porchEndX,za],[porchEndX,zb],[-7.8,za],[porchEndX,zb],[-7.8,zb]]){porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
+  for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])for(const [x,z] of [[-7.8,za],[porchEndX,zb],[porchEndX,za],[-7.8,za],[-7.8,zb],[porchEndX,zb]]){ /* wound so the normals point up (the game shades by them) */porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
   porchGeometry.setAttribute('position',new THREE.Float32BufferAttribute(porchVertices,3));
   porchGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(porchUvs,2));porchGeometry.computeVertexNormals();
   const porchMaterial=mat('tile').clone();porchMaterial.side=THREE.DoubleSide;
@@ -1564,7 +1564,10 @@ export function buildHouse(K) {
   const wingRoof=new THREE.Group();wingRoof.name='Temple-side wing hipped tiled roof';g.add(wingRoof);K.roofs.push(wingRoof);
   {const xe=wingX1+1.0,zl=wingZ0-.95,zr=wingZ1+.95,eave=2.42,ridge=5.02,inset=Math.min((zr-zl)*.45,(xe-9.28)*.4);
    const V={A:[9.28,eave,zl],A2:[11.975,eave,zl],B:[xe,eave,zl],C:[xe,eave,zr],D:[11.975,eave,zr],W:[11.975,ridge,wingCz],E:[xe-inset,ridge,wingCz],S1:[9.28,3.79,.175],S2:[11.975,3.79,.175]};
-   const pos=[],uv=[];for(const f of [['A2','B','E'],['A2','E','W'],['A','A2','S2'],['A','S2','S1'],['C','D','W'],['C','W','E'],['B','C','E']])for(const k of f){pos.push(...V[k]);uv.push(V[k][0]*.36,V[k][2]*.36);}
+   const pos=[],uv=[];for(const f of [['A2','B','E'],['A2','E','W'],['A','A2','S2'],['A','S2','S1'],['C','D','W'],['C','W','E'],['B','C','E']]){
+     // Wind every face so its normal points up: the game shades by the true normal and showed this roof black.
+     const [p0,p1,p2]=f.map(k=>V[k]),ny=(p1[2]-p0[2])*(p2[0]-p0[0])-(p1[0]-p0[0])*(p2[2]-p0[2]);
+     for(const k of ny<0?[f[0],f[2],f[1]]:f){pos.push(...V[k]);uv.push(V[k][0]*.36,V[k][2]*.36);}}
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.computeVertexNormals();
    const tiles=K.M.tile.clone();tiles.side=THREE.DoubleSide;
    const mesh=new THREE.Mesh(geo,tiles);mesh.name='Temple-side wing hipped tiled roof tiles';mesh.castShadow=mesh.receiveShadow=true;wingRoof.add(mesh);
