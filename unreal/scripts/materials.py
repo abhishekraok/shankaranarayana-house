@@ -263,6 +263,10 @@ def bind_map(mi, record, prefix=''):
     MEL.set_material_instance_vector_parameter_value(mi, prefix+'UVRowU', unreal.LinearColor(a[0],a[3],a[6],0))
     MEL.set_material_instance_vector_parameter_value(mi, prefix+'UVRowV', unreal.LinearColor(a[1],a[4],a[7],0))
     MEL.set_material_instance_scalar_parameter_value(mi, prefix+'FlipY', float(record['flipY']))
+# Finishes the game's sky light lifts well above the photographs although the web colour is right there
+# (2026-10-02 captures against 15.23.35 and 14.44.09). Linear multipliers on the instance colour, by web material name.
+GAME_TINT = {'tank stone': .22, 'tank mossy stone': .22, 'tank tread top': .3, 'court sheet barrier': .42}
+
 def instance(i):
     if i in made: return made[i]
     web = M[i]
@@ -312,6 +316,8 @@ def instance(i):
         # Scale by the web's own emissive intensity. The sanctum reads dark in the photos: flames (3.2) at 16, the shelf image (0.25) and skylights (0.35) no longer blow out.
         MEL.set_material_instance_scalar_parameter_value(mi, 'EmissionStrength', 6.0 if i in bulb_materials else 5.0 * float(web.get('emissiveIntensity') or 3.2))
     if i in polished_brass: c = unreal.LinearColor(.48, .30, .085, 1)
+    k = GAME_TINT.get(web['name'])
+    if k: c = unreal.LinearColor(c.r * k, c.g * k, c.b * k, 1)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
