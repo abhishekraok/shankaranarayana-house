@@ -1443,9 +1443,9 @@ export function buildHouse(K) {
   K.box(porchRoof,'Veranda timber ceiling underside',0,3.59,1.05,11.35,.035,2.04,verandaTimber);
   for(let x=-5.5;x<5.6;x+=.27)K.box(porchRoof,'Veranda close ceiling board joint',x,3.568,1.05,.012,.012,2.04,'black');
   const blade=new THREE.BufferGeometry();blade.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,0,.5,0,0,-.22,.55,.17,.22,.55,.17,.10,1,.55],3));blade.setIndex([0,1,2,1,3,2,2,3,4]);blade.computeVertexNormals();
-  const roofGrowth=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:'#aaa38e',roughness:1,side:THREE.DoubleSide}),2400);
+  const roofGrowth=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:'#b5a67c',roughness:1,side:THREE.DoubleSide}),5200); // house-front.jpg / 15.23.35: a thick mat of dry grass over most of the awning
   const growthPose=new THREE.Object3D();
-  for(let i=0;i<2400;i++){const x=-7.45+((i*173)%2399)/2399*(porchEndX-7.45-.3),z=porchEaveZ+.3+((i*317)%2393)/2393*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>.1;growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(.012+(i%5)*.004,dense?.14+(i%9)*.021:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
+  for(let i=0;i<5200;i++){const x=-7.45+((i*173)%5197)/5197*(porchEndX+7.45-.3),z=porchEaveZ+.3+((i*317)%5189)/5189*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>(x>-4.5?-.75:.1);growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(dense?.03+(i%5)*.008:.012+(i%5)*.004,dense?.20+(i%9)*.028:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
   roofGrowth.name='Dry grass and moss on the lower tiled awning';porchRoof.add(roofGrowth);
   K.hipRoof(g,'West range tiled roof',-10.18,12.0,4.6,13.1,3.62,1.12);
   const rearRoof=K.hipRoof(g,'Rear veranda tiled roof',-.50,16.38,18.2,4.25,3.64,1.05);
