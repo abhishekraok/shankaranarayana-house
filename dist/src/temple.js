@@ -1998,7 +1998,8 @@ export function buildTemple(K) {
   const edgeWhite=K.M.plaster.clone();edgeWhite.color.set('#f4f1eb');
   const balconyRed=mat('#9a4541'),balconyCement=mat('#7b7a74',.95),frostedGlass=mat('#c8d0cd',.25),shutterBlue=mat('#536d78',.86),tarpBlue=mat('#168cba');
   // 15.19.36 / 14.59.21: a red-oxide floor, not white tiles.
-  floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,oxideFloor);
+  const porchCement=mat('#bd9068',.95); // 14.59.21 / 15.19.36: pinkish-tan cement, not red oxide
+  floor('Temple road corner raised porch',25.15,.66,9.75,1.62,.22,porchCement);
   // Keep the street facade and upper storey; the rear ground floor opens into the hall.
   // Leave the service porch's rear-west corner hollow; this frontage used
   // to be one solid block intersecting its newly recovered interior.
@@ -2259,7 +2260,7 @@ export function buildTemple(K) {
    edgeWindow(33.05,1.73,1.11,.95,1.55,false);
    // User's note: the tiled porch runs on under these piers (stopping at the wash trough);
    // no bench.
-   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,oxideFloor);
+   floor('Temple road corner raised porch',(W0+34.14)/2,.66,34.14-W0,1.62,.22,porchCement);
    box('Temple road balcony white soffit',xm,3.32,.4,w,.18,1.4,edgeWhite);
    box('Temple road balcony red fascia',xm,3.46,-.32,w,.25,.16,balconyRed);
    floor('Temple road upper balcony',xm,.4,w,1.4,3.46,balconyCement);
