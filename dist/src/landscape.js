@@ -536,7 +536,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const pavilionChildren=group.children.length,pavilionColliders=K.colliders.length,pavilionSurfaces=K.surfaces.length,pavilionRamps=K.ramps.length;
   const px = -14.7, pz = -39.55, pw = 5.0, pd = 4.45, floor = -.29;
   // 14.58.26: the pavilion stands on grey-brown dressed stone, clearly lighter than the water.
-  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#7d7468',roughness:1}));
+  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#5a5852',roughness:1})); // 15.21.56 / 15.30.02: dark wet stone
   box('pavilion pale floor', px, floor - .07, pz, pw, .14, pd, materials.oldWhite);
   K.surface(px, pz, pw, pd, floor);
   // The bank entry is rebuilt in final coordinates below, after placement.
@@ -562,8 +562,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   const pavilionRoof = new THREE.Group();
   pavilionRoof.name = 'pavilion flat roof and scalloped fascia';
   group.add(pavilionRoof);
-  box('pavilion weathered flat slab', px, 2.205, pz, pw + .54, .19, pd + .54, materials.oldWhite, false, pavilionRoof);
-  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, materials.roofConcrete, false, pavilionRoof);
+  // Photo review: the slab and its lips are stained grey, not white.
+  const pavilionGrey=materials.oldWhite.clone();pavilionGrey.color.set('#9a9a94');
+  box('pavilion weathered flat slab', px, 2.205, pz, pw + .54, .19, pd + .54, pavilionGrey, false, pavilionRoof);
+  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, new THREE.MeshStandardMaterial({color:'#857668',roughness:1}), false, pavilionRoof);
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
     for (let i = count * 12; i >= 0; i--) {
@@ -599,8 +601,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     fascia(pd - .6, px + sx * (pw / 2 - .23), 1.99, pz + (pd - .6) / 2, Math.PI / 2, 5, .43);
   }
   // Low, moss-stained upstand and scattered weathering on the flat roof.
-  for (const sz of [-1, 1]) box('pavilion roof lip', px, 2.36, pz + sz * (pd + .39) / 2, pw + .54, .1, .08, materials.mortar, false, pavilionRoof);
-  for (const sx of [-1, 1]) box('pavilion roof lip', px + sx * (pw + .39) / 2, 2.36, pz, .08, .1, pd + .54, materials.mortar, false, pavilionRoof);
+  for (const sz of [-1, 1]) box('pavilion roof lip', px, 2.36, pz + sz * (pd + .39) / 2, pw + .54, .1, .08, pavilionGrey, false, pavilionRoof);
+  for (const sx of [-1, 1]) box('pavilion roof lip', px + sx * (pw + .39) / 2, 2.36, pz, .08, .1, pd + .54, pavilionGrey, false, pavilionRoof);
   K.roofs.push(pavilionRoof);
   const pavilionPlacement=new THREE.Group();pavilionPlacement.name='Panorama near-bank pavilion';
   // 14.58.26 (from the lane) and 15.28.26 (from the west wall) both show the pavilion about

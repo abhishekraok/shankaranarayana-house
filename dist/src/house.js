@@ -20,7 +20,7 @@ export function buildHouse(K) {
   // 14.56.30: oiled near-black timber, worn to grey-brown where hands and
   // weather reach, with long vertical checks in the grain.
   {let n=19391;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};const c=timberPaint;
-   c.fillStyle='rgba(38,32,28,.55)';c.fillRect(0,0,512,512);
+   c.fillStyle='rgba(38,32,28,.36)';c.fillRect(0,0,512,512); // 14.56.30: weathered grey-brown (about #48352f), not black
    const soft=(x,y,rx,ry,rgb,a)=>{for(const dx of [-512,0,512])for(const dy of [-512,0,512]){c.save();c.translate(x+dx,y+dy);c.scale(rx,ry);const g=c.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);c.fillStyle=g;c.beginPath();c.arc(0,0,1,0,7);c.fill();c.restore();}};
    for(let i=0;i<26;i++)soft(r()*512,r()*512,18+r()*50,50+r()*120,'128,116,100',.18+r()*.22);
    for(let i=0;i<30;i++)soft(r()*512,r()*512,10+r()*30,30+r()*90,'20,17,15',.3+r()*.3);
