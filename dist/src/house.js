@@ -276,7 +276,8 @@ export function buildHouse(K) {
     K.beam(g,'Courtyard stored ladder rung',[-8.18,.50,z],[-8.24,1.04,z],.048,ladderWood,.050);
   }
 
-  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#898576');courtSupport.roughness=1;
+  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#8f7a66'); // 14.44.14 / 14.31.14: warm grey-brown granite, not olive
+  courtSupport.roughness=1;
   // 14.31.01 / 14.44.09 / 14.44.43: the east veranda edge matches the west one.
   for(const [sx,z] of [[-8.28,6.19],[-8.28,9.86],[-8.28,14.42],[7.18,6.19],[7.18,9.86],[7.18,14.42]]){
     const sd=sx<0?1:-1;
@@ -864,7 +865,7 @@ export function buildHouse(K) {
   const moss=K.M.plaster.clone();moss.color.set('#4f5839');
   // 14.44.09/14, 14.44.19, 14.44.48, 14.30.57: rough freestanding stone uprights and a
   // rounded pole follow the God room's east side, along the planted strip toward the east veranda.
-  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#8c887b');roughSupport.roughness=1;
+  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#9a8a74');roughSupport.roughness=1;
   for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
     const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position;
     for(let i=0;i<p.count;i++){
