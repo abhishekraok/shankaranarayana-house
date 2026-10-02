@@ -261,7 +261,7 @@ export function buildHouse(K) {
   function stairSideFence(a,end,x=-8.35){
     b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,railPlinth); // 14.30.57: dark laterite, not white stone
     for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',x,y,(a+end)/2,.11,.105,end-a,courtBlue);
-    for(let z=a+.08;z<end-.03;z+=.115)b('Stair-side close-spaced blue railing board',x,F+.63,z,.068,1.10,.052,courtBlue);
+    for(let z=a+.08;z<end-.03;z+=.085)b('Stair-side close-spaced blue railing board',x,F+.63,z,.068,1.10,.04,courtBlue); // 14.31.14: slim, close pickets
     for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',x,F+.66,z,.115,1.32,.115,courtBlue);
     K.blocker(x,(a+end)/2,.12,end-a,F,F+1.22);
   }
