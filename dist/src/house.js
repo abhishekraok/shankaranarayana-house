@@ -427,6 +427,9 @@ export function buildHouse(K) {
     b('Main door broad worn pilaster',s*(1.32-mainJambInset),1.83,1.85,.17,2.85,.18,verandaTimber);
     for(const y of [.62,.69,.78,3.01,3.10])b('Main door jamb moulding',s*(1.31-mainJambInset),y,1.84,.26,.045,.24,verandaTimber);
   }
+  // veranda-right.jpg: the whole door reveal is dark timber, through the wall's depth.
+  for(const s2 of [-1,1])b('Main door timber reveal',s2*.596,(F+3.15)/2,2.085,.012,3.15-F,.37,verandaTimber);
+  b('Main door timber reveal head',0,3.144,2.085,1.2,.012,.37,verandaTimber);
   b('Main door deep carved lintel',0,3.27,1.90,2.88-2*mainJambInset,.24,.29,verandaTimber);
   for(let j=0;j<3;j++)b('Main door lintel layered rim',0,3.38+j*.075,1.88,3.04-2*mainJambInset-j*.12,.06,.31,verandaTimber);
   const doorBoss=K.cylinder(g,'Main door central carved boss',0,3.27,1.723,.092,.108,.065,verandaTimber,12);doorBoss.rotation.x=Math.PI/2;

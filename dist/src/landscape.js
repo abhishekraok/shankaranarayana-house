@@ -410,6 +410,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance west stepped white pillar',30.15,1.85,-7.9,.3,1.5,.3,materials.oldWhite,true);
   box('Lake entrance west pillar collar',30.15,1.25,-7.9,.38,.16,.38,materials.oldWhite);
   box('Lake entrance black plaque',30.15,1.3,-7.585,.5,.32,.02,new THREE.MeshStandardMaterial({color:'#1b1b1a',roughness:.5}));
+  // 15.20.29: the lake side has the same pedestal and stepped pillar under the roof's west end.
+  box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.38,.56,1.1,.5,materials.oldWhite,true);
+  box('Lake entrance west stepped white pillar',30.15,1.85,-10.38,.3,1.5,.3,materials.oldWhite,true);
+  box('Lake entrance west pillar collar',30.15,1.25,-10.38,.38,.16,.38,materials.oldWhite);
   box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
   box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
   box('Lake entrance east room dark doorway',47.9,1.05,-10.26,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
