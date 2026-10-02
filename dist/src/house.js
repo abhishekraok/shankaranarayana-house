@@ -602,11 +602,12 @@ export function buildHouse(K) {
     }
   }
   // Square bases transition into long octagonal necks and bulbous ring capitals.
-  const capitalProfile=[[.215,0],[.235,.055],[.25,.08],[.21,.12],[.235,.16],[.265,.20],[.24,.24],[.29,.29],[.30,.34],[.26,.39],[.30,.44],[.31,.50],[.27,.55],[.32,.61],[.29,.68],[.23,.74],[.26,.79],[.29,.84],[.24,.91]];
+  // 14.56.07 / 14.56.22 / 14.56.30: the ringed capital is no wider than the square shaft under it.
+  const capitalProfile=[[.15,0],[.165,.05],[.175,.075],[.15,.11],[.165,.15],[.185,.19],[.168,.23],[.195,.28],[.20,.33],[.178,.38],[.20,.43],[.205,.49],[.185,.54],[.205,.60],[.195,.67],[.16,.73],[.18,.78],[.195,.83],[.165,.90]];
   for(const x of [-4.02,-1.65,1.65,4.02]) {
     b('Entrance seating post stone foot',x,.80,.36,.58,.10,.55,'stone');
     b('Entrance seating square timber shaft',x,1.50,.36,.42,1.35,.42,verandaTimber,true);
-    b('Entrance seating narrow square neck',x,2.24,.36,.34,.25,.34,verandaTimber);
+    b('Entrance seating narrow square neck',x,2.24,.36,.30,.25,.30,verandaTimber);
     const cap=new THREE.Mesh(new THREE.LatheGeometry(capitalProfile.map(([r,y])=>new THREE.Vector2(r,y)),8),verandaTimber);
     cap.name='Entrance post sculpted octagonal capital';cap.position.set(x,2.37,.36);cap.rotation.y=Math.PI/8;cap.castShadow=true;cap.receiveShadow=true;g.add(cap);
     b('Entrance seating post capital',x,3.35,.36,.64,.17,.55,verandaTimber);
@@ -619,7 +620,7 @@ export function buildHouse(K) {
   // The photographed deep scalloped brackets span the seating bay, not a
   // straight stack of little blocks. Their lowest edge stays above head height.
   const bracket=new THREE.Shape();bracket.moveTo(0,0);bracket.lineTo(1.24,0);bracket.lineTo(1.24,-.14);
-  bracket.bezierCurveTo(1.13,-.19,1.09,-.31,.99,-.21);bracket.bezierCurveTo(.92,-.34,.85,-.88,.77,-.29);
+  bracket.bezierCurveTo(1.13,-.19,1.09,-.31,.99,-.21);bracket.bezierCurveTo(.93,-.30,.86,-.38,.77,-.29);
   bracket.bezierCurveTo(.62,-.43,.43,-.45,.23,-.43);bracket.lineTo(.23,-.54);bracket.lineTo(0,-.54);bracket.closePath();
   const bracketGeom=new THREE.ExtrudeGeometry(bracket,{depth:.19,bevelEnabled:true,bevelSegments:1,steps:1,bevelSize:.013,bevelThickness:.012});
   for(const x of [-4.02,-1.65,1.65,4.02])for(const side of [-1,1]){
@@ -693,12 +694,12 @@ export function buildHouse(K) {
     const cheekMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(cheek,{depth:.30,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025,curveSegments:20}),mat('red'));
     cheekMesh.name='God room curved red stair cheek';cheekMesh.rotation.y=-Math.PI/2;cheekMesh.position.set(side*1.06+.15,0,5.59);g.add(cheekMesh);
     K.blocker(side*1.06,6.20,.35,1.27,F,1.31);
-    b('God room white half wall',side*1.45,1.67,screenZ,1.36,1.18,.22,shrineWhite,true);
-    b('God room red oxide wall base',side*1.45,1.27,screenZ-.015,1.36,.38,.25,'red');
+    b('God room white half wall',side*1.45,1.805,screenZ,1.36,1.45,.22,shrineWhite,true); // god-room.jpg: wall and dado 1.44 m against the gate
+    b('God room red oxide wall base',side*1.45,1.31,screenZ-.015,1.36,.46,.25,'red');
     // Open grilles, with daylight between real slats rather than a painted panel.
-    for(const y of [2.29,2.94,3.55])b('God room blue grille rail',side*1.45,y,screenZ-.055,1.46,.095,.13,shrineBlue);
-    for(let x=.80;x<=2.12;x+=.147)b('God room blue grille slat',side*x,2.92,screenZ-.06,.055,1.31,.08,shrineBlue);
-    K.blocker(side*1.45,screenZ,1.46,.16,2.23,3.60);
+    for(const y of [2.58,3.07,3.55])b('God room blue grille rail',side*1.45,y,screenZ-.055,1.46,.095,.13,shrineBlue);
+    for(let x=.80;x<=2.12;x+=.147)b('God room blue grille slat',side*x,3.065,screenZ-.06,.055,1.03,.08,shrineBlue);
+    K.blocker(side*1.45,screenZ,1.46,.16,2.50,3.60);
     // The photo's outer posts are stout, square and forward of the screen.
     b('God room dark square post',side*2.25,2.12,6.50,.35,2.10,.42,shrineTimber,true);
     b('God room post foot',side*2.25,1.15,6.50,.48,.20,.52,shrineTimber);
@@ -812,7 +813,7 @@ export function buildHouse(K) {
   // plaster and dark skirting are confined to the reverse of the white screen.
   const shrineSkirting=mat('wood').clone();shrineSkirting.color.set('#393b35');
   for(const side of [-1,1]){
-    b('God room inside aqua half wall',side*1.45,1.67,7.038,1.36,1.18,.012,verandaAqua);
+    b('God room inside aqua half wall',side*1.45,1.805,7.038,1.36,1.45,.012,verandaAqua);
     b('God room interior dark skirting',side*1.45,1.15,7.050,1.36,.14,.025,shrineSkirting);
     b('God room exposed inside door jamb',side*.72,2.31,7.065,.16,2.56,.045,verandaTimber);
   }
