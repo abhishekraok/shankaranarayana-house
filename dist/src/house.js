@@ -525,8 +525,8 @@ export function buildHouse(K) {
   // room are gone, so the opening runs on to x 6.325.
   // User's note ('left hand side when entering 2'): no wall stub in the middle either; the room runs
   // open to the stair-wing partition, so the opening now ends at x 9.05.
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:1.8625,w:14.375,top:3.1}]);
-  doorX(-6.15,4.05,1.65,F,2.45,1,false);
+  // User's note ('turning 135 degrees 2'): the wall behind the peach pillar goes as well; the floor
+  // runs on behind it into an open bay, so nothing is left of the inner front room wall.
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // User's note (game, east passage): the gap beside the partition showed the wing's roof; plain turquoise wall instead.
   wallX('East passage front end wall',9.05,11.76,5.84,F,3.1,[],'aqua',.3);
@@ -1577,6 +1577,11 @@ export function buildHouse(K) {
   for(const y of [1.23,1.68,2.13,2.58,3.01])b('Veranda cupboard open shelf',4.76,y,.18,.28,.035,.44,'cream');
   b('Veranda pale open cupboard door',4.48,2.12,-.055,.30,1.78,.03,'paleStone');
   b('Veranda far closed timber doorway',9.19,1.94,1.05,.11,2.93,1.92,verandaTimber,true);
+  // veranda.jpg / 14.56.30 / 14.56.07: the walkway ends in a turquoise wall up to the rafters.
+  {const sh=new THREE.Shape();[[-.98,.455],[.09,.455],[.09,3.41],[2.05,3.41],[2.05,3.63],[0,3.63],[0,3.34],[-.98,2.74]].forEach(([z,y],k)=>k?sh.lineTo(z,y):sh.moveTo(z,y));sh.closePath();
+   const endWall=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.10,bevelEnabled:false}),verandaAqua);endWall.name='Veranda east end turquoise wall';
+   endWall.rotation.y=-Math.PI/2;endWall.position.x=9.19;endWall.castShadow=endWall.receiveShadow=true;g.add(endWall);
+   K.blocker(9.14,-.445,.12,1.07,.455,2.8);b('Veranda east end red skirting',9.085,.70,-.445,.012,.49,1.07,verandaRed);}
   for(const z of [.13,1.05,1.97])b('Veranda far door vertical stile',9.115,1.94,z,.09,2.87,.10,verandaTimber);
   for(const y of [.54,1.43,3.31])b('Veranda far door horizontal rail',9.11,y,1.05,.10,.12,1.92,verandaTimber);
   b('Veranda far cup shelf',8.87,1.36,.82,.37,.065,1.77,verandaTimber);

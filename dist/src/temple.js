@@ -2231,10 +2231,11 @@ export function buildTemple(K) {
    // User's note: the green marble side platform must not run out in front of the road
    // frontage; west of the portico it keeps only the part inside the building (z > 1.42).
    for(const o of [...g.children])if(o.name==='Entrance raised side marble platform'){b3.setFromObject(o);if(b3.min.x<30.5){
-     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/7.8;inner.position.x=(30+W1)/2;g.add(inner);
-     o.scale.x=(37.8-W1)/7.8;o.position.x=(W1+37.8)/2;}}
-   for(const r of K.surfaces)if(Math.abs(r.x-33.9)<.01&&Math.abs(r.w-7.8)<.01&&Math.abs(r.z-2.1)<.01){
-     r.x=(W1+37.8)/2;r.w=37.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
+     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/6.8;inner.position.x=(30+W1)/2;g.add(inner);
+     o.scale.x=(36.8-W1)/6.8;o.position.x=(W1+36.8)/2;}}
+   // The slab is 6.8 m wide (x 30..36.8): the old 7.8 / 37.8 left a half-metre slot under the paintings.
+   for(const r of K.surfaces)if(Math.abs(r.x-33.4)<.01&&Math.abs(r.w-6.8)<.01&&Math.abs(r.z-2.1)<.01){
+     r.x=(W1+36.8)/2;r.w=36.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
    for(const o of [...g.children])if(/^Upper hall (pale interior wall face|red interior wall skirt)/.test(o.name)){b3.setFromObject(o);if(b3.max.x<36.1)g.remove(o);}
    for(let i=K.colliders.length-1;i>=navStart.colliders;i--){const c=K.colliders[i];
      if(c.minX>29.2&&c.maxX<30.5&&c.minZ>-2.6&&c.maxZ<2.1){c.minX+=DX;c.maxX+=DX;continue;}
