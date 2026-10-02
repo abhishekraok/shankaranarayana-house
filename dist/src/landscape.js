@@ -336,6 +336,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 14.41.43: a laterite water trough stands on the verge just east of the corner pier.
   box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#7a5a45',roughness:1}),true);
   box('Verge trough dark water',-4.2,.46,-8.6,1.6,.02,.4,new THREE.MeshStandardMaterial({color:'#2c3a2c',roughness:.3}));
+  // 15.30.02: a second yellow notice stands on the verge west of the bathing gate, on a banded pole.
+  for(let k=0;k<5;k++)K.cylinder(group,'Lake gate notice banded pole',9.7,.13+k*.26,-9.3,.025,.025,.26,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
+  box('Lake gate yellow notice board',9.7,1.62,-9.3,.04,.65,.55,new THREE.MeshStandardMaterial({color:'#d9b545',roughness:.85}));
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     // Stubby dark posts with flat caps, a little taller than the wall.
