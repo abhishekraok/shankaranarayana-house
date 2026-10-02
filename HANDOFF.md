@@ -46,6 +46,12 @@ committed) still apply.
   local x -4.2 with a red dado from x 2.92; the east rear window is unpainted timber (bars in one
   half, plank shutter in the other) with laterite showing round it; the east wall's inner face is
   turquoise to the rear corner. Not done from fix 13: gutter, stored poles, slatted screen, plinth.
+- House court (14.44.09, 14.30.57): stone posts in neutral granite (dark on the veranda side, pale on
+  the shrine side; they were olive-tan), the sheet barrier and lean-to roofs in paler pinkish rust.
+  The posts stay on the plaster base: the stone texture draws masonry joints across a monolith.
+- Not done, interiors: rooms are too bright because the ambient and hemisphere light are not
+  occluded. From the court, the front room is a lit turquoise wall (149,193,186) where 14.44.09
+  shows darkness (22,18,30). Needs baked occlusion or per-room dimming, done consistently.
 - Seen in 15.11.58 and not done: the tank reads shorter east-west than modelled and the hall stands
   east of its north-east corner; this is the same open layout question as the stage and east end.
 
