@@ -69,9 +69,13 @@ committed) still apply.
 - Three roofs were wound upside down (wing roof, entrance awning, a temple lean-to). The web draws
   both sides so it never showed; the game rendered the wing roof black. `node tools/scan-roof-normals.mjs`
   lists any roof, awning or sheet whose normals point down; run it after authoring roof geometry by hand.
-- Game samples after the tint table (07:45 captures): tank face 76,75,80 against 82,71,79; arcade
-  roof 99,88,86 against 97,87,95; house roof 98,87,94 against 108,97,108; sheet barrier 176,129,128
-  against 160,122,120. The game's court soil reads grey-brown, not laterite red; not addressed.
+- Game samples at the last build (08:23 captures, smoke passed): tank face 74,73,78 against
+  82,71,79; house roof 96,85,92 against 108,97,108; wing roof 143,134,131 against 116,101,113;
+  sheet barrier 176,129,128 against 160,122,120. Still off in the game: the arcade roof is dark
+  (66,60,59 against 97,87,95) and the court soil reads grey-brown, not laterite red.
+- A material name must belong to one material object. Naming the landscape's shared dark tile made
+  its clones collide in the game's material table and the west shed roof came out white; it is
+  unnamed again, and the roof courses are named per slope.
 - Measure before changing a colour: the stage figures looked too pale by eye but sampled within
   20 levels of the photo, and that change was dropped.
 - Not done, interiors: rooms are too bright because the ambient and hemisphere light are not
