@@ -59,6 +59,13 @@ committed) still apply.
   step: hemisphere 2.15, sun 1.6. Still off: tank faces in shade are too dark (56 against 82) while
   treads seen from above are too light (79 against 59); one material serves both, so the treads
   need their own darker, mossier one. A softer sun (1.2) did not help; that was tried and reverted.
+- Tank courses carry a second, darker material on their top faces (`tank tread top`), assigned in
+  the last block of `buildLandscape`, after the passes that move courses. Those meshes now have a
+  material array.
+- Game: `unreal/scripts/materials.py` has `GAME_TINT`, linear multipliers by web material name, for
+  finishes the game's sky light renders far paler than the photos while the web colour is right
+  (tank stone, tread tops, the court's sheet barrier). Name a web material to use it. The web
+  light changes above do not reach the game, which lights the scene itself.
 - Measure before changing a colour: the stage figures looked too pale by eye but sampled within
   20 levels of the photo, and that change was dropped.
 - Not done, interiors: rooms are too bright because the ambient and hemisphere light are not

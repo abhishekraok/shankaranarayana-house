@@ -39,7 +39,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     grass: new THREE.MeshStandardMaterial({ color: '#708549', roughness: 1, side: THREE.DoubleSide }),
   };
   // Photo review: Mangalore tiles on the neighbouring roofs are dark weathered brown, not khaki.
-  const darkTile=K.M.tile.clone();darkTile.color.multiplyScalar(.62);
+  const darkTile=K.M.tile.clone();darkTile.name='weathered dark tile';darkTile.color.multiplyScalar(.62);
   const box = (name, x, y, z, w, h, d, mat, solid = false, parent = group) =>
     K.box(parent, name, x, y, z, w, h, d, mat, solid);
   const batches = new Map();
