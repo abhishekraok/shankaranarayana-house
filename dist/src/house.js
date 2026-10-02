@@ -1679,6 +1679,19 @@ export function buildHouse(K) {
    for(const [x0,x1] of [[-1.93,altarX0-.14],[altarX1+.14,1.93]])K.blocker((x0+x1)/2,altarWallZ+DEEP,x1-x0,.14,shrineFloor,3.52);
    for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const z0=r.z-r.d/2,z1=r.z+r.d/2;if(!inX(r.x-r.w/2,r.x+r.w/2)||z0<5.4||z1>10.8)continue;
      if(z0>=CUT)r.z+=DEEP;else if(z1>CUT+.2){r.d+=DEEP;r.z+=DEEP/2;}}}
+  // 14.44.14 / 14.44.48 / 14.46.04: from the court the God room block stands much taller than its
+  // entrance: plain plaster walls run up past a third patterned band to a tiled roof whose eave is
+  // just under the main block's rear eave. The low roof modelled above stays as the entrance porch
+  // roof and the room's ceiling. Authored after the deepening pass, in final coordinates.
+  {const base=3.56,top=5.3,z0=6.98,z1=11.52,zm=(z0+z1)/2,h=top-base,ym=(base+top)/2;
+   const band=new THREE.MeshStandardMaterial({color:'#8a4b45',roughness:1});
+   for(const x of [-2.05,2.05]){b('Shrine tall upper wall',x,ym,zm,.22,h,z1-z0,'plaster');b('Shrine upper maroon band',x+Math.sign(x)*.115,4.18,zm,.012,.17,z1-z0,band);}
+   b('Shrine tall upper wall',0,ym,z1-.11,4.32,h,.22,'plaster');b('Shrine upper maroon band',0,4.18,z1+.005,4.32,.17,.012,band);
+   b('Shrine tall upper wall',0,ym,z0+.02,4.32,h,.2,'plaster');
+   const tall=K.hipRoof(g,'Shrine tall tiled roof',0,9.25,5.4,5.7,top,1.15);
+   tall.traverse(o=>{if(o.isMesh&&/tiles$/.test(o.name)){o.material=o.material.clone();o.material.color.multiplyScalar(.7);}});
+   for(let z=6.75;z<11.9;z+=.42)for(const side of [-1,1])K.beam(g,'Shrine tall roof exposed rafter',[side*2.68,top-.1,z],[side*2.0,top+.19,z],.06,shrineTimber,.08);
+  }
   // All tiny repeated timber, grille and furniture parts are instanced by material.
   const unitBox=new THREE.BoxGeometry(1,1,1),o=new THREE.Object3D();
   for(const [material,items] of batches) {
