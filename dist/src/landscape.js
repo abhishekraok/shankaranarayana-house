@@ -425,7 +425,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance east room dark doorway',47.9,1.05,-10.26,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
   box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
-  box('Lake entrance yellow notice board',29.2,1.45,-7.15,.08,.5,.66,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
+  // 14.59.39 / 15.11.58: the notice hangs on a yellow-and-black banded pole beside the west pedestal.
+  box('Lake entrance yellow notice board',29.55,1.93,-7.35,.04,.72,.75,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
+  for(let k=0;k<8;k++)K.cylinder(group,'Lake entrance notice banded pole',29.55,.125+k*.25,-7.35,.035,.035,.25,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
   // 14.59.39 / 15.11.58 show a deeper roof than first built; 14.58.05's end view limits the pitch.
   K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25,darkTile);
