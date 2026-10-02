@@ -262,10 +262,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   const tankWall=materials.basalt.clone();
   if(typeof document!=='undefined'){
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=77003;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
-    x.fillStyle='#5a554a';x.fillRect(0,0,256,256);
+    x.fillStyle='#6f686b';x.fillRect(0,0,256,256); // 15.23.35 / 15.30.09: grey-mauve weathered stone (82,71,79), not olive
     const blob=(px,py,rx,ry,rgb,a)=>{for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.save();x.translate(px+dx,py+dy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,7);x.fill();x.restore();}};
     for(let i=0;i<34;i++)blob(r()*256,r()*256,14+r()*40,10+r()*30,'28,30,24',.35+r()*.35);
-    for(let i=0;i<22;i++)blob(r()*256,r()*256,8+r()*26,6+r()*16,'78,94,48',.3+r()*.35);
+    for(let i=0;i<22;i++)blob(r()*256,r()*256,8+r()*26,6+r()*16,'80,90,62',.3+r()*.35);
     for(let i=0;i<14;i++)blob(r()*256,r()*256,10+r()*30,6+r()*18,'128,122,106',.25+r()*.3);
     for(let i=0;i<70;i++){const px=r()*256,py=r()*256,h=16+r()*50;x.fillStyle=`rgba(24,26,20,${.12+r()*.2})`;x.fillRect(px,py,1+r()*3,h);}
     for(let i=0;i<900;i++){x.fillStyle=r()<.5?'rgba(150,140,120,.18)':'rgba(20,22,18,.22)';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}
