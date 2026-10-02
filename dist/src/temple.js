@@ -89,11 +89,11 @@ export function buildTemple(K) {
       c.fillStyle='#d5cfba';c.save();c.translate(x*64+32,y*64+32);c.rotate(Math.PI/4);c.fillRect(-4,-4,8,8);c.restore();
     }
   }, 8, 3);
-  const relief = mat('#d8cdb8');
+  const relief = mat('#f1eee7'); // 15.10.34 / 15.02.27: whitewashed stone with shallow carving, not a tan plaque
   const darkRelief = mat('#6f6152');
   relief.map = canvasMap(256, (c,s) => {
-    c.fillStyle='#d9d5c9';c.fillRect(0,0,s,s);
-    c.strokeStyle='#8d8371';c.lineWidth=3;
+    c.fillStyle='#e9e6dd';c.fillRect(0,0,s,s);
+    c.strokeStyle='#aea899';c.lineWidth=2.4;
     c.strokeRect(10,10,s-20,s-20);
     c.beginPath();c.moveTo(128,224);c.bezierCurveTo(104,180,152,139,128,42);c.stroke();
     for(let i=0;i<4;i++)for(const side of [-1,1]){
