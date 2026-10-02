@@ -49,6 +49,10 @@ committed) still apply.
 - House court (14.44.09, 14.30.57): stone posts in neutral granite (dark on the veranda side, pale on
   the shrine side; they were olive-tan), the sheet barrier and lean-to roofs in paler pinkish rust.
   The posts stay on the plaster base: the stone texture draws masonry joints across a monolith.
+- Lane end (15.19.57; landscape fix 24, asphalt part): the asphalt stops at x 47 and mottled laterite
+  runs on to the stage stair; the stage plinth has a dark rain-streaked lower band. The walking
+  ramps under the removed asphalt are unchanged. Not done from fixes 24 and 4: constant lane width,
+  the lane eased off the arcade, the 1.7 m terraces either side of the stair, the side flight.
 - Not done, interiors: rooms are too bright because the ambient and hemisphere light are not
   occluded. From the court, the front room is a lit turquoise wall (149,193,186) where 14.44.09
   shows darkness (22,18,30). Needs baked occlusion or per-room dimming, done consistently.
@@ -96,7 +100,7 @@ the porch floor: maroon balusters, west side cornice, the
 upper slab that floated in front of the frontage); landscape 3, 5, 12 (white lake face on the
 roadside posts only), 6 (lake-side west pedestal only), 15, 16 (colours only), 18 (verge trough and
 the two notices on banded poles), 19, 20 (shrubs off the track only), 21 (materials
-only, no nosings), 22, 23 (height, depth and flank only), 24 (wider grass verge only), 25. The timber texture's dark wash was also
+only, no nosings), 22, 23 (height, depth and flank only), 24 (wider grass verge, asphalt ending at x 47), 25. The timber texture's dark wash was also
 eased (house 8, optional part). Check the code before
 applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
 user's notes about that gate, so ask before doing it. The "Not done" list

@@ -82,7 +82,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       const dir=next.clone().sub(prev).normalize(),normal=new THREE.Vector3(-dir.z,0,dir.x);
       const width=roadHalfWidth(p)+extra+(extra?Math.sin(i*2.7)*.15:Math.sin(i*1.9)*.035);
       for(const side of [-1,1]){const v=p.clone().addScaledVector(normal,width*side);positions.push(v.x,p.y+height,v.z);uv.push(i*.11,(side+1)/2);}
-      if(i){const j=(i-1)*2;indices.push(j,j+1,j+2,j+1,j+3,j+2);}
+      if(i&&!(extra===0&&p.x>47)){const j=(i-1)*2;indices.push(j,j+1,j+2,j+1,j+3,j+2);} // 15.19.57: the asphalt stops short of the stage; laterite runs on to its stair
       if(!extra&&i){
         const a=roadSamples[i-1];
         K.ramp((a.x+p.x)/2,(a.z+p.z)/2,p.x-a.x+.02,width*2+1.4+Math.abs(p.z-a.z),'-x',p.y+.051,a.y+.051);
@@ -132,7 +132,22 @@ export function buildLandscape(K, {mobile=false}={}) {
     const soil=materials.redSoil.clone();soil.side=THREE.DoubleSide;
     const bank=new THREE.Mesh(geometry,soil);bank.name='Rising lane earth embankment';group.add(bank);
   }
-  box('Adjacent building laterite forecourt',56.5,.024,-5,7,.046,15,materials.redSoil);K.surface(56.5,-5,7,15,.047);
+  // 15.19.57: trodden laterite in front of the stage, mottled like the lane shoulders (no grass fringe).
+  const forecourtSoil=materials.redSoil.clone();
+  {const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=77003;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   x.fillStyle='#96604a';x.fillRect(0,0,256,256);
+   for(let i=0;i<5200;i++){const l=r()>.5;x.fillStyle=l?'rgba(190,138,108,.5)':'rgba(96,62,46,.45)';x.fillRect(r()*256,r()*256,1+r()*2.5,1+r()*2.5);}
+   for(let i=0;i<70;i++){x.fillStyle=r()<.6?`rgba(170,120,90,${.12+r()*.18})`:`rgba(84,58,46,${.10+r()*.16})`;x.fillRect(r()*256,r()*256,10+r()*46,4+r()*16);}
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(3,3);m.anisotropy=4;forecourtSoil.map=m;forecourtSoil.color.set('#c5b8c9');}
+  box('Adjacent building laterite forecourt',56.5,.024,-5,7,.046,15,forecourtSoil);K.surface(56.5,-5,7,15,.047);box('Adjacent building laterite forecourt apron',50,.024,-4.32,6.2,.046,6.24,forecourtSoil);
+  // 15.19.57 / 15.13.30: below the white moulded plinth the stage stands on dark, rain-streaked concrete.
+  {const c=document.createElement('canvas');c.width=256;c.height=128;const x=c.getContext('2d');let n=91813;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   x.fillStyle='#7d7a75';x.fillRect(0,0,256,128);
+   for(let i=0;i<90;i++){const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,`rgba(28,28,26,${.25+r()*.35})`);g.addColorStop(.5+r()*.5,'rgba(28,28,26,0)');x.fillStyle=g;x.fillRect(r()*256,0,1+r()*5,128);}
+   for(let i=0;i<1800;i++){x.fillStyle=r()<.5?'rgba(150,146,138,.35)':'rgba(48,50,44,.35)';x.fillRect(r()*256,r()*128,1+r()*2,1+r()*2);}
+   x.fillStyle='rgba(60,72,44,.35)';x.fillRect(0,108,256,20);
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(5,1);
+   box('Adjacent building stained lower plinth face',59.975,.62,-5,.05,1.24,20,new THREE.MeshStandardMaterial({map:m,roughness:1}));}
   // Family correction, 14.58.48: a narrow unpaved road separates the home
   // and the temple's right edge. It branches off the lake-facing asphalt lane.
   const sideRoadSeed=seed; // New grit must not reshuffle the established grove.
