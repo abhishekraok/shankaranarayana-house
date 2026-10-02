@@ -381,7 +381,6 @@ export function buildTemple(K) {
     box('Gallery stair handrail newel post',x,1.21,1.06,.09,.76,.09,K.M.wood);box('Gallery stair handrail newel post',x,4.56,5.80,.09,.96,.09,K.M.wood);}
   K.railing(g,'Upper stairwell guard',45.33,1.25,45.33,5.35,4.08,.94,paleBlue);
   // Courtyard-facing balcony in 15.02.27 / 15.03.51, distinct from the street facade.
-  box('Courtyard gallery white terrace parapet',32.95,4.53,6.13,5.20,.90,.22,white,true);
   box('Courtyard gallery red balcony base',41.65,4.16,6.13,12.1,.16,.27,red);
   box('Courtyard gallery red balcony coping',41.65,5.04,6.13,12.1,.16,.27,red);
   const courtLace=[];
@@ -389,13 +388,17 @@ export function buildTemple(K) {
   for(let i=0;i<7;i++)courtLace.push([35.60+(i+.5)*12.1/7,4.60,6.14,.80,.77,1]);
   instances('Courtyard gallery white floral lattice',openworkGeometry(),whiteTrim,courtLace);
   K.blocker(41.65,6.13,12.1,.26,4.08,5.12);
-  box('Courtyard gallery left white upper wall',33.0,5.37,4.72,5.7,2.46,.19,white,true);
+  // 15.10.34 / 15.02.27: west of the balcony the upper storey is a plain wall flush over the
+  // stair-door wall, with its blue windows in that face and a red string course at floor level.
+  box('Courtyard gallery left white upper wall',33.0,5.37,7.45,5.7,2.46,.3,white,true);
+  box('Courtyard gallery red string course',33.0,4.16,7.61,5.7,.16,.04,red);
+  floor('Upper stair block floor',33.0,6.76,5.7,1.37,4.08,oxideFloor);
   for(const x of [31.4,33.25,35.0]){
-    box('Courtyard upper blue window frame',x,5.45,4.85,1.12,1.65,.14,blue);
-    box('Courtyard upper window dark recess',x,5.45,4.94,.94,1.47,.04,dark);
-    for(let y=4.78;y<6.15;y+=.15)box('Courtyard upper horizontal window grille',x,y,4.99,.94,.025,.025,whiteTrim);
+    box('Courtyard upper blue window frame',x,5.45,7.61,1.12,1.65,.14,blue);
+    box('Courtyard upper window dark recess',x,5.45,7.70,.94,1.47,.04,dark);
+    for(let y=4.78;y<6.15;y+=.15)box('Courtyard upper horizontal window grille',x,y,7.75,.94,.025,.025,whiteTrim);
     for(const dx of [-.52,.52]){
-      const leaf=box('Courtyard upper open timber shutter',x+dx,5.45,5.18,.065,1.59,.55,K.M.wood);leaf.rotation.y=dx<0?-.22:.22;
+      const leaf=box('Courtyard upper open timber shutter',x+dx,5.45,7.94,.065,1.59,.55,K.M.wood);leaf.rotation.y=dx<0?-.22:.22;
     }
   }
   // Dark upper rooms and diamond transoms behind the shaded balcony.
@@ -537,7 +540,7 @@ export function buildTemple(K) {
   instances('Entrance white diamond transoms',new THREE.BoxGeometry(1,1,1),whiteTrim,diamonds);
   const flatCanopy=box('Entrance weathered flat canopy',39,6.62,.2,18.5,.24,5.0,K.M.plaster);K.roofs.push(flatCanopy);
   box('Entrance flat canopy dark fascia',39,6.61,-2.27,18.7,.29,.16,oldStone);
-  const leftGalleryRoof=box('Courtyard left flat upper roof',32.8,6.62,4.52,5.9,.24,4.4,white);K.roofs.push(leftGalleryRoof);
+  const leftGalleryRoof=box('Courtyard left flat upper roof',32.8,6.62,5.04,5.9,.24,5.44,white);K.roofs.push(leftGalleryRoof);
   const galleryRoof=new THREE.Group();galleryRoof.name='Courtyard gallery sloping corrugated roof';g.add(galleryRoof);K.roofs.push(galleryRoof);
   for(let i=0;i<80;i++){
     const x=35.66+i*.16;
@@ -2309,11 +2312,12 @@ export function buildTemple(K) {
   {const DZ=1.0,b3=new THREE.Box3();g.updateMatrixWorld(true);
    const inBay=()=>(b3.min.x>=35.0&&b3.max.x<=38.1)||(b3.min.x>=40.1&&b3.max.x<=47.95);
    for(const o of g.children){if(o.isInstancedMesh)continue;b3.setFromObject(o);if(b3.isEmpty()||!inBay())continue;
-     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended|Passage )/.test(o.name))continue;
+     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended|Passage )/.test(o.name)||b3.min.y>3.9)continue; // ground storey only
      if(b3.min.z>=7.15&&b3.max.z<=8.7){o.position.z+=DZ;continue;}
      if(/^(Courtyard portico raised marble platform|Courtyard portico ceiling slab|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
        const lo=b3.min.z,f=(b3.max.z-lo+DZ)/(b3.max.z-lo);o.scale.z*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=lo-b3.min.z;}}
    for(const c of K.colliders){if((c.minX<35.0||c.maxX>38.1)&&(c.minX<40.1||c.maxX>47.95))continue;
+     if(c.bottom>3.9)continue;
      if(c.minZ>=7.15&&c.maxZ<=8.7&&!(c.minX>35.9&&c.maxX<37.2))c.minZ+=DZ,c.maxZ+=DZ;
      else if(c.minZ>5.8&&c.minZ<6.3&&c.maxZ>7.5&&c.maxZ<8)c.maxZ+=DZ;}
    for(const r of [...K.surfaces,...K.ramps]){if((r.x<35.0||r.x>38.0)&&(r.x<40.2||r.x>47.9))continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;

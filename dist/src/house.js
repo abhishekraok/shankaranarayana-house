@@ -631,7 +631,15 @@ export function buildHouse(K) {
     const mesh=new THREE.Mesh(bracketGeom,verandaTimber);mesh.name='Veranda carved transverse bracket';mesh.rotation.y=-Math.PI/2;mesh.position.set(x+.095,3.45,.36);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
   }
   for(const x of [-8.2,4.1,7.15])courtyardPost(x,5.7);
-  courtyardPost(-4.6,3.5);
+  // 'turning 135 degrees 2/3': the dark post behind the peach column is square, with a ribbed neck
+  // and stepped corbels, and stands on the raised platform's west end.
+  floor('Inner entrance platform west end',-4.38,3.05,1.14,1.90,.79,verandaRed,.34);
+  b('Inner entrance platform west end riser',-4.965,.62,3.05,.03,.34,1.90,verandaRed);b('Inner entrance platform west end riser',-4.38,.62,4.015,1.14,.34,.03,verandaRed);
+  b('Square timber pillar worn foot',-4.6,.84,3.5,.48,.10,.48,passageTimber);
+  {const shaft=b('Courtyard octagonal timber post with turned capital',-4.6,1.64,3.5,.40,1.50,.40,verandaTimber);if(shaft)shaft.name='Courtyard octagonal timber post with turned capital';}
+  for(let i=0;i<8;i++)K.cylinder(g,'Square timber pillar ribbed neck',-4.6,2.425+i*.07,3.5,i%2?.18:.15,i%2?.18:.15,.06,verandaTimber,8);
+  [[.48,3.00],[.62,3.10],[.78,3.20],[.95,3.30]].forEach(([w,y])=>b('Square timber pillar corbel course',-4.6,y,3.5,w,.10,.44,verandaTimber));
+  K.blocker(-4.6,3.5,.44,.44,.79,3.4);
   K.beam(g,'Entrance right paired pillar ceiling bearer',[-4.6,3.47,3.3],[-4.6,3.47,5.8],.24,passageTimber,.20);
   for(const z of [9.0,13.9])courtyardPost(-8.5,z);
   // 14.31.01 / 14.31.14: the east veranda has the same carved timber posts, just inside the blue railing.
