@@ -744,7 +744,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   function clearOppositeBuildings(x,z){
     // Keep inferred palms outside the lane cottage and its pink rear block.
     if(x>-33&&x<-23&&z>-18&&z<-9.4)return -19.8;
-    for(const [a,b,c,d] of [[-18,-6,-60,-49],[-1,16.5,-61,-50],[20,30,-68,-57],[31,46,-68,-54]])if(x>a&&x<b&&z>c&&z<d)return c-3.2;
+    for(const [a,b,c,d] of [[-18,-6,-70,-49],[-1,16.5,-61,-50],[20,30,-68,-57],[31,46,-68,-54]])if(x>a&&x<b&&z>c&&z<d)return c-3.2;
     return z;
   }
   // Areca stems read mid grey-green against the forest, not as pale poles.
@@ -934,23 +934,23 @@ export function buildLandscape(K, {mobile=false}={}) {
   const oppositePink=K.M.pink.clone();oppositePink.color.set('#e59ab4'); // 14.58.26 / 15.30.02: pale pink
   const ow=(n,x,y,z,w,h,d,m=oppositeWhite,solid=false)=>box('Opposite bank '+n,x,y,z,w,h,d,m,solid);
   // Tall white hall, with gabled facade, two barred upper windows and balcony.
-  ow('hall foundation',-12,.18,-55,9.5,.36,8.2,materials.mortar,true);
-  ow('hall white body',-12,3.53,-55,9.3,6.3,7.8,oppositeWhite,true);
+  ow('hall foundation',-12,.18,-60.1,9.5,.36,18.4,materials.mortar,true);
+  ow('hall white body',-12,4.155,-60.1,9.3,7.55,18,oppositeWhite,true);
   ow('hall ground dark door',-12,1.55,-51.065,1.45,2.30,.055,materials.darkSoil);
   for(const x of [-15.1,-9.0])ow('hall ground window',x,1.75,-51.06,1.22,1.20,.06,materials.darkSoil);
   ow('hall ground white canopy',-12,3.18,-50.67,10.0,.17,1.22);
   ow('hall upper balcony slab',-12,3.60,-50.84,10.15,.17,1.38);
   for(const x of [-14.55,-9.45]){
-    ow('hall upper window dark inset',x,5.15,-51.057,1.85,1.65,.055,materials.darkSoil);
-    for(const xx of [x-.99,x+.99])ow('hall upper window pale jamb',xx,5.15,-51.01,.075,1.80,.10);
-    for(const y of [4.27,6.03])ow('hall upper window pale sill',x,y,-51.01,2.06,.09,.14);
-    for(let j=0;j<13;j++)ow('hall upper iron window bars',x-.86+j*.144,5.15,-50.99,.023,1.59,.025,materials.mortar);
-    for(const y of [4.72,5.32,5.72])ow('hall upper window grille rail',x,y,-50.97,1.83,.028,.035,materials.mortar);
+    ow('hall upper window dark inset',x,5.70,-51.057,1.85,1.65,.055,materials.darkSoil);
+    for(const xx of [x-.99,x+.99])ow('hall upper window pale jamb',xx,5.70,-51.01,.075,1.80,.10);
+    for(const y of [4.82,6.58])ow('hall upper window pale sill',x,y,-51.01,2.06,.09,.14);
+    for(let j=0;j<13;j++)ow('hall upper iron window bars',x-.86+j*.144,5.70,-50.99,.023,1.59,.025,materials.mortar);
+    for(const y of [5.27,5.87,6.27])ow('hall upper window grille rail',x,y,-50.97,1.83,.028,.035,materials.mortar);
   }
-  const hallGable=new THREE.Shape();hallGable.moveTo(-4.65,6.65);hallGable.lineTo(0,8.0);hallGable.lineTo(4.65,6.65);hallGable.closePath();
+  const hallGable=new THREE.Shape();hallGable.moveTo(-4.65,7.9);hallGable.lineTo(0,9.5);hallGable.lineTo(4.65,7.9);hallGable.closePath();
   const hallTriangle=new THREE.Mesh(new THREE.ExtrudeGeometry(hallGable,{depth:.18,bevelEnabled:false}),oppositeWhite);hallTriangle.name='Opposite bank hall white front gable';hallTriangle.position.set(-12,0,-51.13);group.add(hallTriangle);
-  const hallRoof=K.gableRoof(group,'Opposite bank hall shallow gray roof',0,0,8.5,10.05,6.69,1.41,materials.roofConcrete);hallRoof.rotation.y=Math.PI/2;hallRoof.position.set(-12,0,-55);
-  for(const side of [-1,1])K.beam(group,'Opposite bank hall pale sloping roof edge',[-12+side*4.92,6.74,-50.71],[-12,8.15,-50.71],.14,oppositeWhite,.20);
+  const hallRoof=K.gableRoof(group,'Opposite bank hall shallow gray roof',0,0,18.7,10.05,7.94,1.6,materials.roofConcrete);hallRoof.rotation.y=Math.PI/2;hallRoof.position.set(-12,0,-60.1);
+  for(const side of [-1,1])K.beam(group,'Opposite bank hall pale sloping roof edge',[-12+side*4.92,7.99,-50.71],[-12,9.65,-50.71],.14,oppositeWhite,.20);
   for(const y of [2.65,3.18])ow('hall lower balcony white rail',-12,y,-50.15,9.9,.11,.13);
   const hallSpindles=[];for(let x=-14.8;x<-5.1;x+=.235)hallSpindles.push([x,2.91,-50.15,.08,.47,.08]);
   for(const a of hallSpindles)instance('Opposite bank hall balcony balusters',cylinder,oppositeWhite,a.slice(0,3),a.slice(3));
@@ -963,8 +963,17 @@ export function buildLandscape(K, {mobile=false}={}) {
     const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,-50.04);group.add(panel);
   }
   hallPhoto('Opposite bank hall original sign',-12,2.94,3.50,.79,[408,567,611,641]);
-  hallPhoto('Opposite bank hall original relief emblem',-12,6.41,1.28,1.40,[444,320,545,432]);
+  hallPhoto('Opposite bank hall original relief emblem',-12,7.4,1.28,1.40,[444,320,545,432]);
   ow('hall left balcony side parapet',-16.76,3.83,-54.15,.17,.62,7.35);
+  // 15.11.58 / 15.30.09 (photo review): the hall is as tall as it is wide and runs far back under one
+  // grey sheet roof; its east flank is a grey concrete frame, each upper bay a window under red brick lattice.
+  {const frame=new THREE.MeshStandardMaterial({color:'#9b9b95',roughness:.95}),lattice=new THREE.MeshStandardMaterial({color:'#a0513a',roughness:.97});
+   ow('hall flank grey upper frame',-7.325,5.9,-60.35,.04,4.05,17.5,frame);
+   for(let i=0;i<7;i++)ow('hall flank grey post',-7.29,5.9,-51.6-i*2.9,.06,4.05,.25,frame);
+   for(let i=0;i<6;i++){const zb=-53.05-i*2.9;
+     ow('hall flank window',-7.29,5.2,zb,.05,1.3,.9,materials.darkSoil);
+     ow('hall flank brick lattice',-7.29,7.2,zb,.05,1.0,2.2,lattice);
+     for(let j=1;j<4;j++)ow('hall flank lattice shadow course',-7.262,6.7+j*.25,zb,.012,.035,2.1,materials.darkSoil);}}
   // Low white house, with flat weathered roof, shuttered windows and side porch.
   ow('low house body',6,1.73,-55.4,11.5,2.96,6.0,oppositeWhite,true);
   ow('low house worn plinth',6,.25,-55.4,11.65,.5,6.12,materials.path);
@@ -1841,6 +1850,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    const lift=x=>x<x0?Math.max(0,1-(x0-x)/fall)*FAR_TOP:x>x1?Math.max(0,1-(x-x1)/fall)*FAR_TOP:FAR_TOP;
    group.updateMatrixWorld(true);
    for(const o of [...group.children]){
+     if(o.name.startsWith('Opposite bank hall'))continue; // the hall stays rigid on its own ground (its east parts were being lifted piecemeal)
      if(o.isInstancedMesh){let moved=false;for(let k=0;k<o.count;k++){o.getMatrixAt(k,m);p.setFromMatrixPosition(m);
        if(p.z<edge-.05){const l=lift(p.x);if(l){m.elements[13]+=l;o.setMatrixAt(k,m);moved=true;}}}
        if(moved){o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();}continue;}
@@ -1901,6 +1911,6 @@ export function buildLandscape(K, {mobile=false}={}) {
   // User's 15.30.09 note: the hall (Vipra Bhavan) stands a little further right, about 2 m east.
   {const DX=2,b3=new THREE.Box3();
    for(const o of group.children){if(o.isInstancedMesh||!o.name.startsWith('Opposite bank hall')||o.name.endsWith('dirt approach'))continue;o.position.x+=DX;}
-   for(const c of K.colliders)if(c.minX>-17.2&&c.maxX<-6.8&&c.minZ>-52&&c.maxZ<-42.5){c.minX+=DX;c.maxX+=DX;}}
+   for(const c of K.colliders)if(c.minX>-17.2&&c.maxX<-6.8&&c.minZ>-62&&c.maxZ<-42.5){c.minX+=DX;c.maxX+=DX;}}
   return group;
 }

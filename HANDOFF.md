@@ -24,6 +24,22 @@ committed) still apply.
   in a plan rectangle.
 - Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
 
+## Morning of 2026-10-02: light, water, Vipra Bhavan
+
+- Web light (`main.js`): the sun now stands in the south-west (`sun.position 36,63,52`), where it
+  was for every 2011 photo (14:28-15:30); it used to stand in the north-east, so faces the photos
+  show lit were in shade. Exposure 1.08 -> 1.3, sun and ground light a little more neutral. In the
+  model true east is -z and true north is -x (the "west/east bank" names in the code follow x).
+  Renders are still darker and yellower than the photos overall (15.23.35 mean 92,104,81 against
+  123,131,123), mostly from the dark foliage. The game has its own soft sun
+  (`unreal/scripts/build_level.py`, yaw 200) under an overcast sky; its direction was not checked.
+- Lake water `0x6c905f`: fits three regions of 15.23.35 within about 10 levels.
+- Vipra Bhavan (landscape fix 23, visual part): 7.9 m to the eave, 18 m deep, six brick-lattice
+  bays in a grey frame on the east flank. Not done: standing it on the raised far-bank ground with
+  a forecourt (fix 23 step 1), which changes walking, the tour's bank stops and the hall poses.
+- Seen in 15.11.58 and not done: the tank reads shorter east-west than modelled and the hall stands
+  east of its north-east corner; this is the same open layout question as the stage and east end.
+
 ## Handoff to Codex (2026-10-01, late evening)
 
 Claude is stopping here at the user's request; Codex continues. Read AGENTS.md first.
@@ -64,7 +80,7 @@ the porch floor: maroon balusters, west side cornice, the
 upper slab that floated in front of the frontage); landscape 3, 5, 12 (white lake face on the
 roadside posts only), 6 (lake-side west pedestal only), 15, 16 (colours only), 18 (verge trough and
 the two notices on banded poles), 19, 20 (shrubs off the track only), 21 (materials
-only, no nosings), 22, 24 (wider grass verge only), 25. The timber texture's dark wash was also
+only, no nosings), 22, 23 (height, depth and flank only), 24 (wider grass verge only), 25. The timber texture's dark wash was also
 eased (house 8, optional part). Check the code before
 applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
 user's notes about that gate, so ask before doing it. The "Not done" list
