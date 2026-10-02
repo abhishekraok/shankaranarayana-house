@@ -1423,7 +1423,7 @@ export function buildHouse(K) {
   const tileGeometry=new THREE.BufferGeometry();tileGeometry.setAttribute('position',new THREE.Float32BufferAttribute(tilePositions,3));tileGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(tileUvs,2));tileGeometry.setIndex(tileIndices);tileGeometry.computeVertexNormals();
   const tileColors=['#675d62','#695f63','#635a5e','#6a6064','#665d61','#685e63']; // 15.23.35 (108,97,108): weathered grey-mauve in the afternoon shade
   const tilesOnSlope=(parent,name,rows)=>{
-    const mesh=new THREE.InstancedMesh(tileGeometry,new THREE.MeshStandardMaterial({roughness:.98,side:THREE.DoubleSide}),rows.length),pose=new THREE.Object3D();
+    const mesh=new THREE.InstancedMesh(tileGeometry,new THREE.MeshStandardMaterial({name:'house roof courses '+(name.includes('lower-')?'lower':'upper'),roughness:.98,side:THREE.DoubleSide}),rows.length),pose=new THREE.Object3D();
     rows.forEach((r,i)=>{pose.position.set(r.x,r.y+.025,r.z);pose.rotation.set(-r.angle,0,0);pose.scale.set(1,1,1);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,new THREE.Color(tileColors[(i*13+Math.floor(i/11))%tileColors.length]).multiplyScalar(name.includes('lower-')?.66:.88));});
     mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;mesh.computeBoundingSphere();parent.add(mesh);
   };
