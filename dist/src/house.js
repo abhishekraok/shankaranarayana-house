@@ -1421,7 +1421,7 @@ export function buildHouse(K) {
     if(i<8&&j<3){const a=j*9+i;tileIndices.push(a,a+9,a+1,a+1,a+9,a+10);}
   }
   const tileGeometry=new THREE.BufferGeometry();tileGeometry.setAttribute('position',new THREE.Float32BufferAttribute(tilePositions,3));tileGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(tileUvs,2));tileGeometry.setIndex(tileIndices);tileGeometry.computeVertexNormals();
-  const tileColors=['#4a3f39','#4c413a','#463c36','#4d423b','#49403a','#4b403b']; // 15.23.35: dark weathered umber
+  const tileColors=['#675d62','#695f63','#635a5e','#6a6064','#665d61','#685e63']; // 15.23.35 (108,97,108): weathered grey-mauve in the afternoon shade
   const tilesOnSlope=(parent,name,rows)=>{
     const mesh=new THREE.InstancedMesh(tileGeometry,new THREE.MeshStandardMaterial({roughness:.98,side:THREE.DoubleSide}),rows.length),pose=new THREE.Object3D();
     rows.forEach((r,i)=>{pose.position.set(r.x,r.y+.025,r.z);pose.rotation.set(-r.angle,0,0);pose.scale.set(1,1,1);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,new THREE.Color(tileColors[(i*13+Math.floor(i/11))%tileColors.length]).multiplyScalar(name.includes('lower-')?.66:.88));});
@@ -1566,7 +1566,7 @@ export function buildHouse(K) {
    const V={A:[9.28,eave,zl],A2:[11.975,eave,zl],B:[xe,eave,zl],C:[xe,eave,zr],D:[11.975,eave,zr],W:[11.975,ridge,wingCz],E:[xe-inset,ridge,wingCz],S1:[9.28,3.79,.175],S2:[11.975,3.79,.175]};
    const pos=[],uv=[];for(const f of [['A2','B','E'],['A2','E','W'],['A','A2','S2'],['A','S2','S1'],['C','D','W'],['C','W','E'],['B','C','E']])for(const k of f){pos.push(...V[k]);uv.push(V[k][0]*.36,V[k][2]*.36);}
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.computeVertexNormals();
-   const tiles=K.M.tile.clone();tiles.side=THREE.DoubleSide;tiles.color.multiplyScalar(.6);
+   const tiles=K.M.tile.clone();tiles.side=THREE.DoubleSide;
    const mesh=new THREE.Mesh(geo,tiles);mesh.name='Temple-side wing hipped tiled roof tiles';mesh.castShadow=mesh.receiveShadow=true;wingRoof.add(mesh);
    for(const [a,c] of [['A','B'],['B','C'],['C','D']])K.beam(wingRoof,'Temple-side wing hipped tiled roof fascia',[V[a][0],eave-.095,V[a][2]],[V[c][0],eave-.095,V[c][2]],.15,'wood',.12);
    K.beam(wingRoof,'Temple-side wing hipped tiled roof ridge',[V.W[0],ridge+.025,V.W[2]],[V.E[0],ridge+.025,V.E[2]],.15,'tile',.17);}

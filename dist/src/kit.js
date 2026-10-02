@@ -15,8 +15,8 @@ function canvasTexture(kind, color){
     // Aligned Mangalore tile channels, with a raised rippled lip on each course.
     for(let row=0;row<16;row++)for(let col=0;col<16;col++){
       const x=col*32,y=row*32,l=31+random()*7;
-      ctx.fillStyle=`hsl(27 11% ${l}%)`;ctx.fillRect(x,y,32,32);
-      const gr=ctx.createLinearGradient(x,y,x+32,y);gr.addColorStop(0,'#14171588');gr.addColorStop(.24,'#c2b59b77');gr.addColorStop(.52,'#ddd0b744');gr.addColorStop(.84,'#181b1999');gr.addColorStop(1,'#14171588');ctx.fillStyle=gr;ctx.fillRect(x,y,32,32);
+      ctx.fillStyle=`hsl(330 5% ${l}%)`;ctx.fillRect(x,y,32,32); // 15.23.35 / 15.11.58: weathered tiles read grey-mauve, not brown
+      const gr=ctx.createLinearGradient(x,y,x+32,y);gr.addColorStop(0,'#14171588');gr.addColorStop(.24,'#bdb4b077');gr.addColorStop(.52,'#d6cfcc44');gr.addColorStop(.84,'#181b1999');gr.addColorStop(1,'#14171588');ctx.fillStyle=gr;ctx.fillRect(x,y,32,32);
       ctx.strokeStyle='#c0b39a';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+29);ctx.quadraticCurveTo(x+16,y+22,x+32,y+29);ctx.stroke();
       ctx.strokeStyle='#232923';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y+32);ctx.quadraticCurveTo(x+16,y+26,x+32,y+32);ctx.stroke();
       if(random()<.16){ctx.fillStyle='#72785855';ctx.fillRect(x+5,y+3,17,10);}
