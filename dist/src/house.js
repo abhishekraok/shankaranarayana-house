@@ -158,7 +158,7 @@ export function buildHouse(K) {
   floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
-  {const worn=K.M.red.clone();worn.color.setRGB(.45,1.35,1.9);worn.roughness=.8;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
+  {const worn=K.M.pink.clone();worn.color.setRGB(.21,.21,.2);worn.roughness=.8; /* worn pink oxide: multipliers stay under 1 so the export keeps the colour */floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
   const dampCourt=mat('earth').clone();dampCourt.color.set('#b08774');dampCourt.roughness=.80; // 14.44.09 / 14.48.07 / courtyard.jpg: wet red laterite, not grey-green
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
