@@ -175,3 +175,7 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   the photographs have coconut and areca palms; tank stone reads green next to the photo's
   grey-black. Pose captures of all 172 photographs stop with a screenshot timeout around the
   30th (15.10.34); run `capture_poses.py --only a+b` in batches instead.
+- 2026-10-02, after the web model's paler veranda turquoise and eased timber wash (main 4606b82),
+  the game samples at 14.56.30 as: floor (89,38,34) vs photo (76,37,36), wall (159,204,202) vs
+  (149,209,214), pillar (47,38,31) vs (72,53,51), walkway (63,75,64) vs (65,56,55), dado
+  (125,49,42) vs (110,52,52). The pillar is the remaining gap.
