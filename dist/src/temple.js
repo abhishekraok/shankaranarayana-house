@@ -1641,7 +1641,7 @@ export function buildTemple(K) {
   }
   K.beam(g,'Temple drum hanging chain',[drumX,3.89,drumZ],[drumX,1.9,drumZ],.018,dark); // up to the ceiling
   for(const x of [44.35]){
-    bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
+    bell('Courtyard smaller hanging bell',x,2.60,7.65,.43,mat('#8a7650',.55,{metalness:.55}));
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
   }
   // 15.10.34 / 15.02.27 / 15.14.51 (user's note): either side of the passage a round turned grey
@@ -2412,6 +2412,26 @@ export function buildTemple(K) {
    for(const r of [...K.surfaces]){const x0=r.x-r.w/2,x1=r.x+r.w/2,z0=r.z-r.d/2,z1=r.z+r.d/2;
      if(r.y<3.5||x0>X0||x1<X1||z0>Z0||z1<Z1)continue;K.surfaces.splice(K.surfaces.indexOf(r),1);
      for(const [a,b,c,d] of parts(x0,x1,z0,z1))K.surface((a+b)/2,(c+d)/2,b-a,d-c,r.y);}}
+  // 15.10.34 / 15.02.27 / 15.03.51: the red balcony with its white floral panels stands directly over
+  // the portico's scalloped beams, so the upper gallery runs out over the portico and the passage,
+  // and the corrugated roof comes forward with it.
+  {const Z0=6.13,Z1=8.64,DZ=Z1-Z0;
+   for(const o of g.children){
+     if(/^Courtyard gallery (red balcony|white floral lattice|slender timber support)/.test(o.name))o.position.z+=DZ;
+     else if(o.name==='Upper courtyard gallery lintel'){o.scale.x=12.3/17.65;o.position.x=41.7;o.position.z+=DZ;}
+     else if(o.name==='Upper courtyard gallery end post'&&o.position.x>40)o.position.z+=DZ;
+   }
+   for(const c of K.colliders)if(Math.abs(c.bottom-4.08)<.01&&Math.abs(c.top-5.12)<.01&&c.minX>35.5&&c.maxX<47.8&&Math.abs((c.minZ+c.maxZ)/2-Z0)<.05){c.minZ+=DZ;c.maxZ+=DZ;}
+   const roofF=(9.3-2.55)/(7.04-2.55);galleryRoof.scale.z=roofF;galleryRoof.position.z=2.55*(1-roofF);
+   floor('Upper gallery floor over the portico',41.65,(6.0+Z1+.13)/2,12.1,Z1+.13-6.0,4.08,oxideFloor);
+   box('Courtyard portico passage ceiling',39.05,3.885,7.52,2.5,.03,2.9,white);
+   scallop('Courtyard portico scalloped arch',39.1,8.58,2.62,3.82,.26,whiteTrim,.43);
+   for(const x of [35.6,47.7]){
+     box('Courtyard gallery red balcony side base',x,4.16,(Z0+Z1)/2,.27,.16,DZ,red);
+     box('Courtyard gallery red balcony side coping',x,5.04,(Z0+Z1)/2,.27,.16,DZ,red);
+     box('Courtyard gallery balcony side panel',x,4.60,(Z0+Z1)/2,.08,.74,DZ-.2,whiteTrim);
+     K.blocker(x,(Z0+Z1)/2,.26,DZ,4.08,5.12);
+   }}
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
   const ts=K.templeShiftZ||0;g.position.z+=ts;

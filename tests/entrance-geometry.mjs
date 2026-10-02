@@ -458,7 +458,7 @@ for(const key of ['templeleft','templecenter','templeright']){
   assert.ok(photo.target[2]>photo.p[2]+8,key+' looks into the temple');
 }
 const templeCamera=new THREE.PerspectiveCamera(photos.templecenter.fov,4/3,.06,400);
-const templeEye=new THREE.Vector3(39,5.7,5.4);templeCamera.position.copy(templeEye);templeCamera.lookAt(new THREE.Vector3(...photos.templecenter.target));templeCamera.updateMatrixWorld();
+const templeEye=new THREE.Vector3(39,5.7,7.9);templeCamera.position.copy(templeEye);templeCamera.lookAt(new THREE.Vector3(...photos.templecenter.target));templeCamera.updateMatrixWorld();
 const lampPosition=temple.getObjectByName('Lamp stone foot').position.clone();
 assert.ok(Math.abs(lampPosition.clone().setY(4).project(templeCamera).x)<.18,'Gallery view places the lamp near the doorway axis');
 const flagPosition=temple.getObjectByName('Flagstaff stone foot').position.clone();
@@ -538,7 +538,7 @@ for(const key of ['templebellreturn','templebellwide','templepoles','templebell'
 }
 
 for(const x of [33.65,44.35]){
-  const target=new THREE.Vector3(x,1.40,16.25),ray=new THREE.Raycaster(templeEye,target.sub(templeEye).normalize());
+  const from=new THREE.Vector3(x,5.7,7.9),target=new THREE.Vector3(x,1.40,16.25),ray=new THREE.Raycaster(from,target.sub(from).normalize()); // from the balcony rail, now over the portico
   const hit=ray.intersectObject(temple,true)[0];
   assert.ok(hit?.object.name.startsWith('Inner blue window')||hit?.object.name==='Inner window white bars',`Gallery must see facade windows, got ${hit?.object.name}`);
 }
