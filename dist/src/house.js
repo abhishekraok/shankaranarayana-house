@@ -1329,7 +1329,13 @@ export function buildHouse(K) {
     for(const dx of [-.50,.50])detail(x+dx,U+1.49,1.64,.07,1.26,.09,verandaTimber);
     for(const y of [U+.88,U+2.1])detail(x,y,1.64,1.07,.065,.09,verandaTimber);
   }
+  // 14.44.14 / 14.44.48 / 14.48.31: seen from the court this wall is plain white down to a dark damp
+  // strip at its foot, with no red band; the red slab edge under it is plastered over.
+  skirting=false;
   wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
+  skirting=true;
+  detail(0,U+.10,5.99,23.7,.20,.012,facadeDark);
+  for(const side of [-1,1])b('Upper floor court edge plaster',side*7.2375,U-.11,6.008,9.275,.22,.012,'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
   doorX(-6.75,5.86,.95,U,2.5,-1);
   grilleX(3.6,5.69,1.5,U+1.05,1.27);
