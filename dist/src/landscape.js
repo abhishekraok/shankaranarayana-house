@@ -259,10 +259,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 14.57.50 / 14.58.26: the tank masonry is dark brown-grey laterite blotched
   // with black mould and green moss, brightest along the dry upper edges.
-  const tankWall=materials.basalt.clone();
+  const tankWall=materials.basalt.clone();tankWall.name='tank stone'; // named: the game tints these by name (unreal/scripts/materials.py GAME_TINT)
   if(typeof document!=='undefined'){
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=77003;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
-    x.fillStyle='#6f686b';x.fillRect(0,0,256,256); // 15.23.35 / 15.30.09: grey-mauve weathered stone (82,71,79), not olive
+    x.fillStyle='#7d757c';x.fillRect(0,0,256,256); // 15.23.35 / 15.30.09: grey-mauve weathered stone (82,71,79), not olive
     const blob=(px,py,rx,ry,rgb,a)=>{for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.save();x.translate(px+dx,py+dy);x.scale(rx,ry);const g=x.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.beginPath();x.arc(0,0,1,0,7);x.fill();x.restore();}};
     for(let i=0;i<34;i++)blob(r()*256,r()*256,14+r()*40,10+r()*30,'28,30,24',.35+r()*.35);
     for(let i=0;i<22;i++)blob(r()*256,r()*256,8+r()*26,6+r()*16,'80,90,62',.3+r()*.35);
@@ -278,7 +278,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(0, .52, -.08, 2.52, 'upper dark stone retaining course', tankWall, FAR_LEDGE);
   ringCourse(.50, .45, -.60, 2.0, 'middle worn stone tread', tankWall, -.35);
   // Photo review: the lowest courses are the same weathered stone as the wall, greened with moss.
-  const mossWall=tankWall.clone();mossWall.color.set('#b3b0a2');K.worldMap(mossWall,.275); // 15.23.35: grey-brown stone; the green comes from the water's reflection
+  const mossWall=tankWall.clone();mossWall.name='tank mossy stone';mossWall.color.set('#b3b0a2');K.worldMap(mossWall,.275); // 15.23.35: grey-brown stone; the green comes from the water's reflection
   ringCourse(.93, .48, -1.15, 1.45, 'low mossy stone tread', mossWall, -.98);
   ringCourse(1.39, .36, -1.70, .90, 'submerged tank course', mossWall, -1.61);
   for(const [a,b] of [[-4.6,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.60);
@@ -1927,5 +1927,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   {const DX=2,b3=new THREE.Box3();
    for(const o of group.children){if(o.isInstancedMesh||!o.name.startsWith('Opposite bank hall')||o.name.endsWith('dirt approach'))continue;o.position.x+=DX;}
    for(const c of K.colliders)if(c.minX>-17.2&&c.maxX<-6.8&&c.minZ>-62&&c.maxZ<-42.5){c.minX+=DX;c.maxX+=DX;}}
+  // 15.11.58 / 15.30.09 against 15.23.35: the treads are dark (wet, mossy) and the faces greyer, so the
+  // top face of every tank course gets its own darker material. Done last, after the passes that move courses.
+  {const treadTop=tankWall.clone();treadTop.name='tank tread top';treadTop.color.setRGB(.5,.52,.5);K.worldMap(treadTop,.275);
+   for(const o of group.children)if(o.isMesh&&!o.isInstancedMesh&&(o.material===tankWall||o.material===mossWall)&&o.geometry.groups&&o.geometry.groups.length===6)
+     o.material=[o.material,o.material,treadTop,o.material,o.material,o.material];}
   return group;
 }
