@@ -1372,8 +1372,11 @@ export function buildHouse(K) {
   fenceZ(11.93,5.9,6.95,U,.95);
 
   // Three roof levels preserve the open courtyard and the uncovered stair.
-  const atticRise=2.05; // Half the previous 4.10 m rise, keeping the eaves fixed.
-  const frontRoof=K.hipRoof(g,'Broad upper facade tiled roof',0,2.85,24.9,7.1,6.77,atticRise);
+  // 15.23.35: the eave hangs low over the upper balcony (about 1.25 m of opening above the
+  // lattice) and the roof above it rises about 2.8 m. Same ridge height as before; the eaves come
+  // down to 6.0 and out by about a metre, so the walls under it keep their height.
+  const atticRise=2.85,atticEave=6.0,atticHalfD=4.5,atticHalfW=13.45;
+  const frontRoof=K.hipRoof(g,'Broad upper facade tiled roof',0,2.85,atticHalfW*2,atticHalfD*2,atticEave,atticRise);
   frontRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.67);}});
   // Actual overlapping, rippled courses give the front slopes a tiled silhouette.
   const tilePositions=[],tileUvs=[],tileIndices=[];
@@ -1390,7 +1393,7 @@ export function buildHouse(K) {
     mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;mesh.computeBoundingSphere();parent.add(mesh);
   };
   const upperTileRows=[];
-  for(let z=-.67;z<2.78;z+=.22){const t=(z+.70)/3.55,edge=12.45-3.195*t;for(let x=-edge+.13;x<edge;x+=.25)upperTileRows.push({x,y:6.77+atticRise*t,z,angle:Math.atan2(atticRise,3.55)});}
+  for(let z=2.85-atticHalfD+.03;z<2.78;z+=.22){const t=(z-2.85+atticHalfD)/atticHalfD,edge=atticHalfW-atticHalfD*.9*t;for(let x=-edge+.13;x<edge;x+=.25)upperTileRows.push({x,y:atticEave+atticRise*t,z,angle:Math.atan2(atticRise,atticHalfD)});}
   tilesOnSlope(frontRoof,'Overlapping upper-front Mangalore tile courses',upperTileRows);
   // The front porch is a single slope, rising from the outer posts to the wall.
   const porchRoof=new THREE.Group();porchRoof.name='Front veranda sloping tiled awning';g.add(porchRoof);K.roofs.push(porchRoof);
@@ -1676,6 +1679,19 @@ export function buildHouse(K) {
    for(const [x0,x1] of [[-1.93,altarX0-.14],[altarX1+.14,1.93]])K.blocker((x0+x1)/2,altarWallZ+DEEP,x1-x0,.14,shrineFloor,3.52);
    for(const r of [...K.surfaces.slice(navStart.surfaces),...K.ramps.slice(navStart.ramps)]){const z0=r.z-r.d/2,z1=r.z+r.d/2;if(!inX(r.x-r.w/2,r.x+r.w/2)||z0<5.4||z1>10.8)continue;
      if(z0>=CUT)r.z+=DEEP;else if(z1>CUT+.2){r.d+=DEEP;r.z+=DEEP/2;}}}
+  // 14.44.14 / 14.44.48 / 14.46.04: from the court the God room block stands much taller than its
+  // entrance: plain plaster walls run up past a third patterned band to a tiled roof whose eave is
+  // just under the main block's rear eave. The low roof modelled above stays as the entrance porch
+  // roof and the room's ceiling. Authored after the deepening pass, in final coordinates.
+  {const base=3.56,top=5.3,z0=6.98,z1=11.52,zm=(z0+z1)/2,h=top-base,ym=(base+top)/2;
+   const band=new THREE.MeshStandardMaterial({color:'#8a4b45',roughness:1});
+   for(const x of [-2.05,2.05]){b('Shrine tall upper wall',x,ym,zm,.22,h,z1-z0,'plaster');b('Shrine upper maroon band',x+Math.sign(x)*.115,4.18,zm,.012,.17,z1-z0,band);}
+   b('Shrine tall upper wall',0,ym,z1-.11,4.32,h,.22,'plaster');b('Shrine upper maroon band',0,4.18,z1+.005,4.32,.17,.012,band);
+   b('Shrine tall upper wall',0,ym,z0+.02,4.32,h,.2,'plaster');
+   const tall=K.hipRoof(g,'Shrine tall tiled roof',0,9.25,5.4,5.7,top,1.15);
+   tall.traverse(o=>{if(o.isMesh&&/tiles$/.test(o.name)){o.material=o.material.clone();o.material.color.multiplyScalar(.7);}});
+   for(let z=6.75;z<11.9;z+=.42)for(const side of [-1,1])K.beam(g,'Shrine tall roof exposed rafter',[side*2.68,top-.1,z],[side*2.0,top+.19,z],.06,shrineTimber,.08);
+  }
   // All tiny repeated timber, grille and furniture parts are instanced by material.
   const unitBox=new THREE.BoxGeometry(1,1,1),o=new THREE.Object3D();
   for(const [material,items] of batches) {
