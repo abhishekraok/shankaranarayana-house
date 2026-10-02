@@ -1248,6 +1248,22 @@ export function buildHouse(K) {
   const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
   rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
   rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-2.80,.43,8.65);g.add(rustySheet);
+  // 14.48.31 / 14.46.10 (west) and 14.44.14 / 14.44.09 (east): rusty corrugated-iron lean-to roofs
+  // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
+  // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
+  {const rust=new THREE.MeshStandardMaterial({color:'#7d5646',roughness:1,side:THREE.DoubleSide});
+   for(const [x0,x1,z0,z1,y0,y1] of [[-6.25,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
+     const w=x1-x0,run=z1-z0,drop=y0-y1,len=Math.hypot(run,drop);
+     const geo=new THREE.PlaneGeometry(w,len,Math.round(w/.0225),1),gp=geo.attributes.position;
+     for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));
+     geo.computeVertexNormals();
+     const sheet=new THREE.Mesh(geo,rust);sheet.name='Courtyard rusty corrugated lean-to roof';
+     sheet.rotation.x=-Math.PI/2+Math.atan2(drop,run);sheet.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
+     sheet.castShadow=sheet.receiveShadow=true;g.add(sheet);K.roofs.push(sheet);
+     K.beam(g,'Courtyard lean-to eave timber',[x0,y1-.07,z1-.06],[x1,y1-.07,z1-.06],.07,shrineTimber,.09);
+     K.beam(g,'Courtyard lean-to wall timber',[x0,y0-.07,z0+.04],[x1,y0-.07,z0+.04],.07,shrineTimber,.09);
+     for(const x of [x0+.12,x1-.12])K.beam(g,'Courtyard lean-to slender prop',[x,(z0<6&&x<0)?.45:.45,z1-.06],[x,y1-.1,z1-.06],.05,shrineTimber);
+   }}
   // 14.48.07 / 14.48.11 / 14.48.31: in the rear strip past the God room's NW corner, a thick hollow stone basin with rainwater and a handled roller.
   const bowlStone=mat('plaster').clone();bowlStone.color.set('#8b8c83');bowlStone.roughness=.94;
   const bowlProfile=[[0,0],[.25,0],[.29,.035],[.325,.12],[.34,.27],[.337,.305],
