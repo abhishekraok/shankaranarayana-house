@@ -209,7 +209,7 @@ export function buildHouse(K) {
   fenceX(-8.1,-7.3,5.83);
   // 14.44.09 / 14.44.14 / 14.44.43: a rusty corrugated sheet on edge closes this pocket, not a blue grille.
   {const geo=new THREE.PlaneGeometry(2.2,.88,96,1),gp=geo.attributes.position;for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));geo.computeVertexNormals();
-   const sheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:'#bd8c86',roughness:1,side:THREE.DoubleSide}));sheet.name='Courtyard pocket rusty sheet barrier';sheet.rotation.z=Math.PI/2;sheet.rotation.y=0;
+   const sheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({name:'court sheet barrier',color:'#bd8c86',roughness:1,side:THREE.DoubleSide}));sheet.name='Courtyard pocket rusty sheet barrier';sheet.rotation.z=Math.PI/2;sheet.rotation.y=0;
    sheet.geometry.rotateZ(0);sheet.rotation.set(0,0,0);sheet.position.set(3.5,F+.44,5.95);g.add(sheet);K.blocker(3.5,5.95,2.2,.1,F,F+.9);}
   // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
   // entering, a stepped turquoise pedestal sits over a three-stone niche.

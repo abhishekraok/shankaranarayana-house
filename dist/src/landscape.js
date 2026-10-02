@@ -259,7 +259,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 14.57.50 / 14.58.26: the tank masonry is dark brown-grey laterite blotched
   // with black mould and green moss, brightest along the dry upper edges.
-  const tankWall=materials.basalt.clone();
+  const tankWall=materials.basalt.clone();tankWall.name='tank stone'; // named: the game tints these by name (unreal/scripts/materials.py GAME_TINT)
   if(typeof document!=='undefined'){
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=77003;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     x.fillStyle='#7d757c';x.fillRect(0,0,256,256); // 15.23.35 / 15.30.09: grey-mauve weathered stone (82,71,79), not olive
@@ -278,7 +278,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(0, .52, -.08, 2.52, 'upper dark stone retaining course', tankWall, FAR_LEDGE);
   ringCourse(.50, .45, -.60, 2.0, 'middle worn stone tread', tankWall, -.35);
   // Photo review: the lowest courses are the same weathered stone as the wall, greened with moss.
-  const mossWall=tankWall.clone();mossWall.color.set('#b3b0a2');K.worldMap(mossWall,.275); // 15.23.35: grey-brown stone; the green comes from the water's reflection
+  const mossWall=tankWall.clone();mossWall.name='tank mossy stone';mossWall.color.set('#b3b0a2');K.worldMap(mossWall,.275); // 15.23.35: grey-brown stone; the green comes from the water's reflection
   ringCourse(.93, .48, -1.15, 1.45, 'low mossy stone tread', mossWall, -.98);
   ringCourse(1.39, .36, -1.70, .90, 'submerged tank course', mossWall, -1.61);
   for(const [a,b] of [[-4.6,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.60);
