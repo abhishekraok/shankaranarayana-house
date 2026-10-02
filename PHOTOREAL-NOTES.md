@@ -161,3 +161,17 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   (123,48,41) vs (110,52,52); the timber pillar is now darker than the photo (36 vs 72).
   Not the cause: the soft sun, ray-tracing culling, software vs hardware tracing. Sky leaking
   only brightens covered spaces as a whole (0.03 already overexposes the veranda).
+
+- 2026-10-01 night, handoff to Codex. `bash unreal/rebuild-all.sh "what changed"` does the whole
+  refresh (merge main, export, Blender blockout, Unreal import, materials, level, Lumen, package,
+  smoke test; about 15 minutes; do not commit to main while it runs, and make sure no earlier
+  run is still alive: stopping the shell does not stop its Blender or Unreal child).
+  In the game: photo browser and alignment from the start menu, notes from the pause menu,
+  controller bindings in alignment (LB/RB photo, Y saved pose, A save, X overlay, B back, LT/RT
+  lower and rise, hold L3 faster, D-pad lens and tilt). The smoke test presses those buttons and
+  passes; nobody has tried them on a real controller yet.
+  Open on the look: timber pillars now darker than the photographs (36 vs 72 at 14.56.30; the
+  curve's floor could rise to about 0.5 for the darkest colours); foliage is smooth blobs where
+  the photographs have coconut and areca palms; tank stone reads green next to the photo's
+  grey-black. Pose captures of all 172 photographs stop with a screenshot timeout around the
+  30th (15.10.34); run `capture_poses.py --only a+b` in batches instead.
