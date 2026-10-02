@@ -50,8 +50,12 @@ ones may have arrived since. Check both files:
 `tools/capture-fidelity.cjs` renders any pose; to render a game note, write its position and
 quaternion into a small pose file and pass it as `POSE_FILE` (see `checks/unreal-notes-poses.json`).
 
-**Next work, in order.** (1) Any new notes. (2) The "Not done" list in the photo review section
-below, starting with the house's east end, which needs the user's eye. (3) In the game: timber
+**Next work, in order.** (1) Any new notes. (2) `docs/photo-review-2026-10-01-fixes.json`: the
+review's ranked fix lists for house.js, temple.js and landscape.js (about 25 each), each with the
+exact objects, numbers, evidence photos and risks. Its line numbers predate tonight's later
+commits, and several entries are already done (gallery balcony, lean-to roofs, Naga pit face, lake
+wall, hill, wing roof, side-road clump); check the code before applying one. The "Not done" list
+below is the short version; the house's east end needs the user's eye. (3) In the game: timber
 pillars now read darker than the photos, foliage is still blobby next to the photographs' palms,
 and the in-game alignment controls have passed the automated smoke test but nobody has used them
 with a real controller.
