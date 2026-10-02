@@ -37,6 +37,15 @@ committed) still apply.
 - Vipra Bhavan (landscape fix 23, visual part): 7.9 m to the eave, 18 m deep, six brick-lattice
   bays in a grey frame on the east flank. Not done: standing it on the raised far-bank ground with
   a forecourt (fix 23 step 1), which changes walking, the tour's bank stops and the hall poses.
+- Web light, second step: sky light up (hemisphere 1.9, ambient .85), sun down to 2.1, and the white
+  plaster more neutral (`kit.js` plaster `#d6d6cd`; it was yellow against the photos' blue-white
+  walls). Shaded white walls still read about 50 levels under the photos (15.23.35 wing wall
+  166,169,162 against 214,212,224).
+- East passage (14.31.14, 14.30.57, 14.44.22; house fix 13, wall and window only): the floor is worn
+  pink oxide instead of near-black; the rear wall's inner face is turquoise east of a dark post at
+  local x -4.2 with a red dado from x 2.92; the east rear window is unpainted timber (bars in one
+  half, plank shutter in the other) with laterite showing round it; the east wall's inner face is
+  turquoise to the rear corner. Not done from fix 13: gutter, stored poles, slatted screen, plinth.
 - Seen in 15.11.58 and not done: the tank reads shorter east-west than modelled and the hall stands
   east of its north-east corner; this is the same open layout question as the stage and east end.
 
@@ -73,6 +82,7 @@ commits, and these entries are already done: house 1, 2, 3, 4, 5, 8, 15 (half wa
 window sill was left because a test encodes daylight through it at 2.4 m), 6 (sheet barrier,
 shortened grey sheets and the upper wall without its red band; not the two small windows), 10 (coping, riser
 colour and bench only; the steps stay for walking), 11 (ceiling only), 12 (dado only), 16,
+13 (wall colours, dado and east window only),
 17 (tulsi and soil only), 20 (crossbeam, post colours and slimmer pickets), 23;
 temple 1, 2 (only the floating second pavilion removed), 4 (without the second window), 7 (piers,
 brackets, transoms and gate leaves only), 10, 18 (donation boxes, red fascia and white beam), 19 (a-c and
