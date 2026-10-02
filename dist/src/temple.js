@@ -342,12 +342,14 @@ export function buildTemple(K) {
 
   steps('Courtyard descending stair',39,6.92,2.5,1.56,.1,.20,'-z',2);
   floor('Courtyard exit landing',39,7.9,2.5,.45,.1,stoneFloor);
-  const colX=[32,36.65,41.35,46];
+  // temple-entrance.jpg: the two piers at the gate stand directly under the blue arch piers, with a
+  // further pier either side; the gate bay is as narrow as its neighbours.
+  const colX=[32,34.9,37.5,40.5,43.1,46];
   for(const x of colX){
     box('Entrance square white pier',x,2.11,-1.42,.48,3.02,.48,white,true);
     box('Entrance pier stone foot',x,.95,-1.42,.53,.70,.54,stoneFloor);
     box('Entrance pier white capital',x,3.49,-1.42,.80,.25,.70,whiteTrim);
-    blueColumn('Entrance upper pale blue pier',x,-1.42,4.08,2.25);
+    if(x===32||x===46)blueColumn('Entrance upper pale blue pier',x,-1.42,4.08,2.25);
   }
   // White pierced scroll brackets in the upper corners of each front opening.
   const bracketShape=new THREE.Shape();
@@ -356,7 +358,7 @@ export function buildTemple(K) {
   const eye=new THREE.Path();eye.absarc(.10,-.11,.04,0,Math.PI*2,true);bracketShape.holes.push(eye);
   const bracketGeometry=new THREE.ExtrudeGeometry(bracketShape,{depth:.07,bevelEnabled:false,curveSegments:8});
   const brackets=[];
-  colX.forEach((x,i)=>{for(const side of [-1,1]){if((i===0&&side<0)||(i===colX.length-1&&side>0)||(i===1&&side>0)||(i===2&&side<0))continue;
+  colX.forEach((x,i)=>{for(const side of [-1,1]){if(!((i===1&&side>0)||(i===2&&side<0)||(i===3&&side>0)||(i===4&&side<0)))continue; // only in the two bays beside the gate
     brackets.push([x+side*.24,2.87,-1.47,side,1,1]);}});
   instances('Entrance white scroll brackets',bracketGeometry,whiteTrim,brackets);
   for(const x of [32.6,45.4])carvedColumn('Rear carved column',x,4.25,.6,3.02,.87);
@@ -535,7 +537,7 @@ export function buildTemple(K) {
   // Diamond transoms are genuinely open, leaving the interior visible below.
   const diamonds=[];
   // User's note (temple-entrance.jpg): the gate bay has no transom or brackets; it is open up to the slab.
-  for(const [a,b] of [[32.3,36.35],[41.65,45.7]]){
+  for(const [a,b] of [[35.14,37.26],[40.74,42.86]]){
     box('Entrance white transom lower rail',(a+b)/2,2.93,-1.43,b-a,.12,.20,whiteTrim);
     for(let x=a+.12;x<b-.12;x+=.30)for(const sign of [-1,1])diamonds.push([x,3.22,-1.43,.043,.64,.045,0,0,sign*.50]);
   }
@@ -559,7 +561,7 @@ export function buildTemple(K) {
   // The two leaves are open along the sides of the low central approach.
   const gateMetal=mat('#a5a9a4',.45,{metalness:.6});
   for(const side of [-1,1]){
-    const x=39+side*1.45;
+    const x=39+side*1.2;
     for(let i=0;i<7;i++)box('Entrance open gate vertical bar',x,.99,-2.88+i*.17,.033,1.48,.035,gateMetal);
     for(const y of [.26,.70,1.54])box('Entrance open gate crossrail',x,y,-2.37,.045,.043,1.05,gateMetal);
     const curve=new THREE.EllipseCurve(0,0,.52,.28,0,Math.PI,false,0);
