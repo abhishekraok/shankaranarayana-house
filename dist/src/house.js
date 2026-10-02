@@ -168,12 +168,13 @@ export function buildHouse(K) {
   // continuous walkway between the stout inner posts and slender outer row.
   // 14.56.30: the platform faces are dark weathered grey plaster under the stone edge.
   const riserGrey=K.M.plaster.clone();riserGrey.color.set('#85847c');riserGrey.roughness=1;
+  const riserOxide=new THREE.MeshStandardMaterial({color:'#7a4a3c',roughness:.9});
   for(const side of [-1,1]) {
     floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,1.15,2.99,1.80,.75,verandaRed,.30);
-    b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,riserGrey);
+    b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,riserOxide); // 14.56.30: worn red-brown under the stone edge
     b('Veranda dark stone sitting edge',side*2.745,.765,.29,2.99,.045,.22,'stone');
     b('Veranda entrance end riser',side*1.26,(EL+.725)/2,1.15,.07,.725-EL,1.80,riserGrey);
-    b('Veranda entrance end stone coping',side*1.31,.768,1.15,.16,.045,1.80,'stone');
+    b('Veranda entrance end stone coping',side*1.375,.768,1.15,.30,.045,1.80,'stone'); // a broad stone edge (14.56.30)
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
@@ -533,6 +534,11 @@ export function buildHouse(K) {
   // The wing's rooms are not photographed: its doorway stays shut behind a plain timber door.
   b('Front room closed door to the wing',9.07,F+1.3,4.8,.07,2.6,1.7,verandaTimber);
   for(const z of [4.23,4.8,5.37])b('Front room wing door batten',9.02,F+1.3,z,.03,2.5,.07,'wood');
+  // Photo review (front room views): a dark boarded timber ceiling on closely spaced joists.
+  {const ceilDark=new THREE.MeshStandardMaterial({color:'#2b1f17',roughness:1});
+   b('Front room dark timber ceiling',-1.375,3.615,3.1,20.85,.03,1.86,ceilDark);
+   for(let x=-11.6;x<9;x+=.45)detail(x,3.56,3.1,.08,.12,1.86,ceilDark);
+   detail(-1.375,3.53,2.26,20.85,.20,.15,ceilDark);}
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
   doorX(-10.05,12.1,1.55);
@@ -1572,8 +1578,8 @@ export function buildHouse(K) {
   // In the left bay the bench and chair stand against the transverse end wall.
   // 14.56.22 / 14.56.30: seat ~0.46 m above the bay, arms ~0.71 m,
   // exposed back uprights ~1.0 m; no broad back panel. Keep its placement.
-  b('Entrance-left wooden bench',3.82,1.22,.86,.37,.07,1.28,verandaTimber);
-  for(const z of [.35,1.36])b('Entrance-left bench leg',3.82,.98,z,.26,.44,.065,verandaTimber);
+  b('Entrance-left wooden bench',3.60,1.22,.86,.37,.07,1.28,verandaTimber);
+  for(const z of [.35,1.36])b('Entrance-left bench leg',3.60,.98,z,.26,.44,.065,verandaTimber);
   b('Entrance-left chair seat',3.78,1.25,1.67,.62,.075,.57,verandaTimber);
   for(const x of [3.52,4.04])for(const z of [1.43,1.91])b('Entrance-left chair leg',x,1.0,z,.061,.51,.061,verandaTimber);
   for(const z of [1.42,1.92]){
@@ -1583,7 +1589,7 @@ export function buildHouse(K) {
     b('Entrance-left chair lower stretcher',3.78,.91,z,.55,.045,.045,verandaTimber);
   }
   K.blocker(3.80,1.67,.75,.64,.75,1.84);
-  K.blocker(3.82,.86,.38,1.28,.75,1.25);
+  K.blocker(3.60,.86,.38,1.28,.75,1.25);
   // Open pale wall cupboard at the end of the sitting bay, beyond the posts.
   b('Veranda open pale cupboard back',4.90,2.12,.18,.045,1.78,.44,'paleStone');
   for(const z of [-.04,.40])b('Veranda cupboard side',4.76,2.12,z,.28,1.78,.045,'cream');
