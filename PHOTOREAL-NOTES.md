@@ -147,3 +147,17 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
 - Roof material is too pale/gray in `2011-09-21 15.11.58.jpg`; the photo has dark weathered clay tiles. [Render](<blender/build/sheets-20769d9/unreal-20260927-164751/034-2011-09-21 15.11.58.png>). Prioritize this broad finish next.
 
 The legacy `lane-left.jpg` pose also gives a substantially different composition. It has a cover-crop FOV conversion and predates recent model changes; do not infer a geometry correction from it alone.
+
+- 2026-10-01 evening, tone of dark finishes (the "renders don't look like the photos" complaint):
+  buffer dumps (`CAPTURE_CONSOLE="r.BufferVisualizationDumpFrames 1"`) and sampled colours at
+  14.56.30 and 15.23.35 showed oxide floors, old timber, walkway stone, roofs and tank steps two to
+  three times too light against the pale walls. Fixes, all in the masters (`materials.py`) and
+  `lighting.py`: (1) an albedo curve, colour x clamp(max(rgb)/0.6, 0.4, 1), on everything except
+  water, foliage and emissive (`ALBEDO_TONE` env overrides for calibration); (2) Specular by
+  roughness: 0.5 polished, 0.25 satin (about 0.75), 0.05 fully matt, which removes the pale
+  grazing veil on steps and tiles; (3) local exposure contrast scales back to 1.0 (0.5/0.8 was
+  flattening walls against timber). Sampled against the photo at 14.56.30: floor (85,36,33) vs
+  (76,37,36), wall (128,202,200) vs (149,209,214), walkway (63,75,64) vs (65,56,55), dado
+  (123,48,41) vs (110,52,52); the timber pillar is now darker than the photo (36 vs 72).
+  Not the cause: the soft sun, ray-tracing culling, software vs hardware tracing. Sky leaking
+  only brightens covered spaces as a whole (0.03 already overexposes the veranda).

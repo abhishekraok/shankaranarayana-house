@@ -17,8 +17,8 @@ POST_PROCESS = {
     # The overcast HDRI renders warm (blue about 10% low against red); the photographs are
     # neutral grey under cloud. Cooler white balance, checked at 14.56.30, 15.05.42, 15.23.35.
     'white_temp': 5900.0,
-    'local_exposure_shadow_contrast_scale': 0.5,
-    'local_exposure_highlight_contrast_scale': 0.8,
+    'local_exposure_shadow_contrast_scale': 1.0,
+    'local_exposure_highlight_contrast_scale': 1.0,
     'lumen_scene_lighting_quality': 2.0,
     'lumen_final_gather_quality': 2.0,
     'lumen_scene_detail': 2.0,

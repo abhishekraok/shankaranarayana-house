@@ -107,6 +107,10 @@ def texture_sample(m, prefix, linear=False):
     assert MEL.connect_material_expressions(transformed, '', tex, 'UVs') or MEL.connect_material_expressions(transformed, '', tex, 'Coordinates'), 'texture UV hookup failed'
     return tex
 
+import os as _os
+ALBEDO_TONE = tuple(float(v) for v in _os.environ.get('ALBEDO_TONE', '0.6,1.0,0.4').split(','))  # knee, power, floor
+SPECULAR = float(_os.environ.get('MATERIAL_SPECULAR', '0.25'))
+
 def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False):
     path = f'{DIR}/{name}'
     existing = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
@@ -168,6 +172,13 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         fill2 = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -100, 200)
         MEL.connect_material_expressions(out, '', fill2, 'A'); fill2.set_editor_property('const_b', 0.12)
         MEL.connect_material_property(fill2, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
+    if not (water or foliage or emissive):
+        # The web colours are the photographs' appearance, and under the overcast sky light dark
+        # finishes (oxide floors, old timber, wet stone, soil) rendered two to three times lighter
+        # against the pale walls than the photographs show (14.56.30: floor, pillar, walkway).
+        # Scale albedo down as it gets darker; pale plaster is untouched.
+        out = custom(m, 'float L=max(Col.r,max(Col.g,Col.b)); return Col*clamp(pow(L/%s,%s),%s,1.0);' % ALBEDO_TONE,
+            {'Col':out}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
     MEL.connect_material_property(out, '', unreal.MaterialProperty.MP_BASE_COLOR)
     r = param(m, unreal.MaterialExpressionScalarParameter, 'Roughness', -700, 400, 0.05 if water else 0.85)
     if mapped:
@@ -184,6 +195,14 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         m.set_editor_property('tangent_space_normal', False)
         MEL.connect_material_property(bumped, '', unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(r, '', unreal.MaterialProperty.MP_ROUGHNESS)
+    if not water:
+        # Rough weathered finishes showed a pale veil where they face the bright overcast sky at a
+        # grazing angle (tank treads and roofs had a near-black base colour and a light grey
+        # render with the default). Polished finishes keep the default reflectance, satin ones
+        # (oxide floors, roughness about 0.75) get half, which keeps the slight sheen 14.56.30
+        # shows, and fully matt ones (stone, tiles, old timber) get almost none (15.23.35 steps).
+        matt = custom(m, 'return lerp(lerp(0.5,%s,smoothstep(0.35,0.7,R)),0.05,smoothstep(0.8,0.92,R));' % SPECULAR, {'R':r}, unreal.CustomMaterialOutputType.CMOT_FLOAT1)
+        MEL.connect_material_property(matt, '', unreal.MaterialProperty.MP_SPECULAR)
     mt = param(m, unreal.MaterialExpressionScalarParameter, 'Metallic', -700, 500, 0.0)
     MEL.connect_material_property(mt, '', unreal.MaterialProperty.MP_METALLIC)
     if water:
