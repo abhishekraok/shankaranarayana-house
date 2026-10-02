@@ -333,6 +333,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.30.02: a grass verge about 2.4 m wide lies between the lake wall and the lane.
   box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,materials.grass);
   K.surface(3.65,-8.65,17.4,2.4,.015);
+  // 14.41.43: a laterite water trough stands on the verge just east of the corner pier.
+  box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#7a5a45',roughness:1}),true);
+  box('Verge trough dark water',-4.2,.46,-8.6,1.6,.02,.4,new THREE.MeshStandardMaterial({color:'#2c3a2c',roughness:.3}));
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     // Stubby dark posts with flat caps, a little taller than the wall.
