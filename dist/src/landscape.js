@@ -337,6 +337,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     // Stubby dark posts with flat caps, a little taller than the wall.
     box('Tank roadside substantial stone pier',x,.44,z,.36,.88,.36,fenceStone,true);
     box('Tank roadside flat pier cap',x,.915,z,.48,.07,.48,fenceStone);
+    // 15.23.35 / 15.22.40: from the lake the same posts read as white pilasters running down the wall.
+    box('Tank roadside pier white lake face',x,.175,z-.195,.30,1.55,.03,fenceWhite);
   }
   // 15.26.49 / 15.26.55: sparse plants emerge through the dark railing
   // and ledge cracks. Independent placement keeps the surrounding grove stable.
