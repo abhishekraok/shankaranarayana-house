@@ -114,8 +114,24 @@ Each photograph offers:
 - **Go to saved position**: a free camera at the saved pose, framed to the photograph's aspect and
   lens, with the photograph in a corner (`Tab` / `X` switches to a half-transparent overlay).
 - **Align from the current view**: the same camera, starting where you are.
-- `Enter` / `A` saves the alignment; `Esc` / `Menu` returns to the photograph's page.
 - **Add a note**.
+
+Alignment runs entirely from the controller or the keyboard, without returning to the menu. The
+bottom of the screen shows the photograph's name, `n / total`, whether it has a saved alignment, the
+lens, and these controls:
+
+| Controller | Keyboard | |
+| --- | --- | --- |
+| `LB` / `RB` | `[` / `]` or `PageUp` / `PageDown` | Previous / next photograph, wrapping round. One with a saved pose flies the camera there; an unaligned one leaves the camera where it is. |
+| `Y` | `G` | Go to this photograph's saved position and lens (a toast says so when there is none). |
+| `A` | `Enter` | Save the alignment. |
+| `X` | `Tab` | Photograph in a corner, or as a half-transparent overlay. |
+| `B` or `Menu` | `Esc` | The photograph's page; back again leaves alignment. |
+| Left stick, right stick | `W A S D`, mouse | Move, look. |
+| `LT` / `RT` (by how far they are pulled) | `Q` / `E` | Lower / rise. |
+| Hold `L3` (left stick click) | `Shift` | Move faster. |
+| D-pad up / down | `=` / `−` | Lens wider / longer. |
+| D-pad right / left | `C` / `Z` | Tilt (roll). |
 
 Poses and photo notes are read from and written to the web align tool's `align-poses.json` (same
 record format, three.js coordinates), so either tool sees the other's work. `Leave a note here` in the
@@ -124,5 +140,6 @@ folder, with eye position and view direction in three.js metres.
 
 `-WalkReviewPhoto=<part of a file name>` opens that photograph at its saved pose, writes
 `review-<name>-menu.png`, `-side.png` and `-overlay.png` to `Saved/WalkReview`, and quits without
-saving anything. The smoke test exercises alignment and notes on a generated picture in
-`Saved/WalkReview/align-smoke`, never the real poses.
+saving anything. The smoke test exercises alignment (including `RB`, `LB`, `Y`, `A` and `B` as real
+button events) and notes on two generated pictures in `Saved/WalkReview/align-smoke`, never the real
+poses.

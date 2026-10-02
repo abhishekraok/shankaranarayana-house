@@ -132,6 +132,11 @@ public:
     bool OpenPhoto(int32 Index);
     void StartAlign(bool FromSaved);
     void StopAlign();
+    // While aligning, without the menu: the saved lens (and, with Move, eye and rotation) of the
+    // open photograph; fly to it; step to the previous / next photograph, wrapping round.
+    bool SavedView(bool Move,FVector& Eye,FQuat& Rotation);
+    bool AlignToSaved();
+    bool AlignStep(int32 Direction);
     void TickAlign(float Delta);
     void AlignTurn(float Yaw,float Pitch);
     void ApplyAlignLens();
