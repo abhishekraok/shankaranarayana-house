@@ -178,8 +178,10 @@ export function buildHouse(K) {
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
-  floor('Entrance-left lower stone walking strip',5.62,-.31,8.36,1.02,.455,'stone',.05);
-  floor('Entrance-right lower stone walking strip',-4.77,-.31,6.66,1.02,.455,'stone',.05);
+  // 14.56.30: the walking strip is a neutral grey-brown stone, not green-grey.
+  const walkStone=K.M.stone.clone();walkStone.color.setRGB(1.12,.90,.94);
+  floor('Entrance-left lower stone walking strip',5.62,-.31,8.36,1.02,.455,walkStone,.05);
+  floor('Entrance-right lower stone walking strip',-4.77,-.31,6.66,1.02,.455,walkStone,.05);
   for(const s of [-1,1]){
     // The raised side walk ends in a plain face at the passage, with one worn step up to it.
     b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.31,.06,.43-EL,1.02,riserGrey);
