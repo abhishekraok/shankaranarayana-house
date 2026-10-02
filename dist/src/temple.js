@@ -707,7 +707,7 @@ export function buildTemple(K) {
     const rg=new THREE.Group();rg.name='Outer circuit veranda roof';g.add(rg);K.roofs.push(rg);
     if(!r.round){
       K.box(rg,'Outer circuit flat white soffit',xc,3.57,zc,w+.5,.24,d+.18,agedWhite);
-      K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.15,3.52,zc,.19,.20,d+.20,red);
+      K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.27,3.47,zc,.19,.30,d+.20,red); // 15.05.42 / 15.04.59: a 0.3 m red band standing clear of the soffit edge
       if(r.side>0)K.box(rg,'Outer circuit weathered terrace parapet',r.edge,4.01,zc,.22,.76,d,agedWhite);
       else {
         // 15.11.17: pierced white parapet and blue scallops above the west aisle.
@@ -727,7 +727,7 @@ export function buildTemple(K) {
         K.blocker(r.edge,zc,.12,d,3.69,4.48);
       }
     }
-    box('Outer circuit pale blue lintel',r.edge,3.35,zc,.28,.21,d,paleBlue);
+    box('Outer circuit pale blue lintel',r.edge,3.35,zc,.28,.21,d,agedWhite); // white beam under the red band (name kept)
   }
   // Rear range is authored at its final X extents, then translated 7.5 m in Z.
   const rearStart=markAssembly();
@@ -746,7 +746,7 @@ export function buildTemple(K) {
     K.box(rearRoof,'Rear circuit flat soffit',x,3.57,z,w,.24,d,agedWhite);
     K.surface(x,z,w,d,3.69);
   }
-  K.box(rearRoof,'Rear circuit red roof fascia',40.25,3.52,35.02,35.5,.2,.20,red);
+  K.box(rearRoof,'Rear circuit red roof fascia',40.25,3.47,35.02,35.5,.30,.20,red);
   K.box(rearRoof,'Rear circuit weathered parapet',40.25,4.01,35.28,35.5,.76,.22,agedWhite);
   // The blue doorway and little upper balcony terminate the long left aisle.
   // 15.05.42 / 15.11.08: an upper room occupies the west part of the rear range,
