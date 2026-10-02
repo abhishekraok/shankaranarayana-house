@@ -1460,11 +1460,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
   // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
   {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
-   box('House west shed laterite walls',-20.2,1.07,2.0,3.8,2.14,4.0,lat,true);
-   box('House west shed dark doorway',-18.85,1.0,-.005,.8,1.85,.03,materials.darkSoil);
-   box('House west shed small window',-20.9,1.35,-.005,.9,.6,.03,materials.darkSoil);
-   box('House west shed plaster patch',-20.0,.55,-.01,1.4,.5,.02,'plaster');
-   const r=K.hipRoof(group,'House west shed weathered tiled roof',-20.2,2.0,4.8,5.0,2.14,1.05,darkTile);K.roofs.push(r);}
+   // Photo review (close view 15.28.49): pale limewash worn through to the laterite, a gable roof
+   // with its ridge along the house wall, and a low hatch under the eave rather than a door.
+   const limewash=new THREE.MeshStandardMaterial({color:'#c3d2cd',roughness:.97});
+   box('House west shed limewashed walls',-20.2,.95,2.0,3.8,1.9,4.0,limewash,true);
+   for(const [x,y,w,h] of [[-21.6,.5,.3,.25],[-21.0,.75,.4,.2],[-20.5,.4,.25,.3],[-19.9,.85,.35,.15],[-19.4,.55,.3,.3],[-19.0,.3,.2,.2],[-18.6,.7,.15,.25]])box('House west shed exposed laterite patch',x,y,-.012,w,h,.02,lat);
+   box('House west shed damp base band',-20.2,.25,-.014,3.8,.5,.02,new THREE.MeshStandardMaterial({color:'#3a3d33',roughness:1}));
+   box('House west shed dark hatch',-20.3,1.68,-.005,1.85,.45,.03,materials.darkSoil);
+   box('House west shed east doorway',-18.29,.9,2.0,.03,1.7,.7,materials.darkSoil);
+   const r=K.gableRoof(group,'House west shed weathered tiled roof',-20.0,1.9,5.4,5.0,1.9,1.55,darkTile);K.roofs.push(r);}
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});

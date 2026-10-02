@@ -649,7 +649,7 @@ export function buildHouse(K) {
   b('Front timber crossbeam',1.15,2.885,-.88,15.65,.21,.24,verandaTimber);
   b('Inner front crossbeam',-.5,3.51,5.7,16.6,.23,.27,'wood');
   b('West veranda crossbeam',-8.5,3.51,10.25,.24,.25,9.3,'wood');
-  b('East veranda crossbeam',7.4,3.51,10.25,.24,.25,9.3,'wood');
+  b('East veranda crossbeam',7.6,3.51,10.25,.24,.25,9.3,'wood'); // on the east posts
   b('Rear veranda crossbeam',-.55,3.51,14.7,15.8,.24,.27,'wood');
 
   // 14.32.31: the raised God-room screen is directly ahead on entering.
@@ -1512,7 +1512,10 @@ export function buildHouse(K) {
   const endWhite=mat('plaster').clone();endWhite.color.set('#f1eced');
   const dampBase=new THREE.MeshStandardMaterial({color:'#2f302c',roughness:1});
   b('Temple-side long white wing',wingCx,1.36,wingCz,wingX1-wingX0,2.42,wingZ1-wingZ0,endWhite,true);
-  b('Temple-side wing black dado',wingCx,.23,wingCz,wingX1-wingX0+.05,.46,wingZ1-wingZ0+.05,dampBase); // 14.58.40: a low dark plinth band, ~0.45 m
+  // Photo review (15.23.35 and three lane views): the black dado is about 0.9 m high on the lane face,
+  // lower at the back, and the east end wall has none.
+  b('Temple-side wing black dado',wingCx,.46,wingZ0-.015,wingX1-wingX0,.92,.03,dampBase);
+  b('Temple-side wing black dado',wingCx,.23,wingZ1+.015,wingX1-wingX0,.46,.03,dampBase);
   b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
