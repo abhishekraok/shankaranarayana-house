@@ -266,7 +266,7 @@ def bind_map(mi, record, prefix=''):
 # Finishes the game's sky light lifts well above the photographs although the web colour is right there
 # (2026-10-02 captures against 15.23.35 and 14.44.09). Linear multipliers on the instance colour, by web material name.
 GAME_TINT = {'tank stone': .32, 'tank mossy stone': .32, 'tank tread top': .4, 'court sheet barrier': .65,
-             'house roof courses upper': .5, 'house roof courses lower': .5, 'weathered dark tile': 2.2}
+             'house roof courses upper': .5, 'house roof courses lower': .5, 'weathered dark tile': 1.45}  # 2.2 crossed the tone knee: the west shed roof went white
 
 def instance(i):
     if i in made: return made[i]
