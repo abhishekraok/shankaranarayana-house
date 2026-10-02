@@ -184,3 +184,7 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   silhouette, so crowns and shrubs have ragged edges instead of smooth spheres. `LEAF_RIM=0` in the
   environment of `materials.py --rebuild` switches it off. Checked at lane-right.jpg and 15.23.35.
   Still blocky up close; real leaf cards or palm fronds would be the next step.
+- 2026-10-02, timber: after a second lightening of the web timber texture (main 38e8d4f) the game
+  samples at 14.56.30 as: pillar (64,52,44) vs photo (72,53,51), floor (93,40,37) vs (76,37,36),
+  wall (164,207,206) vs (149,209,214), walkway (65,77,66) vs (65,56,55), dado (130,52,45) vs
+  (110,52,52). The pillar gap is closed; the oxide floor is now the furthest off (about 20% bright).
