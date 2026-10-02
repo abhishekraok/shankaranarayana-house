@@ -66,6 +66,12 @@ committed) still apply.
   finishes the game's sky light renders far paler than the photos while the web colour is right
   (tank stone, tread tops, the court's sheet barrier). Name a web material to use it. The web
   light changes above do not reach the game, which lights the scene itself.
+- Three roofs were wound upside down (wing roof, entrance awning, a temple lean-to). The web draws
+  both sides so it never showed; the game rendered the wing roof black. `node tools/scan-roof-normals.mjs`
+  lists any roof, awning or sheet whose normals point down; run it after authoring roof geometry by hand.
+- Game samples after the tint table (07:45 captures): tank face 76,75,80 against 82,71,79; arcade
+  roof 99,88,86 against 97,87,95; house roof 98,87,94 against 108,97,108; sheet barrier 176,129,128
+  against 160,122,120. The game's court soil reads grey-brown, not laterite red; not addressed.
 - Measure before changing a colour: the stage figures looked too pale by eye but sampled within
   20 levels of the photo, and that change was dropped.
 - Not done, interiors: rooms are too bright because the ambient and hemisphere light are not
