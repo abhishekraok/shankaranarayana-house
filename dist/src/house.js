@@ -875,9 +875,9 @@ export function buildHouse(K) {
   const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
   // 14.30.57: pale pipe lies on the soil beside the shrine-side supports.
   const courtPipe=K.M.plaster.clone();courtPipe.color.set('#d0d2bc');
-  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.78,.075,8.53,.034,.034,5.10,courtPipe,8);groundPipe.rotation.x=Math.PI/2;
+  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.45,1.04,8.53,.034,.034,5.10,courtPipe,8); // lies on the east ledgegroundPipe.rotation.x=Math.PI/2;
   for(const z of [6.03,8.12,10.98]){
-    const joint=K.cylinder(g,'Courtyard ground pipe coupling',2.78,.075,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
+    const joint=K.cylinder(g,'Courtyard ground pipe coupling',2.45,1.04,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
   }
   const poleStain=new THREE.MeshStandardMaterial({color:'#696c4c',roughness:1});
   for(const z of [7.46,8.55,10.02,10.85]){
@@ -1751,7 +1751,14 @@ export function buildHouse(K) {
     b('Shrine rear plinth ledge',0,.89,11.80,5.22,.12,.41,'plaster');b('Shrine rear plinth ledge weathered top',0,.954,11.80,5.22,.008,.41,skin);
     for(const [z1,y] of [[11.92,.76],[11.84,.62],[11.76,.48]])b('Shrine rear plinth white moulding',0,y,(11.59+z1)/2,5.10,.14,z1-11.59,'plaster');
     b('Shrine rear plinth laterite base',0,.2225,(11.59+12.10)/2,5.22,.375,12.10-11.59,lat);
-    K.blocker(0,11.85,5.22,.52,.035,.95);}
+    K.blocker(0,11.85,5.22,.52,.035,.95);
+    // East face (14.44.14 / 14.44.19): a mossy ledge over three white mouldings and a laterite base, with a kerb.
+    const latRed=new THREE.MeshStandardMaterial({color:'#7a4a35',roughness:1}),mossSkin=new THREE.MeshStandardMaterial({color:'#5d6b3a',roughness:1});
+    b('Shrine east plinth ledge',2.385,.94,9.25,.45,.12,4.70,'plaster');b('Shrine east plinth ledge moss',2.385,1.004,9.25,.45,.008,4.70,mossSkin);
+    for(const [x1,y] of [[2.53,.81],[2.45,.67],[2.37,.53]])b('Shrine east plinth white moulding',(2.16+x1)/2,y,9.25,x1-2.16,.14,4.70,'plaster');
+    b('Shrine east plinth laterite base',(2.16+2.50)/2,.2475,9.25,2.50-2.16,.425,4.70,latRed);
+    b('Shrine east laterite kerb',2.76,.11,9.25,.12,.15,4.70,latRed);
+    K.blocker(2.42,9.25,.52,4.70,.035,1.0);}
    const tall=K.hipRoof(g,'Shrine tall tiled roof',0,9.25,5.4,5.7,top,1.15);
    tall.traverse(o=>{if(o.isMesh&&/tiles$/.test(o.name)){o.material=o.material.clone();o.material.color.multiplyScalar(.7);}});
    for(let z=6.75;z<11.9;z+=.42)for(const side of [-1,1])K.beam(g,'Shrine tall roof exposed rafter',[side*2.68,top-.1,z],[side*2.0,top+.19,z],.06,shrineTimber,.08);
