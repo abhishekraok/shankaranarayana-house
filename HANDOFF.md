@@ -53,7 +53,8 @@ quaternion into a small pose file and pass it as `POSE_FILE` (see `checks/unreal
 **Next work, in order.** (1) Any new notes. (2) `docs/photo-review-2026-10-01-fixes.json`: the
 review's ranked fix lists for house.js, temple.js and landscape.js (about 25 each), each with the
 exact objects, numbers, evidence photos and risks. Its line numbers predate tonight's later
-commits, and these entries are already done: house 1, 2, 3, 5, 8, 15 (half walls only; the east
+commits, and these entries are already done: house 1, 2, 3, 4 (west plinth only; east and rear
+remain), 5, 8, 15 (half walls only; the east
 window sill was left because a test encodes daylight through it at 2.4 m), 6 (sheet barrier,
 shortened grey sheets and the upper wall without its red band; not the two small windows), 10 (coping, riser
 colour and bench only; the steps stay for walking), 11 (ceiling only), 12 (dado only), 16,

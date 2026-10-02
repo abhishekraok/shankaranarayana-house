@@ -300,8 +300,8 @@ for(let x=-6.8;x<8.3;x+=.12){
   assert.equal(ray.intersectObject(house,true).length,0,'Lower veranda strip has physical head clearance');
 }
 houseRoute('Right entrance platform through north-south steps',[[0,5.15],[-4.9,5.15]],.45,.07);
-houseRoute('Right entrance steps down into courtyard',[[-4.9,5.15],[-2.7,5.15],[-2.7,7]],.45,.03);
-houseRoute('Courtyard back to right entrance platform',[[-2.7,7],[-2.7,5.15],[-4.9,5.15]],.035,.03);
+houseRoute('Right entrance steps down into courtyard',[[-4.9,5.15],[-3.12,5.15],[-3.12,7]],.45,.03);
+houseRoute('Courtyard back to right entrance platform',[[-3.12,7],[-3.12,5.15],[-4.9,5.15]],.035,.03);
 // User-confirmed 175312 alignment: no camera refit to conceal layout errors.
 const rightEntryCamera=new THREE.PerspectiveCamera(48,4/3,.06,400);
 rightEntryCamera.position.set(-4.2075343063,2.5453056424,6.6058722911);
