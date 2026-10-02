@@ -4,6 +4,26 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## Evening of 2026-10-01: the user's game and web notes
+
+- House entrance (game notes at the entrance and in the court; house-front.jpg): the centre
+  passage is at ground level (`EL` = .075 in house.js) from the lane, through the main door, to
+  the grey court pocket. No central steps. The front range plinth is split either side of the
+  passage; the sitting bays (.75) and inner platforms (.79) are reached by one stone step each.
+  A flat cement slab and two low masonry cheeks stand in front, as in the photo.
+- East passage: the gap beside the stair-wing partition is a plain turquoise wall (game note).
+- Lake: the open iron gate leaf that stood out over the water is removed (game note).
+- Temple entrance (temple-entrance.jpg note): the gate bay has no lattice transom or brackets.
+- Lane (lane-right.jpg note): the cottage and the salmon house behind it moved 12 m west, the
+  porch at the bend 19.5 m west, and the lane's bend, poles and trees with them.
+- Bell bays (15.14.51 note, with 15.10.34 and 15.02.27): either side of the passage a square
+  carved pillar stands at the front and a round turned grey stone column 1.6 m behind it, with a
+  dull brass bell hung between them. The east portico front moved out 1.0 m to match the west
+  bay (same pass at the end of buildTemple). Routes and tour stops in front of it moved out.
+- `tools/probe-pose.mjs` and `tools/dump-region.mjs` say what a photo pixel hits and what stands
+  in a plan rectangle.
+- Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
+
 ## Overnight pass (2026-09-29 night)
 
 - Tour-frame QA (every 3 s) twice, plus photo review rounds 4-5 of the trusted poses and the
