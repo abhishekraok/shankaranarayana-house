@@ -691,7 +691,7 @@ export function buildTemple(K) {
       if(r.round&&z>8&&z<15)continue; // 15.02.00 / IMG_20130720_180653: the mid-span column stands at z 10.1 (added below).
       if(r.round){cyl('Right hall round red column foot',r.edge,.36,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,1.96,z,.14,.17,2.68,paleBlue,16);K.blocker(r.edge,z,.38,.38,.1,3.4);}
       else blueColumn('Outer circuit pale blue column',r.edge,z,.6,2.85);
-      if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge-r.side*.47,.78,z,.37,.35,.38,blue); // beside the pillar, on the plinth
+      if(!r.round&&i%3===1)box('Outer circuit small blue donation box',r.edge,1.20,z+.28,.20,.33,.27,blue); // 15.04.59: a small box fixed to the column's side face (it floated outside the plinth)
     }
     if(r.round){const z=10.1;cyl('Right hall round red column foot',r.edge,.36,z,.19,.19,.52,red,16);cyl('Right hall round cyan column',r.edge,1.96,z,.14,.17,2.68,paleBlue,16);K.blocker(r.edge,z,.38,.38,.1,3.4);}
     if(r.side>0)for(const center of [16.2,21.4])for(const side of [-1,1])
@@ -1635,7 +1635,7 @@ export function buildTemple(K) {
   K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
   // The suspended drum is beside the large bell, as in the close-up 15.14.44.
   const drumX=bellX+.8,drumZ=6.6;
-  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(drumX,1.5,drumZ);drum.rotation.x=.62;drum.rotation.z=-.32;g.add(drum);
+  const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(drumX,1.5,drumZ);drum.rotation.x=.62;drum.rotation.z=-.32;drum.scale.setScalar(.72);g.add(drum); // 15.14.44: about 0.75 m across
   const shell=mesh('Temple drum wooden shell',new THREE.CylinderGeometry(.45,.31,.65,32),K.M.wood,0,0,0,drum);
   for(const y of [-.325,.325]){
     const radius=y>0?.45:.31;
@@ -1654,9 +1654,9 @@ export function buildTemple(K) {
   // 15.10.34 / 15.02.27 / 15.14.51 (user's note): either side of the passage a round turned grey
   // stone column stands 1.6 m behind the square carved pillar, on a carved block, and a bronze bell
   // hangs on a chain midway between the two. Authored at the final (moved-out) front line.
-  {const greyStone=mat('#a3a299',.95),dullBrass=mat('#8a7650',.55,{metalness:.55}),front=8.57,back=front-1.6;
+  {const greyStone=mat('#a3a299',.95),dullBrass=mat('#8a7650',.55,{metalness:.55}),front=8.57;
    const profile=[[.205,0],[.205,.62],[.235,.66],[.235,.76],[.195,.80],[.195,.98],[.27,1.08],[.30,1.20],[.27,1.32],[.205,1.40],[.205,1.46],[.33,1.56],[.34,1.66],[.26,1.74]];
-   for(const x of [37.55,40.65]){
+   for(const x of [37.55,40.65]){const back=front-(x<39?1.3:1.6); // west: clear of the drum
      box('Passage round column carved base block',x,1.03,back,.50,.86,.50,greyStone);
      for(const y of [.66,1.44])box('Passage round column base moulding',x,y,back,.58,.09,.58,greyStone);
      panel('Passage round column base relief',x,1.04,back+.255,.34,.56,relief);
@@ -2353,7 +2353,7 @@ export function buildTemple(K) {
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
   // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
   // inside the upper storey.
-  {const b3=new THREE.Box3();for(const o of g.children)if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)o.position.y+=7.16-3.79;}}
+  {const b3=new THREE.Box3();for(const o of [...g.children])if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)g.remove(o);}} // photo review: lifted, this copy floated over the 'East range rooftop pavilion' already standing there
   // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
   // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
   // the recessed shrine stair and the corner flight to the new height.
