@@ -71,12 +71,12 @@ const destinations={
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
 // Entering faces +Z, so the photographer's left is +X; the room wall is on the right.
-const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-5.2,.051,-7.7],target:[-4.2,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[-3.8,.45,1.18],target:[0.5,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-34],target:[30,2,4.5]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-2],target:[38.8,3.85,3.3],fov:84}};
+const photos={house:{url:'house-front.jpg',caption:'September 2011 · The front of the house · 15.28.36',p:[-5.2,.051,-7.7],target:[-4.2,3.5,.4],fov:96},veranda:{url:'veranda.jpg',caption:'September 2011 · Before the main door, left veranda · 14.56.30',p:[-3.8,.079,1.18],target:[0.5,1.70,.35],fov:72},lake:{url:'lake.jpg',caption:'September 2011 · The lake, pavilion and temple',p:[-7,2,-34],target:[30,2,4.5]},temple:{url:'temple-entrance.jpg',caption:'September 2011 · Temple entrance, from slightly left · 15.19.41',p:[42.3,.051,-2],target:[38.8,3.85,3.3],fov:84}};
 photos.houseleft={url:'house-front-left.jpg',caption:'September 2011 · Front of the house, looking left towards the temple · 15.28.45',p:[-6,.051,-7.6],target:[40,3.2,-1.5],fov:76};
 destinations.house=photos.house;destinations.houseleft=photos.houseleft;
 photos.verandaleft={url:'veranda-left-passage.jpg',caption:'September 2011 · Before the main door, along the left walkway · 14.56.07',p:[-1.9,.455,-.25],target:[0.4,1.68,1.05],fov:68};
-photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[-3.75,.45,1.32],target:[0.3,1.65,1.15],fov:72};
-photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-3.85,.45,1.32],target:[-7.9,1.65,1.15],fov:72};
+photos.verandaseat={url:'veranda-left-seat.jpg',caption:'September 2011 · Before the main door, left sitting bay · 14.56.22',p:[-3.75,.079,1.32],target:[0.3,1.65,1.15],fov:72};
+photos.verandaright={url:'veranda-right.jpg',caption:'September 2011 · Before the main door, right sitting bay · 14.56.47',p:[-3.85,.079,1.32],target:[-7.9,1.65,1.15],fov:72};
 for(const key of ['veranda','verandaleft','verandaseat','verandaright'])destinations[key]=photos[key];
 destinations.templesanctum={p:[35.2,.55,26.5],target:[39,2.3,28.7],fov:72};
 destinations.templesanctumfront={p:[43,.55,25.5],target:[39,2.25,20.8],fov:76};
@@ -90,9 +90,9 @@ destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
 destinations.courtstair={p:[-7.8,.035,12],target:[-8.1,1.8,6.2],fov:72};
 destinations.courtstairtop={p:[-10.55,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
 photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-7.2,.035,6.85],target:[-8.8,1.2,11]};
-photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.45,4.45],target:[-3.8,1.80,6.92],fov:92};
+photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.081,4.45],target:[-3.8,1.80,6.92],fov:92};
 photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[4.2,0,-7],target:[60,3.5,-5],fov:54};
-photos.laneright={url:'lane-right.jpg',caption:'September 2011 · Front of the house, right away from the temple',p:[-10.8,.051,-5],target:[-42,2,-6.7],fov:60};
+photos.laneright={url:'lane-right.jpg',caption:'September 2011 · Front of the house, right away from the temple',p:[-10.8,.051,-5],target:[-42,2.6,-5.6],fov:60};
 photos.templeleft={url:'temple-upper-left.jpg',caption:'September 2011 · Temple upper gallery, looking left at the inner building',p:[44.4,4.08,9.9],target:[46,2.6,21],fov:62};
 photos.templecenter={url:'temple-upper-center.jpg',caption:'September 2011 · Temple upper gallery, facing the inner building',p:[39,4.08,9.9],target:[39,3.3,21],fov:62};
 photos.templeright={url:'temple-upper-right.jpg',caption:'September 2011 · Temple upper gallery, looking right at the inner building',p:[33.5,4.08,9.9],target:[31,3.6,22.5],fov:62};

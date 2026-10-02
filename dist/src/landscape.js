@@ -67,9 +67,9 @@ export function buildLandscape(K, {mobile=false}={}) {
 
   // The two front-of-house photographs are opposite views down this same lane.
   // It reaches the adjacent building and bends into the grove at the western end.
-  const roadCurve=new THREE.CatmullRomCurve3([[-77,0,-22],[-62,0,-16],[-49,0,-9.5],[-35,0,-5.8],[-18,0,-5],[0,0,-5],[36,0,-5],[57,0,-5]].map(p=>new THREE.Vector3(...p)));
+  const roadCurve=new THREE.CatmullRomCurve3([[-95,0,-22],[-80,0,-16],[-67,0,-9.5],[-53,0,-5.8],[-36,0,-5],[-18,0,-5],[0,0,-5],[36,0,-5],[57,0,-5]].map(p=>new THREE.Vector3(...p)));
   // 14.58.40: the lane climbs gently after passing the house and car.
-  const roadRise=x=>1.9*THREE.MathUtils.smoothstep(-x,12,52)+.4*THREE.MathUtils.smoothstep(-x,52,77);
+  const roadRise=x=>1.9*THREE.MathUtils.smoothstep(-x,12,52)+.4*THREE.MathUtils.smoothstep(-x,70,95);
   const roadSamples=roadCurve.getPoints(130);
   roadSamples.forEach(p=>{p.y=roadRise(p.x);});
   const roadHalfWidth=p=>1.70+.50*THREE.MathUtils.smoothstep(p.x,9,28);
@@ -364,10 +364,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const [y,w,h] of [[.29,.75,.58],[.77,.62,.38],[1.10,.49,.28],[1.31,.39,.14]])box('Tank gate square stepped stone pier',bathingGateX,y,z,w,h,w,fenceWhite,true);
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
-  // Open iron leaf rests along the stair edge; the passage stays clear.
-  for(const x of [16.45,17.27])box('Tank narrow iron gate upright',x,.51,-10.87,.035,.92,.035,'metal');
-  for(const y of [.12,.94])box('Tank narrow iron gate rail',16.86,y,-10.87,.85,.035,.035,'metal');
-  for(let x=16.56;x<17.27;x+=.13)box('Tank metal gate bars',x,.53,-10.87,.017,.82,.022,'metal');
+  // User's note (game): the open iron leaf stood out over the water; removed.
   box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
   box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
@@ -838,6 +835,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     const scale = [size, size * range(.55, .9), size * range(.7, 1.15)], tint = foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3);
     // Nothing grows inside the temple complex, wherever it is placed (same random draws either way).
     if (x > 20.5 && x < 58.5 && z > (K.templeShiftZ || 0) && z < 46.2 + (K.templeShiftZ || 0)) return;
+    // Nor on the straight asphalt of the lane.
+    if (x > -40 && x < 20 && Math.abs(z + 5) < 2.1 + size * .5) return;
     instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], scale, q, tint);
   }
   for (let i = 0; i < 220; i++) {
@@ -1438,6 +1437,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   laneHouse('Temple-side low white outbuilding',51.8,.10+(K.templeShiftZ||0),6.7,4.2,2.70,-1);
   // Damp black base is visible on the close wall in the left-facing photograph.
   box('Temple-side outbuilding black damp base',51.8,.47,-2.025+(K.templeShiftZ||0),6.73,.83,.035,materials.wetStone);
+  // User's note (lane-right.jpg): the houses along the lane stand further off. The cottage is
+  // about 27 m from the house's west end and the porch at the bend about 52 m, so the cottage,
+  // the salmon house behind it and the bend itself move west.
+  const cottageShift=-12,cottageMark=[[group.children.length,K.colliders.length,K.surfaces.length]];
   laneHouse('Western lane right cottage',-28,-13.0,8.2,5.4,2.6,1);
   // 14.28.26 / 15.15.26: a salmon-pink two-storey house stands up the slope behind the western
   // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
@@ -1446,6 +1449,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    box('Slope salmon-pink house red parapet band',-36,5.25,-21.5,7.3,.3,6.5,'red');
    for(const xx of [-38.2,-33.8])for(const y of [1.6,4.2])box('Slope salmon-pink house window',xx,y,-18.28,1.0,1.1,.05,'wood');
    const r=K.hipRoof(group,'Slope salmon-pink house tiled roof',-36,-21.5,8.2,7.4,5.4,1.3);K.roofs.push(r);}
+  cottageMark[0].push(group.children.length,K.colliders.length,K.surfaces.length);
   // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
   // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
   {const lat=new THREE.MeshStandardMaterial({color:'#9c6048',roughness:.97});
@@ -1457,6 +1461,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 14.46.51 resolves the roadside facade: raised door between barred
   // windows and a shallow white projection with a half-height brown shutter.
   const cottageWood=new THREE.MeshStandardMaterial({color:'#664239',roughness:.96});
+  cottageMark.push([group.children.length,K.colliders.length,K.surfaces.length]);
   box('Western cottage dark raised foundation',-28,.225,-13,8.24,.45,5.44,materials.wetStone);
   // 14.46.51: the red dado runs about 0.8 m up the wall above the dark foundation.
   box('Western cottage red dado',-28,.83,-13,8.25,.76,5.45,'red');
@@ -1476,6 +1481,11 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let j=0;j<9;j++)box('Western cottage shutter horizontal louvre',-24.95,1.72+j*.077,-9.915,1.20,.018,.025,materials.darkSoil);
   const cottageCanopy=box('Western cottage shallow grey shutter canopy',-24.95,2.72,-10.01,2.15,.065,.77,materials.roofConcrete);
   cottageCanopy.rotation.x=.13;K.roofs.push(cottageCanopy);
+  cottageMark[1].push(group.children.length,K.colliders.length,K.surfaces.length);
+  for(const [m0,c0,s0,m1,c1,s1] of cottageMark){const rise=roadRise(-28+cottageShift)-roadRise(-28);
+    for(const m of group.children.slice(m0,m1)){m.position.x+=cottageShift;m.position.y+=rise;}
+    for(const c of K.colliders.slice(c0,c1)){c.minX+=cottageShift;c.maxX+=cottageShift;c.top+=rise;}
+    for(const f of K.surfaces.slice(s0,s1)){f.x+=cottageShift;f.y+=rise;}}
 
   // 14.46.51: a single-storey house under its hipped tile roof; no pink upper floor over it.
   const bendMeshes=group.children.length,bendColliders=K.colliders.length,bendSurfaces=K.surfaces.length;
@@ -1483,14 +1493,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lane bend porch red parapet',-44.5,.70,-4.65,5.8,.65,.20,'red');
   for(const x of [-47.25,-41.75])box('Lane bend porch white column',x,1.8,-4.62,.23,2.8,.25,'plaster',true);
   K.gableRoof(group,'Lane bend little porch roof',-44.5,-4.1,7.0,2.4,3.2,.6);
-  const bendRise=roadRise(-44.5);
-  for(const m of group.children.slice(bendMeshes))m.position.y+=bendRise;
-  for(const c of K.colliders.slice(bendColliders)){c.bottom+=bendRise;c.top+=bendRise;}
-  for(const f of K.surfaces.slice(bendSurfaces))f.y+=bendRise;
-  box('Lane bend raised laterite terrace',-44.5,bendRise/2,-1.2,9.0,bendRise,8.0,materials.redSoil);
-  K.surface(-44.5,-1.2,9.0,8.0,bendRise);
+  const bendShift=-19.5,bendRise=roadRise(-44.5+bendShift);
+  for(const m of group.children.slice(bendMeshes)){m.position.y+=bendRise;m.position.x+=bendShift;}
+  for(const c of K.colliders.slice(bendColliders)){c.bottom+=bendRise;c.top+=bendRise;c.minX+=bendShift;c.maxX+=bendShift;}
+  for(const f of K.surfaces.slice(bendSurfaces)){f.y+=bendRise;f.x+=bendShift;}
+  box('Lane bend raised laterite terrace',-44.5+bendShift,bendRise/2,-1.2,9.0,bendRise,8.0,materials.redSoil);
+  K.surface(-44.5+bendShift,-1.2,9.0,8.0,bendRise);
   // Poles and four sagging wires on photo-left when looking away from temple.
-  const poles=[[-15,-.8],[-33,-1.5],[-52,-6.4],[-70,-14.1]];
+  const poles=[[-15,-.8],[-36,-1.0],[-57,-2.6],[-80,-11.6]];
   for(const [x,z] of poles){
     K.cylinder(group,'Lane slender utility pole',x,3.55,z,.055,.085,7.1,materials.trunkRings,9,true);
     box('Utility pole short crossarm',x,6.62,z,.10,.11,1.25,'wood');
@@ -1501,8 +1511,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     const cable=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),points.length*2,.008,4),new THREE.MeshStandardMaterial({color:'#343c32',roughness:.8}));cable.name='Sagging roadside utility wire';group.add(cable);
   }
   // The photographed canopy encloses the lane instead of sitting far behind it.
-  for(const [x,z,h,r] of [[-17,5,10,4.7],[-27,4,11,5.0],[-37,3.5,12,5.4],[-52,0,10,4.5],[-62,-3,12,5],[-41,-19,9,4.3],[-60,-25,10,5]])broadleaf(x,z,h,r);
-  for(const p of [[-24,-13,15],[-31,-11,16],[-35,-19,17],[-41,-15,14],[-53,-22,16]])palm(...p);
+  for(const [x,z,h,r] of [[-17,5,10,4.7],[-27,4,11,5.0],[-37,3.5,12,5.4],[-53,1.5,10,4.5],[-74,-4,12,5],[-41,-19,9,4.3],[-60,-25,10,5]])broadleaf(x,z,h,r);
+  for(const p of [[-24,-13,15],[-31,-11,16],[-35,-19,17],[-46.5,-13.5,14],[-55,-23,16]])palm(...p);
   for(let i=0;i<230;i++){
     const t=range(0,.59),p=roadCurve.getPoint(t),side=i%2?1:-1,z=p.z+side*range(2.45,4.15);
     shrub(p.x,z,range(.4,1.15));
