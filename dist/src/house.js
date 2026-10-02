@@ -1295,12 +1295,12 @@ export function buildHouse(K) {
   const bowlProfile=[[0,0],[.25,0],[.29,.035],[.325,.12],[.34,.27],[.337,.305],
     [.315,.32],[.284,.302],[.277,.25],[.251,.09],[.20,.065],[0,.065]];
   const grindingBowl=new THREE.Mesh(new THREE.LatheGeometry(bowlProfile.map(([r,y])=>new THREE.Vector2(r,y)),36),bowlStone);
-  grindingBowl.name='Courtyard hollow stone grinding bowl';grindingBowl.position.set(-2.6,.035,12.15);grindingBowl.castShadow=grindingBowl.receiveShadow=true;g.add(grindingBowl);
+  grindingBowl.name='Courtyard hollow stone grinding bowl';grindingBowl.position.set(-2.95,.035,12.55);grindingBowl.castShadow=grindingBowl.receiveShadow=true;g.add(grindingBowl);
   const bowlWater=new THREE.Mesh(new THREE.CircleGeometry(.277,36),new THREE.MeshStandardMaterial({color:'#666b50',roughness:.18,metalness:.18}));
-  bowlWater.name='Courtyard grinding bowl standing water';bowlWater.rotation.x=-Math.PI/2;bowlWater.position.set(-2.6,.289,12.15);g.add(bowlWater);
+  bowlWater.name='Courtyard grinding bowl standing water';bowlWater.rotation.x=-Math.PI/2;bowlWater.position.set(-2.95,.289,12.55);g.add(bowlWater);
   const handStone=new THREE.Mesh(new THREE.SphereGeometry(1,20,12),bowlStone);
-  handStone.name='Courtyard elongated grinding roller';handStone.scale.set(.105,.095,.225);handStone.rotation.y=-.35;handStone.position.set(-2.6,.322,12.15);handStone.castShadow=true;g.add(handStone);
-  K.beam(g,'Courtyard grinding roller wooden handle',[-2.535,.322,11.975],[-2.476,.316,11.811],.038,verandaTimber);
+  handStone.name='Courtyard elongated grinding roller';handStone.scale.set(.105,.095,.225);handStone.rotation.y=-.35;handStone.position.set(-2.95,.322,12.55);handStone.castShadow=true;g.add(handStone);
+  K.beam(g,'Courtyard grinding roller wooden handle',[-2.885,.322,12.375],[-2.826,.316,12.211],.038,verandaTimber);
   const smallStone=new THREE.Mesh(new THREE.SphereGeometry(.057,12,8),mat('stone'));
   smallStone.name='Courtyard bowl small dark rounded stone';smallStone.position.set(-3.01,.299,11.29);smallStone.scale.y=.75;g.add(smallStone);
 
@@ -1746,7 +1746,12 @@ export function buildHouse(K) {
     for(let z=6.99;z<11.56;z+=.18)b('Shrine west plinth dentil',-2.54,.84,z,.06,.06,.06,'plaster');
     b('Shrine west plinth roll',-2.37,.73,9.25,.42,.10,4.70,'plaster');
     for(const [x1,y,h,m] of [[-2.72,.575,.21,lat],[-2.78,.365,.21,lat],[-2.84,.148,.225,latLow]])b('Shrine west plinth laterite course',(x1-2.16)/2,y,9.25,-2.16-x1,h,4.70,m);
-    K.blocker(-2.50,9.25,.68,4.70,.035,1.02);}
+    K.blocker(-2.50,9.25,.68,4.70,.035,1.02);
+    // Rear face (14.48.07 / 14.48.11): the same base, a little lower, with three white mouldings.
+    b('Shrine rear plinth ledge',0,.89,11.80,5.22,.12,.41,'plaster');b('Shrine rear plinth ledge weathered top',0,.954,11.80,5.22,.008,.41,skin);
+    for(const [z1,y] of [[11.92,.76],[11.84,.62],[11.76,.48]])b('Shrine rear plinth white moulding',0,y,(11.59+z1)/2,5.10,.14,z1-11.59,'plaster');
+    b('Shrine rear plinth laterite base',0,.2225,(11.59+12.10)/2,5.22,.375,12.10-11.59,lat);
+    K.blocker(0,11.85,5.22,.52,.035,.95);}
    const tall=K.hipRoof(g,'Shrine tall tiled roof',0,9.25,5.4,5.7,top,1.15);
    tall.traverse(o=>{if(o.isMesh&&/tiles$/.test(o.name)){o.material=o.material.clone();o.material.color.multiplyScalar(.7);}});
    for(let z=6.75;z<11.9;z+=.42)for(const side of [-1,1])K.beam(g,'Shrine tall roof exposed rafter',[side*2.68,top-.1,z],[side*2.0,top+.19,z],.06,shrineTimber,.08);
