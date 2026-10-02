@@ -2266,18 +2266,15 @@ export function buildTemple(K) {
    for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
    for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road rooftop red baluster',x,7.25,-.25,.07,.6,.07,balconyRed);}
-  // 15.04.55 (south down the east passage) and 15.02.17: the passage ends at a two-storey block.
-  // Its ground floor is the closed return wall; above it are two windows under a tiled hip roof.
-  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2;
+  // 15.02.17 / 15.04.55 (photo review): the passage ends at a one-storey block. Above its closed
+  // return wall there is only a thick parapet and a dark water tank; the tiled two-storey building
+  // seen beyond it stands further back and is not part of the temple.
+  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2,tankGrey=mat('#4b4b45');
    box('East passage end block ground floor',xm,1.95,zm-.1,x1-x0,3.7,z1-z0-.2,edgeWhite,true);
-   box('East passage end block upper storey',xm,5.45,zm,x1-x0,3.1,z1-z0,edgeWhite,true);
-   box('East passage end block red floor band',xm,4.0,z1+.02,x1-x0,.16,.05,balconyRed);
-   for(const x of [50.3,52.9]){
-     box('East passage end block upper window frame',x,5.35,z1+.03,1.2,1.4,.06,K.M.wood);
-     box('East passage end block dark window panes',x,5.35,z1+.05,1.0,1.2,.03,dark);
-     box('East passage end block window mullion',x,5.35,z1+.07,.05,1.2,.03,K.M.wood);
-   }
-   K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
+   const flat=box('East passage end block flat roof',xm,3.9,zm,x1-x0+.2,.2,z1-z0+.2,edgeWhite);K.roofs.push(flat);
+   for(const [x,z,w,d] of [[x0+.11,zm,.22,z1-z0],[x1-.11,zm,.22,z1-z0],[xm,z0+.11,x1-x0,.22]])box('East passage end block roof parapet',x,4.45,z,w,.9,d,edgeWhite);
+   box('East passage end block water tank',53.5,5.05,5.0,1.8,1.1,1.3,tankGrey);box('East passage end block water tank lid',53.5,5.64,5.0,1.9,.08,1.4,tankGrey);
+   for(const dx of [-.75,.75])for(const dz of [-.5,.5])box('East passage end block water tank leg',53.5+dx,4.3,5.0+dz,.12,.4,.12,tankGrey);}
   // 15.03.33 (user): the marker stone stands in the middle of the east passage, not at its wall.
   {const dx=51.8-markerStone.position.x;markerStone.position.x+=dx;K.colliders[markerNav].minX+=dx;K.colliders[markerNav].maxX+=dx;}
   // User's 15.05.42 note: the old inner shrine runs further toward the rear range, leaving

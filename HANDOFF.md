@@ -53,8 +53,11 @@ quaternion into a small pose file and pass it as `POSE_FILE` (see `checks/unreal
 **Next work, in order.** (1) Any new notes. (2) `docs/photo-review-2026-10-01-fixes.json`: the
 review's ranked fix lists for house.js, temple.js and landscape.js (about 25 each), each with the
 exact objects, numbers, evidence photos and risks. Its line numbers predate tonight's later
-commits, and several entries are already done (gallery balcony, lean-to roofs, Naga pit face, lake
-wall, hill, wing roof, side-road clump); check the code before applying one. The "Not done" list
+commits, and these entries are already done: house 1, 2, 3, 5, 17 (tulsi and soil only), 23;
+temple 1 (balcony only; the flush upper wall over the stair door is not), 4 (without the second
+window), 10; landscape 3, 5, 15, 19, 21 (materials only, no nosings), 25. Check the code before
+applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
+user's notes about that gate, so ask before doing it. The "Not done" list
 below is the short version; the house's east end needs the user's eye. (3) In the game: timber
 pillars now read darker than the photos, foliage is still blobby next to the photographs' palms,
 and the in-game alignment controls have passed the automated smoke test but nobody has used them
@@ -92,9 +95,8 @@ Not done, in rough order of value (see `docs/photo-review-2026-10-01.json` for n
   and house-front.jpg / 15.26.49 put the west face of the turquoise stair block there, not at
   x 9.8. Shortening the east end would also close the gap to the corner building that the user
   did not want fixed by sliding the house. Needs a plan and probably the user's eye.
-- House: the wall behind the peach pillar (owner's note on 'turning 135 degrees 2': the photo
-  shows open floor behind the column; the west part of 'Inner front room wall' still stands);
-  the stand is pale turquoise in that photo and cream in the 2013 one.
+- House: the stand on the Naga platform is pale turquoise in 'turning 135 degrees 2' and cream in
+  the 2013 photo (kept cream); the shrine's moulded base plinth (14.52.16).
 - Temple: stair-door wall and the upper wall over it flush with the portico front (15.10.34);
   east range (tower block one bay south, one pavilion not two stacked, no upper storey over the
   window wall, taller blue porch: 15.01.44, 15.02.17, 15.02.23); corner building five or six bays
