@@ -320,17 +320,19 @@ export function buildLandscape(K, {mobile=false}={}) {
   // User's note: no opening from the lane between this run and the gate pier; the lower
   // bank is reached from the bathing arcade stair.
   for(const [a,b,z] of [[-5.05,12.35,waterRailZ],[12.35,16.03,houseBankZ]]){
-    for(const [y,h] of [[.14,.28],[1.00,.20]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,.38,fenceStone);
-    for(let x=a+.12;x<b;x+=.48)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.57,z,.19,.69,.29);
-    K.blocker((a+b)/2,z,b-a,.39,0,1.13);
+    // 15.30.02 / 14.28.15 / 14.41.43: a low, dark, mossy wall about 0.7 m high with a heavy coping
+    // and two rows of small square holes, not a tall balustrade.
+    for(const [y,h,d] of [[.14,.28,.38],[.41,.04,.30],[.60,.16,.42]])box('Tank roadside stone parapet rail',(a+b)/2,y,z,b-a,h,d,fenceStone);
+    for(let x=a+.10;x<b;x+=.25)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.41,z,.16,.24,.29);
+    K.blocker((a+b)/2,z,b-a,.39,0,.70);
   }
   box('House bank grass verge to the water rail',3.65,-.06,-9.5,17.4,.12,1.0,materials.grass);
   K.surface(3.65,-9.5,17.4,1.0,0);
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
-    box('Tank roadside substantial stone pier',x,.63,z,.59,1.26,.59,fenceWhite,true);
-    const capGeometry=new THREE.CylinderGeometry(.34,.46,.21,4);capGeometry.rotateY(Math.PI/4);
-    const cap=new THREE.Mesh(capGeometry,fenceStone);cap.name='Tank roadside sloped square pier cap';cap.position.set(x,1.33,z);group.add(cap);
+    // Stubby dark posts with flat caps, a little taller than the wall.
+    box('Tank roadside substantial stone pier',x,.44,z,.36,.88,.36,fenceStone,true);
+    box('Tank roadside flat pier cap',x,.915,z,.48,.07,.48,fenceStone);
   }
   // 15.26.49 / 15.26.55: sparse plants emerge through the dark railing
   // and ledge cracks. Independent placement keeps the surrounding grove stable.
@@ -1521,9 +1523,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.28.45 / lane-right: thick weedy undergrowth of leafy sprays lines both
   // sides of the lane past the house. Private PRNG keeps other planting stable.
   {let n=70921;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};const weedSun=new THREE.Color('#86a24e');
-   for(let i=0,count=mobile?420:1300;i<count;i++){const t=.02+r()*.615,p=roadCurve.getPoint(t),side=r()<.5?-1:1,off=roadHalfWidth(p)+.75+Math.pow(r(),1.6)*3.6,z=p.z+side*off,h=.25+r()*(off>3.5?1.5:.9),base=roadRise(p.x)*(1-THREE.MathUtils.clamp((off-roadHalfWidth(p)-.65)/4.15,0,1));
+   for(let i=0,count=mobile?420:1300;i<count;i++){const t=.02+r()*.615,p=roadCurve.getPoint(t),side=r()<.5?-1:1,off=roadHalfWidth(p)+1.5+Math.pow(r(),1.6)*3.4,z=p.z+side*off,h=.15+r()*(off>3.5?.7:.4),base=roadRise(p.x)*(1-THREE.MathUtils.clamp((off-roadHalfWidth(p)-.65)/4.15,0,1));
      if(p.x>-14&&z>-2.6)continue;
-     for(let k=0;k<3;k++)instance('Lane weedy leaf undergrowth',spray,sprayMaterial,[p.x+r()*.5-.25,base+h*(.2+k*.35),z+r()*.5-.25],[.7+r()*.7,.6+r()*.6,.7+r()*.7],new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.3,r()-.5)),new THREE.Color(leafPalette[(i+k)%5]).lerp(weedSun,r()*.5).multiplyScalar(1.05+r()*.35));}
+     for(let k=0;k<3;k++)instance('Lane weedy leaf undergrowth',spray,sprayMaterial,[p.x+r()*.5-.25,base+h*(.2+k*.35),z+r()*.5-.25],[.35+r()*.35,.3+r()*.3,.35+r()*.35],new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.3,r()-.5)),new THREE.Color(leafPalette[(i+k)%5]).lerp(weedSun,r()*.5).multiplyScalar(1.05+r()*.35));}
   }
   const flowerMat=new THREE.MeshStandardMaterial({color:'#926d9c',roughness:1});
   for(let i=0;i<190;i++){
@@ -1555,11 +1557,11 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let i=0;i<76;i++){
     const z=range(2,28),x=range(12.9,14.4);
     // Leave the photographed taps and long washing trough accessible at the roadside.
-    if(z<8.5)continue;
-    if(z>9.4&&z<14.4)continue;
+    if(z<8.5+(K.templeShiftZ||0))continue;
+    if(z>9.4+(K.templeShiftZ||0)&&z<14.4+(K.templeShiftZ||0))continue;
     shrub(x,z,range(.75,1.30));
   }
-  for(let i=2;i<7;i++)broadleaf(i<4?11.3:13.6,2.5+i*3.8,range(4.7,6.5),range(1.9,2.3));
+  for(let i=2;i<7;i++)broadleaf(i<4?11.3:13.6,2.5+i*3.8+(i<4?0:(K.templeShiftZ||0)),range(4.7,6.5),range(1.9,2.3));
   for(const [z,y] of [[3.9,5.5],[9.3,5.0],[16.7,5.5]]){
     const line=new THREE.CatmullRomCurve3([new THREE.Vector3(20.15,y,z),new THREE.Vector3(17,y-.32,z+1.2),new THREE.Vector3(13.3,y+.10,z+2)]);
     const wire=new THREE.Mesh(new THREE.TubeGeometry(line,18,.009,4,false),materials.mortar);wire.name='Thin wires above the temple side road';group.add(wire);
@@ -1755,7 +1757,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.22.36 / 15.26.12: a steep forested hill rises behind the temple and house,
   // filling the view north across the tank. Its shape is inferred from those views.
   seed=77121;
-  const hillY=(x,z)=>{const t=Math.max(0,z-62);return t*.85*(1-.55*Math.min(1,Math.abs(x-10)/170))+3.5*Math.sin(x*.05+z*.03)*Math.min(1,t/20);};
+  // 15.23.35 / 15.22.33 / 15.22.36 / 15.22.40: behind the house and the corner building there is open sky
+  // between coconut palms; the forested hill stands only to the north-east.
+  const hillY=(x,z)=>{const t=Math.max(0,z-62),east=THREE.MathUtils.clamp((x-45)/35,0,1);return east*(t*.85*(1-.55*Math.min(1,Math.abs(x-10)/170))+3.5*Math.sin(x*.05+z*.03)*Math.min(1,t/20));};
   const hillGeometry=new THREE.PlaneGeometry(300,90,60,20);hillGeometry.rotateX(-Math.PI/2);
   const hp=hillGeometry.attributes.position;
   for(let i=0;i<hp.count;i++){const x=hp.getX(i)+10,z=hp.getZ(i)+107;hp.setXYZ(i,x,hillY(x,z)-.6,z);}
@@ -1763,9 +1767,11 @@ export function buildLandscape(K, {mobile=false}={}) {
   const hill=new THREE.Mesh(hillGeometry,new THREE.MeshStandardMaterial({color:'#263f25',roughness:1}));hill.name='Distant forested hill slope';group.add(hill);
   for(let z=66;z<150;z+=mobile?13:10)for(let x=-130;x<150;x+=mobile?13:10){
     const px=x+range(-3.5,3.5),pz=z+range(-3.5,3.5),r=range(6.2,9.4)*(random()<.12?1.35:1);
+    const crownTint=foliageColor().multiplyScalar(range(.66,.92)),crownTurn=range(0,6.3),crownSquash=range(.72,1.0),crownLift=range(0,2.5);
+    if(px<52)continue; // same random draws either way
     instance('Horizon overlapping broadleaf crowns',farCrown,materials.foliage,
-      [px,hillY(px,pz)+r*.55+range(0,2.5),pz],[r,r*range(.72,1.0),r],
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,range(0,6.3),0)),foliageColor().multiplyScalar(range(.66,.92)));
+      [px,hillY(px,pz)+r*.55+crownLift,pz],[r,r*crownSquash,r],
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(0,crownTurn,0)),crownTint);
   }
 
   // User (15.21.53 centre, 14.58.48): a dense clump of trees and undergrowth fills the ground

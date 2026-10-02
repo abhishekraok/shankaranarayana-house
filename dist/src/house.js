@@ -624,6 +624,8 @@ export function buildHouse(K) {
   courtyardPost(-4.6,3.5);
   K.beam(g,'Entrance right paired pillar ceiling bearer',[-4.6,3.47,3.3],[-4.6,3.47,5.8],.24,passageTimber,.20);
   for(const z of [9.0,13.9])courtyardPost(-8.5,z);
+  // 14.31.01 / 14.31.14: the east veranda has the same carved timber posts, just inside the blue railing.
+  for(const z of [8.4,11.6])courtyardPost(7.6,z);
   for(const x of [-6.1,-1.8,2.8,7.2])courtyardPost(x,14.7);
   b('Front timber crossbeam',1.15,2.885,-.88,15.65,.21,.24,verandaTimber);
   b('Inner front crossbeam',-.5,3.51,5.7,16.6,.23,.27,'wood');
@@ -673,12 +675,12 @@ export function buildHouse(K) {
     const cheekMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(cheek,{depth:.30,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025,curveSegments:20}),mat('red'));
     cheekMesh.name='God room curved red stair cheek';cheekMesh.rotation.y=-Math.PI/2;cheekMesh.position.set(side*1.06+.15,0,5.59);g.add(cheekMesh);
     K.blocker(side*1.06,6.20,.35,1.27,F,1.31);
-    b('God room white half wall',side*1.48,1.67,screenZ,1.30,1.18,.22,shrineWhite,true);
-    b('God room red oxide wall base',side*1.48,1.27,screenZ-.015,1.30,.38,.25,'red');
+    b('God room white half wall',side*1.45,1.67,screenZ,1.36,1.18,.22,shrineWhite,true);
+    b('God room red oxide wall base',side*1.45,1.27,screenZ-.015,1.36,.38,.25,'red');
     // Open grilles, with daylight between real slats rather than a painted panel.
-    for(const y of [2.29,2.94,3.55])b('God room blue grille rail',side*1.48,y,screenZ-.055,1.40,.095,.13,shrineBlue);
-    for(let x=.88;x<=2.12;x+=.155)b('God room blue grille slat',side*x,2.92,screenZ-.06,.055,1.31,.08,shrineBlue);
-    K.blocker(side*1.48,screenZ,1.40,.16,2.23,3.60);
+    for(const y of [2.29,2.94,3.55])b('God room blue grille rail',side*1.45,y,screenZ-.055,1.46,.095,.13,shrineBlue);
+    for(let x=.80;x<=2.12;x+=.147)b('God room blue grille slat',side*x,2.92,screenZ-.06,.055,1.31,.08,shrineBlue);
+    K.blocker(side*1.45,screenZ,1.46,.16,2.23,3.60);
     // The photo's outer posts are stout, square and forward of the screen.
     b('God room dark square post',side*2.25,2.12,6.50,.35,2.10,.42,shrineTimber,true);
     b('God room post foot',side*2.25,1.15,6.50,.48,.20,.52,shrineTimber);
@@ -711,19 +713,21 @@ export function buildHouse(K) {
     }
   });
   // Four stacked X openings per leaf, as in the supplied photograph.
-  for(const x of [-.87,.87])b('God room blue door jamb',x,2.30,screenZ-.04,.18,2.56,.24,gatePaint,true);
-  b('God room blue lintel',0,3.58,screenZ-.04,1.92,.20,.24,gatePaint);
-  b('God room plain blue upper panel',0,3.82,screenZ,1.25,.29,.16,shrineBlue);
+  // 14.37.41 / 14.37.45 / 14.37.50 / god-room.jpg: the gate is about half as wide as it is tall (each
+  // X panel roughly square) and each grille beside it is wider than one leaf.
+  for(const x of [-.68,.68])b('God room blue door jamb',x,2.30,screenZ-.04,.18,2.56,.24,gatePaint,true);
+  b('God room blue lintel',0,3.58,screenZ-.04,1.55,.20,.24,gatePaint);
+  b('God room plain blue upper panel',0,3.82,screenZ,1.0,.29,.16,shrineBlue);
   for(const side of [-1,1]){
-    const cx=side*.395,leafW=.775,low=1.14,high=3.47;
+    const cx=side*.30,leafW=.59,low=1.14,high=3.47;
     for(const x of [cx-leafW/2+.035,cx+leafW/2-.035])b('God room gate upright',x,(low+high)/2,screenZ-.09,.07,high-low,.085,gatePaint);
     for(let row=0;row<=4;row++)b('God room gate horizontal rail',cx,low+row*(high-low)/4,screenZ-.09,leafW,.075,.095,gatePaint);
     for(let row=0;row<4;row++){
       const bottom=low+row*(high-low)/4+.06,top=low+(row+1)*(high-low)/4-.06;
-      for(const sign of [-1,1])K.beam(g,'God room blue X brace',[cx-sign*.31,bottom,screenZ-.10],[cx+sign*.31,top,screenZ-.10],.085,gatePaint,.075);
+      for(const sign of [-1,1])K.beam(g,'God room blue X brace',[cx-sign*.22,bottom,screenZ-.10],[cx+sign*.22,top,screenZ-.10],.085,gatePaint,.075);
     }
   }
-  K.blocker(0,screenZ,1.58,.15,shrineFloor,3.5);
+  K.blocker(0,screenZ,1.20,.15,shrineFloor,3.5);
   b('God room iron latch',0,2.26,screenZ-.17,.23,.035,.035,'metal');
   b('God room worn centre door strip',0,2.25,screenZ-.15,.024,2.14,.02,shrineTimber);
   // Photograph-right is -X when looking into the house.
@@ -790,9 +794,9 @@ export function buildHouse(K) {
   // plaster and dark skirting are confined to the reverse of the white screen.
   const shrineSkirting=mat('wood').clone();shrineSkirting.color.set('#393b35');
   for(const side of [-1,1]){
-    b('God room inside aqua half wall',side*1.48,1.67,7.038,1.30,1.18,.012,verandaAqua);
-    b('God room interior dark skirting',side*1.48,1.15,7.050,1.30,.14,.025,shrineSkirting);
-    b('God room exposed inside door jamb',side*.91,2.31,7.065,.16,2.56,.045,verandaTimber);
+    b('God room inside aqua half wall',side*1.45,1.67,7.038,1.36,1.18,.012,verandaAqua);
+    b('God room interior dark skirting',side*1.45,1.15,7.050,1.36,.14,.025,shrineSkirting);
+    b('God room exposed inside door jamb',side*.72,2.31,7.065,.16,2.56,.045,verandaTimber);
   }
   b('God room inside side aqua half wall',1.932,1.67,8.13,.012,1.18,2.16,verandaAqua);
   b('God room inside side dark skirting',1.918,1.15,8.13,.025,.14,2.16,shrineSkirting);
@@ -1244,6 +1248,22 @@ export function buildHouse(K) {
   const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#835d49',roughness:1,side:THREE.DoubleSide}));
   rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
   rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-2.80,.43,8.65);g.add(rustySheet);
+  // 14.48.31 / 14.46.10 (west) and 14.44.14 / 14.44.09 (east): rusty corrugated-iron lean-to roofs
+  // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
+  // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
+  {const rust=new THREE.MeshStandardMaterial({color:'#7d5646',roughness:1,side:THREE.DoubleSide});
+   for(const [x0,x1,z0,z1,y0,y1] of [[-6.25,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
+     const w=x1-x0,run=z1-z0,drop=y0-y1,len=Math.hypot(run,drop);
+     const geo=new THREE.PlaneGeometry(w,len,Math.round(w/.0225),1),gp=geo.attributes.position;
+     for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));
+     geo.computeVertexNormals();
+     const sheet=new THREE.Mesh(geo,rust);sheet.name='Courtyard rusty corrugated lean-to roof';
+     sheet.rotation.x=-Math.PI/2+Math.atan2(drop,run);sheet.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2);
+     sheet.castShadow=sheet.receiveShadow=true;g.add(sheet);K.roofs.push(sheet);
+     K.beam(g,'Courtyard lean-to eave timber',[x0,y1-.07,z1-.06],[x1,y1-.07,z1-.06],.07,shrineTimber,.09);
+     K.beam(g,'Courtyard lean-to wall timber',[x0,y0-.07,z0+.04],[x1,y0-.07,z0+.04],.07,shrineTimber,.09);
+     for(const x of [x0+.12,x1-.12])K.beam(g,'Courtyard lean-to slender prop',[x,(z0<6&&x<0)?.45:.45,z1-.06],[x,y1-.1,z1-.06],.05,shrineTimber);
+   }}
   // 14.48.07 / 14.48.11 / 14.48.31: in the rear strip past the God room's NW corner, a thick hollow stone basin with rainwater and a handled roller.
   const bowlStone=mat('plaster').clone();bowlStone.color.set('#8b8c83');bowlStone.roughness=.94;
   const bowlProfile=[[0,0],[.25,0],[.29,.035],[.325,.12],[.34,.27],[.337,.305],
@@ -1475,7 +1495,7 @@ export function buildHouse(K) {
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
   b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
-  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.28+wingX1+1.0)/2,wingCz,wingX1+1.0-9.28,wingZ1-wingZ0+1.9,2.42,1.3); // west eave stops behind the house wall (its fascia showed inside the front room)
+  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.28+wingX1+1.0)/2,wingCz,wingX1+1.0-9.28,wingZ1-wingZ0+1.9,2.42,2.6); // 15.23.35 / 15.23.32: the roof is taller than the wall under it; // west eave stops behind the house wall (its fascia showed inside the front room)
   wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
