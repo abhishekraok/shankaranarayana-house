@@ -299,8 +299,11 @@ def instance(i):
     if kind == 'water':
         # The tank photographs show an opaque algae green under a pale sky sheen (HSV
         # saturation about 0.2): scatter a greyish green and absorb red and blue only mildly.
-        MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.010, .014, .009, 1))
-        MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.30, .22, .29, 1))
+        # 15.23.35 sampled (113,146,98) against a rendered (150,202,149): less blue in the scatter,
+        # more red and blue absorbed, and a weaker sky sheen give a deeper olive.
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.011, .013, .008, 1))
+        MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.33, .24, .36, 1))
+        MEL.set_material_instance_scalar_parameter_value(mi, 'WaterSpecular', 0.35)
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
         # The small bulb previously emitted 40x saturated orange in addition to

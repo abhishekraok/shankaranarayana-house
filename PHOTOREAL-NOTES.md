@@ -189,3 +189,6 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   wall (164,207,206) vs (149,209,214), walkway (65,77,66) vs (65,56,55), dado (130,52,45) vs
   (110,52,52). The pillar gap is closed; the oxide floor is now the furthest off (about 20% bright).
 - 2026-10-02, after darkening the veranda oxide on the web side (main 82b2b9e), 14.56.30 in the game: 'floor': (85, 36, 34), 'wall': (164, 207, 206), 'pillar': (63, 51, 44), 'walk': (65, 78, 66), 'dado': (119, 46, 41) (photo: floor (76,37,36), wall (149,209,214), pillar (72,53,51), walk (65,56,55), dado (110,52,52)).
+- 2026-10-02, lake water: scattering (.011,.013,.008), absorption (.33,.24,.36), WaterSpecular 0.35.
+  At 15.23.35 the water samples (106,173,96) against the photo's (113,146,98); it was (150,202,149).
+  A stronger setting (scatter .008/.012/.004, absorption .45/.25/.60) went too saturated (78,173,63).
