@@ -263,7 +263,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(0, .52, -.08, 2.52, 'upper dark stone retaining course', tankWall, FAR_LEDGE);
   ringCourse(.50, .45, -.60, 2.0, 'middle worn stone tread', tankWall, -.35);
   // Photo review: the lowest courses are the same weathered stone as the wall, greened with moss.
-  const mossWall=tankWall.clone();mossWall.color.set('#aab59c');K.worldMap(mossWall,.275);
+  const mossWall=tankWall.clone();mossWall.color.set('#b3b0a2'); // 15.23.35: grey-brown stone; the green comes from the water's reflectionK.worldMap(mossWall,.275);
   ringCourse(.93, .48, -1.15, 1.45, 'low mossy stone tread', mossWall, -.98);
   ringCourse(1.39, .36, -1.70, .90, 'submerged tank course', mossWall, -1.61);
   for(const [a,b] of [[-4.6,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.60);
