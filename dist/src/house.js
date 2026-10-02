@@ -1518,7 +1518,7 @@ export function buildHouse(K) {
    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.computeVertexNormals();
    const tiles=K.M.tile.clone();tiles.side=THREE.DoubleSide;tiles.color.multiplyScalar(.6);
    const mesh=new THREE.Mesh(geo,tiles);mesh.name='Temple-side wing hipped tiled roof tiles';mesh.castShadow=mesh.receiveShadow=true;wingRoof.add(mesh);
-   for(const [a,c] of [['A','B'],['B','C'],['C','D']])K.beam(wingRoof,'Temple-side wing hipped tiled roof fascia',[V[a][0],eave-.08,V[a][2]],[V[c][0],eave-.08,V[c][2]],.15,'wood',.12);
+   for(const [a,c] of [['A','B'],['B','C'],['C','D']])K.beam(wingRoof,'Temple-side wing hipped tiled roof fascia',[V[a][0],eave-.095,V[a][2]],[V[c][0],eave-.095,V[c][2]],.15,'wood',.12);
    K.beam(wingRoof,'Temple-side wing hipped tiled roof ridge',[V.W[0],ridge+.025,V.W[2]],[V.E[0],ridge+.025,V.E[2]],.15,'tile',.17);}
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
