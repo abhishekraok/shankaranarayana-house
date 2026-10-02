@@ -209,7 +209,7 @@ export function buildHouse(K) {
   fenceX(-8.1,-7.3,5.83);
   // 14.44.09 / 14.44.14 / 14.44.43: a rusty corrugated sheet on edge closes this pocket, not a blue grille.
   {const geo=new THREE.PlaneGeometry(2.2,.88,96,1),gp=geo.attributes.position;for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));geo.computeVertexNormals();
-   const sheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:'#6a463b',roughness:1,side:THREE.DoubleSide}));sheet.name='Courtyard pocket rusty sheet barrier';sheet.rotation.z=Math.PI/2;sheet.rotation.y=0;
+   const sheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:'#bd8c86',roughness:1,side:THREE.DoubleSide}));sheet.name='Courtyard pocket rusty sheet barrier';sheet.rotation.z=Math.PI/2;sheet.rotation.y=0;
    sheet.geometry.rotateZ(0);sheet.rotation.set(0,0,0);sheet.position.set(3.5,F+.44,5.95);g.add(sheet);K.blocker(3.5,5.95,2.2,.1,F,F+.9);}
   // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
   // entering, a stepped turquoise pedestal sits over a three-stone niche.
@@ -276,7 +276,7 @@ export function buildHouse(K) {
     K.beam(g,'Courtyard stored ladder rung',[-8.18,.50,z],[-8.24,1.04,z],.048,ladderWood,.050);
   }
 
-  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#8f7a66'); // 14.44.14 / 14.31.14: warm grey-brown granite, not olive
+  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#746a6b'); // 14.30.57 / 14.44.14 / 14.31.14: dark weathered granite, neutral not olive
   courtSupport.roughness=1;
   // 14.31.01 / 14.44.09 / 14.44.43: the east veranda edge matches the west one.
   for(const [sx,z] of [[-8.28,6.19],[-8.28,9.86],[-8.28,14.42],[7.18,6.19],[7.18,9.86],[7.18,14.42]]){
@@ -865,7 +865,7 @@ export function buildHouse(K) {
   const moss=K.M.plaster.clone();moss.color.set('#4f5839');
   // 14.44.09/14, 14.44.19, 14.44.48, 14.30.57: rough freestanding stone uprights and a
   // rounded pole follow the God room's east side, along the planted strip toward the east veranda.
-  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#9a8a74');roughSupport.roughness=1;
+  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#aaa2a8');roughSupport.roughness=1; // 14.30.57: pale lichened granite
   for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
     const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position;
     for(let i=0;i<p.count;i++){
@@ -1280,7 +1280,7 @@ export function buildHouse(K) {
   // 14.48.31 / 14.46.10 (west) and 14.44.14 / 14.44.09 (east): rusty corrugated-iron lean-to roofs
   // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
   // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
-  {const rust=new THREE.MeshStandardMaterial({color:'#5e4036',roughness:1,side:THREE.DoubleSide}); // darker: open to the sky, it rendered pale in the game
+  {const rust=new THREE.MeshStandardMaterial({color:'#74524a',roughness:1,side:THREE.DoubleSide}); // 14.44.09: pale pinkish rust; kept a step darker because it rendered pale in the game
    for(const [x0,x1,z0,z1,y0,y1] of [[-6.25,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
      const w=x1-x0,run=z1-z0,drop=y0-y1,len=Math.hypot(run,drop);
      const geo=new THREE.PlaneGeometry(w,len,Math.round(w/.0225),1),gp=geo.attributes.position;
