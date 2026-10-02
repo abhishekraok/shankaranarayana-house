@@ -58,8 +58,9 @@ window sill was left because a test encodes daylight through it at 2.4 m), 12 (d
 17 (tulsi and soil only), 20 (crossbeam only), 23;
 temple 1, 4 (without the second window), 10, 19 (a-c: maroon balusters, west side cornice, the
 upper slab that floated in front of the frontage); landscape 3, 5, 12 (white lake face on the
-roadside posts only), 15, 19, 20 (shrubs off the track only), 21 (materials only, no nosings),
-22, 24 (wider grass verge only), 25. Check the code before
+roadside posts only), 15, 16 (colours only), 19, 20 (shrubs off the track only), 21 (materials
+only, no nosings), 22, 24 (wider grass verge only), 25. The timber texture's dark wash was also
+eased (house 8, optional part). Check the code before
 applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
 user's notes about that gate, so ask before doing it. The "Not done" list
 below is the short version; the house's east end needs the user's eye. (3) In the game: timber
