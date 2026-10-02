@@ -1758,7 +1758,9 @@ export function buildHouse(K) {
     for(const [x1,y] of [[2.53,.81],[2.45,.67],[2.37,.53]])b('Shrine east plinth white moulding',(2.16+x1)/2,y,9.25,x1-2.16,.14,4.70,'plaster');
     b('Shrine east plinth laterite base',(2.16+2.50)/2,.2475,9.25,2.50-2.16,.425,4.70,latRed);
     b('Shrine east laterite kerb',2.76,.11,9.25,.12,.15,4.70,latRed);
-    K.blocker(2.42,9.25,.52,4.70,.035,1.0);}
+    K.blocker(2.42,9.25,.52,4.70,.035,1.0);
+    // 14.52.16 / 14.46.10: a black dado band runs along the side walls just above the ledge.
+    b('Shrine west black dado',-2.168,1.145,9.25,.012,.25,4.5,'black');b('Shrine east black dado',2.168,1.11,9.25,.012,.22,4.5,'black');}
    const tall=K.hipRoof(g,'Shrine tall tiled roof',0,9.25,5.4,5.7,top,1.15);
    tall.traverse(o=>{if(o.isMesh&&/tiles$/.test(o.name)){o.material=o.material.clone();o.material.color.multiplyScalar(.7);}});
    for(let z=6.75;z<11.9;z+=.42)for(const side of [-1,1])K.beam(g,'Shrine tall roof exposed rafter',[side*2.68,top-.1,z],[side*2.0,top+.19,z],.06,shrineTimber,.08);
