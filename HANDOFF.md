@@ -64,10 +64,10 @@ only, no nosings), 22, 24 (wider grass verge only), 25. The timber texture's dar
 eased (house 8, optional part). Check the code before
 applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
 user's notes about that gate, so ask before doing it. The "Not done" list
-below is the short version; the house's east end needs the user's eye. (3) In the game: timber
-pillars now read darker than the photos, foliage is still blobby next to the photographs' palms,
-and the in-game alignment controls have passed the automated smoke test but nobody has used them
-with a real controller.
+below is the short version; the house's east end needs the user's eye. (3) In the game: foliage now has ragged leafy edges but is still
+blocky up close, the oxide floors sample about 20% bright against 14.56.30, and the in-game
+alignment controls have passed the automated smoke test but nobody has used them with a real
+controller.
 
 **Things that will bite.**
 - Do not commit to `main` while `rebuild-all.sh` runs: `unreal/build.ps1` merges `main` again and
