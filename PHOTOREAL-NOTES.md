@@ -188,3 +188,4 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   samples at 14.56.30 as: pillar (64,52,44) vs photo (72,53,51), floor (93,40,37) vs (76,37,36),
   wall (164,207,206) vs (149,209,214), walkway (65,77,66) vs (65,56,55), dado (130,52,45) vs
   (110,52,52). The pillar gap is closed; the oxide floor is now the furthest off (about 20% bright).
+- 2026-10-02, after darkening the veranda oxide on the web side (main 82b2b9e), 14.56.30 in the game: 'floor': (85, 36, 34), 'wall': (164, 207, 206), 'pillar': (63, 51, 44), 'walk': (65, 78, 66), 'dado': (119, 46, 41) (photo: floor (76,37,36), wall (149,209,214), pillar (72,53,51), walk (65,56,55), dado (110,52,52)).
