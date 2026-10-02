@@ -24,6 +24,53 @@ committed) still apply.
   in a plan rectangle.
 - Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
 
+## Handoff to Codex (2026-10-01, late evening)
+
+Claude is stopping here at the user's request; Codex continues. Read AGENTS.md first.
+
+**State.** `main` is clean and all tests pass (`tests/*.mjs`, `tests/*.cjs`; see "Tests" below).
+The photoreal worktree is `D:/repos/shankaranarayana-photoreal` (branch `photoreal`); its
+`unreal/rebuild-all.sh` merges `main`, exports, rebuilds, packages and smoke-tests the game, and
+its PHOTOREAL-NOTES.md has the Unreal findings. `play.cmd` there runs the packaged game.
+
+**What changed today** is in the three sections below this one (the user's game and web notes,
+the photo review, and the list of what remains). In the game: notes from the pause menu, a photo
+browser and alignment mode from the start menu, and controller bindings for alignment (LB/RB
+photo, Y saved pose, A save, X overlay, B back, triggers rise and lower, D-pad lens and tilt).
+The game's look was recalibrated against photos (dark finishes no longer wash out): see
+PHOTOREAL-NOTES.md, "tone of dark finishes".
+
+**What the user asked for last** (verbatim): "Continue on the web notes. I also used 3D model to
+save some notes and an alignment. Add gamepad controls for alignment in the 3D model. [...] After
+that continue working on the fidelity of the 3D model [...]. The 3D renderings still don't look
+close to the photos, work on that." All notes on disk as of 2026-10-01 20:27 PDT are done; new
+ones may have arrived since. Check both files:
+- `F:/Shankaranarayana/align-poses.json` (`notes` on each pose; compare `savedAt`),
+- `F:/Shankaranarayana/unreal-notes.json` (notes left in the game, with eye position).
+`tools/capture-fidelity.cjs` renders any pose; to render a game note, write its position and
+quaternion into a small pose file and pass it as `POSE_FILE` (see `checks/unreal-notes-poses.json`).
+
+**Next work, in order.** (1) Any new notes. (2) The "Not done" list in the photo review section
+below, starting with the house's east end, which needs the user's eye. (3) In the game: timber
+pillars now read darker than the photos, foliage is still blobby next to the photographs' palms,
+and the in-game alignment controls have passed the automated smoke test but nobody has used them
+with a real controller.
+
+**Things that will bite.**
+- Do not commit to `main` while `rebuild-all.sh` runs: `unreal/build.ps1` merges `main` again and
+  refuses to package if the generated scene is older than the model source.
+- The align tool only writes poses to disk when the server has the photo folder:
+  `node server.mjs --photos F:/Shankaranarayana`. `start.cmd` starts it without.
+- Geometry authored in temple.js is in pre-setback coordinates (the group moves by
+  `K.templeShiftZ` at the end); house.js is in house-local x (placed at `K.houseShiftX`).
+  Several passes at the end of each builder move or stretch earlier objects by name or bounding
+  box; add new objects after them, or name them so the pass skips them.
+- `main.js` ground slabs must stay plain `ground(...)` calls; the exporter replays them by regex.
+- The user's standing decisions are listed under "User decisions" and in the memory of earlier
+  passes above; do not reverse them from a photo alone.
+- A 30-agent review cost about 9% of the user's weekly limit. They asked for at most about four
+  sub-agents at a time.
+
 ## Photo review of all 172 aligned poses (2026-10-01 night)
 
 Thirty review agents compared the web render at every aligned pose with its photograph
@@ -32,7 +79,8 @@ Thirty review agents compared the web render at every aligned pose with its phot
 the low dark perforated lake wall along the lane, the hill only to the north-east, lane undergrowth
 low and off the shoulders, side-road clearings following the temple setback, the narrower God room
 gate, east veranda posts, the taller wing roof, the temple gallery balcony moved out over the
-portico, and the two rusty lean-to roofs in the house court.
+portico, the two rusty lean-to roofs in the house court, the main roof's lower eaves and steeper
+pitch, the tall God room block, and the inner entrance platforms as one level with a plain face.
 
 Not done, in rough order of value (see `docs/photo-review-2026-10-01.json` for numbers and object names):
 - House front is about 4 m too long on the east. 14.56.30 / veranda.jpg show the lower walkway
@@ -40,10 +88,9 @@ Not done, in rough order of value (see `docs/photo-review-2026-10-01.json` for n
   and house-front.jpg / 15.26.49 put the west face of the turquoise stair block there, not at
   x 9.8. Shortening the east end would also close the gap to the corner building that the user
   did not want fixed by sliding the house. Needs a plan and probably the user's eye.
-- House: upper storey eave about 0.75 m lower with a steeper roof (15.23.35); God room block
-  walls up to about 5.6 m with its roof just under the main rear eave (14.44.14, 14.44.48,
-  14.46.04); the wall behind the peach pillar (owner's note on 'turning 135 degrees 2');
-  one plain plinth face under the Naga stones.
+- House: the wall behind the peach pillar (owner's note on 'turning 135 degrees 2': the photo
+  shows open floor behind the column; the west part of 'Inner front room wall' still stands);
+  the stand is pale turquoise in that photo and cream in the 2013 one.
 - Temple: stair-door wall and the upper wall over it flush with the portico front (15.10.34);
   east range (tower block one bay south, one pavilion not two stacked, no upper storey over the
   window wall, taller blue porch: 15.01.44, 15.02.17, 15.02.23); corner building five or six bays
