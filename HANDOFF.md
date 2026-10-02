@@ -53,6 +53,14 @@ committed) still apply.
   runs on to the stage stair; the stage plinth has a dark rain-streaked lower band. The walking
   ramps under the removed asphalt are unchanged. Not done from fixes 24 and 4: constant lane width,
   the lane eased off the arcade, the 1.7 m terraces either side of the stair, the side flight.
+- Roofs and tank stone (15.23.35, 15.11.58): the tile texture is grey-mauve instead of brown
+  (`kit.js`, tile hue), the house roof courses and wing roof are lighter (main roof 109,103,110
+  against 108,97,108), and the tank stone's base is neutral grey instead of olive. Light, third
+  step: hemisphere 2.15, sun 1.6. Still off: tank faces in shade are too dark (56 against 82) while
+  treads seen from above are too light (79 against 59); one material serves both, so the treads
+  need their own darker, mossier one. A softer sun (1.2) did not help; that was tried and reverted.
+- Measure before changing a colour: the stage figures looked too pale by eye but sampled within
+  20 levels of the photo, and that change was dropped.
 - Not done, interiors: rooms are too bright because the ambient and hemisphere light are not
   occluded. From the court, the front room is a lit turquoise wall (149,193,186) where 14.44.09
   shows darkness (22,18,30). Needs baked occlusion or per-room dimming, done consistently.
