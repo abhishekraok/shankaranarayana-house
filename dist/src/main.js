@@ -18,13 +18,13 @@ const phoneMode=matchMedia('(pointer: coarse)').matches;
 let renderScale=phoneMode?1:Math.min(devicePixelRatio,1.6);
 let renderer;
 try{renderer=new THREE.WebGLRenderer({antialias:!phoneMode,alpha:false,powerPreference:'high-performance'});}catch(e){$('loading').hidden=true;$('error').hidden=false;$('error').textContent='This browser could not start 3D graphics. Please open the walkthrough in Chrome or Edge with hardware acceleration enabled.';throw e;}
-renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.setClearColor(0xb0c2bd);
+renderer.setPixelRatio(renderScale);renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.3;renderer.setClearColor(0xb0c2bd);
 $('world').appendChild(renderer.domElement);renderer.domElement.tabIndex=0;renderer.domElement.setAttribute('aria-label','3D scene. Click to look around; WASD or arrow keys to walk.');
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.06,400);camera.position.set(-11.8,4.2,-20);camera.lookAt(-2.8,2.1,5);
-const hemiLight=new THREE.HemisphereLight(0xdcebea,0x656048,1.5);scene.add(hemiLight);
+const hemiLight=new THREE.HemisphereLight(0xdcebea,0x6b6c62,1.5);scene.add(hemiLight);
 const ambientLight=new THREE.AmbientLight(0xdbe3df,.7);scene.add(ambientLight);
-const sun=new THREE.DirectionalLight(0xffefce,2.5);sun.position.set(-35,65,-24);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
-const fill=new THREE.DirectionalLight(0xc1dce0,.4);fill.position.set(35,20,35);scene.add(fill);
+const sun=new THREE.DirectionalLight(0xfff3dc,2.5);sun.position.set(36,63,52);sun.target.position.set(12,0,0);scene.add(sun,sun.target);sun.castShadow=true;sun.shadow.mapSize.set(phoneMode?2048:4096,phoneMode?2048:4096);Object.assign(sun.shadow.camera,{left:-70,right:70,top:65,bottom:-65,near:1,far:160});sun.shadow.normalBias=.04;sun.shadow.bias=-.00015;sun.shadow.radius=3;
+const fill=new THREE.DirectionalLight(0xc1dce0,.4);fill.position.set(-35,20,-35);scene.add(fill);
 const sky=new THREE.Mesh(new THREE.SphereGeometry(220,32,16),new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,uniforms:{top:{value:new THREE.Color('#b4c1c4')},bottom:{value:new THREE.Color('#e6e9e3')}},vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'varying vec3 p;uniform vec3 top;uniform vec3 bottom;void main(){float h=pow(max(normalize(p).y,0.),.48);gl_FragColor=vec4(mix(bottom,top,h),1.);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' }));scene.add(sky);
 
 // The ground is cut out below the lake rather than covering its descending banks.
