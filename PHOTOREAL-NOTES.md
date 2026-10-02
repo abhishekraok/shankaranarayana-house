@@ -48,6 +48,21 @@ Prioritize these large mismatches. Occlusion can indicate a pose made before geo
 - Still open: covered areas about twice as bright as the photos (see the lighting diagnostics below);
   forecourt soil reads smoother than on the web.
 
+## 2026-10-02 morning
+
+- `materials.py` `GAME_TINT`: linear multipliers on the instance colour by web material name, for
+  finishes the sky light lifts far above the photos while the web colour is right. Tank stone .32,
+  tread tops .4, the court's sheet barrier .65, the house roof courses .5. A name must belong to one
+  material object in the web model: clones sharing a name collide here (the west shed roof went
+  white when the shared dark tile was named).
+- Three web roofs were wound upside down and rendered black here (wing roof 7,5,4); fixed in the web
+  model, checked by `node tools/scan-roof-normals.mjs` on `main`.
+- Samples at the 08:23 build against the photos: tank face 74,73,78 / 82,71,79; house roof 96,85,92 /
+  108,97,108; wing roof 143,134,131 / 116,101,113; barrier 176,129,128 / 160,122,120; veranda points
+  at 14.56.30 unchanged. Off: arcade roof 66,60,59 / 97,87,95; court soil grey-brown, not laterite.
+- The web model's light was moved to an afternoon sun on `main`; nothing here changed for it. The
+  soft sun in `build_level.py` (yaw 200) was not checked against the photos' south-west sun.
+
 ## Remaining photoreal work
 
 - Claude pass (2026-09-28 night; Codex no longer works on this project). Merged main
