@@ -156,7 +156,6 @@ export function buildHouse(K) {
   floor('Front range south return',7.175,5.2,9.65,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
   floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
-  floor('God room court grey stone ledge',-1.735,4.55,1.03,.3,F,'stone');floor('God room court grey stone ledge',1.785,4.55,1.13,.3,F,'stone');
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
   {const worn=K.M.red.clone();worn.color.set('#6f3c36');worn.roughness=.9;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
@@ -241,10 +240,11 @@ export function buildHouse(K) {
   // 175312 / 'house, after entering, turning 135 degrees 2/3': the niche is set into the plinth face
   // and the stand sits directly on the platform edge, not on a raised box (lift .02, not a storey).
   const pedLift=.02;
-  for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=pedLift;o.position.z-=1.65;}
-  for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=pedLift;c.top+=pedLift;c.minZ-=1.65;c.maxZ-=1.65;}
+  // 'turning 135 degrees 2/3' and the user's game note: one plain platform face runs along the pocket
+  // edge with the niche cut into it; the stand sits on the platform top at that edge.
+  for(const o of g.children.slice(pedestalStart.children)){const stand=o.name==='Entrance three-tier pale pedestal';o.position.x+=.5;o.position.y+=pedLift+(stand?.325:0);o.position.z-=stand?1.36:1.29;}
+  for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=pedLift;c.top+=pedLift+.325;c.minZ-=1.36;c.maxZ-=1.29;}
   b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
-  b('Entrance pocket plinth-edge riser',-1.735,(F+.075)/2,4.718,1.03,F-.075,.035,nicheOxide);b('Entrance pocket plinth-edge riser',1.785,(F+.075)/2,4.718,1.13,F-.075,.035,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
   K.cylinder(g,'Entrance court peach round column',-4.6,2.01,4.3,.125,.145,2.78,peachColumn,20,true);
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
@@ -493,10 +493,20 @@ export function buildHouse(K) {
   const innerEntryStone=new THREE.MeshStandardMaterial({map:entryMap,roughness:.48});
   floor('Inner entrance dark worn walking strip',0,3.38,2.44,2.66,EL+.006,innerEntryStone,.08);
   for(const s of [-1,1])b('Inner passage plinth face',s*1.235,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey);
+  const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
+  const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
   for(const side of [-1,1]){
-    floor('Inner entrance raised sitting platform',side*2.50,3.05,2.62,1.90,.79,verandaRed,.34);
-    b('Inner entrance platform oxide riser',side*1.185,(F+.79)/2,3.05,.07,.79-F,1.90,verandaRed,true);
-    b('Inner entrance platform dark coping',side*1.28,.808,3.05,.25,.038,1.90,innerEntryStone);
+    // The platform runs to the court pocket's edge as one level (no lower ledge in front of it).
+    floor('Inner entrance raised sitting platform',side*2.50,3.40,2.62,2.60,.79,verandaRed,.34);
+    b('Inner entrance platform oxide riser',side*1.185,(F+.79)/2,3.40,.07,.79-F,2.60,verandaRed);
+    b('Inner entrance platform dark coping',side*1.28,.808,3.40,.25,.038,2.60,innerEntryStone);
+    b('Inner entrance platform dark coping',side*2.50,.808,4.63,2.66,.038,.18,innerEntryStone);
+    // Pocket face: pink oxide scored in blocks; on the west side it is cut round the Naga niche.
+    for(const [a,z,lo] of side<0?[[-3.81,-3.22,EL],[-3.22,-2.58,.31],[-2.58,-1.19,EL]]:[[1.19,3.81,EL]])
+      b('Inner platform scored oxide face',(a+z)/2,(lo+.79)/2,4.715,z-a,.79-lo,.03,platformOxide);
+    for(let x=1.34;x<3.8;x+=.30)if(side>0||x<2.55||x>3.25)b('Inner platform scored joint',side*x,.43,4.7315,.007,.71,.003,platformJoint);
+    b('Inner platform scored joint',side*2.5,.47,4.7315,2.6,.007,.003,platformJoint);
+    floor('Inner platform stone step',side*1.03,3.2,.36,.8,.43,'stone',.43-EL);
     // Broad square foot, layered mouldings and a stout octagonal shaft.
     const postX=side*1.40,postZ=3.71;
     for(const [y,w,h] of [[.831,.66,.082],[.902,.59,.060],[.958,.53,.052],[1.006,.47,.044]])

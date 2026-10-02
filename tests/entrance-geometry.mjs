@@ -257,8 +257,8 @@ for(const side of [-1,1]){
   const eye=HV(0,2.07,3.15),target=HV(side*2,1.4,2.80),direction=target.clone().sub(eye);
   const hits=new THREE.Raycaster(eye,direction.clone().normalize(),0,direction.length()).intersectObject(house,true);
   assert.equal(hits.length,0,'Open door leaves must not hide the inner sitting platforms');
-  houseRoute('Inner hall to raised platform '+side,[[0,4.55],[side*2.05,4.55],[side*2.05,3.92]],.075,.07);
-  houseRoute('Raised platform back to hall '+side,[[side*2.05,3.92],[side*2.05,4.55],[0,4.55]],.79,.07);
+  houseRoute('Inner hall to raised platform '+side,[[0,3.2],[side*2.05,3.2],[side*2.05,3.92]],.075,.07);
+  houseRoute('Raised platform back to hall '+side,[[side*2.05,3.92],[side*2.05,3.2],[0,3.2]],.79,.07);
 }
 for(const side of [-1,1]){
   const ray=new THREE.Raycaster(HV(side*.76,2.0,3.15),new THREE.Vector3(0,0,-1),0,1.3);
@@ -315,13 +315,13 @@ for(const [name,x,z,min,max] of [['Entrance court peach round column',-4.6,4.3,-
 const pyramid=house.children.filter(o=>o.name==='Entrance three-tier pale pedestal');
 assert.equal(pyramid.length,3);
 const pyramidTarget=new THREE.Box3().setFromObject(pyramid[2]).getCenter(new THREE.Vector3());
-assert.ok(pyramidTarget.z<4.3,'Rectangular stepped pedestal moved east, toward the front');
+assert.ok(pyramidTarget.z<4.6&&pyramidTarget.y>.8,'Stepped stand sits on the platform top at the pocket edge');
 assert.ok(pyramidTarget.clone().project(rightEntryCamera).x>0,'Pedestal appears right of the central pillars');
 const entryTreads=house.children.filter(o=>o.name==='Pedestal-side red courtyard stair');
 assert.equal(entryTreads.length,3);
 assert.ok(entryTreads.every(o=>o.geometry.parameters.depth>o.geometry.parameters.width*4),'Tread lengths run east-west, with ascent along north-south');
 assert.ok(Math.abs(supportY(HX-2.7,5.2,.075)-.075)<.001,'Old front slab does not fill the lower entry pocket');
-assert.ok(collision(HX-2.9,4.18,.45),'Moved pedestal blocker follows the raised ledge');
+assert.ok(collision(HX-2.9,4.47,.79),'Stand blocker follows it onto the platform');
 houseRoute('Four steps from the grey court floor to the God room gate',[[0,5.15],[0,6.5]],.075,.07);
 checkRoute('Lane to original temple entrance',[[20,-5],[39,-5],[39,3],[39,9]],0,0);
 checkRoute('Temple photo shoulder to house entrance',[[23,-3],[23,-5],[HX,-5],[HX,-2]],.051,0);
