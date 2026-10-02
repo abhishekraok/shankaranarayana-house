@@ -1508,8 +1508,18 @@ export function buildHouse(K) {
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
   b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
-  const wingRoof=K.hipRoof(g,'Temple-side wing hipped tiled roof',(9.28+wingX1+1.0)/2,wingCz,wingX1+1.0-9.28,wingZ1-wingZ0+1.9,2.42,2.6); // 15.23.35 / 15.23.32: the roof is taller than the wall under it; // west eave stops behind the house wall (its fascia showed inside the front room)
-  wingRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.72);}});
+  // 15.23.35 / 15.23.32: the wing's roof is taller than the wall under it. Its ridge runs into the
+  // house's east wall (x 11.975) rather than through the upstairs floor; only a low strip of the
+  // lane slope continues in front of the upper bay, where the old fascia stopped (x 9.28).
+  const wingRoof=new THREE.Group();wingRoof.name='Temple-side wing hipped tiled roof';g.add(wingRoof);K.roofs.push(wingRoof);
+  {const xe=wingX1+1.0,zl=wingZ0-.95,zr=wingZ1+.95,eave=2.42,ridge=5.02,inset=Math.min((zr-zl)*.45,(xe-9.28)*.4);
+   const V={A:[9.28,eave,zl],A2:[11.975,eave,zl],B:[xe,eave,zl],C:[xe,eave,zr],D:[11.975,eave,zr],W:[11.975,ridge,wingCz],E:[xe-inset,ridge,wingCz],S1:[9.28,3.79,.175],S2:[11.975,3.79,.175]};
+   const pos=[],uv=[];for(const f of [['A2','B','E'],['A2','E','W'],['A','A2','S2'],['A','S2','S1'],['C','D','W'],['C','W','E'],['B','C','E']])for(const k of f){pos.push(...V[k]);uv.push(V[k][0]*.36,V[k][2]*.36);}
+   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.computeVertexNormals();
+   const tiles=K.M.tile.clone();tiles.side=THREE.DoubleSide;tiles.color.multiplyScalar(.6);
+   const mesh=new THREE.Mesh(geo,tiles);mesh.name='Temple-side wing hipped tiled roof tiles';mesh.castShadow=mesh.receiveShadow=true;wingRoof.add(mesh);
+   for(const [a,c] of [['A','B'],['B','C'],['C','D']])K.beam(wingRoof,'Temple-side wing hipped tiled roof fascia',[V[a][0],eave-.08,V[a][2]],[V[c][0],eave-.08,V[c][2]],.15,'wood',.12);
+   K.beam(wingRoof,'Temple-side wing hipped tiled roof ridge',[V.W[0],ridge+.025,V.W[2]],[V.E[0],ridge+.025,V.E[2]],.15,'tile',.17);}
   // Closed, weathered wooden door faces the temple; no invented room behind it.
   b('Temple-facing block worn door jamb',wingX1+.03,1.18,1.5,.09,2.0,1.08,'paleStone');
   b('Temple-facing block closed timber door',wingX1+.09,1.1,1.5,.045,1.8,.82,'wood');
