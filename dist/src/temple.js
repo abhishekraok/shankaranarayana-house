@@ -356,7 +356,7 @@ export function buildTemple(K) {
   const eye=new THREE.Path();eye.absarc(.10,-.11,.04,0,Math.PI*2,true);bracketShape.holes.push(eye);
   const bracketGeometry=new THREE.ExtrudeGeometry(bracketShape,{depth:.07,bevelEnabled:false,curveSegments:8});
   const brackets=[];
-  colX.forEach((x,i)=>{for(const side of [-1,1]){if((i===0&&side<0)||(i===colX.length-1&&side>0))continue;
+  colX.forEach((x,i)=>{for(const side of [-1,1]){if((i===0&&side<0)||(i===colX.length-1&&side>0)||(i===1&&side>0)||(i===2&&side<0))continue;
     brackets.push([x+side*.24,2.87,-1.47,side,1,1]);}});
   instances('Entrance white scroll brackets',bracketGeometry,whiteTrim,brackets);
   for(const x of [32.6,45.4])carvedColumn('Rear carved column',x,4.25,.6,3.02,.87);
@@ -529,7 +529,8 @@ export function buildTemple(K) {
   }
   // Diamond transoms are genuinely open, leaving the interior visible below.
   const diamonds=[];
-  for(const [a,b] of [[32.3,36.35],[36.95,41.05],[41.65,45.7]]){
+  // User's note (temple-entrance.jpg): the gate bay has no transom or brackets; it is open up to the slab.
+  for(const [a,b] of [[32.3,36.35],[41.65,45.7]]){
     box('Entrance white transom lower rail',(a+b)/2,2.93,-1.43,b-a,.12,.20,whiteTrim);
     for(let x=a+.12;x<b-.12;x+=.30)for(const sign of [-1,1])diamonds.push([x,3.22,-1.43,.043,.64,.045,0,0,sign*.50]);
   }
@@ -1462,16 +1463,16 @@ export function buildTemple(K) {
     box('Courtyard portico marble lip',x,.59,7.87,w+.1,.10,.18,whiteTrim);
     steps('Courtyard portico side access',x<39?35.75:46.8,8.19,.90,.85,.1,.602,'-z',3);
   }
-  for(const x of [35.45,40.65,47.3]){
+  for(const x of [35.45,47.3]){
     box('Courtyard portico square white pier',x,2.14,7.58,.46,3.02,.46,white,true);
     box('Courtyard portico pier red foot',x,.91,7.58,.61,.62,.61,red);
   }
-  for(const x of [37.55,42.0,45.5]){
+  for(const x of [37.55,40.65,43.2,45.5]){
     carvedColumn('Courtyard bell bay carved column',x,7.57,.602,3.04,.86);
     box('Courtyard bell column red plinth',x,.93,7.57,.74,.66,.74,red);
     panel('Courtyard bell column outward carving',x,1.63,7.87,.40,.62,relief);
   }
-  for(const [x,w] of [[36.5,1.72],[41.33,1.26],[43.75,3.10],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
+  for(const [x,w] of [[36.5,1.72],[41.93,2.10],[44.35,1.86],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
   box('Courtyard portico ceiling slab',44.0,3.94,7.05,7.6,.22,1.85,white);
   box('Bell hall ceiling slab',36.525,3.94,7.05,2.75,.22,1.85,white);
   // White wall between the service bay and the bell hall: red dado over the
@@ -1639,10 +1640,27 @@ export function buildTemple(K) {
     K.beam(drum,'Temple drum rope lacing',[Math.cos(a)*.456,.325,Math.sin(a)*.456],[Math.cos(b)*.32,-.325,Math.sin(b)*.32],.012,rope);
   }
   K.beam(g,'Temple drum hanging chain',[drumX,3.89,drumZ],[drumX,1.9,drumZ],.018,dark); // up to the ceiling
-  for(const x of [41.5,44.5]){
+  for(const x of [44.35]){
     bell('Courtyard smaller hanging bell',x,2.60,7.65,.43);
     K.beam(g,'Courtyard smaller bell chain',[x,3.72,7.65],[x,3.12,7.65],.025,dark);
   }
+  // 15.10.34 / 15.02.27 / 15.14.51 (user's note): either side of the passage a round turned grey
+  // stone column stands 1.6 m behind the square carved pillar, on a carved block, and a bronze bell
+  // hangs on a chain midway between the two. Authored at the final (moved-out) front line.
+  {const greyStone=mat('#a3a299',.95),dullBrass=mat('#8a7650',.55,{metalness:.55}),front=8.57,back=front-1.6;
+   const profile=[[.205,0],[.205,.62],[.235,.66],[.235,.76],[.195,.80],[.195,.98],[.27,1.08],[.30,1.20],[.27,1.32],[.205,1.40],[.205,1.46],[.33,1.56],[.34,1.66],[.26,1.74]];
+   for(const x of [37.55,40.65]){
+     box('Passage round column carved base block',x,1.03,back,.50,.86,.50,greyStone);
+     for(const y of [.66,1.44])box('Passage round column base moulding',x,y,back,.58,.09,.58,greyStone);
+     panel('Passage round column base relief',x,1.04,back+.255,.34,.56,relief);
+     const shaft=mesh('Passage round turned stone column',new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),24),greyStone,x,1.48,back);shaft.castShadow=shaft.receiveShadow=true;
+     box('Passage round column square capital',x,3.40,back,.66,.30,.66,greyStone);
+     box('Passage round column capital cap',x,3.65,back,.78,.20,.78,white);
+     K.blocker(x,back,.5,.5,.6,3.75);
+     {const beam=scallop('Passage bell scalloped beam',x,0,1.14,3.82,.24,whiteTrim,.36);beam.rotation.y=Math.PI/2;beam.position.set(x-.12,0,(front+back)/2);}
+     bell('Passage hanging bronze bell',x,2.78,(front+back)/2,.46,dullBrass);
+     K.beam(g,'Passage bell rusted chain',[x,3.78,(front+back)/2],[x,3.33,(front+back)/2],.03,dark);
+   }}
   // Little lamp canopy projects toward the entrance from the black pole's base.
   const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,brass); // starts at the shaft face, not through itshelterRoof.rotation.x=-.07;
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
@@ -2287,19 +2305,20 @@ export function buildTemple(K) {
      if(q.minZ>=Z0){q.minZ+=DZ;q.maxZ+=DZ;}else if(q.minZ<20.6)q.maxZ+=DZ;}
    for(const r of [...K.surfaces,...K.ramps]){const lo=r.z-r.d/2,hi=r.z+r.d/2;
      if(r.x>30.2&&r.x<49.6&&lo<20.6&&lo>18.8&&hi>29.3&&hi<30.9){r.d+=DZ;r.z+=DZ/2;}}}
-  // The bell bay's court front moves out 1.0 m (user's note with 15.14.44): its plinth,
+  // The portico's court front moves out 1.0 m, first the bell bay (user's note with 15.14.44) and
+  // then the east side to match (15.14.51 note: the space behind the pillars is wider): its plinth,
   // panels, lip, side steps, pier, carved column and arch move; floor, ceiling and west wall stretch.
   {const DZ=1.0,b3=new THREE.Box3();g.updateMatrixWorld(true);
-   const inBay=()=>b3.min.x>=35.0&&b3.max.x<=38.1;
+   const inBay=()=>(b3.min.x>=35.0&&b3.max.x<=38.1)||(b3.min.x>=40.1&&b3.max.x<=47.95);
    for(const o of g.children){if(o.isInstancedMesh)continue;b3.setFromObject(o);if(b3.isEmpty()||!inBay())continue;
-     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended)/.test(o.name))continue;
+     if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended|Passage )/.test(o.name))continue;
      if(b3.min.z>=7.15&&b3.max.z<=8.7){o.position.z+=DZ;continue;}
-     if(/^(Courtyard portico raised marble platform|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
+     if(/^(Courtyard portico raised marble platform|Courtyard portico ceiling slab|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
        const lo=b3.min.z,f=(b3.max.z-lo+DZ)/(b3.max.z-lo);o.scale.z*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=lo-b3.min.z;}}
-   for(const c of K.colliders){if(c.minX<35.0||c.maxX>38.1)continue;
+   for(const c of K.colliders){if((c.minX<35.0||c.maxX>38.1)&&(c.minX<40.1||c.maxX>47.95))continue;
      if(c.minZ>=7.15&&c.maxZ<=8.7&&!(c.minX>35.9&&c.maxX<37.2))c.minZ+=DZ,c.maxZ+=DZ;
      else if(c.minZ>5.8&&c.minZ<6.3&&c.maxZ>7.5&&c.maxZ<8)c.maxZ+=DZ;}
-   for(const r of [...K.surfaces,...K.ramps]){if(r.x<35.0||r.x>38.0)continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;
+   for(const r of [...K.surfaces,...K.ramps]){if((r.x<35.0||r.x>38.0)&&(r.x<40.2||r.x>47.9))continue;const lo=r.z-r.d/2,hi=r.z+r.d/2;
      if(lo>=7.15&&hi<=8.7){r.z+=DZ;continue;}
      if(lo>6.1&&lo<6.3&&hi>7.7&&hi<7.9){r.d+=DZ;r.z+=DZ/2;}}}
   // User's notes (west of the inner sanctum front): the front building starts at the old

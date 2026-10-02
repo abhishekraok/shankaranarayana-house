@@ -40,7 +40,7 @@ function checkRoute(name,points,feet=.051){for(let j=1;j<points.length;j++){cons
   for(let i=0;i<=n;i++){const t=i/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;assert.ok(!collision(x,z,feet),`${name}: collision at ${x.toFixed(2)}, ${z.toFixed(2)}`);
     assert.ok(!blockedRise(x,z,feet),`${name}: impassable rise at ${x.toFixed(2)}, ${z.toFixed(2)}`);feet=supportY(x,z,feet);}}return feet;}
 // Lane, across the deeper forecourt, through the entrance and into the courtyard.
-const inFeet=checkRoute('Lane to temple courtyard',[[39,-6],[39,-1],[39,.2+TS],[39,3+TS],[39,8.2+TS],[45,9+TS]]);
+const inFeet=checkRoute('Lane to temple courtyard',[[39,-6],[39,-1],[39,.2+TS],[39,3+TS],[39,9.5+TS],[45,9.9+TS]]);
 assert.ok(inFeet>0&&inFeet<.6,'Courtyard paving reached at its own level');
 checkRoute('House front to temple forecourt',[[HX,-5],[23,-5],[30,-2],[30,TS-2.2]]);
 checkRoute('Forecourt in front of the corner porch',[[20.6,-4],[27.5,TS-3.6],[32,TS-2.6]]);
