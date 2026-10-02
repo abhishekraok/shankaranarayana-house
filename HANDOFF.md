@@ -27,14 +27,14 @@ committed) still apply.
 ## Photo review of all 172 aligned poses (2026-10-01 night)
 
 Thirty review agents compared the web render at every aligned pose with its photograph
-(`checks/fidelity/all-1001/`, raw findings in `review-raw.json` there: 731 findings, 168 photos;
+(`checks/fidelity/all-1001/`, raw findings in `docs/photo-review-2026-10-01.json`: 731 findings, 168 photos;
 144 poses rated rough, 18 good, 6 bad). Done from it so far, each backed by two or more photos:
 the low dark perforated lake wall along the lane, the hill only to the north-east, lane undergrowth
 low and off the shoulders, side-road clearings following the temple setback, the narrower God room
 gate, east veranda posts, the taller wing roof, the temple gallery balcony moved out over the
 portico, and the two rusty lean-to roofs in the house court.
 
-Not done, in rough order of value (see `review-raw.json` for numbers and object names):
+Not done, in rough order of value (see `docs/photo-review-2026-10-01.json` for numbers and object names):
 - House front is about 4 m too long on the east. 14.56.30 / veranda.jpg show the lower walkway
   ending at a dark panelled door in a turquoise wall just past the sitting bay (local x about 6),
   and house-front.jpg / 15.26.49 put the west face of the turquoise stair block there, not at
