@@ -364,10 +364,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const [y,w,h] of [[.29,.75,.58],[.77,.62,.38],[1.10,.49,.28],[1.31,.39,.14]])box('Tank gate square stepped stone pier',bathingGateX,y,z,w,h,w,fenceWhite,true);
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
-  // Open iron leaf rests along the stair edge; the passage stays clear.
-  for(const x of [16.45,17.27])box('Tank narrow iron gate upright',x,.51,-10.87,.035,.92,.035,'metal');
-  for(const y of [.12,.94])box('Tank narrow iron gate rail',16.86,y,-10.87,.85,.035,.035,'metal');
-  for(let x=16.56;x<17.27;x+=.13)box('Tank metal gate bars',x,.53,-10.87,.017,.82,.022,'metal');
+  // User's note (game): the open iron leaf stood out over the water; removed.
   box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
   box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);

@@ -240,10 +240,12 @@ assert.ok(!collision(reference.p[0],reference.p[2],reference.p[1]),'Photo positi
 const routes=[];
 const houseRoute=(name,points,...rest)=>checkRoute(name,points.map(([x,z])=>[x+HX,z]),...rest);
 function checkRoute(name,points,startFeet=.45,minimumFloor=.44){let feet=startFeet,samples=0;for(let j=1;j<points.length;j++){const a=points[j-1],b=points[j],n=Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/.04);for(let i=0;i<=n;i++){const t=i/n,x=a[0]+(b[0]-a[0])*t,z=a[1]+(b[1]-a[1])*t;assert.ok(!collision(x,z,feet),`${name}: collision at ${x}, ${z}`);assert.ok(!blockedRise(x,z,feet),`${name}: impassable rise at ${x}, ${z}`);feet=supportY(x,z,feet);assert.ok(feet>=minimumFloor,`${name}: missing floor`);samples++;}}routes.push({name,samples,finalHeight:feet});}
-houseRoute('Entrance to left veranda',[[0,1.1],[0,-.31],[8.2,-.31]]);
-houseRoute('Central entrance to inner hall',[[0,.5],[0,4.6]]);
+// User's note: the centre passage is at ground level; one worn step leads up to the side walk.
+houseRoute('Entrance to left veranda',[[0,1.1],[0,-.31],[8.2,-.31]],.075,.07);
+houseRoute('Lane through the entrance to the court pocket',[[0,-3],[0,5.1]],0,0);
+assert.ok(routes.at(-1).finalHeight<.1,'Entrance passage stays at ground level');
 // User's note: the grey pocket floor runs across the God room front, down at .075.
-houseRoute('Inner hall down into the God room court pocket',[[0,.5],[0,5.1]],.45,.07);
+houseRoute('Inner hall into the God room court pocket',[[0,.5],[0,5.1]],.075,.07);
 assert.ok(supportY(HX,5.1,.1)<.1,'God room front is the low grey floor');
 // 175306: a lower open entrance passage between matching raised platforms.
 const innerPlatforms=house.children.filter(o=>o.name==='Inner entrance raised sitting platform');
@@ -255,8 +257,8 @@ for(const side of [-1,1]){
   const eye=HV(0,2.07,3.15),target=HV(side*2,1.4,2.80),direction=target.clone().sub(eye);
   const hits=new THREE.Raycaster(eye,direction.clone().normalize(),0,direction.length()).intersectObject(house,true);
   assert.equal(hits.length,0,'Open door leaves must not hide the inner sitting platforms');
-  houseRoute('Inner hall to raised platform '+side,[[0,4.55],[side*2.05,4.55],[side*2.05,3.92]]);
-  houseRoute('Raised platform back to hall '+side,[[side*2.05,3.92],[side*2.05,4.55],[0,4.55]],.79);
+  houseRoute('Inner hall to raised platform '+side,[[0,4.55],[side*2.05,4.55],[side*2.05,3.92]],.075,.07);
+  houseRoute('Raised platform back to hall '+side,[[side*2.05,3.92],[side*2.05,4.55],[0,4.55]],.79,.07);
 }
 for(const side of [-1,1]){
   const ray=new THREE.Raycaster(HV(side*.76,2.0,3.15),new THREE.Vector3(0,0,-1),0,1.3);
@@ -266,11 +268,11 @@ for(const side of [-1,1]){
 for(const n of ['Inner sitting platform storage trunk','Inner sitting bay red steel cupboard','Inner sitting bay curved-arm wooden chair','God room side desk'])assert.ok(!house.getObjectByName(n),n+' was removed');
 
 houseRoute('Inner veranda to the right front room (no facade door, per user)',[[5.5,5.1],[5.5,3.1],[7,3.1]]);
-houseRoute('Entrance to left sitting bay',[[0,1.32],[2.65,1.32]]);
-houseRoute('Entrance to right sitting bay',[[0,1.32],[-2.65,1.32]]);
-houseRoute('Left sitting bay back to main door',[[2.65,1.32],[0,1.32],[0,3]],.75);
-houseRoute('Right sitting bay back to main door',[[-2.65,1.32],[0,1.32],[0,3]],.75);
-houseRoute('Lower veranda walkway both sides',[[-6.8,-.31],[8.2,-.31],[-6.8,-.31]]);
+houseRoute('Entrance to left sitting bay',[[0,1.32],[2.65,1.32]],.075,.07);
+houseRoute('Entrance to right sitting bay',[[0,1.32],[-2.65,1.32]],.075,.07);
+houseRoute('Left sitting bay back to main door',[[2.65,1.32],[0,1.32],[0,3]],.75,.07);
+houseRoute('Right sitting bay back to main door',[[-2.65,1.32],[0,1.32],[0,3]],.75,.07);
+houseRoute('Lower veranda walkway both sides',[[-6.8,-.31],[8.2,-.31],[-6.8,-.31]],.45,.07);
 const verandaKeys=['verandaleft','verandaseat','veranda','verandaright'];
 for(const key of verandaKeys){
   const p=photos[key].p;

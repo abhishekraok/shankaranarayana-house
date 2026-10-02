@@ -146,20 +146,24 @@ export function buildHouse(K) {
   // Ring of shaded rooms and verandas around the central unroofed court.
   // East-facing convention: east=-Z, north=-X. 175312 shows a lower
   // court pocket and north-south treads, not steps along the front edge.
-  floor('Front range plinth',0,2.2,24,4.4);
+  // User's notes (game, at the entrance and in the court): no raised floor in the centre. The entry
+  // passage runs at ground level from the lane to the court pocket; only the side platforms are raised.
+  const EL=.075;
+  for(const s of [-1,1])floor('Front range plinth',s*6.61,2.2,10.78,4.4);
   floor('Front range north return',-8.025,5.2,7.95,1.6);
   // User's note (snake god pit): the grey pocket floor is the right tile and height, and it
   // runs on across the front of the God room; red is only for the raised platforms.
   floor('Front range south return',7.175,5.2,9.65,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
   floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
-  floor('God room court grey stone ledge',.05,4.55,4.6,.3,F,'stone');
+  floor('God room court grey stone ledge',-1.735,4.55,1.03,.3,F,'stone');floor('God room court grey stone ledge',1.785,4.55,1.13,.3,F,'stone');
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
   {const worn=K.M.red.clone();worn.color.set('#6f3c36');worn.roughness=.9;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
   const dampCourt=mat('earth').clone();dampCourt.color.set('#686653');dampCourt.roughness=.80;
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
+  const plinthFace=mat('plaster').clone();plinthFace.color.set('#9d8a73');
   // Lowered central entrance with paired raised sitting platforms.
   // Entrance photos show raised seating against the room wall, with a lower
   // continuous walkway between the stout inner posts and slender outer row.
@@ -169,20 +173,30 @@ export function buildHouse(K) {
     floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,1.15,2.99,1.80,.75,verandaRed,.30);
     b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,riserGrey);
     b('Veranda dark stone sitting edge',side*2.745,.765,.29,2.99,.045,.22,'stone');
-    b('Veranda entrance end riser',side*1.26,.59,1.15,.07,.27,1.80,riserGrey);
+    b('Veranda entrance end riser',side*1.26,(EL+.725)/2,1.15,.07,.725-EL,1.80,riserGrey);
     b('Veranda entrance end stone coping',side*1.31,.768,1.15,.16,.045,1.80,'stone');
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
-  floor('Veranda central grey cement walkway',0,1.15,2.52,1.80,F+.004,greyCement,.04);
-  floor('Entrance-left lower stone walking strip',4.9,-.31,9.8,1.02,.455,'stone',.05);
-  floor('Entrance-right lower stone walking strip',-4.05,-.31,8.1,1.02,.455,'stone',.05);
+  floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
+  floor('Entrance-left lower stone walking strip',5.62,-.31,8.36,1.02,.455,'stone',.05);
+  floor('Entrance-right lower stone walking strip',-4.77,-.31,6.66,1.02,.455,'stone',.05);
+  for(const s of [-1,1]){
+    // The raised side walk ends in a plain face at the passage, with one worn step up to it.
+    b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.31,.06,.43-EL,1.02,riserGrey);
+    b('Entrance passage side riser',s*1.33,(EL+F)/2,.11,.22,F-EL,.28,riserGrey);
+    floor('Entrance passage side step',s*1.27,-.31,.34,.9,.265,'stone',.265-EL);
+    floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,'stone',.41-EL);
+    // house-front.jpg: a low masonry cheek stands out from the plinth either side of the entry slab.
+    b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
+    b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,'stone');
+    // The facade and the door frame stand on a stone base where the floor now drops away.
+    b('Main door stone base',s*.93,(EL+F)/2,2.0,.66,F-EL,.42,'stone');
+  }
   floor('Front left access step',-3.1,.04,1.9,.7,.19,'paleStone');
   // Reach the low step before the raised veranda walking strip.
-  floor('Front centre entry step',0,-.50,3.5,1.2,.19,'paleStone');
-  stairs('Central approach',0,-.15,3.0,1.0,0,F,'z',3);
+  floor('Front entry cement slab',0,-1.72,2.6,1.8,.05,greyCement,.05);
   // The front photographs show a continuous worn plinth with one low entry gap.
   // 15.28.36: a plain ochre wash, darkened only along the ground by splash-back.
-  const plinthFace=mat('plaster').clone();plinthFace.color.set('#9d8a73');
   const plinthDamp=mat('plaster').clone();plinthDamp.color.set('#7a6a55');
   for(const [x,w] of [[-4.62,6.35],[5.09,7.30]]){
     b('Front veranda weathered retaining plinth',x,.43,-.98,w,.86,.18,plinthFace,true);
@@ -230,7 +244,7 @@ export function buildHouse(K) {
   for(const o of g.children.slice(pedestalStart.children)){o.position.x+=.5;o.position.y+=pedLift;o.position.z-=1.65;}
   for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=pedLift;c.top+=pedLift;c.minZ-=1.65;c.maxZ-=1.65;}
   b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
-  b('Entrance pocket plinth-edge riser',.05,(F+.075)/2,4.718,4.6,F-.075,.035,nicheOxide);
+  b('Entrance pocket plinth-edge riser',-1.735,(F+.075)/2,4.718,1.03,F-.075,.035,nicheOxide);b('Entrance pocket plinth-edge riser',1.785,(F+.075)/2,4.718,1.13,F-.075,.035,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
   K.cylinder(g,'Entrance court peach round column',-4.6,2.01,4.3,.125,.145,2.78,peachColumn,20,true);
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
@@ -477,10 +491,11 @@ export function buildHouse(K) {
   const entryMap=new THREE.CanvasTexture(entryCanvas);entryMap.colorSpace=THREE.SRGBColorSpace;
   entryMap.wrapS=entryMap.wrapT=THREE.RepeatWrapping;entryMap.repeat.set(.48,.48);
   const innerEntryStone=new THREE.MeshStandardMaterial({map:entryMap,roughness:.48});
-  floor('Inner entrance dark worn walking strip',0,3.05,2.12,2.0,F+.006,innerEntryStone,.026);
+  floor('Inner entrance dark worn walking strip',0,3.38,2.44,2.66,EL+.006,innerEntryStone,.08);
+  for(const s of [-1,1])b('Inner passage plinth face',s*1.235,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey);
   for(const side of [-1,1]){
     floor('Inner entrance raised sitting platform',side*2.50,3.05,2.62,1.90,.79,verandaRed,.34);
-    b('Inner entrance platform oxide riser',side*1.185,.62,3.05,.07,.34,1.90,verandaRed,true);
+    b('Inner entrance platform oxide riser',side*1.185,(F+.79)/2,3.05,.07,.79-F,1.90,verandaRed,true);
     b('Inner entrance platform dark coping',side*1.28,.808,3.05,.25,.038,1.90,innerEntryStone);
     // Broad square foot, layered mouldings and a stout octagonal shaft.
     const postX=side*1.40,postZ=3.71;
@@ -503,6 +518,8 @@ export function buildHouse(K) {
   wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:1.8625,w:14.375,top:3.1}]);
   doorX(-6.15,4.05,1.65,F,2.45,1,false);
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
+  // User's note (game, east passage): the gap beside the partition showed the wing's roof; plain turquoise wall instead.
+  wallX('East passage front end wall',9.05,11.76,5.84,F,3.1,[],'aqua',.3);
   // The wing's rooms are not photographed: its doorway stays shut behind a plain timber door.
   b('Front room closed door to the wing',9.07,F+1.3,4.8,.07,2.6,1.7,verandaTimber);
   for(const z of [4.23,4.8,5.37])b('Front room wing door batten',9.02,F+1.3,z,.03,2.5,.07,'wood');
