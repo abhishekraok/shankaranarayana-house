@@ -158,7 +158,7 @@ export function buildHouse(K) {
   floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
-  {const worn=K.M.red.clone();worn.color.set('#6f3c36');worn.roughness=.9;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
+  {const worn=K.M.red.clone();worn.color.setRGB(.45,1.35,1.9);worn.roughness=.8;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
   const dampCourt=mat('earth').clone();dampCourt.color.set('#b08774');dampCourt.roughness=.80; // 14.44.09 / 14.48.07 / courtyard.jpg: wet red laterite, not grey-green
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
@@ -330,10 +330,10 @@ export function buildHouse(K) {
    for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
   // 14.44.22: the back veranda wall is pale plaster to the floor, with no red dado.
   skirting=false;
-  wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.65,bottom:1.0,top:2.4}],rearWash);
+  wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.1,bottom:.8,top:2.1}],rearWash);
   skirting=true;
   doorX(0,17.86,1.9,F,2.5,-1);
-  grilleX(-5.6,17.73,1.65,F+1,1.4);grilleX(5.7,17.73,1.65,F+1,1.4);
+  grilleX(-5.6,17.73,1.65,F+1,1.4);
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
   // Two shallow front rooms, either side of the central through-entrance.
   // IMG_20130720_175306: the doorway is substantially narrower than the
@@ -1512,7 +1512,29 @@ export function buildHouse(K) {
   const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(scallopedBeam,{depth:.10,bevelEnabled:false}),ceilingTimber);
   beamFrieze.name='Clock-side veranda scalloped timber wall beam';beamFrieze.rotation.y=-Math.PI/2;
   beamFrieze.position.set(11.68,0,6.0);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
-  for(const [a,e] of [[5.7,9.86],[11.04,13.94]])b('Clock-side veranda turquoise wall finish',11.735,1.97,(a+e)/2,.016,3.02,e-a,verandaAqua);
+  for(const [a,e] of [[5.7,9.86],[11.04,17.74]])b('Clock-side veranda turquoise wall finish',11.735,1.97,(a+e)/2,.016,3.02,e-a,verandaAqua);
+  // 14.30.57 / 14.31.01 / 14.31.14 (photo review): the rear wall's inner face is turquoise east of a dark
+  // post beside the doorway's west pier (14.44.22 keeps the pale wash west of it), with a red dado on the east stretch.
+  {const dado=new THREE.MeshStandardMaterial({color:'#7a2f28',roughness:.8}),Z=17.742;
+   for(const [x0,x1,y0,y1] of [[-4.2,-.95,F,F+3],[-.95,.95,F+2.5,F+3],[.95,4.88,F,F+3],[4.88,5.15,F,F+3],[5.15,6.25,F,F+.8],[5.15,6.25,F+2.1,F+3],[6.25,11.727,F,F+3]])
+     b('Rear veranda turquoise wall finish',(x0+x1)/2,(y0+y1)/2,Z,x1-x0,y1-y0,.016,verandaAqua);
+   for(const [x0,x1] of [[2.92,11.727]])b('Rear veranda red dado',(x0+x1)/2,F+.225,Z-.012,x1-x0,.45,.012,dado);
+   b('Rear veranda dark post at the colour change',-4.2,F+1.5,17.66,.18,3.0,.18,'wood');
+   // 14.30.57: an unpainted timber window, iron bars in its left half and a plank shutter in the right;
+   // laterite shows through the turquoise wash around it.
+   const oldTimber=new THREE.MeshStandardMaterial({color:'#4a3a2c',roughness:.95}),dark=new THREE.MeshStandardMaterial({color:'#15120f',roughness:1}),plank=new THREE.MeshStandardMaterial({color:'#5a4634',roughness:.95});
+   b('Rear veranda timber window frame',5.7,F+1.45,17.72,1.26,1.46,.10,oldTimber);
+   b('Rear veranda window dark opening',5.975,F+1.45,17.664,.51,1.26,.012,dark);
+   for(let i=0;i<5;i++)b('Rear veranda window iron bar',5.775+i*.10,F+1.45,17.648,.03,1.26,.03,dark);
+   b('Rear veranda window mid rail',5.975,F+1.45,17.648,.51,.045,.035,oldTimber);
+   b('Rear veranda window plank shutter',5.425,F+1.45,17.655,.53,1.26,.03,plank);
+   for(const x of [5.29,5.425,5.56])b('Rear veranda window shutter joint',x,F+1.45,17.638,.008,1.26,.004,dark);
+   const laterite=new THREE.MeshStandardMaterial({color:'#b48f7c',roughness:1});
+   for(const [x,y,w,h] of [[4.6,F+1.2,.7,.5],[4.2,F+.75,.9,.4],[6.9,F+.85,1.0,.45],[5.7,F+.62,.8,.22],[7.6,F+1.7,.5,.7],[4.75,F+2.3,.6,.35],[3.3,F+.7,.7,.3]]){
+     // three overlapping lobes each, so the edge is ragged rather than an oval
+     for(const [dx,dy,k,turn] of [[0,0,1,.2],[.32,.12,.6,-.5],[-.28,-.15,.55,.9]]){
+       const patch=new THREE.Mesh(new THREE.CircleGeometry(.5,9),laterite);patch.name='Rear veranda exposed laterite patch';
+       patch.scale.set(w*k,h*k,1);patch.rotation.set(0,Math.PI,turn);patch.position.set(x+dx*w,y+dy*h,Z-.0095);g.add(patch);}}}
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
