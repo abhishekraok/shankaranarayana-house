@@ -266,7 +266,9 @@ def bind_map(mi, record, prefix=''):
 # Finishes the game's sky light lifts well above the photographs although the web colour is right there
 # (2026-10-02 captures against 15.23.35 and 14.44.09). Linear multipliers on the instance colour, by web material name.
 GAME_TINT = {'tank stone': .32, 'tank mossy stone': .32, 'tank tread top': .4, 'court sheet barrier': .65,
-             'house roof courses upper': .5, 'house roof courses lower': .5}
+             'house roof courses upper-front': .5, 'house roof courses lower-veranda': .5, 'house roof courses rear': .5}
+# Names must be unique per material object: clones that share a name collide in the material table
+# (naming the landscape's dark tile turned the west shed roof white).
 # Not 'weathered dark tile': a multiplier of 2.2 fixed the arcade roof (66 -> 99 against 97) but turned
 # the west shed roof white (55 -> 236); the roofs sharing that material do not respond alike.
 
