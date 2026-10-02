@@ -768,9 +768,9 @@ export function buildHouse(K) {
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
   const roofGrey=new THREE.MeshStandardMaterial({color:'#81857c',roughness:.96,side:THREE.DoubleSide});
   for(const side of [-1,1]){
-    const sheet=new THREE.Mesh(new THREE.PlaneGeometry(1.20,2.30,24,1),roofGrey);
+    const sheet=new THREE.Mesh(new THREE.PlaneGeometry(1.20,1.15,24,1),roofGrey); // shortened: the old length stuck out above the lean-to roofs
     const pos=sheet.geometry.attributes.position;for(let i=0;i<pos.count;i++)pos.setZ(i,.024*Math.cos(pos.getX(i)*Math.PI/.05));sheet.geometry.computeVertexNormals();
-    sheet.rotation.x=-Math.PI/2;sheet.rotation.z=side*.09;sheet.position.set(side*2.61,3.73,5.91);sheet.name='God room grey corrugated roof underside';entryRoof.add(sheet);
+    sheet.rotation.x=-Math.PI/2;sheet.rotation.z=side*.09;sheet.position.set(side*2.61,3.73,5.335);sheet.name='God room grey corrugated roof underside';entryRoof.add(sheet);
     K.beam(entryRoof,'God room side roof timber',[side*2.25,3.52,4.82],[side*2.25,3.52,7.08],.17,shrineTimber,.21);
     for(const z of [5.03,5.65,6.50])K.beam(entryRoof,'God room short exposed crossbeam',[side*2.02,3.56,z],[side*3.18,3.56,z],.14,shrineTimber,.18);
   }
