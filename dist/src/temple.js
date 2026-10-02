@@ -2231,10 +2231,11 @@ export function buildTemple(K) {
    // User's note: the green marble side platform must not run out in front of the road
    // frontage; west of the portico it keeps only the part inside the building (z > 1.42).
    for(const o of [...g.children])if(o.name==='Entrance raised side marble platform'){b3.setFromObject(o);if(b3.min.x<30.5){
-     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/7.8;inner.position.x=(30+W1)/2;g.add(inner);
-     o.scale.x=(37.8-W1)/7.8;o.position.x=(W1+37.8)/2;}}
-   for(const r of K.surfaces)if(Math.abs(r.x-33.9)<.01&&Math.abs(r.w-7.8)<.01&&Math.abs(r.z-2.1)<.01){
-     r.x=(W1+37.8)/2;r.w=37.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
+     const inner=o.clone();inner.scale.z=(6.2-1.42)/8.2;inner.position.z=(6.2+1.42)/2;inner.scale.x=(W1-30)/6.8;inner.position.x=(30+W1)/2;g.add(inner);
+     o.scale.x=(36.8-W1)/6.8;o.position.x=(W1+36.8)/2;}}
+   // The slab is 6.8 m wide (x 30..36.8): the old 7.8 / 37.8 left a half-metre slot under the paintings.
+   for(const r of K.surfaces)if(Math.abs(r.x-33.4)<.01&&Math.abs(r.w-6.8)<.01&&Math.abs(r.z-2.1)<.01){
+     r.x=(W1+36.8)/2;r.w=36.8-W1;K.surface((30+W1)/2,(6.2+1.42)/2,W1-30,6.2-1.42,r.y);}
    for(const o of [...g.children])if(/^Upper hall (pale interior wall face|red interior wall skirt)/.test(o.name)){b3.setFromObject(o);if(b3.max.x<36.1)g.remove(o);}
    for(let i=K.colliders.length-1;i>=navStart.colliders;i--){const c=K.colliders[i];
      if(c.minX>29.2&&c.maxX<30.5&&c.minZ>-2.6&&c.maxZ<2.1){c.minX+=DX;c.maxX+=DX;continue;}
@@ -2265,18 +2266,15 @@ export function buildTemple(K) {
    for(const y of [6.92,7.59])box('Temple road rooftop red parapet rail',xm,y,-.25,w,.17,.22,balconyRed);
    for(const x of [32.55,W1])box('Temple road rooftop red parapet pier',x,7.25,-.25,.20,.78,.25,balconyRed);
    for(let x=W0+.25;x<W1-.1;x+=.245)box('Temple road rooftop red baluster',x,7.25,-.25,.07,.6,.07,balconyRed);}
-  // 15.04.55 (south down the east passage) and 15.02.17: the passage ends at a two-storey block.
-  // Its ground floor is the closed return wall; above it are two windows under a tiled hip roof.
-  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2;
+  // 15.02.17 / 15.04.55 (photo review): the passage ends at a one-storey block. Above its closed
+  // return wall there is only a thick parapet and a dark water tank; the tiled two-storey building
+  // seen beyond it stands further back and is not part of the temple.
+  {const x0=47.9,x1=55.1,z0=2.45,z1=6.45,xm=(x0+x1)/2,zm=(z0+z1)/2,tankGrey=mat('#4b4b45');
    box('East passage end block ground floor',xm,1.95,zm-.1,x1-x0,3.7,z1-z0-.2,edgeWhite,true);
-   box('East passage end block upper storey',xm,5.45,zm,x1-x0,3.1,z1-z0,edgeWhite,true);
-   box('East passage end block red floor band',xm,4.0,z1+.02,x1-x0,.16,.05,balconyRed);
-   for(const x of [50.3,52.9]){
-     box('East passage end block upper window frame',x,5.35,z1+.03,1.2,1.4,.06,K.M.wood);
-     box('East passage end block dark window panes',x,5.35,z1+.05,1.0,1.2,.03,dark);
-     box('East passage end block window mullion',x,5.35,z1+.07,.05,1.2,.03,K.M.wood);
-   }
-   K.hipRoof(g,'East passage end block tiled hip roof',xm,zm,x1-x0+1.0,z1-z0+1.0,7.0,1.35);}
+   const flat=box('East passage end block flat roof',xm,3.9,zm,x1-x0+.2,.2,z1-z0+.2,edgeWhite);K.roofs.push(flat);
+   for(const [x,z,w,d] of [[x0+.11,zm,.22,z1-z0],[x1-.11,zm,.22,z1-z0],[xm,z0+.11,x1-x0,.22]])box('East passage end block roof parapet',x,4.45,z,w,.9,d,edgeWhite);
+   box('East passage end block water tank',53.5,5.05,5.0,1.8,1.1,1.3,tankGrey);box('East passage end block water tank lid',53.5,5.64,5.0,1.9,.08,1.4,tankGrey);
+   for(const dx of [-.75,.75])for(const dz of [-.5,.5])box('East passage end block water tank leg',53.5+dx,4.3,5.0+dz,.12,.4,.12,tankGrey);}
   // 15.03.33 (user): the marker stone stands in the middle of the east passage, not at its wall.
   {const dx=51.8-markerStone.position.x;markerStone.position.x+=dx;K.colliders[markerNav].minX+=dx;K.colliders[markerNav].maxX+=dx;}
   // User's 15.05.42 note: the old inner shrine runs further toward the rear range, leaving

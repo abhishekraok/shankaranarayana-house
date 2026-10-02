@@ -30,7 +30,7 @@ export function buildHouse(K) {
   const verandaTimber=new THREE.MeshStandardMaterial({map:timberMap,bumpMap:timberMap,bumpScale:.004,roughness:.9});
   // 14.56.30: the veranda lime-wash is a bright mint turquoise.
   K.baseGrime(K.M.aqua,{top:1.6,strength:.45,tint:[.7,.66,.58]});
-  const verandaAqua=K.M.aqua.clone();K.baseGrime(verandaAqua,{top:1.5,strength:.35,tint:[.7,.66,.58]});verandaAqua.color.setRGB(.72,1.3,1.18);
+  const verandaAqua=K.M.aqua.clone();K.baseGrime(verandaAqua,{top:1.5,strength:.35,tint:[.7,.66,.58]});verandaAqua.color.setRGB(.98,1.08,1.02); // 14.31.25 / 14.31.43 / 14.57.08: a pale mint, about #b6e3d7
   const verandaRed=K.M.red.clone();verandaRed.color.setRGB(1.15,1.02,1.06);verandaRed.roughness=.76;
   // 14.41.43 / 14.44.22: worn grey cement walkways and pale, stained whitewash
   // on the rear veranda, rather than oxide floors and turquoise paint.
@@ -160,7 +160,7 @@ export function buildHouse(K) {
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
   {const worn=K.M.red.clone();worn.color.set('#6f3c36');worn.roughness=.9;floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
-  const dampCourt=mat('earth').clone();dampCourt.color.set('#686653');dampCourt.roughness=.80;
+  const dampCourt=mat('earth').clone();dampCourt.color.set('#b08774'); // 14.44.09 / 14.48.07 / courtyard.jpg: wet red laterite, not grey-greendampCourt.roughness=.80;
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
   const plinthFace=mat('plaster').clone();plinthFace.color.set('#9d8a73');
   // Lowered central entrance with paired raised sitting platforms.
@@ -525,8 +525,8 @@ export function buildHouse(K) {
   // room are gone, so the opening runs on to x 6.325.
   // User's note ('left hand side when entering 2'): no wall stub in the middle either; the room runs
   // open to the stair-wing partition, so the opening now ends at x 9.05.
-  wallX('Inner front room wall',-11.8,9.05,4.05,F,3.1,[{c:-6.15,w:1.65,top:2.5},{c:1.8625,w:14.375,top:3.1}]);
-  doorX(-6.15,4.05,1.65,F,2.45,1,false);
+  // User's note ('turning 135 degrees 2'): the wall behind the peach pillar goes as well; the floor
+  // runs on behind it into an open bay, so nothing is left of the inner front room wall.
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // User's note (game, east passage): the gap beside the partition showed the wing's roof; plain turquoise wall instead.
   wallX('East passage front end wall',9.05,11.76,5.84,F,3.1,[],'aqua',.3);
@@ -1110,21 +1110,22 @@ export function buildHouse(K) {
   K.box(entryRoof,'Entrance fluorescent old ballast',-.13,3.25,6.265,.17,.048,.055,shrineTimber);
   for(const x of [-.20,.45])K.beam(entryRoof,'Entrance fluorescent hanging wire',[x,3.45,5.98],[x,3.27,6.22],.005,'black');
   // Tulsi pedestal is left of the projecting shrine, as in the plan.
-  const tulsiStone=new THREE.MeshStandardMaterial({color:'#49463c',roughness:.98,bumpMap:mat('stone').map,bumpScale:.018});
-  for(const [size,y,h] of [[.96,.13,.18],[.77,.27,.10],[.48,.62,.62],[.71,.98,.12],[.83,1.10,.12]]) {
-    b('Tulsi dark weathered stone pedestal',-5.2,y,8.0,size,h,size,tulsiStone,true);
+  const tulsiStone=new THREE.MeshStandardMaterial({color:'#5b5347',roughness:.98,bumpMap:mat('stone').map,bumpScale:.018});
+  // 14.52.16 / 14.48.31 / courtyard.jpg: a small pedestal (about 0.5 m base, 0.7 m tall) a metre from the shrine plinth.
+  for(const [size,y,h] of [[.50,.10,.12],[.36,.37,.42],[.48,.65,.14]]) {
+    b('Tulsi dark weathered stone pedestal',-4.45,y,8.0,size,h,size,tulsiStone,true);
   }
-  b('Tulsi earth in planter',-5.2,1.185,8,.67,.04,.67,'earth');
-  K.cylinder(g,'Tulsi main stem',-5.2,1.67,8,.013,.034,1.04,'wood',7);
+  b('Tulsi earth in planter',-4.45,.725,8,.40,.04,.40,'earth');
+  K.cylinder(g,'Tulsi main stem',-4.45,1.08,8,.008,.016,.70,'wood',7);
   const leaves=[];
-  for(let i=0;i<180;i++) {
-    const a=i*2.3999,r=.12+(i%7)*.046,y=1.30+(i%21)*.044;
-    leaves.push({x:-5.2+Math.cos(a)*r,y,z:8+Math.sin(a)*r,rx:.25+i*.3,rz:a});
-    if(i%12===0)K.beam(g,'Tulsi twig',[-5.2,y-.18,8],[-5.2+Math.cos(a)*r,y,8+Math.sin(a)*r],.008,'wood');
+  for(let i=0;i<70;i++) {
+    const a=i*2.3999,r=.05+(i%7)*.02,y=.95+(i%21)*.022;
+    leaves.push({x:-4.45+Math.cos(a)*r,y,z:8+Math.sin(a)*r,rx:.25+i*.3,rz:a});
+    if(i%12===0)K.beam(g,'Tulsi twig',[-4.45,y-.1,8],[-4.45+Math.cos(a)*r,y,8+Math.sin(a)*r],.006,'wood');
   }
   const leafmesh=new THREE.InstancedMesh(new THREE.SphereGeometry(1,7,4),mat('leaf'),leaves.length);
   const helper=new THREE.Object3D();
-  leaves.forEach((p,i)=>{helper.position.set(p.x,p.y,p.z);helper.rotation.set(p.rx,0,p.rz);helper.scale.set(.050,.014,.083);helper.updateMatrix();leafmesh.setMatrixAt(i,helper.matrix);});
+  leaves.forEach((p,i)=>{helper.position.set(p.x,p.y,p.z);helper.rotation.set(p.rx,0,p.rz);helper.scale.set(.034,.010,.056);helper.updateMatrix();leafmesh.setMatrixAt(i,helper.matrix);});
   leafmesh.name='Tulsi leaves';leafmesh.castShadow=true;g.add(leafmesh);
   // Small moist garden strips soften the open court, leaving its crossed paths clear.
   const weeds=[];
@@ -1396,7 +1397,7 @@ export function buildHouse(K) {
     if(i<8&&j<3){const a=j*9+i;tileIndices.push(a,a+9,a+1,a+1,a+9,a+10);}
   }
   const tileGeometry=new THREE.BufferGeometry();tileGeometry.setAttribute('position',new THREE.Float32BufferAttribute(tilePositions,3));tileGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(tileUvs,2));tileGeometry.setIndex(tileIndices);tileGeometry.computeVertexNormals();
-  const tileColors=['#625b56','#645d57','#5e5853','#655d58','#615a56','#635c58'];
+  const tileColors=['#4a3f39','#4c413a','#463c36','#4d423b','#49403a','#4b403b']; // 15.23.35: dark weathered umber
   const tilesOnSlope=(parent,name,rows)=>{
     const mesh=new THREE.InstancedMesh(tileGeometry,new THREE.MeshStandardMaterial({roughness:.98,side:THREE.DoubleSide}),rows.length),pose=new THREE.Object3D();
     rows.forEach((r,i)=>{pose.position.set(r.x,r.y+.025,r.z);pose.rotation.set(-r.angle,0,0);pose.scale.set(1,1,1);pose.updateMatrix();mesh.setMatrixAt(i,pose.matrix);mesh.setColorAt(i,new THREE.Color(tileColors[(i*13+Math.floor(i/11))%tileColors.length]).multiplyScalar(name.includes('lower-')?.66:.88));});
@@ -1577,6 +1578,11 @@ export function buildHouse(K) {
   for(const y of [1.23,1.68,2.13,2.58,3.01])b('Veranda cupboard open shelf',4.76,y,.18,.28,.035,.44,'cream');
   b('Veranda pale open cupboard door',4.48,2.12,-.055,.30,1.78,.03,'paleStone');
   b('Veranda far closed timber doorway',9.19,1.94,1.05,.11,2.93,1.92,verandaTimber,true);
+  // veranda.jpg / 14.56.30 / 14.56.07: the walkway ends in a turquoise wall up to the rafters.
+  {const sh=new THREE.Shape();[[-.98,.455],[.09,.455],[.09,3.41],[2.05,3.41],[2.05,3.63],[0,3.63],[0,3.34],[-.98,2.74]].forEach(([z,y],k)=>k?sh.lineTo(z,y):sh.moveTo(z,y));sh.closePath();
+   const endWall=new THREE.Mesh(new THREE.ExtrudeGeometry(sh,{depth:.10,bevelEnabled:false}),verandaAqua);endWall.name='Veranda east end turquoise wall';
+   endWall.rotation.y=-Math.PI/2;endWall.position.x=9.19;endWall.castShadow=endWall.receiveShadow=true;g.add(endWall);
+   K.blocker(9.14,-.445,.12,1.07,.455,2.8);b('Veranda east end red skirting',9.085,.70,-.445,.012,.49,1.07,verandaRed);}
   for(const z of [.13,1.05,1.97])b('Veranda far door vertical stile',9.115,1.94,z,.09,2.87,.10,verandaTimber);
   for(const y of [.54,1.43,3.31])b('Veranda far door horizontal rail',9.11,y,1.05,.10,.12,1.92,verandaTimber);
   b('Veranda far cup shelf',8.87,1.36,.82,.37,.065,1.77,verandaTimber);
@@ -1721,7 +1727,7 @@ export function buildHouse(K) {
     mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
   }
   g.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
-  K.labels.push({text:'Grandparents’ house',position:[0,7.8,2.5]},{text:'Open courtyard',position:[-3.2,1.0,11.8]},{text:'Family shrine',position:[0,3.9,8.0]},{text:'Tulsi',position:[-5.2,2.2,8]},{text:'Kitchen',position:[-10.2,3.25,15.2]});
+  K.labels.push({text:'Grandparents’ house',position:[0,7.8,2.5]},{text:'Open courtyard',position:[-3.2,1.0,11.8]},{text:'Family shrine',position:[0,3.9,8.0]},{text:'Tulsi',position:[-4.45,1.7,8]},{text:'Kitchen',position:[-10.2,3.25,15.2]});
   // 15.28.36 / 15.28.49: the west end bay carrying the outside stair is a pale-blue block from
   // ground to eaves, not white. (Local coordinates: the bay is x < -7.8.)
   {const paleBlue=K.M.plaster.clone();paleBlue.color.set('#a4d6de');const b3=new THREE.Box3();
