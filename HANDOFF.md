@@ -57,7 +57,8 @@ commits, and these entries are already done: house 1, 2, 3, 5, 8, 15 (half walls
 window sill was left because a test encodes daylight through it at 2.4 m), 10 (coping, riser
 colour and bench only; the steps stay for walking), 11 (ceiling only), 12 (dado only), 16,
 17 (tulsi and soil only), 20 (crossbeam only), 23;
-temple 1, 4 (without the second window), 10, 19 (a-c: maroon balusters, west side cornice, the
+temple 1, 4 (without the second window), 7 (piers, brackets, transoms and gate leaves only), 10,
+19 (a-c: maroon balusters, west side cornice, the
 upper slab that floated in front of the frontage); landscape 3, 5, 12 (white lake face on the
 roadside posts only), 15, 16 (colours only), 19, 20 (shrubs off the track only), 21 (materials
 only, no nosings), 22, 24 (wider grass verge only), 25. The timber texture's dark wash was also
