@@ -265,7 +265,8 @@ def bind_map(mi, record, prefix=''):
     MEL.set_material_instance_scalar_parameter_value(mi, prefix+'FlipY', float(record['flipY']))
 # Finishes the game's sky light lifts well above the photographs although the web colour is right there
 # (2026-10-02 captures against 15.23.35 and 14.44.09). Linear multipliers on the instance colour, by web material name.
-GAME_TINT = {'tank stone': .22, 'tank mossy stone': .22, 'tank tread top': .3, 'court sheet barrier': .42}
+GAME_TINT = {'tank stone': .32, 'tank mossy stone': .32, 'tank tread top': .4, 'court sheet barrier': .65,
+             'house roof courses upper': .5, 'house roof courses lower': .5, 'weathered dark tile': 2.2}
 
 def instance(i):
     if i in made: return made[i]
