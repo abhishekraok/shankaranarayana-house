@@ -1097,7 +1097,7 @@ export function buildTemple(K) {
   // Low lean-to over the shaded passage beneath the tall hall.
   const leanPos=[];for(let i=0;i<90;i++){
     const z=6.2+i*10.0/90,zz=z+10.0/90,a=i%2?.035:0,b=i%2?0:.035;
-    leanPos.push(24.1,4.14+a,z,29.1,3.50+a,z,24.1,4.14+b,zz,24.1,4.14+b,zz,29.1,3.50+a,z,29.1,3.50+b,zz);
+    leanPos.push(24.1,4.14+a,z,24.1,4.14+b,zz,29.1,3.50+a,z,24.1,4.14+b,zz,29.1,3.50+b,zz,29.1,3.50+a,z); // wound so the normals point up
   }
   const leanGeo=new THREE.BufferGeometry();leanGeo.setAttribute('position',new THREE.Float32BufferAttribute(leanPos,3));leanGeo.computeVertexNormals();
   const leanRoof=mesh('Right hall low corrugated veranda awning',leanGeo,greySheet);K.roofs.push(leanRoof);
