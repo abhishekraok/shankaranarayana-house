@@ -179,3 +179,8 @@ The legacy `lane-left.jpg` pose also gives a substantially different composition
   the game samples at 14.56.30 as: floor (89,38,34) vs photo (76,37,36), wall (159,204,202) vs
   (149,209,214), pillar (47,38,31) vs (72,53,51), walkway (63,75,64) vs (65,56,55), dado
   (125,49,42) vs (110,52,52). The pillar is the remaining gap.
+- 2026-10-02, foliage silhouettes: the foliage masters (textured ones too) are now masked and
+  two-sided, with leaf-clump cut-outs (55 cm and 140 cm world cells) that grow towards the
+  silhouette, so crowns and shrubs have ragged edges instead of smooth spheres. `LEAF_RIM=0` in the
+  environment of `materials.py --rebuild` switches it off. Checked at lane-right.jpg and 15.23.35.
+  Still blocky up close; real leaf cards or palm fronds would be the next step.

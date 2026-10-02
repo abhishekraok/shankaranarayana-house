@@ -110,6 +110,7 @@ def texture_sample(m, prefix, linear=False):
 import os as _os
 ALBEDO_TONE = tuple(float(v) for v in _os.environ.get('ALBEDO_TONE', '0.6,1.0,0.4').split(','))  # knee, power, floor
 SPECULAR = float(_os.environ.get('MATERIAL_SPECULAR', '0.25'))
+LEAF_RIM = float(_os.environ.get('LEAF_RIM', '1.0'))  # 0 switches the leafy silhouette cut-outs off
 
 def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False):
     path = f'{DIR}/{name}'
@@ -160,6 +161,17 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
                 {'P':fpos,'N':fn}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
             m.set_editor_property('tangent_space_normal', False)
             MEL.connect_material_property(leafy, '', unreal.MaterialProperty.MP_NORMAL)
+        if not masked and LEAF_RIM:
+            rn = MEL.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -900, 300)
+            # The crowns are smooth blobs next to the photographs' palms and broadleaf trees. Cut
+            # leaf-sized holes that grow towards the silhouette (where the surface turns away
+            # from the camera), so each crown gets a ragged, leafy outline; its face stays solid.
+            m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
+            m.set_editor_property('two_sided', True)
+            cam = MEL.create_material_expression(m, unreal.MaterialExpressionCameraPositionWS, -900, 350)
+            rim = custom(m, 'float3 V=normalize(C-P); float f=1.0-abs(dot(normalize(N),V)); float a=frac(sin(dot(floor(P/55.0),float3(12.9898,78.233,37.719)))*43758.5453); float b=frac(sin(dot(floor(P/140.0),float3(39.3,11.7,83.1)))*24634.6345); return (a*0.5+b*0.5)-(0.02+%s*f*f)+0.3333;' % LEAF_RIM,
+                {'P':fpos,'N':rn,'C':cam}, unreal.CustomMaterialOutputType.CMOT_FLOAT1)
+            MEL.connect_material_property(rim, '', unreal.MaterialProperty.MP_OPACITY_MASK)
     if emissive:
         glow = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -350, 300)
         strength = param(m, unreal.MaterialExpressionScalarParameter, 'EmissionStrength', -700, 300, 40.0)
