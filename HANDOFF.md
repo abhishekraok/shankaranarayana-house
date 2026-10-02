@@ -54,12 +54,12 @@ quaternion into a small pose file and pass it as `POSE_FILE` (see `checks/unreal
 review's ranked fix lists for house.js, temple.js and landscape.js (about 25 each), each with the
 exact objects, numbers, evidence photos and risks. Its line numbers predate tonight's later
 commits, and these entries are already done: house 1, 2, 3, 5, 8, 15 (half walls only; the east
-window sill was left because a test encodes daylight through it at 2.4 m), 16, 17 (tulsi and soil
-only), 23;
+window sill was left because a test encodes daylight through it at 2.4 m), 12 (dado only), 16,
+17 (tulsi and soil only), 20 (crossbeam only), 23;
 temple 1, 4 (without the second window), 10, 19 (a-c: maroon balusters, west side cornice, the
 upper slab that floated in front of the frontage); landscape 3, 5, 12 (white lake face on the
 roadside posts only), 15, 19, 20 (shrubs off the track only), 21 (materials only, no nosings),
-24 (wider grass verge only), 25. Check the code before
+22, 24 (wider grass verge only), 25. Check the code before
 applying any other. Landscape 1 (bathing gate at x 12.35 with two piers) touches two of the
 user's notes about that gate, so ask before doing it. The "Not done" list
 below is the short version; the house's east end needs the user's eye. (3) In the game: timber
