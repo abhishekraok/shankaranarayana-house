@@ -1372,8 +1372,11 @@ export function buildHouse(K) {
   fenceZ(11.93,5.9,6.95,U,.95);
 
   // Three roof levels preserve the open courtyard and the uncovered stair.
-  const atticRise=2.05; // Half the previous 4.10 m rise, keeping the eaves fixed.
-  const frontRoof=K.hipRoof(g,'Broad upper facade tiled roof',0,2.85,24.9,7.1,6.77,atticRise);
+  // 15.23.35: the eave hangs low over the upper balcony (about 1.25 m of opening above the
+  // lattice) and the roof above it rises about 2.8 m. Same ridge height as before; the eaves come
+  // down to 6.0 and out by about a metre, so the walls under it keep their height.
+  const atticRise=2.85,atticEave=6.0,atticHalfD=4.5,atticHalfW=13.45;
+  const frontRoof=K.hipRoof(g,'Broad upper facade tiled roof',0,2.85,atticHalfW*2,atticHalfD*2,atticEave,atticRise);
   frontRoof.traverse(o=>{if(o.isMesh){o.material=o.material.clone();o.material.color.multiplyScalar(.67);}});
   // Actual overlapping, rippled courses give the front slopes a tiled silhouette.
   const tilePositions=[],tileUvs=[],tileIndices=[];
@@ -1390,7 +1393,7 @@ export function buildHouse(K) {
     mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;mesh.computeBoundingSphere();parent.add(mesh);
   };
   const upperTileRows=[];
-  for(let z=-.67;z<2.78;z+=.22){const t=(z+.70)/3.55,edge=12.45-3.195*t;for(let x=-edge+.13;x<edge;x+=.25)upperTileRows.push({x,y:6.77+atticRise*t,z,angle:Math.atan2(atticRise,3.55)});}
+  for(let z=2.85-atticHalfD+.03;z<2.78;z+=.22){const t=(z-2.85+atticHalfD)/atticHalfD,edge=atticHalfW-atticHalfD*.9*t;for(let x=-edge+.13;x<edge;x+=.25)upperTileRows.push({x,y:atticEave+atticRise*t,z,angle:Math.atan2(atticRise,atticHalfD)});}
   tilesOnSlope(frontRoof,'Overlapping upper-front Mangalore tile courses',upperTileRows);
   // The front porch is a single slope, rising from the outer posts to the wall.
   const porchRoof=new THREE.Group();porchRoof.name='Front veranda sloping tiled awning';g.add(porchRoof);K.roofs.push(porchRoof);
