@@ -330,8 +330,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(let x=a+.10;x<b;x+=.25)blockBatch('Tank roadside pierced stone parapet',fenceStone,x,.41,z,.16,.24,.29);
     K.blocker((a+b)/2,z,b-a,.39,0,.70);
   }
-  box('House bank grass verge to the water rail',3.65,-.06,-9.5,17.4,.12,1.0,materials.grass);
-  K.surface(3.65,-9.5,17.4,1.0,0);
+  // 15.30.02: a grass verge about 2.4 m wide lies between the lake wall and the lane.
+  box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,materials.grass);
+  K.surface(3.65,-8.65,17.4,2.4,.015);
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     // Stubby dark posts with flat caps, a little taller than the wall.
@@ -892,7 +893,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // User's 15.30.09 note: the mud road is slimmer, about 1.5 m, with a weedy verge along the wall.
   box('West bank weedy verge beside the wall', -6.2, .012, -24.4, 2.1, .02, 26.8, weedyGround);
   const westSeed = seed;
-  for (let i = 0; i < 60; i++) shrub(range(-18.6, -9.4), range(-37, -12), range(.5, 1.25));
+  for (let i = 0; i < 60; i++) shrub(range(-18.6, -12.8), range(-37, -12), range(.5, 1.25)); // off the track beside the west bank (15.26.49)
   for (let i = 0; i < 260; i++) {
     const s = range(.6, 1.25);
     instance('grass and weeds along wild banks', grassGeometry, materials.grass, [range(-18.8, -8.9), .025, range(-37.5, -11.5)], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));

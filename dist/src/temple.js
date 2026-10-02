@@ -364,7 +364,9 @@ export function buildTemple(K) {
   box('Front flat upper lintel',39,6.38,-1.39,14.5,.24,.35,whiteTrim);
   // Perimeter mouldings, not a solid slab across the stairwell.
   for(const z of [-2.03,6.15])box('First storey cornice',39,3.76,z,18.35,.24,.20,whiteTrim);
-  for(const x of [29.94,48.06])box('First storey side cornice',x,3.76,2.05,.20,.24,8.4,whiteTrim);
+  box('First storey side cornice',48.06,3.76,2.05,.20,.24,8.4,whiteTrim);
+  // West side: only along the portico's west wall (it hung in the air in front of the road frontage).
+  box('First storey side cornice',29.94,3.76,4.025,.20,.24,4.45,whiteTrim);
   // The family identifies the inner-building photos as views from this gallery.
   // Open its courtyard side and leave a real stairwell in the upper floor.
   floor('Upper gallery main floor',37.79,2.08,15.23,8.0,4.08,oxideFloor);
@@ -2050,7 +2052,7 @@ export function buildTemple(K) {
   const balusterProfile=[[.067,0],[.067,.07],[.04,.14],[.043,.27],[.074,.33],[.052,.43],[.037,.52],[.059,.63],[.069,.68]].map(p=>new THREE.Vector2(...p));
   const turned=new THREE.LatheGeometry(balusterProfile,10),balconySpindles=[];
   for(let x=20.47;x<30;x+=.245)balconySpindles.push([x,3.67,-.25,1,1,1]);
-  instances('Temple road white front balcony balusters',turned,whiteTrim,balconySpindles);
+  instances('Temple road white front balcony balusters',turned,balconyRed,balconySpindles); // maroon in 14.59.21 / temple-entrance.jpg (name kept for the test)
   const sideSpindles=[];for(let z=.03;z<8.9;z+=.245)sideSpindles.push([20.20,3.67,z,1,1,1]);
   instances('Temple road red turned balcony balusters',turned,balconyRed,sideSpindles);
   for(const y of [3.63,4.40]){
@@ -2434,6 +2436,20 @@ export function buildTemple(K) {
      box('Courtyard gallery balcony side panel',x,4.60,(Z0+Z1)/2,.08,.74,DZ-.2,whiteTrim);
      K.blocker(x,(Z0+Z1)/2,.26,DZ,4.08,5.12);
    }}
+  // Photo review: west of the entrance block (x < 35) the upper floor slab and its ceiling ran 1.7 m
+  // out in front of the road frontage as a floating shelf. Keep only the part inside the building.
+  {const XC=35,ZC=1.45,b3=new THREE.Box3();g.updateMatrixWorld(true);
+   for(const o of [...g.children]){
+     if(!o.isMesh||!/^(Upper gallery main floor|Entrance hall whitewashed ceiling under gallery|Upper hall worn gray concrete floor)$/.test(o.name))continue;
+     b3.setFromObject(o);if(b3.min.x>XC-1||b3.min.z>ZC-.1)continue;
+     const w=b3.max.x-b3.min.x,d=b3.max.z-b3.min.z,x1=Math.min(b3.max.x,XC);
+     if(b3.max.z>ZC+.1){const west=o.clone();west.scale.x*=(x1-b3.min.x)/w;west.position.x=(b3.min.x+x1)/2;west.scale.z*=(b3.max.z-ZC)/d;west.position.z=(ZC+b3.max.z)/2;g.add(west);}
+     if(b3.max.x>XC+.1){o.scale.x*=(b3.max.x-XC)/w;o.position.x=(XC+b3.max.x)/2;}else g.remove(o);}
+   for(const r of [...K.surfaces]){const x0=r.x-r.w/2,x1=r.x+r.w/2,z0=r.z-r.d/2,z1=r.z+r.d/2;
+     if(r.y<3.5||r.y>4.5||x0<29.5||x0>XC-1||z0>ZC-.1)continue; // temple surfaces only
+     const xe=Math.min(x1,XC);K.surfaces.splice(K.surfaces.indexOf(r),1);
+     if(z1>ZC+.1)K.surface((x0+xe)/2,(ZC+z1)/2,xe-x0,z1-ZC,r.y);
+     if(x1>XC+.1)K.surface((XC+x1)/2,r.z,x1-XC,r.d,r.y);}}
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
   const ts=K.templeShiftZ||0;g.position.z+=ts;
