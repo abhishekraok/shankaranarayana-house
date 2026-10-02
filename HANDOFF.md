@@ -24,6 +24,37 @@ committed) still apply.
   in a plan rectangle.
 - Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
 
+## Photo review of all 172 aligned poses (2026-10-01 night)
+
+Thirty review agents compared the web render at every aligned pose with its photograph
+(`checks/fidelity/all-1001/`, raw findings in `review-raw.json` there: 731 findings, 168 photos;
+144 poses rated rough, 18 good, 6 bad). Done from it so far, each backed by two or more photos:
+the low dark perforated lake wall along the lane, the hill only to the north-east, lane undergrowth
+low and off the shoulders, side-road clearings following the temple setback, the narrower God room
+gate, east veranda posts, the taller wing roof, the temple gallery balcony moved out over the
+portico, and the two rusty lean-to roofs in the house court.
+
+Not done, in rough order of value (see `review-raw.json` for numbers and object names):
+- House front is about 4 m too long on the east. 14.56.30 / veranda.jpg show the lower walkway
+  ending at a dark panelled door in a turquoise wall just past the sitting bay (local x about 6),
+  and house-front.jpg / 15.26.49 put the west face of the turquoise stair block there, not at
+  x 9.8. Shortening the east end would also close the gap to the corner building that the user
+  did not want fixed by sliding the house. Needs a plan and probably the user's eye.
+- House: upper storey eave about 0.75 m lower with a steeper roof (15.23.35); God room block
+  walls up to about 5.6 m with its roof just under the main rear eave (14.44.14, 14.44.48,
+  14.46.04); the wall behind the peach pillar (owner's note on 'turning 135 degrees 2');
+  one plain plinth face under the Naga stones.
+- Temple: stair-door wall and the upper wall over it flush with the portico front (15.10.34);
+  east range (tower block one bay south, one pavilion not two stacked, no upper storey over the
+  window wall, taller blue porch: 15.01.44, 15.02.17, 15.02.23); corner building five or six bays
+  (15.20.01, 15.22.36, 15.23.28); entrance piers under the blue arch piers (temple-entrance.jpg);
+  great bell between two piers (15.14.44); inner sanctum plinth about 1.2 m high.
+- Landscape: Vipra Bhavan about 1.3x taller (14.28.15, house-front-left.jpg); bathing gate about
+  6 m further west (15.22.06, 15.22.40); terraces and steps beside the stage stair (15.12.15,
+  15.13.26, 15.13.30); bathing arcade with three posts a side (15.27.07); whether the opposite
+  bank low house has one storey or two (15.30.09 against the earlier 15.11.58 reading).
+- Bad poses to re-align: 15.04.51, 15.05.48, 15.01.56, 14.57.56, lane-left.jpg, 15.25.49.
+
 ## Overnight pass (2026-09-29 night)
 
 - Tour-frame QA (every 3 s) twice, plus photo review rounds 4-5 of the trusted poses and the
