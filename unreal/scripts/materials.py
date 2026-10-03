@@ -10,6 +10,7 @@ import json, os, re, unreal
 from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
 M = meta['materials']; G = meta['geometries']
@@ -172,7 +173,12 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
     assert not foliage_map_contrast or (foliage and mapped), 'Map contrast requires mapped foliage'
     path = f'{DIR}/{name}'
     existing = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
-    water_upgrade = water and existing and 'WaterSpecular' not in [str(n) for n in MEL.get_scalar_parameter_names(existing)]
+    water_upgrade = water and existing and (
+        not {'WaterSpecular', 'WaterNormalIrregularMix'}.issubset(
+            {str(n) for n in MEL.get_scalar_parameter_names(existing)}) or
+        not any(isinstance(node, unreal.MaterialExpressionCustom) and
+                node.get_editor_property('code') == WATER_NORMAL_CODE
+                for node in MEL.get_material_expressions(existing)))
     normal_facing = mapped and two_sided and not (water or foliage)
     normal_upgrade = normal_facing and existing and 'TwoSidedNormalFlip' not in {str(n) for n in MEL.get_scalar_parameter_names(existing)}
     existing_leaf_parameters = {str(n) for n in MEL.get_scalar_parameter_names(existing)} if foliage and existing else set()
@@ -313,8 +319,9 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         m.set_editor_property('tangent_space_normal', False)
         position = MEL.create_material_expression(m, unreal.MaterialExpressionWorldPosition, -900, 700)
         time = MEL.create_material_expression(m, unreal.MaterialExpressionTime, -900, 850)
-        normal = custom(m, 'float2 p=P.xy; float a=dot(p,float2(.13,.07))+T*.7; float b=dot(p,float2(-.11,.21))-T*.53; float c=dot(p,float2(.29,-.17))+T*.91; return normalize(float3(-.012*cos(a)+.008*cos(b)-.006*cos(c),-.006*cos(a)-.015*cos(b)+.0035*cos(c),1));',
-            {'P':position,'T':time}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+        mix = param(m, unreal.MaterialExpressionScalarParameter, 'WaterNormalIrregularMix', -900, 950, 0.0)
+        normal = custom(m, WATER_NORMAL_CODE,
+            {'P':position,'T':time,'Mix':mix}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
         MEL.connect_material_property(normal, '', unreal.MaterialProperty.MP_NORMAL)
     MEL.recompile_material(m); EAL.save_loaded_asset(m)
     return m
@@ -404,6 +411,7 @@ def instance(i):
         MEL.set_material_instance_vector_parameter_value(mi, 'WaterScattering', unreal.LinearColor(.011, .013, .008, 1))
         MEL.set_material_instance_vector_parameter_value(mi, 'WaterAbsorption', unreal.LinearColor(.33, .24, .36, 1))
         MEL.set_material_instance_scalar_parameter_value(mi, 'WaterSpecular', 0.35)
+        MEL.set_material_instance_scalar_parameter_value(mi, 'WaterNormalIrregularMix', 1.0)
     if kind == 'glow':
         h = web['emissive'].lstrip('#'); c = unreal.LinearColor(*[srgb(int(h[k:k + 2], 16) / 255) for k in (0, 2, 4)], 1)
         # The small bulb previously emitted 40x saturated orange in addition to

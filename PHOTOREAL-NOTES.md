@@ -12,8 +12,10 @@ Reviewed all 172 aligned poses at main `30e9675`; baseline overview:
 [full sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/index.html).
 Model source and the F: pose repository were not changed.
 
-Latest accepted review: [172 renders / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-055524/index.html), clean editor exit.
+Latest accepted review: [172 renders / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-065613/index.html), clean editor exit; all sheets reviewed.
 See [before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/fidelity-2026-10-03.md).
+The later [water review](D:/repos/shankaranarayana-photoreal/unreal/reviews/water-2026-10-03.md)
+removes the repeated ripple grid; close-view brightness remains unresolved.
 The rebuilt package passes walking/menu/alignment/notes checks and a separate cold-restart
 save check. Generated media and binaries remain ignored.
 

@@ -100,6 +100,19 @@ solid materials flip their completed world-space bump normal on back faces; foli
 and water use their own normal handling. Texture imports
 stay ignored; photo sources must be explicitly allowlisted in the root `.gitignore`.
 The lake uses single-layer water with absorption, scattering and animated normals.
+Its normal field uses smooth height-noise gradients to remove the old repeating
+ripple grid, at the same RMS slope (~.0161). Water instances use
+`WaterNormalIrregularMix=1`; zero restores the original waves. Color, roughness
+and volume settings are unchanged. `materials.py` upgrades stale water shader
+code and reapplies the instance setting. Fresh material audits reject saved
+diagnostic time nodes.
+
+For sampled water animation checks, `capture_poses.py --water-times 0,.25`
+accepts one explicit shader time per pose alongside a scoped water profile.
+Set `water_normal_irregular_mix` to 0 or 1 in that JSON profile.
+It changes only the unsaved water Time input, because editor screenshots can
+freeze world time. Captures record shader times and world clocks; this check
+does not measure frame rate or continuous motion.
 Arcade-roof gain 1.45 and temple-paving gain 1.8 apply only to their exclusive materials.
 Structural canopies, carved relief, door leaves, studs, bells, coconut fruit and forest
 ground use solid materials. Plant materials retain foliage shading with 15/120 cm

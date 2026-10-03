@@ -40,6 +40,20 @@ water = unreal.load_asset('/Game/Materials/M_Water')
 assert water.get_editor_property('shading_model') == unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
 assert sum(isinstance(node, unreal.MaterialExpressionSingleLayerWaterMaterialOutput)
            for node in mel.get_material_expressions(water)) == 1, 'Duplicate water output nodes'
+water_code = (Path(__file__).parent / 'water_normal.hlsl').read_text()
+assert any(isinstance(node, unreal.MaterialExpressionCustom) and node.get_editor_property('code') == water_code
+           for node in mel.get_material_expressions(water)), 'Water normal shader needs rebuilding'
+assert 'WaterCaptureTime' not in {str(p) for p in mel.get_scalar_parameter_names(water)}, 'Transient capture time was saved'
+water_indices = [i for i, web in enumerate(meta['materials']) if web['name'] == 'lake water']
+assert len(water_indices) == 1, 'Expected one authored water material'
+water_mi = unreal.load_asset(f'/Game/Materials/Web/MI_lake_water_{water_indices[0]}')
+assert water_mi and water_mi.get_editor_property('parent') == water, 'Wrong water master'
+water_scalars = {'WaterNormalIrregularMix': 1.0, 'Roughness': .08, 'WaterSpecular': .35, 'WaterSurfaceOpacity': .15}
+for parameter, expected in water_scalars.items():
+    assert abs(mel.get_material_instance_scalar_parameter_value(water_mi, parameter)-expected) < 1e-6, parameter
+for parameter, expected in [('WaterScattering', (.011,.013,.008)), ('WaterAbsorption', (.33,.24,.36))]:
+    actual = mel.get_material_instance_vector_parameter_value(water_mi, parameter)
+    assert max(abs(a-b) for a,b in zip((actual.r,actual.g,actual.b),expected)) < 1e-6, parameter
 for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=False, include_folder=False):
     material = unreal.load_asset(path)
     if not isinstance(material, unreal.Material): continue
@@ -63,6 +77,7 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
         record['rotation'] = str(actor.get_actor_rotation())
         record['intensity'] = actor.light_component.get_editor_property('intensity')
     scene.append(record)
-report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene}
+report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
+          'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False}}
 (root / 'unreal/Shankaranarayana/Saved/material-audit.json').write_text(json.dumps(report, indent=2))
 print('Material audit passed:', len(mapped))

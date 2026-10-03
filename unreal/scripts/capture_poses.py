@@ -30,6 +30,7 @@ parser.add_argument('--temporal-frames', type=int, default=32)
 parser.add_argument('--console', default=os.environ.get('CAPTURE_CONSOLE', ''),
                     help='semicolon-separated console commands (diagnostics); or CAPTURE_CONSOLE')
 parser.add_argument('--lighting-profile', help='Read-only diagnostic light/post-process overrides from JSON')
+parser.add_argument('--water-times', help='Comma-separated water shader times, one per pose; transient diagnostic only')
 args = parser.parse_args()
 out = Path(args.out).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -92,7 +93,8 @@ for part in manifest:
     metadata['mesh_build_settings'].append({'mesh': name, 'recompute_normals': build.recompute_normals,
                                            'max_lumen_mesh_cards': build.max_lumen_mesh_cards})
 profile = json.loads(Path(args.lighting_profile).read_text()) if args.lighting_profile else {}
-if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains', 'water_roughness'}:
+if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains',
+                   'water_roughness', 'water_normal_irregular_mix'}:
     raise ValueError('Unknown diagnostic lighting profile field')
 for section, allowed in [('sun', {'yaw', 'pitch', 'intensity'}), ('sky', {'intensity'})]:
     if set(profile.get(section, {})) - allowed:
@@ -115,10 +117,14 @@ for actor in actors.get_all_level_actors():
     if actor.get_actor_label() == lighting.SKY_NAME and 'intensity' in profile.get('sky', {}):
         actor.light_component.set_editor_property('intensity', profile['sky']['intensity'])
 metadata['diagnostic_lighting_profile'] = profile
-if 'water_roughness' in profile:
-    roughness = profile['water_roughness']
-    if not isinstance(roughness, (float, int)) or not math.isfinite(roughness) or not .02 <= roughness <= .4:
-        raise ValueError('Diagnostic water roughness must be between .02 and .4')
+water_fields = {'water_roughness': ('Roughness', .02, .4),
+                'water_normal_irregular_mix': ('WaterNormalIrregularMix', 0, 1)}
+water_overrides = {key: profile[key] for key in water_fields if key in profile}
+if water_overrides:
+    for key, value in water_overrides.items():
+        _, lo, hi = water_fields[key]
+        if not isinstance(value, (float, int)) or not math.isfinite(value) or not lo <= value <= hi:
+            raise ValueError(f'Diagnostic {key} must be between {lo} and {hi}')
     water_parts = [part for part in manifest if part['kind'] == 'water']
     assert len(water_parts) == 1, 'Expected one water resource'
     name = water_parts[0]['name']
@@ -128,10 +134,38 @@ if 'water_roughness' in profile:
     material = slots[0].material_interface
     assert isinstance(material, unreal.MaterialInstanceConstant), 'Expected a water material instance'
     parent = material.get_editor_property('parent')
+    water_material = material
     assert parent.get_editor_property('shading_model') == unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
-    assert 'Roughness' in {str(p) for p in unreal.MaterialEditingLibrary.get_scalar_parameter_names(material)}
-    unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(material, 'Roughness', roughness)
-    metadata['diagnostic_water'] = {'material': material.get_path_name(), 'roughness': roughness}
+    mel = unreal.MaterialEditingLibrary
+    parameters = {str(p) for p in mel.get_scalar_parameter_names(material)}
+    metadata['diagnostic_water'] = {'material': material.get_path_name(), 'scalars': {}}
+    for key, value in water_overrides.items():
+        parameter = water_fields[key][0]
+        assert parameter in parameters, f'Rebuild water master before testing {parameter}'
+        mel.set_material_instance_scalar_parameter_value(material, parameter, value)
+        actual = mel.get_material_instance_scalar_parameter_value(material, parameter)
+        assert abs(actual-value) < 1e-6, f'Water override did not apply: {parameter}'
+        metadata['diagnostic_water']['scalars'][parameter] = actual
+water_times = None
+if args.water_times:
+    water_times = [float(value) for value in args.water_times.split(',')]
+    if len(water_times) != len(poses) or any(not math.isfinite(t) or not 0 <= t <= 3600 for t in water_times):
+        raise ValueError('Provide one finite water time in [0,3600] per pose')
+    if not water_overrides:
+        raise ValueError('Water time sampling requires a scoped water override profile')
+    # Editor high-resolution screenshots can stop world time. Replace only this
+    # process's water Time input; neither the master nor its instance is saved.
+    normal_nodes = [node for node in mel.get_material_expressions(parent)
+                    if isinstance(node, unreal.MaterialExpressionCustom) and
+                    {str(item.get_editor_property('input_name'))
+                     for item in node.get_editor_property('inputs')} == {'P', 'T', 'Mix'}]
+    assert len(normal_nodes) == 1, 'Expected one water normal expression'
+    sample_time = mel.create_material_expression(parent, unreal.MaterialExpressionScalarParameter, -900, 1100)
+    sample_time.set_editor_property('parameter_name', 'WaterCaptureTime')
+    sample_time.set_editor_property('default_value', 0.0)
+    assert mel.connect_material_expressions(sample_time, '', normal_nodes[0], 'T')
+    mel.recompile_material(parent)
+    metadata['diagnostic_water_times'] = water_times
 material_scalars = profile.get('material_scalars', {})
 if material_scalars:
     ranges = {'SheetFill': (0, 1), 'SheetFillFront': (0, 1),
@@ -224,6 +258,10 @@ def finish(error=None):
 
 
 def place(p, i):
+    if water_times is not None:
+        mel.set_material_instance_scalar_parameter_value(water_material, 'WaterCaptureTime', water_times[i])
+        actual_time = mel.get_material_instance_scalar_parameter_value(water_material, 'WaterCaptureTime')
+        assert abs(actual_time-water_times[i]) < 1e-6, 'Water time override failed'
     cam = p['camera']
     forward, up = ue(rotate(cam['quaternion'], [0, 0, -1])), ue(rotate(cam['quaternion'], [0, 1, 0]))
     rotation = unreal.MathLibrary.make_rot_from_xz(forward, up)
@@ -251,7 +289,10 @@ def place(p, i):
             'fov': round(vfov, 2), 'saved_fov': cam['verticalFov'], 'horizontal_fov': hfov,
             'notes': p.get('notes', ''), 'position_cm': values(location),
             'rotation': [rotation.pitch, rotation.yaw, rotation.roll],
-            'orientation_error': error, 'width': args.width, 'height': round(args.width/aspect)}
+            'orientation_error': error, 'width': args.width, 'height': round(args.width/aspect),
+            'world_time_seconds': unreal.GameplayStatics.get_time_seconds(world),
+            'real_time_seconds': unreal.GameplayStatics.get_real_time_seconds(world),
+            'water_time_input_seconds': water_times[i] if water_times is not None else None}
 
 
 def tick(dt):
