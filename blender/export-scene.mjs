@@ -9,13 +9,13 @@
 //   scene.bin   float32 positions and normals, uint32 indices, per shared geometry
 //   textures/   procedural canvases and explicitly approved web photo assets
 //
-// Usage: node blender/export-scene.mjs
+// Usage: node blender/export-scene.mjs (EXPORT_BUILD_DIR can select a separate output)
 // Requires @napi-rs/canvas; CANVAS_MODULE may point to an existing installation.
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
-import {fileURLToPath} from 'node:url';
+import {fileURLToPath,pathToFileURL} from 'node:url';
 import * as THREE from '../dist/vendor/three.module.js';
 const {createCanvas,loadImage}=createRequire(import.meta.url)(process.env.CANVAS_MODULE||'@napi-rs/canvas');
 
@@ -73,8 +73,28 @@ for(const [file,promise] of photoAssets)photoAssets.set(file,await promise);
 
 // Ground slabs and the lake plane are authored inline in main.js; replay those lines.
 const main=await fs.readFile(new URL('../dist/src/main.js',import.meta.url),'utf8');
+// Preserve the authored sun direction across Three.js and native coordinate systems.
+const sunLight=main.match(/\bconst\s+sun\s*=\s*new THREE\.DirectionalLight\(\s*(0x[\da-f]+)\s*,\s*([\d.e+-]+)\s*\)/i);
+function sunVector(property){
+  const literal=main.match(new RegExp('\\bsun\\.'+property.replaceAll('.', '\\.')+'\\.set\\(([^)]+)\\)'))?.[1];
+  const parts=literal?.split(',').map(v=>v.trim());
+  if(!parts||parts.length!==3||!parts.every(v=>/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?$/i.test(v)))
+    throw Error('Authored sun '+property+' must be a literal vector');
+  const vector=parts.map(Number);
+  if(!vector.every(Number.isFinite))throw Error('Invalid authored sun '+property);
+  return vector;
+}
+if(!sunLight)throw Error('Authored directional sun not found in main.js');
+if(!Number.isFinite(Number(sunLight[2])))throw Error('Invalid authored sun intensity');
+const lighting={sun:{position:sunVector('position'),target:sunVector('target.position'),
+  color:'#'+parseInt(sunLight[1],16).toString(16).padStart(6,'0'),intensity:Number(sunLight[2])}};
 const terrain=new THREE.Group();terrain.name='Ground';
-const groundMat=K.M.earth.clone();groundMat.name='ground laterite';
+// Replay the authored material as well as the slabs. Cloning kit earth alone dropped
+// main.js's laterite/grass canvas, texture repeat and removed bump map in native builds.
+const groundMaterialSource=main.match(/\bconst groundMat\s*=[\s\S]*?(?=^function ground\s*\()/m)?.[0];
+if(!groundMaterialSource)throw Error('Authored ground material block not found in main.js');
+const groundMat=new Function('K','THREE',groundMaterialSource+';return groundMat;')(K,THREE);
+groundMat.name='ground laterite';
 const groundCalls=[...main.matchAll(/^(ground\([^;]*\);(?:ground\([^;]*\);)*)/gm)].map(m=>m[1]).join('\n');
 // main.js maps ground slabs through the far-bank remap (farZ); replay that too.
 new Function('K','terrain','groundMat','farZ',`function ground(x,z,w,d){const z0=farZ(z-d/2,x),z1=farZ(z+d/2,x);z=(z0+z1)/2;d=z1-z0;K.box(terrain,'Earth',x,-.22,z,w,.44,d,groundMat);}
@@ -155,7 +175,10 @@ for(const root of roots)root.traverse(o=>{
   objects.push(rec);
 });
 
-const out=new URL('./build/',import.meta.url);await fs.mkdir(out,{recursive:true});
+const out=process.env.EXPORT_BUILD_DIR
+  ? pathToFileURL(path.resolve(process.env.EXPORT_BUILD_DIR)+path.sep)
+  : new URL('./build/',import.meta.url);
+await fs.mkdir(out,{recursive:true});
 await fs.mkdir(new URL('textures/',out),{recursive:true});
 for(const {file,png} of textureImages.values())await fs.writeFile(new URL(file,out),png);
 for(const {file,bytes} of photoAssets.values())await fs.writeFile(new URL(file,out),bytes);
@@ -165,7 +188,7 @@ for(const file of ['.gitignore','blender/export-scene.mjs','dist/src/kit.js','di
   sourceFiles[file]=createHash('sha256').update(await fs.readFile(new URL('../'+file,import.meta.url))).digest('hex');
 }
 for(const asset of photoAssets.values())sourceFiles[asset.sourceFile]=asset.sha256;
-const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null,sha256:sourceFiles},materials,geometries:geoms,objects};
+const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null,sha256:sourceFiles},lighting,materials,geometries:geoms,objects};
 await fs.writeFile(new URL('scene.json',out),JSON.stringify(meta));
 // Navigation the web walker uses: solid boxes, walkable slabs and stair/ramp slopes.
 // A native build rebuilds collision from these rather than from render geometry.

@@ -10,6 +10,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import sys
 import time
 import traceback
@@ -28,6 +29,7 @@ parser.add_argument('--warmup', type=float, default=30)
 parser.add_argument('--temporal-frames', type=int, default=32)
 parser.add_argument('--console', default=os.environ.get('CAPTURE_CONSOLE', ''),
                     help='semicolon-separated console commands (diagnostics); or CAPTURE_CONSOLE')
+parser.add_argument('--lighting-profile', help='Read-only diagnostic light/post-process overrides from JSON')
 args = parser.parse_args()
 out = Path(args.out).resolve()
 out.mkdir(parents=True, exist_ok=True)
@@ -46,6 +48,7 @@ metadata = {'poses_sha256': hashlib.sha256(raw).hexdigest(), 'expected': len(pos
             'width': args.width, 'delay': args.delay, 'renderer': 'Unreal Engine 5.8',
             'warmup_seconds': args.warmup, 'temporal_frames': args.temporal_frames,
             'started': time.strftime('%Y-%m-%dT%H:%M:%S%z'), 'complete': False}
+metadata['console_commands'] = [c.strip() for c in args.console.split(';') if c.strip()]
 
 
 def rotate(q, v):
@@ -76,6 +79,109 @@ unreal.get_default_object(performance_class).set_editor_property(
 levels.editor_set_viewport_realtime(False)
 levels.editor_set_viewport_realtime(True)
 world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+saved_skylights = lighting.audit_sky(actors)
+mesh_editor = unreal.get_editor_subsystem(unreal.StaticMeshEditorSubsystem)
+manifest = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/unreal/parts.json').read_text())
+metadata['mesh_build_settings'] = []
+for part in manifest:
+    name = part['name']
+    mesh = unreal.load_asset(f'/Game/Scene/{name}/{name}/StaticMeshes/{name}.{name}')
+    assert mesh, name
+    build = mesh_editor.get_lod_build_settings(mesh, 0)
+    assert not build.recompute_normals, f'Run configure_lumen.py to preserve imported normals: {name}'
+    metadata['mesh_build_settings'].append({'mesh': name, 'recompute_normals': build.recompute_normals,
+                                           'max_lumen_mesh_cards': build.max_lumen_mesh_cards})
+profile = json.loads(Path(args.lighting_profile).read_text()) if args.lighting_profile else {}
+if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains', 'water_roughness'}:
+    raise ValueError('Unknown diagnostic lighting profile field')
+for section, allowed in [('sun', {'yaw', 'pitch', 'intensity'}), ('sky', {'intensity'})]:
+    if set(profile.get(section, {})) - allowed:
+        raise ValueError('Unknown ' + section + ' override')
+    if any(not isinstance(v, (float, int)) or not math.isfinite(v)
+           for v in profile.get(section, {}).values()):
+        raise ValueError('Light overrides must be finite numbers')
+for actor in actors.get_all_level_actors():
+    if actor.get_actor_label() == 'Soft sun':
+        overrides = profile.get('sun', {})
+        rotation = actor.get_actor_rotation()
+        actor.set_actor_rotation(unreal.Rotator(
+            pitch=overrides.get('pitch', rotation.pitch),
+            yaw=overrides.get('yaw', rotation.yaw), roll=rotation.roll), False)
+        if 'intensity' in overrides:
+            actor.light_component.set_editor_property('intensity', overrides['intensity'])
+        rotation = actor.get_actor_rotation()
+        metadata['sun'] = {'yaw': rotation.yaw, 'pitch': rotation.pitch,
+                           'intensity': actor.light_component.intensity}
+    if actor.get_actor_label() == lighting.SKY_NAME and 'intensity' in profile.get('sky', {}):
+        actor.light_component.set_editor_property('intensity', profile['sky']['intensity'])
+metadata['diagnostic_lighting_profile'] = profile
+if 'water_roughness' in profile:
+    roughness = profile['water_roughness']
+    if not isinstance(roughness, (float, int)) or not math.isfinite(roughness) or not .02 <= roughness <= .4:
+        raise ValueError('Diagnostic water roughness must be between .02 and .4')
+    water_parts = [part for part in manifest if part['kind'] == 'water']
+    assert len(water_parts) == 1, 'Expected one water resource'
+    name = water_parts[0]['name']
+    mesh = unreal.load_asset(f'/Game/Scene/{name}/{name}/StaticMeshes/{name}.{name}')
+    slots = list(mesh.static_materials)
+    assert len(slots) == 1, 'Expected one water material slot'
+    material = slots[0].material_interface
+    assert isinstance(material, unreal.MaterialInstanceConstant), 'Expected a water material instance'
+    parent = material.get_editor_property('parent')
+    assert parent.get_editor_property('shading_model') == unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
+    assert 'Roughness' in {str(p) for p in unreal.MaterialEditingLibrary.get_scalar_parameter_names(material)}
+    unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(material, 'Roughness', roughness)
+    metadata['diagnostic_water'] = {'material': material.get_path_name(), 'roughness': roughness}
+material_scalars = profile.get('material_scalars', {})
+if material_scalars:
+    ranges = {'SheetFill': (0, 1), 'SheetFillFront': (0, 1),
+              'LeafCellCM': (1, 1000), 'LeafClumpCM': (1, 2000),
+              'LeafFineContrast': (0, 1.8), 'LeafClumpContrast': (0, 2),
+              'LeafMapContrast': (0, 1), 'TwoSidedNormalFlip': (0, 1)}
+    if set(material_scalars) - ranges.keys():
+        raise ValueError('Unsupported diagnostic material parameter')
+    if any(not isinstance(v, (float, int)) or not math.isfinite(v) or not ranges[k][0] <= v <= ranges[k][1]
+           for k, v in material_scalars.items()):
+        raise ValueError('Diagnostic material parameter is outside its permitted range')
+    edited = set()
+    found = set()
+    for actor in actors.get_all_level_actors():
+        for mesh in actor.get_components_by_class(unreal.StaticMeshComponent):
+            for slot in range(mesh.get_num_materials()):
+                material = mesh.get_material(slot)
+                if not isinstance(material, unreal.MaterialInstanceConstant) or material.get_path_name() in edited:
+                    continue
+                parameters = {str(p) for p in unreal.MaterialEditingLibrary.get_scalar_parameter_names(material)}
+                for key, value in material_scalars.items():
+                    if key in parameters:
+                        unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(material, key, value)
+                        edited.add(material.get_path_name())
+                        found.add(key)
+    if found != material_scalars.keys():
+        raise ValueError('Rebuild material masters before testing: ' + ', '.join(material_scalars.keys() - found))
+    metadata['diagnostic_materials'] = sorted(edited)
+if profile.get('object_color_gains'):
+    scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
+    paths = []
+    for object_name, gain in profile['object_color_gains'].items():
+        if not isinstance(gain, (float, int)) or not math.isfinite(gain) or not 0.1 <= gain <= 4:
+            raise ValueError('Diagnostic color gain must be between 0.1 and 4')
+        objects = [o for o in scene['objects'] if o['name'] == object_name]
+        if len(objects) != 1:
+            raise ValueError('Expected exactly one authored object: ' + object_name)
+        slots = set(objects[0]['materials'])
+        if not slots or len([o for o in scene['objects'] if slots.intersection(o['materials'])]) != 1:
+            raise ValueError('Material is shared; no diagnostic tint applied: ' + object_name)
+        for i in slots:
+            name = re.sub(r'[^A-Za-z0-9]+', '_', scene['materials'][i]['name']).strip('_')
+            material = unreal.load_asset(f'/Game/Materials/Web/MI_{name}_{i}')
+            if not isinstance(material, unreal.MaterialInstanceConstant):
+                raise ValueError('Material was not rebuilt: ' + object_name)
+            color = unreal.MaterialEditingLibrary.get_material_instance_vector_parameter_value(material, 'Color')
+            unreal.MaterialEditingLibrary.set_material_instance_vector_parameter_value(
+                material, 'Color', unreal.LinearColor(color.r * gain, color.g * gain, color.b * gain, color.a))
+            paths.append(material.get_path_name())
+    metadata['diagnostic_color_materials'] = paths
 unreal.SystemLibrary.execute_console_command(world, 't.IdleWhenNotForeground 0')
 unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
 for command in filter(None, (c.strip() for c in args.console.split(';'))):
@@ -83,9 +189,12 @@ for command in filter(None, (c.strip() for c in args.console.split(';'))):
 # Diagnostics: CAPTURE_PP='{"white_temp": 5600}' overrides the global volume for this run only.
 for volume in (a for a in actors.get_all_level_actors() if isinstance(a, unreal.PostProcessVolume)):
     settings = volume.settings
-    for key, value in json.loads(os.environ.get('CAPTURE_PP') or '{}').items():
+    overrides = {**json.loads(os.environ.get('CAPTURE_PP') or '{}'), **profile.get('post_process', {})}
+    for key, value in overrides.items():
         if isinstance(value, list):
             value = unreal.Vector4(*value)
+        if key == 'lumen_ray_lighting_mode' and isinstance(value, str):
+            value = getattr(unreal.LumenRayLightingModeOverride, value)
         settings.set_editor_property('override_' + key, True)
         settings.set_editor_property(key, value)
     volume.set_editor_property('settings', settings)
@@ -166,7 +275,7 @@ def tick(dt):
             finish()
             return
         if state['i'] == 0:
-            metadata['skylights'] = lighting.audit_sky(actors)
+            metadata['skylights'] = saved_skylights
         entry = place(poses[state['i']], state['i'])
         state['entry'] = entry
         state['started'] = now

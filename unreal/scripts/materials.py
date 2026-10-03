@@ -32,10 +32,29 @@ for o in meta['objects']:
 tiled_roofs = {m for m, (n, r) in roof_use.items() if r / n >= 0.5}
 ROOF_WEATHER = (0.30, 0.27, 0.25)
 VEG = re.compile(r'frond|leaf|leaves|crown|palm|areca|coconut|tree|foliage|bush|shrub|canopy|fern|undergrowth', re.I)
+# These authored names use botanical words for solid surfaces or fruit. A leaf
+# shader cuts holes and scatters normals, so it must not reach these materials.
+NON_FOLIAGE_OBJECTS = {
+    'continuous mottled green and leaf-litter forest floor',
+    'Shop coconut pile', 'coconuts under crowns',
+    'Shrine west window deep pale canopy', 'Shrine east window deep pale canopy',
+    'Entrance doorway open timber leaf', 'Entrance door leaf metal studs',
+    'Inner ledge worn foliage relief',
+    'Outer shrine small suspended bell crown', 'Courtyard smaller hanging bell crown',
+    'Passage hanging bronze bell crown', 'Inner hall hanging bronze bell crown',
+}
+
+def is_foliage_object(o):
+    name = o['name']
+    return name not in NON_FOLIAGE_OBJECTS and bool(VEG.search(name)) and not re.search(r'trunk', name, re.I)
+
 veg_use = {}
 for o in meta['objects']:
-    for m in o['materials']: u = veg_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += bool(VEG.search(o['name'])) and not re.search(r'trunk', o['name'], re.I)
+    for m in o['materials']: u = veg_use.setdefault(m, [0, 0]); u[0] += 1; u[1] += is_foliage_object(o)
 foliage_mats = {m for m, (n, v) in veg_use.items() if v / n >= 0.5}
+non_foliage_users = [o for o in meta['objects'] if o['name'] in NON_FOLIAGE_OBJECTS]
+assert {o['name'] for o in non_foliage_users} == NON_FOLIAGE_OBJECTS, 'Review renamed non-foliage objects'
+assert not foliage_mats.intersection(m for o in non_foliage_users for m in o['materials']), 'Foliage material shared with a solid surface'
 # 'God room 2': the doorway bosses and fittings are polished brass with warm highlights.
 brass_use = {}
 for o in meta['objects']:
@@ -108,15 +127,58 @@ def texture_sample(m, prefix, linear=False):
     return tex
 
 import os as _os
+import math
 ALBEDO_TONE = tuple(float(v) for v in _os.environ.get('ALBEDO_TONE', '0.6,1.0,0.4').split(','))  # knee, power, floor
 SPECULAR = float(_os.environ.get('MATERIAL_SPECULAR', '0.25'))
 LEAF_RIM = float(_os.environ.get('LEAF_RIM', '1.0'))  # 0 switches the leafy silhouette cut-outs off
+LEAF_MAP_CONTRAST = float(_os.environ.get('LEAF_MAP_CONTRAST', '0.35'))
+# Mean of the authored broadleaf crown map (c5e0620477e4197d6e7a), after sRGB
+# decoding. Blending toward it reduces the oval pattern without lifting albedo.
+LEAF_MAP_MEAN = 0.3895330266639338
+LEAF_CONTRAST_MAPS = {'c5e0620477e4197d6e7a46258cc9b89e79ca8ec5a1e3f6b1fab49606797b3bca'}
+assert math.isfinite(LEAF_MAP_CONTRAST) and 0 <= LEAF_MAP_CONTRAST <= 1, 'Invalid foliage map contrast'
+ARCADE_ROOF_GAIN = float(_os.environ.get('ARCADE_ROOF_GAIN', '1.45'))
+ARCADE_ROOF_TINT = tuple(float(v) for v in _os.environ.get('ARCADE_ROOF_TINT', '1,1,1').split(','))
+TEMPLE_PAVING_GAIN = float(_os.environ.get('TEMPLE_PAVING_GAIN', '1.8'))
+assert math.isfinite(ARCADE_ROOF_GAIN) and ARCADE_ROOF_GAIN > 0, 'Invalid arcade roof gain'
+assert len(ARCADE_ROOF_TINT) == 3 and all(math.isfinite(v) and v > 0 for v in ARCADE_ROOF_TINT), 'Invalid arcade roof tint'
+assert math.isfinite(TEMPLE_PAVING_GAIN) and TEMPLE_PAVING_GAIN > 0, 'Invalid temple paving gain'
+# Both lake views support finer variation after reducing the crown map contrast.
+# Parameters can be trialled without recompiling the master graphs.
+FOLIAGE_STYLE = {
+    'LeafCellCM': float(_os.environ.get('LEAF_CELL_CM', '15')),
+    'LeafClumpCM': float(_os.environ.get('LEAF_CLUMP_CM', '120')),
+    'LeafFineContrast': float(_os.environ.get('LEAF_FINE_CONTRAST', '0.2')),
+    'LeafClumpContrast': float(_os.environ.get('LEAF_CLUMP_CONTRAST', '0.15')),
+}
+assert all(math.isfinite(v) for v in FOLIAGE_STYLE.values()), 'Invalid foliage style'
+assert FOLIAGE_STYLE['LeafCellCM'] > 0 and FOLIAGE_STYLE['LeafClumpCM'] > 0, 'Foliage cells must be positive'
+assert 0 <= FOLIAGE_STYLE['LeafFineContrast'] <= 1.8 and 0 <= FOLIAGE_STYLE['LeafClumpContrast'] <= 2, 'Invalid foliage contrast'
 
-def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False):
+def exclusive_materials(object_name):
+    objects = [o for o in meta['objects'] if o['name'] == object_name]
+    assert len(objects) == 1, f'Expected one object: {object_name}'
+    materials = set(objects[0]['materials'])
+    users = [o for o in meta['objects'] if materials.intersection(o['materials'])]
+    assert materials and len(users) == 1, f'Material shared outside {object_name}: {[o["name"] for o in users]}'
+    return materials
+
+# Resolve from the authored object, never a shared name or an export-order index.
+# The arcade and west shed use cloned slope materials; their ridge is shared.
+arcade_roof_mats = exclusive_materials('Long lakeside bathing arcade tiled roof tiles')
+temple_paving_mats = exclusive_materials('Courtyard large stone paving')
+
+def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False, foliage_map_contrast=False):
+    assert not foliage_map_contrast or (foliage and mapped), 'Map contrast requires mapped foliage'
     path = f'{DIR}/{name}'
     existing = unreal.load_asset(path) if EAL.does_asset_exist(path) else None
     water_upgrade = water and existing and 'WaterSpecular' not in [str(n) for n in MEL.get_scalar_parameter_names(existing)]
-    if existing and '--rebuild' not in __import__('sys').argv and not water_upgrade:
+    normal_facing = mapped and two_sided and not (water or foliage)
+    normal_upgrade = normal_facing and existing and 'TwoSidedNormalFlip' not in {str(n) for n in MEL.get_scalar_parameter_names(existing)}
+    existing_leaf_parameters = {str(n) for n in MEL.get_scalar_parameter_names(existing)} if foliage and existing else set()
+    foliage_upgrade = foliage and existing and ('LeafCellCM' not in existing_leaf_parameters or
+                                                (('LeafMapContrast' in existing_leaf_parameters) != foliage_map_contrast))
+    if existing and '--rebuild' not in __import__('sys').argv and not (water_upgrade or foliage_upgrade or normal_upgrade):
         m = unreal.load_asset(path)
         # Nanite meshes fall back to the default material unless the master allows Nanite.
         if not m.get_editor_property('used_with_nanite'):
@@ -135,8 +197,13 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
     out = col
     if mapped:
         tex = texture_sample(m, '')
+        base_map = tex
+        if foliage_map_contrast:
+            contrast = param(m, unreal.MaterialExpressionScalarParameter, 'LeafMapContrast', -700, -250, 1.0)
+            base_map = custom(m, 'return lerp(float3(%s,%s,%s),Map.rgb,Contrast);' % ((LEAF_MAP_MEAN,) * 3),
+                {'Map':tex, 'Contrast':contrast}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
         mul = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -100, 0)
-        MEL.connect_material_expressions(col, '', mul, 'A'); MEL.connect_material_expressions(tex, 'RGB', mul, 'B'); out = mul
+        MEL.connect_material_expressions(col, '', mul, 'A'); MEL.connect_material_expressions(base_map, '' if foliage_map_contrast else 'RGB', mul, 'B'); out = mul
         if masked:
             m.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
             MEL.connect_material_property(tex, 'A', unreal.MaterialProperty.MP_OPACITY_MASK)
@@ -153,8 +220,10 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         # Crowns are smooth web spheres: break them into leaf-scale speckle and clump-scale
         # variation from world position (cm) and scatter the normals like leaf facets.
         fpos = MEL.create_material_expression(m, unreal.MaterialExpressionWorldPosition, -900, 150)
-        out = custom(m, 'float a=frac(sin(dot(floor(P/60.0),float3(12.9898,78.233,37.719)))*43758.5453); float b=frac(sin(dot(floor(P/300.0),float3(39.3,11.7,83.1)))*24634.6345); return Col*(0.6+0.6*a)*(0.8+0.4*b);',
-            {'Col':out,'P':fpos}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+        style = {key: param(m, unreal.MaterialExpressionScalarParameter, key, -1200, 150 + j*75, value)
+                 for j, (key, value) in enumerate(FOLIAGE_STYLE.items())}
+        out = custom(m, 'float a=frac(sin(dot(floor(P/LeafCellCM),float3(12.9898,78.233,37.719)))*43758.5453); float b=frac(sin(dot(floor(P/LeafClumpCM),float3(39.3,11.7,83.1)))*24634.6345); return Col*(0.9+LeafFineContrast*(a-0.5))*(1.0+LeafClumpContrast*(b-0.5));',
+            {'Col':out,'P':fpos,**style}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
         if not mapped:  # mapped masters already drive the normal from the bump map
             fn = MEL.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -900, 250)
             leafy = custom(m, 'float3 q=floor(P/80.0); float3 r=frac(sin(float3(dot(q,float3(12.9,78.2,37.7)),dot(q,float3(39.3,11.7,83.1)),dot(q,float3(73.1,52.3,9.7))))*43758.5453)-0.5; return normalize(N+1.2*r);',
@@ -182,7 +251,13 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         # Thin two-sided sheets (roof undersides, awnings) get almost no Lumen bounce on their back
         # faces and render pitch black from below; a faint self-lit fill keeps them readable.
         fill2 = MEL.create_material_expression(m, unreal.MaterialExpressionMultiply, -100, 200)
-        MEL.connect_material_expressions(out, '', fill2, 'A'); fill2.set_editor_property('const_b', 0.12)
+        strength = param(m, unreal.MaterialExpressionScalarParameter, 'SheetFill', -700, 550, 0.12)
+        front = param(m, unreal.MaterialExpressionScalarParameter, 'SheetFillFront', -700, 600, 1.0)
+        facing = MEL.create_material_expression(m, unreal.MaterialExpressionTwoSidedSign, -700, 650)
+        amount = custom(m, 'return Strength * lerp(1.0, Front, saturate(Facing));',
+            {'Strength':strength, 'Front':front, 'Facing':facing}, unreal.CustomMaterialOutputType.CMOT_FLOAT1)
+        MEL.connect_material_expressions(out, '', fill2, 'A')
+        MEL.connect_material_expressions(amount, '', fill2, 'B')
         MEL.connect_material_property(fill2, '', unreal.MaterialProperty.MP_EMISSIVE_COLOR)
     if not (water or foliage or emissive):
         # The web colours are the photographs' appearance, and under the overcast sky light dark
@@ -204,6 +279,13 @@ def master(name, tint=False, two_sided=False, water=False, emissive=False, mappe
         normal = MEL.create_material_expression(m, unreal.MaterialExpressionVertexNormalWS, -900, 900)
         bumped = custom(m, 'float3 N=normalize(Normal); float3 sx=ddx(P), sy=ddy(P); float3 r1=cross(sy,N),r2=cross(N,sx); float det=dot(sx,r1); float h=Map.r*Strength; return normalize(abs(det)*N-sign(det)*(ddx(h)*r1+ddy(h)*r2)+1e-10*N);',
             {'Normal':normal,'P':position,'Map':bump_tex,'Strength':strength}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
+        if normal_facing:
+            # UE flips tangent-space normals automatically. Our bump is in world
+            # space, so solid sheet back faces need the same final facing correction.
+            facing = MEL.create_material_expression(m, unreal.MaterialExpressionTwoSidedSign, -900, 1000)
+            flip = param(m, unreal.MaterialExpressionScalarParameter, 'TwoSidedNormalFlip', -900, 1050, 1.0)
+            bumped = custom(m, 'return Normal * lerp(1.0, Facing, Flip);',
+                {'Normal':bumped,'Facing':facing,'Flip':flip}, unreal.CustomMaterialOutputType.CMOT_FLOAT3)
         m.set_editor_property('tangent_space_normal', False)
         MEL.connect_material_property(bumped, '', unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(r, '', unreal.MaterialProperty.MP_ROUGHNESS)
@@ -286,16 +368,25 @@ def instance(i):
             if kind not in masters:
                 masters[kind] = master('M_'+kind, tint=i in tinted, two_sided=bool(web.get('doubleSided')), mapped=True, masked=bool(web.get('alphaTest')), linear_maps=True)
     if i in foliage_mats and kind not in ('water', 'glow'):
-        leaf = kind + 'leaf'
+        map_contrast = bool(record and record['sha256'] in LEAF_CONTRAST_MAPS)
+        # Awning canopies and carved foliage also match VEG. Only the crown map
+        # gets this control, with its own master so trial setters cannot alter them.
+        leaf = kind + ('MapContrast' if map_contrast else '') + 'leaf'
         if leaf not in masters:
             masters[leaf] = master('M_' + leaf, tint=i in tinted, two_sided=bool(web.get('doubleSided')), mapped=kind.startswith('mapped'),
-                                   masked=kind.startswith('mapped') and bool(web.get('alphaTest')), linear_maps='LinearData' in kind, foliage=True)
+                                   masked=kind.startswith('mapped') and bool(web.get('alphaTest')), linear_maps='LinearData' in kind, foliage=True,
+                                   foliage_map_contrast=map_contrast)
         kind = leaf
     name = 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
     path = f'{DIR}/Web/{name}'
     # Update in place: other meshes may already reference this instance.
     mi = unreal.load_asset(path) if EAL.does_asset_exist(path) else         AT.create_asset(name, f'{DIR}/Web', unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     MEL.set_material_instance_parent(mi, masters[kind])
+    if kind.endswith('leaf'):
+        for key, value in FOLIAGE_STYLE.items():
+            MEL.set_material_instance_scalar_parameter_value(mi, key, value)
+        if record and record['sha256'] in LEAF_CONTRAST_MAPS:
+            MEL.set_material_instance_scalar_parameter_value(mi, 'LeafMapContrast', LEAF_MAP_CONTRAST)
     if record and kind.startswith('mapped'):
         bind_map(mi, record)
         if web.get('bumpMap'): bind_map(mi, web['bumpMap'], 'Bump')
@@ -323,6 +414,13 @@ def instance(i):
     if i in polished_brass: c = unreal.LinearColor(.48, .30, .085, 1)
     k = GAME_TINT.get(web['name'])
     if k: c = unreal.LinearColor(c.r * k, c.g * k, c.b * k, 1)
+    if i in arcade_roof_mats:
+        c = unreal.LinearColor(c.r * ARCADE_ROOF_GAIN * ARCADE_ROOF_TINT[0],
+                               c.g * ARCADE_ROOF_GAIN * ARCADE_ROOF_TINT[1],
+                               c.b * ARCADE_ROOF_GAIN * ARCADE_ROOF_TINT[2], 1)
+    if i in temple_paving_mats:
+        c = unreal.LinearColor(c.r * TEMPLE_PAVING_GAIN, c.g * TEMPLE_PAVING_GAIN,
+                               c.b * TEMPLE_PAVING_GAIN, 1)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
@@ -354,3 +452,4 @@ for part in PARTS:
     EAL.save_loaded_asset(mesh)
     print('MATERIALS', part, len(mesh.static_materials))
 print('MATERIALS instances', len(made), 'unmatched', sorted(missing)[:20])
+assert not missing, 'Unmatched native material slots: ' + ', '.join(sorted(missing))

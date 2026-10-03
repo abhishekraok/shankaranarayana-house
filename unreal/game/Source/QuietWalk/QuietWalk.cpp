@@ -148,15 +148,15 @@ public:
             const int32 Pages=FMath::Max(1,(O->PhotoFiles.Num()+O->PhotosPerPage-1)/O->PhotosPerPage);
             Heading(TEXT("Photo alignment"),FString::Printf(TEXT("%d photographs, %d aligned.  Page %d of %d."),O->PhotoFiles.Num(),Done,O->PhotoPage+1,Pages));
             for(int32 I=O->PhotoPage*O->PhotosPerPage;I<FMath::Min(O->PhotoFiles.Num(),(O->PhotoPage+1)*O->PhotosPerPage);I++) {
-                const auto R=O->PoseFor(O->PhotoFiles[I]); FString Note; if(R.IsValid()) R->TryGetStringField(TEXT("notes"),Note);
+                const auto R=O->PoseFor(O->PhotoFiles[I]); const FString Note=O->PhotoNote(O->PhotoFiles[I]);
                 Add((R.IsValid()?TEXT("✓  "):TEXT("○  "))+FPaths::GetBaseFilename(O->PhotoFiles[I])+(Note.IsEmpty()?TEXT(""):TEXT("   ✎")),FString::Printf(TEXT("photo:%d"),I));
             }
             if(O->PhotoPage+1<Pages) Add(TEXT("Next page"),"photos-next");
             if(O->PhotoPage>0) Add(TEXT("Previous page"),"photos-prev");
             Add(TEXT("Back"),"back");
         } else if(O->Page.StartsWith("photo:")) {
-            const FString File=O->PhotoName(); const auto R=O->PoseFor(File); FString Note,When;
-            if(R.IsValid()){R->TryGetStringField(TEXT("notes"),Note);R->TryGetStringField(TEXT("savedAt"),When);}
+            const FString File=O->PhotoName(),Note=O->PhotoNote(File); const auto R=O->PoseFor(File); FString When;
+            if(R.IsValid())R->TryGetStringField(TEXT("savedAt"),When);
             Heading(FPaths::GetBaseFilename(File),R.IsValid()?TEXT("Aligned ")+When.Left(10)+TEXT("."):TEXT("No saved alignment yet."));
             if(O->PhotoBrush.IsValid()&&O->PhotoTexture) Rows->AddSlot().AutoHeight().Padding(0,0,0,14)
                 [SNew(SBox).WidthOverride(530).HeightOverride(FMath::Min(300.f,530/O->AlignAspect))[SNew(SScaleBox).Stretch(EStretch::ScaleToFit)[SNew(SImage).Image(O->PhotoBrush.Get())]]];
@@ -302,6 +302,7 @@ void AWalkController::SetupInputComponent() {
     InputComponent->BindKey(EKeys::Gamepad_FaceButton_Bottom,IE_Pressed,this,&AWalkController::Observe);
 }
 void AWalkController::Show(const FString& P) {
+    if(P=="photos"||P.StartsWith("photo:"))LoadPoses();
     int32 FocusIndex=0;
     if(Menu&&Page==P)for(int32 I=0;I<Menu->Buttons.Num();I++)if(Menu->Buttons[I]->HasKeyboardFocus())FocusIndex=I;
     if(Menu) { GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); Menu.Reset(); }
@@ -379,14 +380,15 @@ void AWalkController::Action(const FString& Id) {
             for(const TCHAR* Ext:{TEXT("*.jpg"),TEXT("*.jpeg"),TEXT("*.png")}){Found.Reset();IFileManager::Get().FindFiles(Found,*(PhotoDir/Ext),true,false);PhotoFiles.Append(Found);}
             PhotoFiles.Sort();
         }
-        LoadPoses();PhotoPage=FMath::Clamp(PhotoPage,0,FMath::Max(0,(PhotoFiles.Num()-1)/PhotosPerPage));Show("photos");
+        PhotoPage=FMath::Clamp(PhotoPage,0,FMath::Max(0,(PhotoFiles.Num()-1)/PhotosPerPage));Show("photos");
     }
     else if(Id=="photos-next"&&Page=="photos"){PhotoPage++;Action("photos");}
     else if(Id=="photos-prev"&&Page=="photos"){PhotoPage=FMath::Max(0,PhotoPage-1);Action("photos");}
     else if(Id.StartsWith("photo:")){if(OpenPhoto(FCString::Atoi(*Id.Mid(6))))Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));else Notify(TEXT("Could not read that photograph."));}
     else if((Id=="align-saved"||Id=="align-here")&&Page.StartsWith("photo:"))StartAlign(Id=="align-saved");
-    else if(Id=="note"&&Page.StartsWith("photo:")){NoteDraft.Empty();if(const auto R=PoseFor(PhotoName()))R->TryGetStringField(TEXT("notes"),NoteDraft);Show("note");}
+    else if(Id=="note"&&Page.StartsWith("photo:")){LoadPoses();NoteDraft=PhotoNote(PhotoName());Show("note");}
     else if(Id=="note-save"&&Page=="note"){
+        LoadPoses();
         const FString File=PhotoName();const bool Ok=PoseFor(File).IsValid()?SavePose(File,false,&NoteDraft):SaveLooseNote(NoteDraft,File);
         Notify(Ok?TEXT("Note saved."):TEXT("Could not save the note."));Show(FString::Printf(TEXT("photo:%d"),PhotoIndex));
     }
@@ -470,9 +472,21 @@ TSharedPtr<FJsonObject> ReadJson(const FString& Path){
     if(!FFileHelper::LoadFileToString(Text,*Path)||!FJsonSerializer::Deserialize(TJsonReaderFactory<>::Create(Text),J))return nullptr;
     return J;
 }
+FString LatestPhotoNote(const TSharedPtr<FJsonObject>& Root,const FString& File){
+    const TArray<TSharedPtr<FJsonValue>>* Notes=nullptr;
+    if(File.IsEmpty()||!Root.IsValid()||!Root->TryGetArrayField(TEXT("notes"),Notes))return FString();
+    // Loose notes are append-only history; an empty latest entry also means the note was cleared.
+    for(int32 I=Notes->Num()-1;I>=0;--I){const TSharedPtr<FJsonObject>* N=nullptr;FString Photo,Text;
+        if((*Notes)[I]->TryGetObject(N)&&(*N)->TryGetStringField(TEXT("photo"),Photo)&&Photo==File&&(*N)->TryGetStringField(TEXT("text"),Text))return Text;}
+    return FString();
+}
+}
+FString AWalkController::NotesPath() const {
+    return (PhotoDir.IsEmpty()?FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()):PhotoDir)/TEXT("unreal-notes.json");
 }
 bool AWalkController::LoadPoses() {
     PoseRoot=PhotoDir.IsEmpty()?nullptr:ReadJson(PhotoDir/TEXT("align-poses.json"));
+    NotesRoot=ReadJson(NotesPath());
     return PoseRoot.IsValid();
 }
 TSharedPtr<FJsonObject> AWalkController::PoseFor(const FString& File) const {
@@ -480,6 +494,11 @@ TSharedPtr<FJsonObject> AWalkController::PoseFor(const FString& File) const {
     if(!PoseRoot.IsValid()||!PoseRoot->TryGetArrayField(TEXT("poses"),Poses))return nullptr;
     for(const auto& V:*Poses){const TSharedPtr<FJsonObject>* R=nullptr;FString Name;if(V->TryGetObject(R)&&(*R)->TryGetStringField(TEXT("filename"),Name)&&Name==File&&(*R)->HasField(TEXT("camera")))return *R;}
     return nullptr;
+}
+FString AWalkController::PhotoNote(const FString& File) const {
+    FString Note;const auto R=PoseFor(File);
+    if(R.IsValid()&&R->TryGetStringField(TEXT("notes"),Note))return Note;
+    return LatestPhotoNote(NotesRoot,File);
 }
 void AWalkController::ThreeCamera(TArray<double>& Position,TArray<double>& Quaternion,TArray<double>& Direction) const {
     const bool Free=Aligning&&AlignCamera;
@@ -508,15 +527,27 @@ bool AWalkController::SavePose(const FString& File,bool Camera,const FString* No
         Root->SetStringField(TEXT("coordinates"),TEXT("Three.js world metres; Y up; camera position is eye position (not feet)"));
     }
     TArray<TSharedPtr<FJsonValue>> Poses;const TArray<TSharedPtr<FJsonValue>>* Old=nullptr;
-    if(Root->TryGetArrayField(TEXT("poses"),Old))Poses=*Old;
+    if(Root->TryGetArrayField(TEXT("poses"),Old))Poses=*Old;else if(Root->HasField(TEXT("poses")))return false;
     TSharedPtr<FJsonObject> Record;
     for(const auto& V:Poses){const TSharedPtr<FJsonObject>* R=nullptr;FString Name;if(V->TryGetObject(R)&&(*R)->TryGetStringField(TEXT("filename"),Name)&&Name==File){Record=*R;break;}}
+    // First alignment carries its loose note into the shared pose; keep the original history.
+    const bool FirstAlignment=!Record.IsValid()||!Record->HasField(TEXT("camera"));
+    FString InitialNote;
+    if(Camera&&FirstAlignment&&!Notes){
+        if(Record.IsValid())Record->TryGetStringField(TEXT("notes"),InitialNote);
+        if(InitialNote.IsEmpty()){
+            const FString LoosePath=NotesPath();const auto Loose=ReadJson(LoosePath);const TArray<TSharedPtr<FJsonValue>>* History=nullptr;
+            if((!Loose.IsValid()&&IFileManager::Get().FileExists(*LoosePath))||(Loose.IsValid()&&Loose->HasField(TEXT("notes"))&&!Loose->TryGetArrayField(TEXT("notes"),History)))return false;
+            InitialNote=LatestPhotoNote(Loose,File);
+        }
+    }
     if(!Record.IsValid()){
         if(!Camera)return false;  // a pose record needs a camera; loose notes go to unreal-notes.json
         Record=MakeShared<FJsonObject>();Record->SetStringField(TEXT("id"),TEXT("file:")+File);Record->SetStringField(TEXT("filename"),File);
         Record->SetField(TEXT("sha256"),MakeShared<FJsonValueNull>());Record->SetStringField(TEXT("notes"),TEXT(""));
         Poses.Add(MakeShared<FJsonValueObject>(Record));
     }
+    if(Camera&&FirstAlignment&&!Notes)Record->SetStringField(TEXT("notes"),InitialNote);
     if(Camera){
         TArray<double> P,Q,D;ThreeCamera(P,Q,D);
         auto Cam=MakeShared<FJsonObject>();Cam->SetArrayField(TEXT("position"),Numbers(P));Cam->SetArrayField(TEXT("quaternion"),Numbers(Q));Cam->SetArrayField(TEXT("direction"),Numbers(D));
@@ -536,14 +567,15 @@ bool AWalkController::SavePose(const FString& File,bool Camera,const FString* No
 }
 bool AWalkController::SaveLooseNote(const FString& Text,const FString& Photo) {
     // Notes that have no pose to hang on: a spot in the walk, or a photograph not aligned yet.
-    const FString Path=(PhotoDir.IsEmpty()?FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()):PhotoDir)/TEXT("unreal-notes.json");
+    const FString Path=NotesPath();
     TSharedPtr<FJsonObject> Root=ReadJson(Path);
     if(!Root.IsValid()){
         if(IFileManager::Get().FileExists(*Path))return false;
         Root=MakeShared<FJsonObject>();Root->SetStringField(TEXT("schema"),TEXT("shankaranarayana-unreal-notes"));Root->SetNumberField(TEXT("version"),1);
         Root->SetStringField(TEXT("coordinates"),TEXT("Three.js world metres; Y up; position is the eye"));
     }
-    TArray<TSharedPtr<FJsonValue>> Notes;const TArray<TSharedPtr<FJsonValue>>* Old=nullptr;if(Root->TryGetArrayField(TEXT("notes"),Old))Notes=*Old;
+    TArray<TSharedPtr<FJsonValue>> Notes;const TArray<TSharedPtr<FJsonValue>>* Old=nullptr;
+    if(Root->TryGetArrayField(TEXT("notes"),Old))Notes=*Old;else if(Root->HasField(TEXT("notes")))return false;
     TArray<double> P,Q,D;ThreeCamera(P,Q,D);
     auto Note=MakeShared<FJsonObject>();Note->SetStringField(TEXT("savedAt"),NowIso());Note->SetStringField(TEXT("text"),Text);
     if(!Photo.IsEmpty())Note->SetStringField(TEXT("photo"),Photo);
@@ -551,7 +583,8 @@ bool AWalkController::SaveLooseNote(const FString& Text,const FString& Photo) {
     Note->SetStringField(TEXT("mode"),Aligning?TEXT("aligning"):Walking?TEXT("walking"):TEXT("tour"));
     if(!Walking&&!Aligning)Note->SetStringField(TEXT("tourLabel"),TourLabel());
     Notes.Add(MakeShared<FJsonValueObject>(Note));Root->SetArrayField(TEXT("notes"),Notes);
-    return WriteJson(Root.ToSharedRef(),Path);
+    if(!WriteJson(Root.ToSharedRef(),Path))return false;
+    NotesRoot=Root;return true;
 }
 bool AWalkController::OpenPhoto(int32 Index) {
     if(!PhotoFiles.IsValidIndex(Index))return false;
@@ -559,6 +592,7 @@ bool AWalkController::OpenPhoto(int32 Index) {
     if(!T||T->GetSizeX()<2||T->GetSizeY()<2)return false;
     PhotoIndex=Index;PhotoTexture=T;AlignAspect=float(T->GetSizeX())/T->GetSizeY();
     PhotoBrush->SetResourceObject(T);PhotoBrush->ImageSize=FVector2D(T->GetSizeX(),T->GetSizeY());PhotoBrush->DrawAs=ESlateBrushDrawType::Image;
+    LoadPoses();
     return true;
 }
 void AWalkController::ApplyAlignLens() {
@@ -570,6 +604,7 @@ void AWalkController::ApplyAlignLens() {
     C->SetFieldOfView(FMath::RadiansToDegrees(2*FMath::Atan(FMath::Tan(FMath::DegreesToRadians(AlignVFov)/2)*AlignAspect)));
 }
 bool AWalkController::SavedView(bool Move,FVector& P,FQuat& Q) {
+    LoadPoses();
     const TSharedPtr<FJsonObject> R=PoseFor(PhotoName());const TSharedPtr<FJsonObject>* Cam=nullptr;
     if(!R.IsValid()||!R->TryGetObjectField(TEXT("camera"),Cam))return false;
     double V=AlignVFov;if((*Cam)->TryGetNumberField(TEXT("verticalFov"),V))AlignVFov=V;
@@ -634,7 +669,7 @@ void AWalkController::TickAlign(float Delta) {
     if(Tilt!=0){FRotator T=R;T.Roll=FMath::Clamp(T.Roll+Tilt*12*D,-30.f,30.f);AlignCamera->SetActorRotation(T);}
     if(Hit(EKeys::Tab,EKeys::Gamepad_FaceButton_Left))AlignOverlay=!AlignOverlay;
     if(Hit(EKeys::Enter,EKeys::Gamepad_FaceButton_Bottom))
-        Notify(SavePose(PhotoName(),true,nullptr)?TEXT("Alignment saved."):TEXT("Could not save the alignment (is align-poses.json readable?)."));
+        Notify(SavePose(PhotoName(),true,nullptr)?TEXT("Alignment saved."):TEXT("Could not save the alignment. Check the photo folder's pose and note files."));
     if(Hit(EKeys::G,EKeys::Gamepad_FaceButton_Top))Notify(AlignToSaved()?TEXT("At the saved position."):TEXT("No saved alignment for this photograph yet."));
     const int32 Step=(Hit(EKeys::PageDown,EKeys::RightBracket)||WasInputKeyJustPressed(EKeys::Gamepad_RightShoulder)?1:0)-(Hit(EKeys::PageUp,EKeys::LeftBracket)||WasInputKeyJustPressed(EKeys::Gamepad_LeftShoulder)?1:0);
     if(Step)AlignStep(Step);
@@ -734,6 +769,10 @@ void AWalkController::ReviewTick() {
 void AWalkController::SmokeTick() {
     // Runs only with -WalkSmoke, on a separate save slot. Real scene, collision and UI.
     double Now=FPlatformTime::Seconds();if(Now<BeginTime+8||Now<NextSmoke)return;NextSmoke=Now+1.5;
+    // First-frame shader/geometry setup consumes wall time without advancing the
+    // tour. Wait for simulated motion, with a deadline that still catches stalls.
+    const bool TourMoved=TourTime>3&&TitleCamera&&TourPosition.Num()>0&&FVector::Dist(TitleCamera->GetActorLocation(),TourPosition[0])>100;
+    if(!ResumeSmoke&&SmokeStep==0&&!TourMoved&&Now<BeginTime+45){NextSmoke=Now+.25;return;}
     auto Check=[this](bool Ok,const FString& What){UE_LOG(LogTemp,Display,TEXT("WALKTEST %s %s"),Ok?TEXT("PASS"):TEXT("FAIL"),*What);if(!Ok)SmokeFailures.Add(What);};
     const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
     auto Press=[](const FKey& K,bool Down=true,bool Up=true){
@@ -760,7 +799,9 @@ void AWalkController::SmokeTick() {
         Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.ResidentGeometryMemoryPoolSizeInMB"))->GetInt()==1024,TEXT("ray-tracing geometry pool configured for this scene"));
         Check(TourPosition.Num()>1000&&TourPeriod>1000&&TourLoopStart>0,TEXT("guided tour loaded: opening flight, then a loop"));
         Check(!Walking&&Page.IsEmpty()&&!Menu.IsValid()&&!bShowMouseCursor&&!IsPaused()&&GetViewTarget()==TitleCamera,TEXT("tour starts on launch without a menu"));
-        Check(TourTime>3&&TitleCamera&&FVector::Dist(TitleCamera->GetActorLocation(),TourPosition[0])>100,TEXT("tour camera moves along the path"));
+        const double TourDistance=TitleCamera&&TourPosition.Num()?FVector::Dist(TitleCamera->GetActorLocation(),TourPosition[0]):0;
+        UE_LOG(LogTemp,Display,TEXT("WALKTEST tour startup: %.2f simulated seconds, %.1f cm moved, %.2f wall seconds"),TourTime,TourDistance,Now-BeginTime);
+        Check(TourTime>3&&TitleCamera&&TourDistance>100,TEXT("tour camera moves along the path"));
         FScreenshotRequest::RequestScreenshot(Dir/TEXT("00-tour.png"),true,false);
         Press(EKeys::Escape);break;
     }
@@ -834,6 +875,30 @@ void AWalkController::SmokeTick() {
             Show("pause");Action("photos");
             Check(Page=="photos"&&PhotoFiles.Num()==2&&!PoseFor(PhotoFiles[0]).IsValid(),TEXT("photo browser lists the folder's pictures"));
             Action("photo:0");Check(Page=="photo:0"&&PhotoTexture&&FMath::IsNearlyEqual(AlignAspect,64.f/48,.01f),TEXT("photo page loads the picture"));
+            Check(SaveLooseNote(TEXT("legacy spot note"),FString())&&SaveLooseNote(TEXT("other photo note"),PhotoFiles[1]),TEXT("seed existing spot and other-photo note history"));
+            Action("note");NoteDraft=TEXT("smoke unaligned note");Action("note-save");
+            Check(Page=="photo:0"&&!PoseFor(PhotoName()).IsValid()&&PhotoNote(PhotoName())==TEXT("smoke unaligned note"),TEXT("unaligned note saves and appears on the photo page"));
+            Action("photos");Action("photo:0");Action("note");
+            Check(NoteDraft==TEXT("smoke unaligned note")&&Menu&&Menu->NoteBox&&Menu->NoteBox->GetText().ToString()==NoteDraft,TEXT("unaligned photo note reopens in the editor"));
+            NoteDraft=TEXT("revised unaligned note");Action("note-save");
+            // Simulate an outside editor, retaining older entries and an unknown legacy root field.
+            const auto Legacy=ReadJson(NotesPath());const TArray<TSharedPtr<FJsonValue>>* History=nullptr;
+            const bool HasHistory=Legacy.IsValid()&&Legacy->TryGetArrayField(TEXT("notes"),History)&&History->Num()==4;
+            Check(HasHistory,TEXT("editing an unaligned photo appends without erasing legacy history"));
+            if(HasHistory){auto Entries=*History;auto External=MakeShared<FJsonObject>();External->SetStringField(TEXT("photo"),PhotoName());External->SetStringField(TEXT("text"),TEXT("outside photo note"));
+                Entries.Add(MakeShared<FJsonValueObject>(External));Legacy->SetArrayField(TEXT("notes"),Entries);Legacy->SetStringField(TEXT("legacyMarker"),TEXT("keep me"));
+                Check(WriteJson(Legacy.ToSharedRef(),NotesPath()),TEXT("outside note update written in the isolated smoke folder"));}
+            Action("note");Check(NoteDraft==TEXT("outside photo note"),TEXT("opening the note editor re-reads outside updates"));Back();
+            PoseRoot.Reset();NotesRoot.Reset();Action("photos");
+            Check(PhotoNote(PhotoFiles[0])==TEXT("outside photo note")&&PhotoNote(PhotoFiles[1])==TEXT("other photo note"),TEXT("photo browser reloads the latest note for each unaligned photo"));
+            Action("photo:0");Action("note");Check(NoteDraft==TEXT("outside photo note"),TEXT("unaligned note survives a full JSON reload"));Back();
+            FString BeforeAlignment;FFileHelper::LoadFileToString(BeforeAlignment,*NotesPath());
+            for(const FString& Invalid:{FString(TEXT("{\"notes\":\"legacy\"}")),FString(TEXT("{"))}){
+                Check(FFileHelper::SaveStringToFile(Invalid,*NotesPath()),TEXT("seed unreadable note history in the smoke folder"));
+                Check(!SaveLooseNote(TEXT("must not replace history"),PhotoName())&&!SavePose(PhotoName(),true,nullptr),TEXT("invalid note history blocks append and first alignment"));
+                FString Unchanged;FFileHelper::LoadFileToString(Unchanged,*NotesPath());Check(Unchanged==Invalid,TEXT("invalid legacy note history remains untouched"));
+            }
+            Check(FFileHelper::SaveStringToFile(BeforeAlignment,*NotesPath(),FFileHelper::EEncodingOptions::ForceUTF8WithoutBOM),TEXT("restore valid smoke note history"));
             Action("align-here");Check(Aligning&&Page.IsEmpty()&&AlignCamera&&GetViewTarget()==AlignCamera&&!IsPaused(),TEXT("alignment mode flies a free camera"));
             AlignCamera->SetActorLocationAndRotation(Posed,FRotator(-10,37,2));AlignVFov=52;ApplyAlignLens();
             Check(SavePose(PhotoName(),true,nullptr),TEXT("alignment saves"));
@@ -842,6 +907,8 @@ void AWalkController::SmokeTick() {
                 &&FMath::IsNearlyEqual((*P)[0]->AsNumber(),12.34,1e-3)&&FMath::IsNearlyEqual((*P)[1]->AsNumber(),3.21,1e-3)&&FMath::IsNearlyEqual((*P)[2]->AsNumber(),-5.67,1e-3)
                 &&FMath::IsNearlyEqual((*Cam)->GetNumberField(TEXT("verticalFov")),52.0,1e-3)&&R->GetStringField(TEXT("id"))==TEXT("file:smoke photo.png");
             Check(Stored,TEXT("saved pose uses the web tool's record and coordinates"));
+            FString Promoted,AfterAlignment;FFileHelper::LoadFileToString(AfterAlignment,*NotesPath());
+            Check(R.IsValid()&&R->TryGetStringField(TEXT("notes"),Promoted)&&Promoted==TEXT("outside photo note")&&PhotoNote(PhotoFiles[0])==Promoted&&AfterAlignment==BeforeAlignment,TEXT("first alignment promotes the latest photo note and leaves loose history unchanged"));
             AlignCamera->SetActorLocationAndRotation(Away,FRotator::ZeroRotator);PauseWalk();
             Check(Page=="photo:0"&&IsPaused(),TEXT("Esc opens the photo menu while aligning"));
             Action("align-saved");
@@ -871,12 +938,19 @@ void AWalkController::SmokeTick() {
             Action("note");NoteDraft=TEXT("smoke note");Action("note-save");
             PoseRoot.Reset();LoadPoses();FString Note;const auto R2=PoseFor(PhotoFiles[0]);
             Check(Page=="photo:0"&&R2.IsValid()&&R2->TryGetStringField(TEXT("notes"),Note)&&Note==TEXT("smoke note"),TEXT("photo note saves into the pose"));
+            Action("note");NoteDraft.Empty();Action("note-save");
+            Check(PhotoNote(PhotoFiles[0]).IsEmpty(),TEXT("clearing an aligned note does not resurrect loose history"));
+            Action("note");NoteDraft=TEXT("smoke note");Action("note-save");
             FScreenshotRequest::RequestScreenshot(Dir/TEXT("07-photo.png"),true,false);
             Action("photos");Back();
             Check(!Aligning&&Page=="pause"&&Walking&&GetViewTarget()==GetPawn()&&FVector::Dist(SmokePosition,GetPawn()->GetActorLocation())<1,TEXT("leaving alignment returns to the paused walk where it was"));
             Action("walknote");NoteDraft=TEXT("smoke walk note");Action("walknote-save");
             const auto Loose=ReadJson(PhotoDir/TEXT("unreal-notes.json"));const TArray<TSharedPtr<FJsonValue>>* Notes=nullptr;
-            Check(Page=="pause"&&Loose.IsValid()&&Loose->TryGetArrayField(TEXT("notes"),Notes)&&Notes->Num()==1&&(*Notes)[0]->AsObject()->GetStringField(TEXT("text"))==TEXT("smoke walk note"),TEXT("walk note saves with its spot"));
+            Check(Page=="pause"&&Loose.IsValid()&&Loose->TryGetArrayField(TEXT("notes"),Notes)&&Notes->Num()==6
+                &&(*Notes)[0]->AsObject()->GetStringField(TEXT("text"))==TEXT("legacy spot note")&&(*Notes)[1]->AsObject()->GetStringField(TEXT("text"))==TEXT("other photo note")
+                &&(*Notes)[2]->AsObject()->GetStringField(TEXT("text"))==TEXT("smoke unaligned note")&&(*Notes)[3]->AsObject()->GetStringField(TEXT("text"))==TEXT("revised unaligned note")
+                &&(*Notes)[4]->AsObject()->GetStringField(TEXT("text"))==TEXT("outside photo note")&&(*Notes)[5]->AsObject()->GetStringField(TEXT("text"))==TEXT("smoke walk note")
+                &&Loose->GetStringField(TEXT("legacyMarker"))==TEXT("keep me"),TEXT("walk note appends its spot while preserving all photo/spot history and legacy fields"));
             Show("");return;
         }
         Check(Persist(true),TEXT("final save succeeds"));

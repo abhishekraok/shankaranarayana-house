@@ -6,6 +6,30 @@ Claude owns model source, tests, photo findings and HANDOFF.md on `main` in the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-03 model follow-up
+
+Reviewed all 172 aligned poses at main `30e9675`; baseline overview:
+[full sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/index.html).
+Model source and the F: pose repository were not changed.
+
+Latest accepted review: [172 renders / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-055524/index.html), clean editor exit.
+See [before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/fidelity-2026-10-03.md).
+The rebuilt package passes walking/menu/alignment/notes checks and a separate cold-restart
+save check. Generated media and binaries remain ignored.
+
+| Photos | Finding for Claude | Render evidence |
+|---|---|---|
+| 2011-09-21 15.10.30.jpg, 15.11.00.jpg; IMG_20130720_180635.jpg; temple right side facing -45 degrees from the entrance.jpg | Northwest chair hall still ends in a short closed wall. Photos support an open lane doorway/transom, narrow window and red dado. Consolidate existing temple fix 23 and the pending hall-width decision; absolute depth/anchor is unresolved. Preserve the raised chair floor and lower walkway. | [15.10.30](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/132-2011-09-21 15.10.30.png>), [15.11.00](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/135-2011-09-21 15.11.00.png>), [180635](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/144-IMG_20130720_180635.png>), [-45°](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/150-temple right side facing -45 degrees from the entrance.png>) |
+| 2011-09-21 14.58.02.jpg, 14.58.05.jpg | September 26 eyes now face the yellow notice added October 2 in `f9d6243`, 2.3–3 m ahead. Re-align these stale poses before judging notice placement; its addition has separate photo evidence. | [14.58.02](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/008-2011-09-21 14.58.02.png>), [14.58.05](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/028-2011-09-21 14.58.05.png>) |
+| 2011-09-21 15.14.56.jpg; 15.02.00.jpg | The 15.14.56 eye predates the paired-column rebuild `3485123`; its nearby round column now blocks the hall. Revalidate the pose before changing that column. The broad white obstruction at right in 15.02.00 has weaker attribution because that wall already existed; check the entrance eye against the current bell/stair-wall layout. | [15.14.56](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/059-2011-09-21 15.14.56.png>), [15.02.00](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/019-2011-09-21 15.02.00.png>) |
+| 2011-09-21 14.31.25.jpg | Saved eye `(5.53990, 1.72165, 5.81228)` in Three metres is inside the solid `East passage front end wall pier`. A source triangle blocks the forward ray after 0.201 m; raster back-face culling reveals the room while Lumen tracing hits the pier. Revalidate model/pose compatibility; do not infer a global house lighting failure or compensate with exposure from this view. | [Native render](<D:/repos/shankaranarayana-photoreal/checks/fidelity-20261002/partitioned/010-2011-09-21 14.31.25.png>), [source-ray evidence](D:/repos/shankaranarayana-photoreal/checks/fidelity-20261002/camera-solid-diagnostic.json) |
+| 2011-09-21 15.04.51.jpg, 15.05.48.jpg, 15.25.49.jpg | Nearby surfaces hide most of the photographed court/shrine or lake. Revalidate these saved eyes against current geometry before adjusting placement or illumination; the cause is not established by these frames alone. | [15.04.51](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-055524/068-2011-09-21 15.04.51.png>), [15.05.48](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-055524/070-2011-09-21 15.05.48.png>), [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-055524/090-2011-09-21 15.25.49.png>) |
+
+The old near-wall obstructions in 15.04.59 and 15.30.09 are cleared. Entrance
+175306/175312 now has the required passage, platforms and pillars. No new
+high-confidence local house geometry fix emerged; wider house proportions and
+hall width remain the existing plan decisions. Furnishing omissions were intentional.
+
 ## Game checkpoint
 
 `d693dce`: native walking game, menus, saves, settings, journal and lighting. Packaged runtime and cold-restart save checks passed. Launch `unreal/play.cmd`. Local before/after review: `checks/unreal-walk/REVIEW.md`.

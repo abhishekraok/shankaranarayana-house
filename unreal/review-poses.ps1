@@ -40,11 +40,22 @@ try {
             Write-Output "Captured $($progress.captured)/$($progress.expected) poses"
         }
     }
+    $captureProcess.Refresh()
+    $captureExit = $captureProcess.ExitCode
+    @{exit_code=$captureExit; clean_exit=($null -ne $captureExit -and $captureExit -eq 0);
+      finished_utc=[DateTime]::UtcNow.ToString('o'); log="$reviewOut/editor.log"} |
+        ConvertTo-Json | Set-Content "$reviewOut/process.json"
+    Write-Output "Capture process exit: $captureExit; details: $reviewOut/process.json"
     $result = Get-Content "$reviewOut/capture.json" -Raw | ConvertFrom-Json
     if (-not $result.complete -or $result.captured -ne $result.expected) { throw "Incomplete capture: $reviewOut" }
+    $captureWarning = ''
+    if ($null -eq $captureExit -or $captureExit -ne 0) {
+        $captureWarning = "Images completed, but the editor exited abnormally (exit $captureExit). See process.json and editor.log."
+        Write-Warning $captureWarning
+    }
     python blender/contact_sheet.py $reviewOut
     if ($LASTEXITCODE) { throw 'Contact sheet assembly failed.' }
     $relative = Split-Path $reviewOut -Leaf
-    "# Latest full-pose review`n`nMain: $mainHash`n`n[Searchable overview]($relative/index.html)`n`n[All sheets]($relative/REVIEW.md)" | Set-Content "$reviewRoot/REVIEW.md"
+    "# Latest full-pose review`n`nMain: $mainHash`n`n$($result.captured)/$($result.expected) images captured. Editor exit: $captureExit. $captureWarning`n`n[Process status]($relative/process.json)`n`n[Searchable overview]($relative/index.html)`n`n[All sheets]($relative/REVIEW.md)" | Set-Content "$reviewRoot/REVIEW.md"
     Write-Output "Full review: $reviewOut/index.html"
 } finally { Pop-Location }

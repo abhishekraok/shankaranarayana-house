@@ -12,7 +12,8 @@ nav = json.load(open(os.path.join(SRC, 'nav.json')))
 def ue(p): return unreal.Vector(p[0] * 100, p[2] * 100, p[1] * 100)
 
 import sys
-EXPOSURE = float(sys.argv[sys.argv.index('--exposure') + 1]) if '--exposure' in sys.argv else 1.0
+if '--exposure' in sys.argv:
+    raise ValueError('Saved lighting is owned by lighting.py; use capture_poses.py --lighting-profile for exposure diagnostics')
 les = unreal.get_editor_subsystem(unreal.LevelEditorSubsystem)
 eas = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
 MAP = '/Game/Maps/Site'
@@ -91,31 +92,12 @@ fog = spawn(unreal.ExponentialHeightFog, (0, 0, -200), label='Humid haze')
 fog.component.set_editor_property('fog_density', 0.02)
 pp = spawn(unreal.PostProcessVolume, label='Exposure')
 pp.set_editor_property('unbound', True)
-s = pp.settings
-# The sky and sun are in relative (not photometric) units, so physical camera exposure
-# (EV100 about 14, meant for 100k-lux daylight) renders the scene black. Manual exposure
-# without the physical camera leaves brightness to the bias alone.
-s.set_editor_property('override_auto_exposure_method', True); s.set_editor_property('auto_exposure_method', unreal.AutoExposureMethod.AEM_MANUAL)
-s.set_editor_property('override_auto_exposure_apply_physical_camera_exposure', True); s.set_editor_property('auto_exposure_apply_physical_camera_exposure', False)
-s.set_editor_property('override_auto_exposure_bias', True); s.set_editor_property('auto_exposure_bias', EXPOSURE)
-# Hit lighting gives the tank real reflections of the banks and pavilion (the surface cache
-# alone reflects them as flat blobs); higher gather quality trims the GI noise in captures.
-def pp_set(name, value):
-    try: s.set_editor_property('override_' + name, True); s.set_editor_property(name, value)
-    except Exception as e: unreal.log_warning(f'post-process {name}: {e}')
-modes = getattr(unreal, 'LumenRayLightingModeOverride', None)
-if modes: pp_set('lumen_ray_lighting_mode', getattr(modes, 'HIT_LIGHTING', None) or getattr(modes, 'HIT_LIGHTING_FOR_REFLECTIONS'))
-pp_set('lumen_reflection_quality', 2.0)
-pp_set('lumen_final_gather_quality', 2.0)
-pp_set('lumen_scene_lighting_quality', 2.0)
-# The overcast photographs keep dark stone, soil and lawns dark and saturated; the renders lift
-# those mid-tones towards grey. A gentle global contrast/saturation grade restores them.
-pp_set('color_contrast', unreal.Vector4(1.12, 1.12, 1.12, 1.0))
-pp_set('color_saturation', unreal.Vector4(1.1, 1.1, 1.1, 1.0))
-pp_set('color_gamma', unreal.Vector4(0.94, 0.94, 0.94, 1.0))
-pp.set_editor_property('settings', s)
 
 sp = nav['spawn']
 spawn(unreal.PlayerStart, (sp['p'][0] * 100, sp['p'][2] * 100, 100), (0, 0, -90), 'Start in front of the house')
+# Apply the same saved profile as finish_game.py, including the authored sun direction.
+sys.path.insert(0, HERE)
+import lighting
+lighting.configure(eas)
 les.save_current_level()
 print('LEVEL built', MAP)

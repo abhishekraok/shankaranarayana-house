@@ -27,6 +27,8 @@ for part in parts:
         assert settings.get_editor_property('target_minimum_residency_in_kb') == 4294967295, name
     assert settings.fallback_relative_error == 0 and settings.fallback_percent_triangles == 1, (name, settings.fallback_relative_error, settings.fallback_percent_triangles)
     assert settings.fallback_target == unreal.NaniteFallbackTarget.PERCENT_TRIANGLES, name
+    assert settings.keep_percent_triangles == 1 and settings.trim_relative_error == 0, \
+        (name, settings.keep_percent_triangles, settings.trim_relative_error)
     if part['kind'] != 'water':
         assert mesh.get_editor_property('body_setup').get_editor_property('collision_trace_flag') == unreal.CollisionTraceFlag.CTF_USE_COMPLEX_AS_SIMPLE, name
     blob = (root / 'blender/build/unreal' / (name+'.glb')).read_bytes()
@@ -35,8 +37,9 @@ for part in parts:
     source_triangles = sum(gltf['accessors'][primitive['indices']]['count']//3
                            for item in gltf['meshes'] for primitive in item['primitives'])
     fallback_triangles = mesh.get_num_triangles(0)
-    # Import may remove degenerate triangles; broad simplification is forbidden.
-    assert fallback_triangles >= source_triangles * .99, (name, fallback_triangles, source_triangles)
+    # Full fallback must retain this export exactly. Diagnose any mismatch from
+    # source triangles rather than silently allowing a percentage of geometry loss.
+    assert fallback_triangles == source_triangles, (name, fallback_triangles, source_triangles)
     report.append({'name': name, 'sections': len(materials), 'nanite': settings.enabled,
                    'source_triangles': source_triangles, 'fallback_triangles': fallback_triangles,
                    'full_collision_fallback': True, 'materials': materials,

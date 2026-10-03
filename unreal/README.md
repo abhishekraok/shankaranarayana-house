@@ -1,10 +1,14 @@
 # A quiet walk
 
-Run `unreal/play.cmd` or `unreal/build/Windows/QuietWalk.exe` to open the native game.
+Run `unreal/play.cmd` to open the native game.
 The launcher prefers the standalone build, but only when its paks are newer than every
-file under the project's `Content` and the editor game module; otherwise it warns and
+file under the project's `Content`, `Config`, authored `game/Source`, and the editor
+game module; otherwise it warns and
 runs the generated project with the compiled editor module (`-game`). No browser or
 photo server is needed.
+The launcher keeps progress in ignored `unreal/user-data/Saved/SaveGames`, shared by
+both launch modes. It copies the newest legacy save there once, without overwriting
+existing progress. Keep this folder when replacing a generated project or package.
 
 - It opens on the web app's guided tour (`blender/build/unreal/tour.json`, copied to
   `Content/Tour` by `install_game.py` and staged into the package): the opening flight
@@ -38,12 +42,10 @@ After the existing scene export/import/materials/level pipeline, run `finish_gam
 with `UnrealEditor-Cmd -run=pythonscript -script=<absolute script path>` to apply the
 game mode, adaptive exposure and audio. Re-run it after every level rebuild.
 
-`unreal/play.ps1 -Smoke` runs native runtime checks and UI screenshots, then exits.
-It uses the separate `QuietWalkSmoke` save slot. Results are in `Saved/WalkReview`
-under the generated project, or `build/Windows/Shankaranarayana` for the standalone
-game. Regular saves are in that same game's `Saved/SaveGames/QuietWalk.sav`.
-Launch the executable with `-WalkSmokeResume` after a smoke run to verify persistence
-in a new process; its result is `Saved/WalkReview/resume-smoke.json`.
+`unreal/play.ps1 -Smoke` waits for native checks and a cold-restart save check.
+It requires fresh passing reports and exit code 0, with a five-minute limit per stage
+(`-SmokeTimeoutSeconds` changes it). Each run uses its own ignored
+`unreal/smoke-runs/<id>/Saved/WalkReview`; player saves and the real pose folder are isolated.
 
 All imported assets, screenshots, synthesized audio and binaries remain ignored.
 Only text source and build scripts belong in Git. Audio is generated locally from
@@ -52,6 +54,9 @@ noise and tones; it is atmospheric, not a recording of the actual site.
 `unreal/build.ps1 -Package` builds the runtime and cooks a standalone Windows copy
 under ignored `unreal/build/Windows`. It uses the existing generated scene; rebuild
 that scene separately when geometry changes. Keep the whole Windows folder together.
+For asset-only work, `-Package -ReuseNativeBinaries` cooks with the existing runtime
+without a C++ compiler. It refuses added, deleted, changed or newer native source files.
+The full Git Bash refresh accepts `REUSE_NATIVE_BINARIES=1 bash unreal/rebuild-all.sh`.
 
 ## Full-pose reviews
 
@@ -67,11 +72,22 @@ When model source changes, refresh export, Blender scene, Unreal imports and lev
 before capture; the review script deliberately rejects a stale model export.
 Record model mismatches in `PHOTOREAL-NOTES.md`; model fixes belong to Claude on main.
 
-The native exporter partitions each scene part into at most 48 material sections
-(`blender/build/unreal/parts.json`). Unreal's Nanite limit is 64; the former monolithic
-meshes exceeded it. Import, material assignment and level construction consume this
-manifest. Face counts are checked during export, and Nanite fallback geometry keeps
-all original triangles for collision. The ray-tracing geometry pool is 1024 MB.
+`blender/export_unreal.py` groups original building objects by surface role and
+8 m horizontal cells, then limits each resource to 48 material sections. The current
+model produces 223 parts: 72 house, 145 temple and six other parts. Import, materials
+and level construction consume `blender/build/unreal/parts.json`.
+
+Building exports preserve original triangle connectivity, world placements, UVs,
+colors and corner normals. Export checks every source triangle once and writes
+`partition-audit.json`; stale blockout provenance requires rebuilding the blockout.
+Native import and mesh rebuild explicitly preserve source normals. The scene audit
+requires each fallback triangle count to equal its GLB count, with no trimming.
+The ray-tracing geometry pool is 1024 MB.
+
+`--legacy-buildings` restores the former 15-part grouping while retaining normals
+and conservation checks. Re-import and rebuild the level after switching groups.
+Explicit diagnostic flags require a separate output directory under ignored
+`blender/build/`; ordinary export and legacy rollback may use the canonical directory.
 After a scene refresh, run `scripts/verify_scene.py` through the Python commandlet;
 it checks every group, material assignment and persisted collision setting, writing
 `Shankaranarayana/Saved/native-scene-audit.json`. Then run the walking smoke checks.
@@ -79,13 +95,21 @@ it checks every group, material assignment and persisted collision setting, writ
 ## Material and lighting fidelity
 
 `materials.py --rebuild` updates masters in place and restores authored color, bump
-and roughness maps, UV transforms, wrapping and approved photo cards. Texture imports
+and roughness maps, UV transforms, wrapping and approved photo cards. Mapped two-sided
+solid materials flip their completed world-space bump normal on back faces; foliage
+and water use their own normal handling. Texture imports
 stay ignored; photo sources must be explicitly allowlisted in the root `.gitignore`.
 The lake uses single-layer water with absorption, scattering and animated normals.
+Arcade-roof gain 1.45 and temple-paving gain 1.8 apply only to their exclusive materials.
+Structural canopies, carved relief, door leaves, studs, bells, coconut fruit and forest
+ground use solid materials. Plant materials retain foliage shading with 15/120 cm
+noise cells and contrasts .2/.15; crown-map contrast .35 applies only to the broadleaf map.
 
 After mesh import, run `configure_lumen.py` with the full editor's
 `-ExecutePythonScript=<absolute path>` (it saves and exits). It gives joined building
-meshes 64 surface-cache cards, landscape groups 32, and preserves fine Nanite detail.
+meshes a maximum of 32 surface-cache cards, landscape groups 32, and preserves fine Nanite detail.
+UE 5.8's runtime card lookup is limited to 32 per mesh; requesting 64 did not improve
+the sampled interiors. The build audit records the setting, not the live card count.
 Building detail stays resident. Fallback targets explicitly retain 100% of triangles;
 Auto would override the percentage/error fields. The scene audit compares actual
 fallback triangle counts with each GLB export.
@@ -100,10 +124,15 @@ per screenshot; camera metadata records those settings.
 `lighting.py` owns the lighting profile. A separate native skylight retains the HDR
 cubemap across reloads; HDRIBackdrop's light is disabled because its Blueprint resets
 component overrides and left the scene with a null cubemap. `verify_lighting.py`
-checks a fresh load, packaging runs that preflight, and captures and the native smoke
+checks a fresh load, including the emitted sun direction exported from the web model.
+The shared profile uses neutral color grading and skylight leaking 0.004. Packaging
+runs that preflight, and captures and the native smoke
 test check that exactly one active sky still has its texture. After lighting edits,
 run `finish_game.py` and rebuild the package; after emissive graph edits, also run
 `materials.py --rebuild` first.
+`capture_poses.py --lighting-profile <JSON>` can compare sun, sky, post-process,
+foliage/fill parameters and exclusive arcade-roof gain without saving the map or materials.
+`build_level.py --exposure` is obsolete; use a capture profile for exposure experiments.
 
 ## Photo alignment and notes in the game
 
@@ -137,6 +166,10 @@ Poses and photo notes are read from and written to the web align tool's `align-p
 record format, three.js coordinates), so either tool sees the other's work. `Leave a note here` in the
 pause menu, and notes on photographs that have no pose yet, go to `unreal-notes.json` in the same
 folder, with eye position and view direction in three.js metres.
+The browser and note editor refresh both files and show the latest unaligned-photo
+note. The first alignment carries that note into the pose; an aligned note, including
+an explicit empty note, takes precedence. Loose-note history remains intact. Invalid
+JSON or a non-array notes/poses field blocks writes rather than replacing the file.
 
 `-WalkReviewPhoto=<part of a file name>` opens that photograph at its saved pose, writes
 `review-<name>-menu.png`, `-side.png` and `-overlay.png` to `Saved/WalkReview`, and quits without

@@ -113,7 +113,7 @@ public:
     // read from and written to the web align tool's align-poses.json, so both tools share them.
     FString PhotoDir;
     TArray<FString> PhotoFiles;
-    TSharedPtr<FJsonObject> PoseRoot;
+    TSharedPtr<FJsonObject> PoseRoot, NotesRoot;
     UPROPERTY() TObjectPtr<UTexture2D> PhotoTexture;
     UPROPERTY() TObjectPtr<ACameraActor> AlignCamera;
     TSharedPtr<FSlateBrush> PhotoBrush;
@@ -127,6 +127,8 @@ public:
     FString PhotoName() const { return PhotoFiles.IsValidIndex(PhotoIndex)?PhotoFiles[PhotoIndex]:FString(); }
     bool LoadPoses();
     TSharedPtr<FJsonObject> PoseFor(const FString& File) const;
+    FString NotesPath() const;
+    FString PhotoNote(const FString& File) const;
     bool SavePose(const FString& File,bool Camera,const FString* Notes);
     bool SaveLooseNote(const FString& Text,const FString& Photo);
     bool OpenPhoto(int32 Index);
