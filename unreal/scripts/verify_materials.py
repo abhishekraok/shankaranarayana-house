@@ -1,9 +1,12 @@
 """Audit persisted material maps and UV transforms in a fresh Unreal process."""
 import json
+import os, sys
 from pathlib import Path
 import unreal
 
 root = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(Path(__file__).parent))
+from material_targets import structural_timber_family
 meta = json.loads((root / 'blender/build/scene.json').read_text())
 mel = unreal.MaterialEditingLibrary
 import re
@@ -54,6 +57,14 @@ for parameter, expected in water_scalars.items():
 for parameter, expected in [('WaterScattering', (.011,.013,.008)), ('WaterAbsorption', (.33,.24,.36))]:
     actual = mel.get_material_instance_vector_parameter_value(water_mi, parameter)
     assert max(abs(a-b) for a,b in zip((actual.r,actual.g,actual.b),expected)) < 1e-6, parameter
+timber_index = structural_timber_family(meta)
+timber_name = re.sub(r'[^A-Za-z0-9]+', '_', meta['materials'][timber_index]['name']).strip('_')
+timber_mi = unreal.load_asset(f'/Game/Materials/Web/MI_{timber_name}_{timber_index}')
+assert timber_mi, 'Missing structural timber material'
+timber_color = mel.get_material_instance_vector_parameter_value(timber_mi, 'Color')
+timber_gain = float(os.environ.get('HOUSE_TIMBER_GAIN', '1.5'))
+assert max(abs(a-b) for a,b in zip((timber_color.r,timber_color.g,timber_color.b,timber_color.a),
+                                  (timber_gain,timber_gain,timber_gain,1))) < 1e-6, 'Timber gain was not rebuilt'
 for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=False, include_folder=False):
     material = unreal.load_asset(path)
     if not isinstance(material, unreal.Material): continue
@@ -78,6 +89,7 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
         record['intensity'] = actor.light_component.get_editor_property('intensity')
     scene.append(record)
 report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
-          'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False}}
+          'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False},
+          'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain}}
 (root / 'unreal/Shankaranarayana/Saved/material-audit.json').write_text(json.dumps(report, indent=2))
 print('Material audit passed:', len(mapped))

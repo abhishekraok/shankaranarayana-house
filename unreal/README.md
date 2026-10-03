@@ -114,6 +114,11 @@ It changes only the unsaved water Time input, because editor screenshots can
 freeze world time. Captures record shader times and world clocks; this check
 does not measure frame rate or continuous motion.
 Arcade-roof gain 1.45 and temple-paving gain 1.8 apply only to their exclusive materials.
+Structural timber uses gain 1.5, resolved through the authored entrance shafts;
+changed source tint or texture stops the rebuild for recalibration. Set
+`HOUSE_TIMBER_GAIN=1` for both material rebuild and audit to restore its original gain.
+Unsaved comparisons can use `source_material_color_gains` in a capture profile,
+keyed by source index with `expected_name` and `gain`; captures record the readback.
 Structural canopies, carved relief, door leaves, studs, bells, coconut fruit and forest
 ground use solid materials. Plant materials retain foliage shading with 15/120 cm
 noise cells and contrasts .2/.15; crown-map contrast .35 applies only to the broadleaf map.

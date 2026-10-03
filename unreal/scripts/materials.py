@@ -6,13 +6,16 @@ glTF import drops per-instance colours (foliage, roof tile courses), so each slo
 instance of a small master material: colour x vertex colour where the web tints meshes,
 roughness and metalness from the web material, two-sided where the web draws both sides.
 """
-import json, os, re, unreal
+import json, os, re, sys, unreal
 from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from material_targets import structural_timber_family
 WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
+structural_timber = structural_timber_family(meta)
 M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
 tinted = set()
@@ -141,6 +144,8 @@ assert math.isfinite(LEAF_MAP_CONTRAST) and 0 <= LEAF_MAP_CONTRAST <= 1, 'Invali
 ARCADE_ROOF_GAIN = float(_os.environ.get('ARCADE_ROOF_GAIN', '1.45'))
 ARCADE_ROOF_TINT = tuple(float(v) for v in _os.environ.get('ARCADE_ROOF_TINT', '1,1,1').split(','))
 TEMPLE_PAVING_GAIN = float(_os.environ.get('TEMPLE_PAVING_GAIN', '1.8'))
+HOUSE_TIMBER_GAIN = float(_os.environ.get('HOUSE_TIMBER_GAIN', '1.5'))
+assert math.isfinite(HOUSE_TIMBER_GAIN) and .1 <= HOUSE_TIMBER_GAIN <= 4, 'Invalid structural timber gain'
 assert math.isfinite(ARCADE_ROOF_GAIN) and ARCADE_ROOF_GAIN > 0, 'Invalid arcade roof gain'
 assert len(ARCADE_ROOF_TINT) == 3 and all(math.isfinite(v) and v > 0 for v in ARCADE_ROOF_TINT), 'Invalid arcade roof tint'
 assert math.isfinite(TEMPLE_PAVING_GAIN) and TEMPLE_PAVING_GAIN > 0, 'Invalid temple paving gain'
@@ -429,6 +434,8 @@ def instance(i):
     if i in temple_paving_mats:
         c = unreal.LinearColor(c.r * TEMPLE_PAVING_GAIN, c.g * TEMPLE_PAVING_GAIN,
                                c.b * TEMPLE_PAVING_GAIN, 1)
+    if i == structural_timber:
+        c = unreal.LinearColor(c.r*HOUSE_TIMBER_GAIN, c.g*HOUSE_TIMBER_GAIN, c.b*HOUSE_TIMBER_GAIN, c.a)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))

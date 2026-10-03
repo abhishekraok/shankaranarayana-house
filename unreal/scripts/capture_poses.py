@@ -94,7 +94,7 @@ for part in manifest:
                                            'max_lumen_mesh_cards': build.max_lumen_mesh_cards})
 profile = json.loads(Path(args.lighting_profile).read_text()) if args.lighting_profile else {}
 if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains',
-                   'water_roughness', 'water_normal_irregular_mix'}:
+                   'water_roughness', 'water_normal_irregular_mix', 'source_material_color_gains'}:
     raise ValueError('Unknown diagnostic lighting profile field')
 for section, allowed in [('sun', {'yaw', 'pitch', 'intensity'}), ('sky', {'intensity'})]:
     if set(profile.get(section, {})) - allowed:
@@ -216,6 +216,33 @@ if profile.get('object_color_gains'):
                 material, 'Color', unreal.LinearColor(color.r * gain, color.g * gain, color.b * gain, color.a))
             paths.append(material.get_path_name())
     metadata['diagnostic_color_materials'] = paths
+if profile.get('source_material_color_gains'):
+    scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
+    records = []
+    for key, override in profile['source_material_color_gains'].items():
+        if not key.isdigit() or not 0 <= int(key) < len(scene['materials']):
+            raise ValueError('Invalid source material index')
+        if set(override) != {'expected_name', 'gain'}:
+            raise ValueError('Source material gain requires expected_name and gain')
+        web = scene['materials'][int(key)]
+        assert web['name'] == override['expected_name'], 'Source material changed; review its users'
+        gain = override['gain']
+        if not isinstance(gain, (float, int)) or not math.isfinite(gain) or not .1 <= gain <= 4:
+            raise ValueError('Diagnostic source material gain must be between .1 and 4')
+        if profile.get('object_color_gains'):
+            raise ValueError('Do not combine source and object color gains')
+        name = re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_')
+        target = unreal.load_asset(f'/Game/Materials/Web/MI_{name}_{key}')
+        assert isinstance(target, unreal.MaterialInstanceConstant), 'Expected an existing source material instance'
+        before = unreal.MaterialEditingLibrary.get_material_instance_vector_parameter_value(target, 'Color')
+        expected = (before.r*gain, before.g*gain, before.b*gain, before.a)
+        unreal.MaterialEditingLibrary.set_material_instance_vector_parameter_value(target, 'Color', unreal.LinearColor(*expected))
+        after = unreal.MaterialEditingLibrary.get_material_instance_vector_parameter_value(target, 'Color')
+        actual = (after.r, after.g, after.b, after.a)
+        assert max(abs(a-b) for a,b in zip(actual,expected)) < 1e-6, 'Material color gain failed'
+        records.append({'source_index': int(key), 'name': web['name'], 'material': target.get_path_name(),
+                        'gain': gain, 'before': [before.r,before.g,before.b,before.a], 'after': list(actual)})
+    metadata['diagnostic_source_material_gains'] = records
 unreal.SystemLibrary.execute_console_command(world, 't.IdleWhenNotForeground 0')
 unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
 for command in filter(None, (c.strip() for c in args.console.split(';'))):
