@@ -94,7 +94,9 @@ for part in manifest:
                                            'max_lumen_mesh_cards': build.max_lumen_mesh_cards})
 profile = json.loads(Path(args.lighting_profile).read_text()) if args.lighting_profile else {}
 if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains',
-                   'water_roughness', 'water_normal_irregular_mix', 'source_material_color_gains'}:
+                   'water_roughness', 'water_normal_irregular_mix', 'water_surface_opacity',
+                   'water_scattering', 'water_absorption', 'water_phase_g', 'source_material_color_gains',
+                   'courtyard_fence_gain'}:
     raise ValueError('Unknown diagnostic lighting profile field')
 for section, allowed in [('sun', {'yaw', 'pitch', 'intensity'}), ('sky', {'intensity'})]:
     if set(profile.get(section, {})) - allowed:
@@ -118,13 +120,20 @@ for actor in actors.get_all_level_actors():
         actor.light_component.set_editor_property('intensity', profile['sky']['intensity'])
 metadata['diagnostic_lighting_profile'] = profile
 water_fields = {'water_roughness': ('Roughness', .02, .4),
-                'water_normal_irregular_mix': ('WaterNormalIrregularMix', 0, 1)}
+                'water_normal_irregular_mix': ('WaterNormalIrregularMix', 0, 1),
+                'water_surface_opacity': ('WaterSurfaceOpacity', 0, 1)}
+water_vector_fields = {'water_scattering': 'WaterScattering', 'water_absorption': 'WaterAbsorption'}
 water_overrides = {key: profile[key] for key in water_fields if key in profile}
-if water_overrides:
+water_vector_overrides = {key: profile[key] for key in water_vector_fields if key in profile}
+if water_overrides or water_vector_overrides or 'water_phase_g' in profile:
     for key, value in water_overrides.items():
         _, lo, hi = water_fields[key]
         if not isinstance(value, (float, int)) or not math.isfinite(value) or not lo <= value <= hi:
             raise ValueError(f'Diagnostic {key} must be between {lo} and {hi}')
+    for key, value in water_vector_overrides.items():
+        if (not isinstance(value, list) or len(value) != 3 or
+            any(not isinstance(v, (float, int)) or not math.isfinite(v) or not 0 <= v <= 4 for v in value)):
+            raise ValueError(f'Diagnostic {key} requires three finite coefficients in [0,4]')
     water_parts = [part for part in manifest if part['kind'] == 'water']
     assert len(water_parts) == 1, 'Expected one water resource'
     name = water_parts[0]['name']
@@ -137,8 +146,10 @@ if water_overrides:
     water_material = material
     assert parent.get_editor_property('shading_model') == unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
     mel = unreal.MaterialEditingLibrary
+    assert not {'WaterCaptureTime', 'WaterCapturePhaseG'}.intersection(
+        str(p) for p in mel.get_scalar_parameter_names(parent)), 'Saved water diagnostic requires rebuilding'
     parameters = {str(p) for p in mel.get_scalar_parameter_names(material)}
-    metadata['diagnostic_water'] = {'material': material.get_path_name(), 'scalars': {}}
+    metadata['diagnostic_water'] = {'material': material.get_path_name(), 'scalars': {}, 'vectors': {}}
     for key, value in water_overrides.items():
         parameter = water_fields[key][0]
         assert parameter in parameters, f'Rebuild water master before testing {parameter}'
@@ -146,12 +157,48 @@ if water_overrides:
         actual = mel.get_material_instance_scalar_parameter_value(material, parameter)
         assert abs(actual-value) < 1e-6, f'Water override did not apply: {parameter}'
         metadata['diagnostic_water']['scalars'][parameter] = actual
+    vector_parameters = {str(p) for p in mel.get_vector_parameter_names(material)}
+    for key, value in water_vector_overrides.items():
+        parameter = water_vector_fields[key]
+        assert parameter in vector_parameters, f'Rebuild water master before testing {parameter}'
+        mel.set_material_instance_vector_parameter_value(material, parameter, unreal.LinearColor(*value, 1))
+        actual = mel.get_material_instance_vector_parameter_value(material, parameter)
+        rgb = (actual.r, actual.g, actual.b)
+        assert max(abs(a-b) for a,b in zip(rgb,value)) < 1e-6, f'Water override did not apply: {parameter}'
+        metadata['diagnostic_water']['vectors'][parameter] = list(rgb)
+    metadata['diagnostic_water']['state'] = {
+        'scalars': {name: mel.get_material_instance_scalar_parameter_value(material, name)
+                    for name in ('Roughness', 'WaterSpecular', 'WaterNormalIrregularMix', 'WaterSurfaceOpacity')},
+        'vectors': {name: [getattr(mel.get_material_instance_vector_parameter_value(material, name), c)
+                           for c in ('r', 'g', 'b', 'a')]
+                    for name in ('Color', 'WaterScattering', 'WaterAbsorption')},
+    }
+    if 'water_phase_g' in profile:
+        phase = profile['water_phase_g']
+        if not isinstance(phase, (float, int)) or not math.isfinite(phase) or not -.85 <= phase <= .85:
+            raise ValueError('Diagnostic water_phase_g must be finite and in [-.85,.85]')
+        volumes = [node for node in mel.get_material_expressions(parent)
+                   if isinstance(node, unreal.MaterialExpressionSingleLayerWaterMaterialOutput)]
+        assert len(volumes) == 1, 'Expected one water volume output'
+        input_names = [str(name) for name in mel.get_material_expression_input_names(volumes[0])]
+        input_nodes = mel.get_inputs_for_material_expression(parent, volumes[0])
+        assert len(input_names) == len(input_nodes) and 'PhaseG' in input_names
+        assert dict(zip(input_names, input_nodes))['PhaseG'] is None, 'Refuse to replace a saved water phase connection'
+        phase_parameter = mel.create_material_expression(parent, unreal.MaterialExpressionScalarParameter, -900, 1200)
+        phase_parameter.set_editor_property('parameter_name', 'WaterCapturePhaseG')
+        phase_parameter.set_editor_property('default_value', 0.0)
+        assert mel.connect_material_expressions(phase_parameter, '', volumes[0], 'PhaseG')
+        mel.recompile_material(parent)
+        mel.set_material_instance_scalar_parameter_value(material, 'WaterCapturePhaseG', phase)
+        actual = mel.get_material_instance_scalar_parameter_value(material, 'WaterCapturePhaseG')
+        assert abs(actual-phase) < 1e-6, 'Water phase override did not apply'
+        metadata['diagnostic_water']['state']['scalars']['WaterCapturePhaseG'] = actual
 water_times = None
 if args.water_times:
     water_times = [float(value) for value in args.water_times.split(',')]
     if len(water_times) != len(poses) or any(not math.isfinite(t) or not 0 <= t <= 3600 for t in water_times):
         raise ValueError('Provide one finite water time in [0,3600] per pose')
-    if not water_overrides:
+    if not (water_overrides or water_vector_overrides or 'water_phase_g' in profile):
         raise ValueError('Water time sampling requires a scoped water override profile')
     # Editor high-resolution screenshots can stop world time. Replace only this
     # process's water Time input; neither the master nor its instance is saved.
@@ -243,6 +290,20 @@ if profile.get('source_material_color_gains'):
         records.append({'source_index': int(key), 'name': web['name'], 'material': target.get_path_name(),
                         'gain': gain, 'before': [before.r,before.g,before.b,before.a], 'after': list(actual)})
     metadata['diagnostic_source_material_gains'] = records
+if 'courtyard_fence_gain' in profile:
+    from material_targets import COURTYARD_FENCE_ALIAS, validate_fence_manifest
+    gain = profile['courtyard_fence_gain']
+    if not isinstance(gain, (float, int)) or not math.isfinite(gain) or not .1 <= gain <= 4:
+        raise ValueError('Diagnostic courtyard_fence_gain must be finite and in [.1,4]')
+    scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
+    validate_fence_manifest(scene, manifest)
+    target = unreal.load_asset('/Game/Materials/Web/MI_' + COURTYARD_FENCE_ALIAS)
+    assert isinstance(target, unreal.MaterialInstanceConstant), 'Rebuild the native fence variant first'
+    mel = unreal.MaterialEditingLibrary
+    mel.set_material_instance_vector_parameter_value(target, 'Color', unreal.LinearColor(gain,gain,gain,1))
+    color = mel.get_material_instance_vector_parameter_value(target, 'Color')
+    assert max(abs(a-b) for a,b in zip((color.r,color.g,color.b,color.a),(gain,gain,gain,1))) < 1e-6
+    metadata['diagnostic_fence_gain'] = {'material': target.get_path_name(), 'gain': gain}
 unreal.SystemLibrary.execute_console_command(world, 't.IdleWhenNotForeground 0')
 unreal.SystemLibrary.execute_console_command(world, f'r.HighResScreenshotDelay {args.temporal_frames}')
 for command in filter(None, (c.strip() for c in args.console.split(';'))):

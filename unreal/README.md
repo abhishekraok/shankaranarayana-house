@@ -58,6 +58,15 @@ For asset-only work, `-Package -ReuseNativeBinaries` cooks with the existing run
 without a C++ compiler. It refuses added, deleted, changed or newer native source files.
 The full Git Bash refresh accepts `REUSE_NATIVE_BINARIES=1 bash unreal/rebuild-all.sh`.
 
+`unreal/profile-runtime.ps1` measures 3,600 frames of the default tour in an isolated
+ignored `unreal/profile-runs/<id>` directory. It requires a current package, starts
+CSV profiling after engine initialization, and requires a complete CSV and clean
+process exit. Reports include actual resolution/cap/VSync and the final 1,000 frame
+timings. `-Frames` and `-TimeoutSeconds` change the bounds. Player progress is untouched.
+Default settings apply 1280×720 even if launch arguments request another size.
+Boot CSV profiling reproduced a shutdown failure; later-start captures exit cleanly.
+This samples one tour segment, not every walking route or uncapped performance.
+
 ## Full-pose reviews
 
 Run `unreal/review-poses.ps1` after every merge of main and every major improvement.
@@ -84,6 +93,13 @@ Native import and mesh rebuild explicitly preserve source normals. The scene aud
 requires each fallback triangle count to equal its GLB count, with no trimming.
 The ray-tracing geometry pool is 1024 MB.
 
+The native exporter assigns `Native_CourtyardFence_Timber` only to the 21 authored
+courtyard boards/uprights (252 triangles). It changes material binding, preserving
+positions, connectivity, UVs, colors and normals. The manifest records exact source
+objects; changed source names, counts, tint or map require review. Re-import the
+affected parts after introducing this variant; `import_scene.py --parts <comma-list>`
+supports a checked subset, followed by `configure_lumen.py --parts <comma-list>`.
+
 `--legacy-buildings` restores the former 15-part grouping while retaining normals
 and conservation checks. Re-import and rebuild the level after switching groups.
 Explicit diagnostic flags require a separate output directory under ignored
@@ -105,7 +121,7 @@ ripple grid, at the same RMS slope (~.0161). Water instances use
 `WaterNormalIrregularMix=1`; zero restores the original waves. Color, roughness
 and volume settings are unchanged. `materials.py` upgrades stale water shader
 code and reapplies the instance setting. Fresh material audits reject saved
-diagnostic time nodes.
+diagnostic time or scattering-phase nodes.
 
 For sampled water animation checks, `capture_poses.py --water-times 0,.25`
 accepts one explicit shader time per pose alongside a scoped water profile.
@@ -113,10 +129,18 @@ Set `water_normal_irregular_mix` to 0 or 1 in that JSON profile.
 It changes only the unsaved water Time input, because editor screenshots can
 freeze world time. Captures record shader times and world clocks; this check
 does not measure frame rate or continuous motion.
+Water profiles also accept `water_surface_opacity`, `water_scattering`,
+`water_absorption` and `water_phase_g`. These affect only the exclusive lake material,
+remain unsaved, and record readbacks. The phase input must be unconnected before the
+transient diagnostic is applied. Volume trials did not improve the close/distant
+brightness tradeoff; see `reviews/water-volume-2026-10-03.md`.
 Arcade-roof gain 1.45 and temple-paving gain 1.8 apply only to their exclusive materials.
 Structural timber uses gain 1.5, resolved through the authored entrance shafts;
 changed source tint or texture stops the rebuild for recalibration. Set
 `HOUSE_TIMBER_GAIN=1` for both material rebuild and audit to restore its original gain.
+The separate courtyard fence instance keeps gain 1.0; `COURTYARD_FENCE_GAIN` changes
+it for rebuild and audit. A capture profile's `courtyard_fence_gain` changes only
+that instance without saving. Its texture, UV and bump settings match the source.
 Unsaved comparisons can use `source_material_color_gains` in a capture profile,
 keyed by source index with `expected_name` and `gain`; captures record the readback.
 Structural canopies, carved relief, door leaves, studs, bells, coconut fruit and forest

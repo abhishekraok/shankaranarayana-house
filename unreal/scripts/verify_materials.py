@@ -6,7 +6,7 @@ import unreal
 
 root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
-from material_targets import structural_timber_family
+from material_targets import structural_timber_family, COURTYARD_FENCE_ALIAS, validate_fence_manifest
 meta = json.loads((root / 'blender/build/scene.json').read_text())
 mel = unreal.MaterialEditingLibrary
 import re
@@ -46,7 +46,14 @@ assert sum(isinstance(node, unreal.MaterialExpressionSingleLayerWaterMaterialOut
 water_code = (Path(__file__).parent / 'water_normal.hlsl').read_text()
 assert any(isinstance(node, unreal.MaterialExpressionCustom) and node.get_editor_property('code') == water_code
            for node in mel.get_material_expressions(water)), 'Water normal shader needs rebuilding'
-assert 'WaterCaptureTime' not in {str(p) for p in mel.get_scalar_parameter_names(water)}, 'Transient capture time was saved'
+assert not {'WaterCaptureTime', 'WaterCapturePhaseG'}.intersection(
+    str(p) for p in mel.get_scalar_parameter_names(water)), 'Transient water diagnostic was saved'
+water_volume = next(node for node in mel.get_material_expressions(water)
+                    if isinstance(node, unreal.MaterialExpressionSingleLayerWaterMaterialOutput))
+water_inputs = [str(n) for n in mel.get_material_expression_input_names(water_volume)]
+water_nodes = mel.get_inputs_for_material_expression(water, water_volume)
+assert len(water_inputs) == len(water_nodes) and dict(zip(water_inputs, water_nodes))['PhaseG'] is None, \
+    'Unexpected saved water phase connection'
 water_indices = [i for i, web in enumerate(meta['materials']) if web['name'] == 'lake water']
 assert len(water_indices) == 1, 'Expected one authored water material'
 water_mi = unreal.load_asset(f'/Game/Materials/Web/MI_lake_water_{water_indices[0]}')
@@ -65,6 +72,45 @@ timber_color = mel.get_material_instance_vector_parameter_value(timber_mi, 'Colo
 timber_gain = float(os.environ.get('HOUSE_TIMBER_GAIN', '1.5'))
 assert max(abs(a-b) for a,b in zip((timber_color.r,timber_color.g,timber_color.b,timber_color.a),
                                   (timber_gain,timber_gain,timber_gain,1))) < 1e-6, 'Timber gain was not rebuilt'
+parts = json.loads((root / 'blender/build/unreal/parts.json').read_text())
+fence_parts = validate_fence_manifest(meta, parts)
+fence_mi = unreal.load_asset('/Game/Materials/Web/MI_' + COURTYARD_FENCE_ALIAS)
+assert fence_mi and fence_mi != timber_mi, 'Missing/separate fence instance'
+assert fence_mi.get_editor_property('parent') == timber_mi.get_editor_property('parent'), 'Fence shader changed'
+fence_gain = float(os.environ.get('COURTYARD_FENCE_GAIN', '1.0'))
+fence_color = mel.get_material_instance_vector_parameter_value(fence_mi, 'Color')
+assert max(abs(a-b) for a,b in zip((fence_color.r,fence_color.g,fence_color.b,fence_color.a),
+                                  (fence_gain,fence_gain,fence_gain,1))) < 1e-6, 'Fence gain was not rebuilt'
+for parameter in mel.get_scalar_parameter_names(timber_mi):
+    assert abs(mel.get_material_instance_scalar_parameter_value(fence_mi, parameter) -
+               mel.get_material_instance_scalar_parameter_value(timber_mi, parameter)) < 1e-6, str(parameter)
+for parameter in mel.get_vector_parameter_names(timber_mi):
+    if str(parameter) == 'Color': continue
+    actual = mel.get_material_instance_vector_parameter_value(fence_mi, parameter)
+    expected = mel.get_material_instance_vector_parameter_value(timber_mi, parameter)
+    assert max(abs(getattr(actual,c)-getattr(expected,c)) for c in ('r','g','b','a')) < 1e-6, str(parameter)
+for parameter in mel.get_texture_parameter_names(timber_mi):
+    assert mel.get_material_instance_texture_parameter_value(fence_mi, parameter) == \
+        mel.get_material_instance_texture_parameter_value(timber_mi, parameter), str(parameter)
+fence_bindings = []
+for part in parts:
+    name = part['name']
+    mesh = unreal.load_asset(f'/Game/Scene/{name}/{name}/StaticMeshes/{name}.{name}')
+    slots = list(mesh.static_materials)
+    aliases = [slot for slot in slots if str(slot.material_slot_name) == COURTYARD_FENCE_ALIAS]
+    assert len(aliases) == int(name in fence_parts), f'Stale fence slots: {name}'
+    for slot in slots:
+        assert (slot.material_interface == fence_mi) == (str(slot.material_slot_name) == COURTYARD_FENCE_ALIAS), f'Fence material leaked: {name}'
+    if aliases:
+        import struct
+        blob = (root / 'blender/build/unreal' / (name + '.glb')).read_bytes()
+        size = struct.unpack_from('<I', blob, 12)[0]
+        gltf = json.loads(blob[20:20+size])
+        alias_triangles = sum(gltf['accessors'][p['indices']]['count']//3
+                              for m in gltf['meshes'] for p in m['primitives']
+                              if gltf['materials'][p['material']]['name'] == COURTYARD_FENCE_ALIAS)
+        assert alias_triangles == fence_parts[name]['triangles'], f'Fence primitive coverage: {name}'
+        fence_bindings.append({'mesh': name, 'triangles': alias_triangles})
 for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=False, include_folder=False):
     material = unreal.load_asset(path)
     if not isinstance(material, unreal.Material): continue
@@ -90,6 +136,7 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
     scene.append(record)
 report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
           'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False},
-          'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain}}
+          'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain},
+          'courtyard_fence': {'material': fence_mi.get_path_name(), 'gain': fence_gain, 'bindings': fence_bindings}}
 (root / 'unreal/Shankaranarayana/Saved/material-audit.json').write_text(json.dumps(report, indent=2))
 print('Material audit passed:', len(mapped))

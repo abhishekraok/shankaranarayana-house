@@ -28,6 +28,8 @@ from mathutils import Vector
 
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, '..', 'unreal', 'scripts'))
+from material_targets import courtyard_fence_override
 PARTS = [('tank', 'landscape'), ('house', 'house'), ('temple', 'temple'),
          ('ground', 'ground'), ('water', 'water')]
 FACE_ID = '_unreal_partition_source_face'
@@ -107,6 +109,43 @@ def verify_provenance():
         raise RuntimeError('Missing/stale blockout provenance for ' + ', '.join(mismatches) +
                            '; rebuild blockout.blend with blender/build_blockout.py before exporting')
     return saved
+
+
+def prepare_native_material_override():
+    """Validate source identities before destructive joins; never save this blend."""
+    with open(os.path.join(HERE, 'build', 'scene.json'), encoding='utf-8') as handle:
+        scene = json.load(handle)
+    override = courtyard_fence_override(scene)
+    expected = {target['blender_object_name'] for target in override['objects']}
+    source_names = {target['source_object_name'] for target in override['objects']}
+    actual = {obj.name for obj in bpy.data.objects if obj.type == 'MESH'
+              and re.sub(r'\.\d{3}$', '', obj.name) in source_names}
+    if actual != expected:
+        raise RuntimeError('Incomplete or renamed Blender courtyard fence targets')
+    source = bpy.data.materials.get(override['source_material_name'])
+    if source is None or bpy.data.materials.get(override['alias']) is not None:
+        raise RuntimeError('Missing source material or existing native fence alias')
+    for target in override['objects']:
+        obj = bpy.data.objects[target['blender_object_name']]
+        authored = scene['objects'][target['source_object_id']]
+        matrix = np.asarray(authored['matrix']).reshape(4, 4).T
+        if not np.allclose(np.asarray(obj.matrix_local), matrix, atol=1e-6, rtol=0):
+            raise RuntimeError(f'Fence source identity/transform changed: {obj.name}')
+        if list(obj.data.materials) != [source] or any(slot.link != 'DATA' for slot in obj.material_slots):
+            raise RuntimeError(f'Fence source material changed: {obj.name}')
+        obj.data.calc_loop_triangles()
+        if len(obj.data.loop_triangles) != 12 or any(p.material_index != 0 for p in obj.data.polygons):
+            raise RuntimeError(f'Fence source faces changed: {obj.name}')
+    alias = source.copy()  # identical Blender material; Unreal owns the variant gain
+    alias.name = override['alias']
+    return override
+
+
+def override_records(override, targets, triangles):
+    if not targets:
+        return []
+    return [{**{key: override[key] for key in ('alias', 'source_material_index', 'source_material_name')},
+             'objects': targets, 'triangles': triangles}]
 
 
 def preserve_corner_normals(obj):
@@ -295,7 +334,11 @@ def freeze_triangles(obj):
 
 class ConservationAudit:
     """Per-source-face identity, winding, tessellation, material, UV and tint audit."""
-    def __init__(self, objects):
+    def __init__(self, objects, override=None):
+        self.override = override
+        self.targets = {target['blender_object_name']: target for target in (override or {}).get('objects', [])}
+        self.alias_triangles = 0
+        self.last_overrides = []
         self.sources = []
         self.offsets = [0]
         for obj in objects:
@@ -324,6 +367,7 @@ class ConservationAudit:
             raise RuntimeError(f'Invalid or duplicate source face identities: {native.name}')
         if np.any(self.seen[ids - 1]):
             raise RuntimeError(f'A source face was exported more than once: {native.name}')
+        remapped_targets, remapped_triangles = {}, 0
         for face, identity in enumerate(ids):
             index = int(identity) - 1
             source_index = bisect.bisect_right(self.offsets, index) - 1
@@ -347,7 +391,15 @@ class ConservationAudit:
             self.errors['position'] = max(self.errors['position'], float(error))
             source_material = source['material_names'][source['materials'][original]] if source['material_names'] else None
             actual_material = actual['material_names'][actual['materials'][face]] if actual['material_names'] else None
-            if source_material != actual_material:
+            target = self.targets.get(source['name'])
+            expected_material = source_material
+            if target is not None:
+                if source_material != self.override['source_material_name']:
+                    raise RuntimeError(f'Unexpected fence source material: {source["name"]}')
+                expected_material = self.override['alias']
+                remapped_targets[source['name']] = target
+                remapped_triangles += int(np.diff(source['tri_offsets'][original:original + 2])[0])
+            if expected_material != actual_material:
                 raise RuntimeError(f'Material binding changed: {native.name}/{identity}')
             if source['smooth'][original] != actual['smooth'][face]:
                 raise RuntimeError(f'Face shading mode changed: {native.name}/{identity}')
@@ -363,6 +415,8 @@ class ConservationAudit:
                     if error > ATTRIBUTE_TOLERANCE:
                         raise RuntimeError(f'{field} changed: {native.name}/{identity}/{name}, error={error}')
                     self.errors[key] = max(self.errors[key], error)
+        self.alias_triangles += remapped_triangles
+        self.last_overrides = override_records(self.override, list(remapped_targets.values()), remapped_triangles)
         self.seen[ids - 1] = True
         self.render_triangles += actual['triangles']
         native.data.attributes.remove(attr)  # audit metadata must not enter GLB
@@ -378,6 +432,8 @@ class ConservationAudit:
                 'source_objects': len(self.sources), 'source_faces': len(self.seen),
                 'render_faces': int(np.count_nonzero(self.seen)), 'source_triangles': source_triangles,
                 'render_triangles': self.render_triangles,
+                'native_material_overrides': override_records(self.override,
+                    [self.targets[r['name']] for r in self.sources if r['name'] in self.targets], self.alias_triangles),
                 'face_identity_sha256': hashlib.sha256(np.arange(1, len(self.seen) + 1, dtype='<i4').tobytes()).hexdigest(),
                 'position_tolerance_metres': POSITION_TOLERANCE,
                 'attribute_tolerance': ATTRIBUTE_TOLERANCE, 'maximum_errors': self.errors,
@@ -401,7 +457,7 @@ def deselect(vl):
         obj.select_set(False)
 
 
-def export_bucket(objects, name, kind, out, vl, audit=None, joined_name=None):
+def export_bucket(objects, name, kind, out, vl, audit=None, joined_name=None, override=None):
     deselect(vl)
     for obj in objects:
         if obj.data.users > 1:
@@ -417,7 +473,13 @@ def export_bucket(objects, name, kind, out, vl, audit=None, joined_name=None):
             layer.data.foreach_set('uv', np.zeros(len(obj.data.loops) * 2, dtype=np.float32))
         audit['source_pre_freeze_faces'] = sum(freeze_triangles(obj) for obj in objects)
     # Source identity attributes must be added only after meshes become single-user.
-    conservation = ConservationAudit(objects) if audit is not None else None
+    conservation = ConservationAudit(objects, override) if audit is not None else None
+    targets = {target['blender_object_name'] for target in (override or {}).get('objects', [])}
+    for obj in objects:
+        if obj.name in targets:
+            if conservation is None:
+                raise RuntimeError('Native fence override requires conservation audit')
+            obj.data.materials[0] = bpy.data.materials[override['alias']]
     vl.objects.active = objects[0]
     if len(objects) > 1:
         with bpy.context.temp_override(active_object=objects[0], selected_editable_objects=objects):
@@ -486,7 +548,8 @@ def export_bucket(objects, name, kind, out, vl, audit=None, joined_name=None):
         entry = {'name': native_name, 'kind': kind, 'faces': len(mesh.polygons), 'materials': len(materials)}
         if audit is not None:
             entry.update({'bucket': name, 'role': audit['role'], 'cell_xy': audit['cell_xy'],
-                          'triangles': triangles})
+                          'triangles': triangles,
+                          'native_material_overrides': conservation.last_overrides})
         entries.append(entry)
         print('wrote', path, len(mesh.polygons), 'faces', len(materials), 'materials')
         bpy.data.objects.remove(native, do_unlink=True)
@@ -503,6 +566,7 @@ def export_bucket(objects, name, kind, out, vl, audit=None, joined_name=None):
 def main(argv):
     args = parse_args(argv)
     provenance = verify_provenance()  # before output creation, unparenting or joins
+    override = prepare_native_material_override()
     out = os.path.realpath(args.out)
     build_root = os.path.realpath(os.path.join(HERE, 'build'))
     default_out = os.path.realpath(os.path.join(build_root, 'unreal'))
@@ -532,7 +596,7 @@ def main(argv):
         kind = next((v for k, v in PARTS if k in low), None) or ''.join(c for c in low if c.isascii() and c.isalnum())
         if not args.partition_buildings or kind not in ('house', 'temple'):
             audit = {'bucket': kind, 'kind': kind, 'role': 'legacy', 'cell_xy': None} if kind in ('house', 'temple') else None
-            manifest.extend(export_bucket(objects, kind, kind, out, vl, audit=audit, joined_name=col.name))
+            manifest.extend(export_bucket(objects, kind, kind, out, vl, audit=audit, joined_name=col.name, override=override))
             if audit is not None:
                 audits.append(audit)
             continue
@@ -551,8 +615,10 @@ def main(argv):
                                           np.max([b[1] for b in bounds], axis=0).tolist()],
                      'objects_wider_than_cell': [obj.name for obj, (lower, upper) in zip(bucket, bounds)
                                                  if np.any((upper - lower)[:2] > args.cell_size)]}
-            manifest.extend(export_bucket(bucket, name, kind, out, vl, audit))
+            manifest.extend(export_bucket(bucket, name, kind, out, vl, audit, override=override))
             audits.append(audit)
+    if sum(record['triangles'] for audit in audits for record in audit['native_material_overrides']) != override['triangles']:
+        raise RuntimeError('Native fence alias triangle coverage changed')
     with open(os.path.join(out, 'parts.json'), 'w', encoding='utf-8') as handle:
         json.dump(manifest, handle, indent=2)
     if audits:
@@ -563,6 +629,7 @@ def main(argv):
                        'original_triangles_preserved': True,
                        'exporter_sha256': hashlib.sha256(open(__file__, 'rb').read()).hexdigest(),
                        'provenance': provenance,
+                       'native_material_overrides': [override],
                        'assignment': 'whole original object, world bounding-box centre; Blender XY horizontal',
                        'verified': all(audit['verified'] for audit in audits),
                        'parts': len(manifest),

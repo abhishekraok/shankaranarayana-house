@@ -3,4 +3,5 @@
 /build/
 /user-data/
 /smoke-runs/
+/profile-runs/
 __pycache__/

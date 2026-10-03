@@ -11,11 +11,12 @@ from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from material_targets import structural_timber_family
+from material_targets import structural_timber_family, COURTYARD_FENCE_ALIAS, courtyard_fence_override, validate_fence_manifest
 WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
 structural_timber = structural_timber_family(meta)
+fence_override = courtyard_fence_override(meta)
 M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
 tinted = set()
@@ -146,6 +147,8 @@ ARCADE_ROOF_TINT = tuple(float(v) for v in _os.environ.get('ARCADE_ROOF_TINT', '
 TEMPLE_PAVING_GAIN = float(_os.environ.get('TEMPLE_PAVING_GAIN', '1.8'))
 HOUSE_TIMBER_GAIN = float(_os.environ.get('HOUSE_TIMBER_GAIN', '1.5'))
 assert math.isfinite(HOUSE_TIMBER_GAIN) and .1 <= HOUSE_TIMBER_GAIN <= 4, 'Invalid structural timber gain'
+COURTYARD_FENCE_GAIN = float(_os.environ.get('COURTYARD_FENCE_GAIN', '1.0'))
+assert math.isfinite(COURTYARD_FENCE_GAIN) and .1 <= COURTYARD_FENCE_GAIN <= 4, 'Invalid courtyard fence gain'
 assert math.isfinite(ARCADE_ROOF_GAIN) and ARCADE_ROOF_GAIN > 0, 'Invalid arcade roof gain'
 assert len(ARCADE_ROOF_TINT) == 3 and all(math.isfinite(v) and v > 0 for v in ARCADE_ROOF_TINT), 'Invalid arcade roof tint'
 assert math.isfinite(TEMPLE_PAVING_GAIN) and TEMPLE_PAVING_GAIN > 0, 'Invalid temple paving gain'
@@ -366,8 +369,10 @@ GAME_TINT = {'tank stone': .32, 'tank mossy stone': .32, 'tank tread top': .4, '
 # Not 'weathered dark tile': a multiplier of 2.2 fixed the arcade roof (66 -> 99 against 97) but turned
 # the west shed roof white (55 -> 236); the roofs sharing that material do not respond alike.
 
-def instance(i):
-    if i in made: return made[i]
+def instance(i, variant=None):
+    assert variant is None or (variant == COURTYARD_FENCE_ALIAS and i == structural_timber), 'Unknown native variant'
+    cache_key = (i, variant)
+    if cache_key in made: return made[cache_key]
     web = M[i]
     kind = 'water' if web['name'] == 'lake water' else 'glow' if web.get('emissive') else \
            ('tint' if i in tinted else 'plain') + ('both' if web.get('doubleSided') else '')
@@ -389,7 +394,7 @@ def instance(i):
                                    masked=kind.startswith('mapped') and bool(web.get('alphaTest')), linear_maps='LinearData' in kind, foliage=True,
                                    foliage_map_contrast=map_contrast)
         kind = leaf
-    name = 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
+    name = ('MI_' + variant) if variant else 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
     path = f'{DIR}/Web/{name}'
     # Update in place: other meshes may already reference this instance.
     mi = unreal.load_asset(path) if EAL.does_asset_exist(path) else         AT.create_asset(name, f'{DIR}/Web', unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
@@ -435,11 +440,12 @@ def instance(i):
         c = unreal.LinearColor(c.r * TEMPLE_PAVING_GAIN, c.g * TEMPLE_PAVING_GAIN,
                                c.b * TEMPLE_PAVING_GAIN, 1)
     if i == structural_timber:
-        c = unreal.LinearColor(c.r*HOUSE_TIMBER_GAIN, c.g*HOUSE_TIMBER_GAIN, c.b*HOUSE_TIMBER_GAIN, c.a)
+        gain = COURTYARD_FENCE_GAIN if variant else HOUSE_TIMBER_GAIN
+        c = unreal.LinearColor(c.r*gain, c.g*gain, c.b*gain, c.a)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
-    EAL.save_loaded_asset(mi); made[i] = mi; return mi
+    EAL.save_loaded_asset(mi); made[cache_key] = mi; return mi
 
 def lookup(slot):
     for n in (slot, re.sub(r'\.\d{3}$', '', slot), slot.replace('_', '.'), re.sub(r'_\d{3}$', '', slot).replace('_', '.'), slot.replace('_', ' ')):
@@ -451,14 +457,23 @@ import sys
 argv = sys.argv[1:]
 manifest = os.path.join(HERE, '..', '..', 'blender', 'build', 'unreal', 'parts.json')
 parts = json.load(open(manifest)) if os.path.exists(manifest) else [{'name': p, 'kind': p} for p in ['ground', 'water', 'house', 'temple', 'landscape']]
+fence_parts = validate_fence_manifest(meta, parts)
 requested = argv[argv.index('--parts') + 1].split(',') if '--parts' in argv else None
 PARTS = [p['name'] for p in parts if not requested or p['name'] in requested or p['kind'] in requested]
 if not PARTS: raise ValueError('No native mesh groups matched --parts')
 for part in PARTS:
+    part_record = next(p for p in parts if p['name'] == part)
     mesh = unreal.load_asset(f'/Game/Scene/{part}/{part}/StaticMeshes/{part}.{part}')
     slots = list(mesh.static_materials)
+    alias_slots = sum(str(sm.material_slot_name) == COURTYARD_FENCE_ALIAS for sm in slots)
+    assert alias_slots == int(part in fence_parts), f'Stale/unexpected native fence slot in {part}'
     for sm in slots:  # assign every slot, then rebuild the (Nanite) mesh once
         slot = str(sm.material_slot_name)
+        if slot == COURTYARD_FENCE_ALIAS:
+            assert any(o['alias'] == COURTYARD_FENCE_ALIAS for o in part_record.get('native_material_overrides', [])), \
+                f'Unrecorded fence alias in {part}'
+            sm.material_interface = instance(fence_override['source_material_index'], COURTYARD_FENCE_ALIAS)
+            continue
         i = lookup(slot)
         if i is None and sm.material_interface: i = lookup(sm.material_interface.get_name())
         if i is None: missing.add(slot); continue

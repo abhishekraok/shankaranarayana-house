@@ -11,6 +11,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'unreal'))
 manifest = os.path.join(SRC, 'parts.json')
 PARTS = [p['name'] for p in json.load(open(manifest))] if os.path.exists(manifest) else ['ground', 'water', 'house', 'temple', 'landscape']
+if '--parts' in sys.argv:
+    requested = set(sys.argv[sys.argv.index('--parts') + 1].split(','))
+    assert requested and requested <= set(PARTS), 'Unknown/empty native import selection'
+    PARTS = [name for name in PARTS if name in requested]
 
 
 def normal_preserving_pipelines():

@@ -12,23 +12,36 @@ Reviewed all 172 aligned poses at main `30e9675`; baseline overview:
 [full sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/index.html).
 Model source and the F: pose repository were not changed.
 
-Latest accepted review: [172 renders / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-074006/index.html), clean editor exit; all sheets reviewed.
+Latest accepted review: [172 renders / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-093203/index.html), clean editor exit; all sheets reviewed.
 See [before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/fidelity-2026-10-03.md).
 The later [water review](D:/repos/shankaranarayana-photoreal/unreal/reviews/water-2026-10-03.md)
 removes the repeated ripple grid; close-view brightness remains unresolved.
-The final [timber review](D:/repos/shankaranarayana-photoreal/unreal/reviews/timber-2026-10-03.md)
-improves veranda posts with shared-family gain 1.5; outdoor fence brightness and entrance
-spill are documented tradeoffs. Global lighting and stone lintels remain unchanged.
+The [timber review](D:/repos/shankaranarayana-photoreal/unreal/reviews/timber-2026-10-03.md)
+improves veranda posts with gain 1.5. The later
+[fence correction](D:/repos/shankaranarayana-photoreal/unreal/reviews/fence-2026-10-03.md)
+restores gain 1.0 only on 21 courtyard boards/uprights, preserving all model geometry.
+Entrance spill remains a documented timber tradeoff; global lighting and stone lintels
+remain unchanged. [Water volume trials](D:/repos/shankaranarayana-photoreal/unreal/reviews/water-volume-2026-10-03.md)
+were rejected: close-view darkening damaged the distant lake.
 The rebuilt package passes walking/menu/alignment/notes checks and a separate cold-restart
 save check. Generated media and binaries remain ignored.
 
-Remaining photoreal priorities: close-view water body brightness and shared timber's
-outdoor fence tradeoff. Revisit those with scoped material comparisons; global exposure,
-bounce and water roughness trials did not improve the overall match. Stone ceiling/lintel
-materials and stale/intersecting poses still need separate evidence.
+[Runtime timing](D:/repos/shankaranarayana-photoreal/unreal/reviews/runtime-2026-10-03.md):
+two clean later-start captures hold the 60 fps cap in their final 1,000-frame tour
+samples. Actual defaults are 1280×720, quality 2 and scale 87%; no uncapped/full-route
+performance claim. Boot-start CSV profiling reproduces a shutdown failure; use
+`unreal/profile-runtime.ps1`, whose reports and saves are isolated.
+
+Remaining photoreal priorities: close-view water brightness, weathered surface detail,
+and stone ceiling/lintel appearance. Global exposure, bounce, water roughness, uniform
+volume and scattering-phase trials did not improve the multi-view match. Investigate
+environment/reflection geometry with separate evidence before further water tuning.
+Stale/intersecting poses still need source-owner review.
 
 | Photos | Finding for Claude | Render evidence |
 |---|---|---|
+| 2011-09-21 15.01.56.jpg | A close orange foreground surface hides nearly the entire photographed blue-door facade. This predates the fence material change; revalidate the saved eye against the current bell/support geometry before changing illumination or placement. Attribution remains unresolved. | [15.01.56](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-093203/018-2011-09-21 15.01.56.png>) |
+| 2011-09-21 15.11.08.jpg, 15.11.17.jpg | The left courtyard shelter has solid white infill between arches where the photographs show recessed dark openings. The saved 15.11.08 note also flags the extra wall. Check infill/opening topology and pose together; this is an existing model mismatch, not a fence regression. | [15.11.08](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-093203/031-2011-09-21 15.11.08.png>), [15.11.17](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261003-093203/032-2011-09-21 15.11.17.png>) |
 | 2011-09-21 15.10.30.jpg, 15.11.00.jpg; IMG_20130720_180635.jpg; temple right side facing -45 degrees from the entrance.jpg | Northwest chair hall still ends in a short closed wall. Photos support an open lane doorway/transom, narrow window and red dado. Consolidate existing temple fix 23 and the pending hall-width decision; absolute depth/anchor is unresolved. Preserve the raised chair floor and lower walkway. | [15.10.30](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/132-2011-09-21 15.10.30.png>), [15.11.00](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/135-2011-09-21 15.11.00.png>), [180635](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/144-IMG_20130720_180635.png>), [-45°](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/150-temple right side facing -45 degrees from the entrance.png>) |
 | 2011-09-21 14.58.02.jpg, 14.58.05.jpg | September 26 eyes now face the yellow notice added October 2 in `f9d6243`, 2.3–3 m ahead. Re-align these stale poses before judging notice placement; its addition has separate photo evidence. | [14.58.02](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/008-2011-09-21 14.58.02.png>), [14.58.05](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/028-2011-09-21 14.58.05.png>) |
 | 2011-09-21 15.14.56.jpg; 15.02.00.jpg | The 15.14.56 eye predates the paired-column rebuild `3485123`; its nearby round column now blocks the hall. Revalidate the pose before changing that column. The broad white obstruction at right in 15.02.00 has weaker attribution because that wall already existed; check the entrance eye against the current bell/stair-wall layout. | [15.14.56](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/059-2011-09-21 15.14.56.png>), [15.02.00](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-30e9675/unreal-20261002-230334/019-2011-09-21 15.02.00.png>) |
