@@ -1637,16 +1637,18 @@ export function buildHouse(K) {
   // 15.22.40 (the Ritz as a 1.62 m ruler) and 15.28.36: a deep, steep awning whose eave
   // hangs about 2.35 m above the lane, rising some 1.4 m to meet the wall under the lattice.
   const porchEndX=9.2,porchEaveZ=-1.8,porchHeight=z=>z<.5?2.35+(z-porchEaveZ)*1.4/(.5-porchEaveZ):3.75+(z-.5)*.23/1.58;
-  for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])for(const [x,z] of [[-7.8,za],[porchEndX,zb],[porchEndX,za],[-7.8,za],[-7.8,zb],[porchEndX,zb]]){ /* wound so the normals point up (the game shades by them) */porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
+  // The awning stops inside the balcony slab (z .5). Its old shallow upper run to the wall (y 3.75-3.98) rose through the
+  // upper floor (3.85): tiles, rafters and dry grass stood along the foot of the wall on the balcony and inside the upper rooms.
+  for(const [za,zb] of [[porchEaveZ,.5]])for(const [x,z] of [[-7.8,za],[porchEndX,zb],[porchEndX,za],[-7.8,za],[-7.8,zb],[porchEndX,zb]]){ /* wound so the normals point up (the game shades by them) */porchVertices.push(x,porchHeight(z),z);porchUvs.push(x*.38,z*.38);}
   porchGeometry.setAttribute('position',new THREE.Float32BufferAttribute(porchVertices,3));
   porchGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(porchUvs,2));porchGeometry.computeVertexNormals();
   const porchMaterial=mat('tile').clone();porchMaterial.side=THREE.DoubleSide;
   const porchTiles=new THREE.Mesh(porchGeometry,porchMaterial);porchTiles.name='Entrance veranda roof tiles';porchTiles.castShadow=true;porchTiles.receiveShadow=true;porchRoof.add(porchTiles);
   K.beam(porchRoof,'Entrance porch outer fascia',[-7.8,2.30,porchEaveZ],[porchEndX,2.30,porchEaveZ],.16,verandaTimber,.14);
   K.beam(porchRoof,'Entrance porch wall plate on the posts',[-7.8,2.67,-1.25],[porchEndX,2.67,-1.25],.14,verandaTimber,.12);
-  for(let x=-7.6;x<porchEndX;x+=.50)for(const [za,zb] of [[porchEaveZ,.5],[.5,2.08]])K.beam(porchRoof,'Entrance veranda exposed sloping rafter',[x,porchHeight(za)-.085,za],[x,porchHeight(zb)-.085,zb],.075,verandaTimber,.12);
+  for(let x=-7.6;x<porchEndX;x+=.50)for(const [za,zb] of [[porchEaveZ,.5]])K.beam(porchRoof,'Entrance veranda exposed sloping rafter',[x,porchHeight(za)-.085,za],[x,porchHeight(zb)-.085,zb],.075,verandaTimber,.12);
   const porchTileRows=[];
-  for(let z=porchEaveZ+.03;z<2.05;z+=.32)for(let x=-7.69;x<porchEndX;x+=.25)porchTileRows.push({x,y:porchHeight(z),z,angle:z<.5?Math.atan2(1.4,.5-porchEaveZ):Math.atan2(.23,1.58)});
+  for(let z=porchEaveZ+.03;z<.3;z+=.32)for(let x=-7.69;x<porchEndX;x+=.25)porchTileRows.push({x,y:porchHeight(z),z,angle:z<.5?Math.atan2(1.4,.5-porchEaveZ):Math.atan2(.23,1.58)});
   tilesOnSlope(porchRoof,'Overlapping lower-veranda Mangalore tile courses',porchTileRows);
   // A dark timber soffit conceals the red underside of the upper balcony slab.
   K.box(porchRoof,'Veranda timber ceiling underside',0,3.59,1.05,11.35,.035,2.04,verandaTimber);
@@ -1654,7 +1656,7 @@ export function buildHouse(K) {
   const blade=new THREE.BufferGeometry();blade.setAttribute('position',new THREE.Float32BufferAttribute([-.5,0,0,.5,0,0,-.22,.55,.17,.22,.55,.17,.10,1,.55],3));blade.setIndex([0,1,2,1,3,2,2,3,4]);blade.computeVertexNormals();
   const roofGrowth=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:'#b5a67c',roughness:1,side:THREE.DoubleSide}),5200); // house-front.jpg / 15.23.35: a thick mat of dry grass over most of the awning
   const growthPose=new THREE.Object3D();
-  for(let i=0;i<5200;i++){const x=-7.45+((i*173)%5197)/5197*(porchEndX+7.45-.3),z=porchEaveZ+.3+((i*317)%5189)/5189*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>(x>-4.5?-.75:.1);growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(dense?.03+(i%5)*.008:.012+(i%5)*.004,dense?.20+(i%9)*.028:.025,.18);growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
+  for(let i=0;i<5200;i++){const x=-7.45+((i*173)%5197)/5197*(porchEndX+7.45-.3),z=porchEaveZ+.3+((i*317)%5189)/5189*(2.67+(-1.25-porchEaveZ));const dense=Math.sin(x*1.45+z*2.5)+Math.sin(x*.71-z*4)>(x>-4.5?-.75:.1);growthPose.position.set(x,porchHeight(z)+.035,z);growthPose.rotation.set(.15,i*2.3999,.25*Math.sin(i));growthPose.scale.set(dense?.03+(i%5)*.008:.012+(i%5)*.004,dense?.20+(i%9)*.028:.025,.18);if(z>-.02){growthPose.position.set(x,3.72,.42);growthPose.scale.setScalar(.001);} /* blades behind the balcony front (z 0) are parked inside the slab: up to 0.4 m tall, they grew through the balcony floor */growthPose.updateMatrix();roofGrowth.setMatrixAt(i,growthPose.matrix);}
   roofGrowth.name='Dry grass and moss on the lower tiled awning';porchRoof.add(roofGrowth);
   K.hipRoof(g,'West range tiled roof',-10.18,12.0,4.6,13.1,3.62,1.12);
   const rearRoof=K.hipRoof(g,'Rear veranda tiled roof',-.50,16.38,18.2,4.25,3.64,1.05);
