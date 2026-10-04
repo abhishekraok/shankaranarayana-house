@@ -264,7 +264,7 @@ export function buildHouse(K) {
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
   K.cylinder(g,'Entrance court round column base rim',-4.6,.469,4.3,.178,.178,.038,verandaRed,20);
   // 14.44.43: closely spaced blue boards between rough outer stone supports.
-  const courtBlue=K.M.blue.clone();courtBlue.color.setRGB(1.08,1.16,1.13);
+  const courtBlue=K.M.plaster.clone();courtBlue.color.set('#6a94b5'); // 14.31.14 / 14.31.01 / 14.30.57: weathered blue paint, red about half of blue; the kit blue rendered with no red at all
   const railPlinth=K.M.plaster.clone();railPlinth.color.set('#5e4636');railPlinth.roughness=1;
   function stairSideFence(a,end,x=-8.35){
     b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,railPlinth); // 14.30.57: dark laterite, not white stone
@@ -557,7 +557,7 @@ export function buildHouse(K) {
   // runs on behind it into an open bay, so nothing is left of the inner front room wall.
   wallZ('Front stair wing partition',9.05,1.8,5.75,F,3.1,[{c:4.8,w:1.7,top:2.6}]);
   // User's note (game, east passage): the gap beside the partition showed the wing's roof; plain turquoise wall instead.
-  wallX('East passage front end wall',9.05,11.76,5.84,F,3.1,[],'aqua',.3);
+  wallX('East passage front end wall',9.05,11.76,5.66,F,3.1,[],'aqua',.12); // thin and forward: the 14.31.25 camera stands just behind it
   // The wing's rooms are not photographed: its doorway stays shut behind a plain timber door.
   b('Front room closed door to the wing',9.07,F+1.3,4.8,.07,2.6,1.7,verandaTimber);
   for(const z of [4.23,4.8,5.37])b('Front room wing door batten',9.02,F+1.3,z,.03,2.5,.07,'wood');
@@ -1517,20 +1517,21 @@ export function buildHouse(K) {
   const eastPassageRoof=K.hipRoof(g,'East passage continuous tiled roof',9.65,10.1,5.05,8.8,3.6,.90);
   // 14.31.14 / 14.31.25: flat, closely joisted ceiling over the clock-side
   // veranda. Keep all overhead members with the liftable roof assembly.
-  const ceilingTimber=verandaTimber.clone();ceilingTimber.color.set('#72736a');
+  const ceilingTimber=verandaTimber.clone();ceilingTimber.color.set('#80817a'); // 14.31.14 / 14.31.25: the ceiling is near-black (about 30,28,24)
   K.box(eastPassageRoof,'East passage continuous roof dark timber lining',9.61,3.535,10.1,4.35,.045,8.12,ceilingTimber);
   for(let z=6.13;z<14.13;z+=.34)
-    K.box(eastPassageRoof,'East passage exposed ceiling cross joist',9.61,3.425,z,4.35,.175,.075,verandaTimber);
-  for(const x of [7.43,11.70])K.box(eastPassageRoof,'East passage longitudinal ceiling bearer',x,3.365,10.1,.15,.20,8.16,verandaTimber);
-  const scallopedBeam=new THREE.Shape();scallopedBeam.moveTo(0,3.52);scallopedBeam.lineTo(7.82,3.52);scallopedBeam.lineTo(7.82,3.26);
-  for(let i=23;i>=0;i--){
-    const left=i*7.82/24,right=(i+1)*7.82/24;
-    scallopedBeam.quadraticCurveTo((left+right)/2,3.04,left,3.26);
-  }
-  scallopedBeam.closePath();
-  const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(scallopedBeam,{depth:.10,bevelEnabled:false}),ceilingTimber);
-  beamFrieze.name='Clock-side veranda scalloped timber wall beam';beamFrieze.rotation.y=-Math.PI/2;
-  beamFrieze.position.set(11.68,0,6.0);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
+    K.box(eastPassageRoof,'East passage exposed ceiling cross joist',9.61,3.425,z,4.35,.175,.075,ceilingTimber);
+  for(const x of [7.43,11.70])K.box(eastPassageRoof,'East passage longitudinal ceiling bearer',x,3.365,10.1,.15,.20,8.16,ceilingTimber);
+  // 14.31.25 / 14.31.43 / 14.31.14: a plain weathered blue-grey beam runs along the wall top; only over the
+  // clock does a board with stepped scallops at each end hang under it.
+  const wallBeamTimber=verandaTimber.clone();wallBeamTimber.color.set('#8f98a4');
+  K.box(eastPassageRoof,'Clock-side veranda timber wall beam',11.63,3.37,9.91,.10,.30,7.82,wallBeamTimber);
+  const clockBracket=new THREE.Shape();clockBracket.moveTo(0,3.22);clockBracket.lineTo(1.30,3.22);clockBracket.lineTo(1.30,3.14);
+  clockBracket.quadraticCurveTo(1.22,3.16,1.16,3.09);clockBracket.quadraticCurveTo(1.08,3.11,1.02,3.02);clockBracket.lineTo(.28,3.02);
+  clockBracket.quadraticCurveTo(.22,3.11,.14,3.09);clockBracket.quadraticCurveTo(.08,3.16,0,3.14);clockBracket.closePath();
+  const beamFrieze=new THREE.Mesh(new THREE.ExtrudeGeometry(clockBracket,{depth:.10,bevelEnabled:false}),wallBeamTimber);
+  beamFrieze.name='Clock-side veranda scalloped timber bracket';beamFrieze.rotation.y=-Math.PI/2;
+  beamFrieze.position.set(11.68,0,7.45);beamFrieze.castShadow=beamFrieze.receiveShadow=true;eastPassageRoof.add(beamFrieze);
   for(const [a,e] of [[5.7,9.86],[11.04,17.74]])b('Clock-side veranda turquoise wall finish',11.735,1.97,(a+e)/2,.016,3.02,e-a,verandaAqua);
   // 14.30.57 / 14.31.01 / 14.31.14 (photo review): the rear wall's inner face is turquoise east of a dark
   // post beside the doorway's west pier (14.44.22 keeps the pale wash west of it), with a red dado on the east stretch.
@@ -1677,9 +1678,9 @@ export function buildHouse(K) {
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
   // 14.31.43: arched timber case, ivory numbered dial and floral lower glass.
-  b('Clock bay vertical timber mounting strip',11.71,1.97,8.1,.055,3.02,.19,verandaTimber);
+  b('Clock bay vertical timber mounting strip',11.71,1.97,8.1,.055,3.02,.35,verandaTimber);
   const clock=new THREE.Group();clock.name='Photographed veranda pendulum clock';
-  clock.position.set(11.68,2.25,8.1);clock.rotation.y=-Math.PI/2;g.add(clock);
+  clock.position.set(11.68,2.55,8.1);clock.rotation.y=-Math.PI/2;g.add(clock);
   const caseShape=new THREE.Shape();caseShape.moveTo(-.215,-.415);
   caseShape.quadraticCurveTo(-.215,-.455,-.17,-.455);caseShape.lineTo(.17,-.455);
   caseShape.quadraticCurveTo(.215,-.455,.215,-.415);caseShape.lineTo(.215,.397);
@@ -1705,10 +1706,10 @@ export function buildHouse(K) {
   for(const x of [88,168]){dial.fillStyle='#51493c';dial.beginPath();dial.arc(x,166,5,0,Math.PI*2);dial.fill();}
   const dialMap=new THREE.CanvasTexture(dialCanvas);dialMap.colorSpace=THREE.SRGBColorSpace;
   const clockFace=new THREE.Mesh(new THREE.CircleGeometry(.165,40),new THREE.MeshStandardMaterial({map:dialMap,roughness:.51}));
-  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.46,8.1);clockFace.name='Ivory wall clock face';g.add(clockFace);
+  clockFace.rotation.y=-Math.PI/2;clockFace.position.set(11.57,2.76,8.1);clockFace.name='Ivory wall clock face';g.add(clockFace);
   const rim=new THREE.Mesh(new THREE.TorusGeometry(.168,.006,7,40),caseWood);rim.position.set(0,.21,.115);clock.add(rim);
-  K.beam(g,'Clock minute hand',[11.55,2.46,8.1],[11.55,2.46,7.955],.008,'black');
-  K.beam(g,'Clock hour hand',[11.54,2.46,8.1],[11.54,2.402,8.025],.013,'black');
+  K.beam(g,'Clock minute hand',[11.55,2.76,8.1],[11.55,2.76,7.955],.008,'black');
+  K.beam(g,'Clock hour hand',[11.54,2.76,8.1],[11.54,2.702,8.025],.013,'black');
   const pendulumRod=new THREE.Mesh(new THREE.CylinderGeometry(.003,.003,.24,6),mat('gold'));pendulumRod.position.set(0,-.14,.008);clock.add(pendulumRod);
   const bob=new THREE.Mesh(new THREE.CircleGeometry(.052,20),mat('gold'));bob.position.set(0,-.26,.013);clock.add(bob);
   const etched=new THREE.MeshStandardMaterial({color:'#dddac1',roughness:.56});
