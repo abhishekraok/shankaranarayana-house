@@ -1998,6 +1998,11 @@ export function buildTemple(K) {
   for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
+  // The panels were all that closed the rear above the ledge: daylight from the rear aisle showed in 32 cm
+  // slots beside the columns and in a band over the panels, where 15.08.42 and 'temple inner sanctum, left
+  // side' show one dark wall running up to the pent roof. A thin wall in the panels' own plane closes both.
+  box('Inner rear dark wall between the panels',39,2.51,29.4465,14.1,1.92,.018,innerDarkStone);
+  box('Inner rear dark wall under the pent roof',39.5,4.04,29.4465,10.4,1.14,.018,innerDarkStone);
   // 'temple inner sanctum, left side': at the east end the blue door is the plank door at the end
   // of the blue room wall (built with that wall), not a double door in the rear wall.
   // 15.08.42: the west corridor also ends at a blue door beside its last pillar; it stands on the
