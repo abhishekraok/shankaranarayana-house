@@ -709,11 +709,12 @@ export function buildHouse(K) {
   hangingCloth(8.99,.45,1.48,0xc2ac7f);
   // Narrow green woven border on the long white towel.
   b('Hanging towel green border',-8.52,1.72,9.39,.008,1.69,.025,new THREE.MeshStandardMaterial({color:0x55734a,roughness:1}));
-  for(const [x,z,sx,sy,sz,color] of [[-11.38,10.05,.35,.36,.43,0xc8c4ad],[-11.43,10.69,.32,.24,.39,0xd8d5c6],[-11.27,11.24,.31,.28,.36,0xb9a34d]]){
+  // 14.44.22: slumped cloth sacks heaped on the floor against the wall, lower and broader than the upright pear shapes they were
+  for(const [x,z,sx,sy,sz,color] of [[-11.36,10.10,.40,.27,.50,0xc8c4ad],[-11.14,10.56,.33,.19,.40,0xd8d5c6],[-11.40,10.92,.35,.23,.42,0xa8985a]]){
     const geom=new THREE.SphereGeometry(1,18,14),pos=geom.attributes.position;
     for(let i=0;i<pos.count;i++){
       const y=pos.getY(i),a=Math.atan2(pos.getZ(i),pos.getX(i));
-      const pinch=1-.35*Math.max(0,y),fold=1+.07*Math.sin(a*9+y*8);
+      const pinch=1-.22*Math.max(0,y),fold=1+.06*Math.sin(a*3+y*2+x)+.03*Math.sin(a*7+1);
       pos.setXYZ(i,pos.getX(i)*pinch*fold,Math.max(-.77,y),pos.getZ(i)*pinch*fold);
     }
     geom.computeVertexNormals();const sack=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1}));
