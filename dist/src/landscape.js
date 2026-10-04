@@ -146,7 +146,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<90;i++){const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,`rgba(28,28,26,${.25+r()*.35})`);g.addColorStop(.5+r()*.5,'rgba(28,28,26,0)');x.fillStyle=g;x.fillRect(r()*256,0,1+r()*5,128);}
    for(let i=0;i<1800;i++){x.fillStyle=r()<.5?'rgba(150,146,138,.35)':'rgba(48,50,44,.35)';x.fillRect(r()*256,r()*128,1+r()*2,1+r()*2);}
    x.fillStyle='rgba(60,72,44,.35)';x.fillRect(0,108,256,20);
-   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(5,1);
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(.5,1/.62);m.offset.set(0,.5); // K.box maps 2 m per texture: five 4 m tiles along the 20 m face, the canvas once over its 1.24 m height (streaks from the top, moss at the foot)
    box('Adjacent building stained lower plinth face',59.975,.62,-5,.05,1.24,20,new THREE.MeshStandardMaterial({map:m,roughness:1}));}
   // Family correction, 14.58.48: a narrow unpaved road separates the home
   // and the temple's right edge. It branches off the lake-facing asphalt lane.
