@@ -1112,18 +1112,42 @@ export function buildTemple(K) {
   box('Right hall tall white upper storey',22.27,5.59,6.4+hallLen/2,4.1,3.37,hallLen,innerWhite,true);
   box('Right hall lower block flat roof',22.3,3.62,21.25,4.1,.24,3.7,innerWhite);
   box('Right hall lower block roof red edge',24.33,3.6,21.25,.08,.2,3.7,red);
-  box('Right hall lower block balustrade red coping',24.22,4.52,21.25,.2,.1,3.7,red);
-  for(const z of [19.5,21.25,23.0])box('Right hall lower block balustrade red post',24.22,4.1,z,.2,.8,.2,red);
-  instances('Right hall lower block pierced balustrade',screenGeometry,entranceLace,[[24.22,4.1,20.37,.88,.72,1,0,Math.PI/2,0],[24.22,4.1,22.12,.88,.72,1,0,Math.PI/2,0]]);
+  // 15.13.11 (and the heavy red-edged slab in 15.11.17): this block is a first-floor room, not a
+  // roof terrace. White walls with two jali screens to the court stand on the old roof slab, a
+  // red-edged slab lies at about 5.3 m, and the red-post balustrade stands on that.
+  {const lace=[],dz=.0958,rowH=.2833,len=Math.hypot(rowH,dz),tilt=Math.atan2(dz,rowH);
+   box('Right hall south room court wall',24.25,4.47,21.25,.2,1.46,3.7,innerWhite,true);
+   box('Right hall south room lane wall',20.35,4.47,21.25,.2,1.46,3.7,innerWhite,true);
+   box('Right hall south room end wall',22.3,4.47,23.0,3.7,1.46,.2,innerWhite,true);
+   for(const z of [20.55,21.95]){
+     box('Right hall south room jali dark backing',24.355,4.675,z,.02,.85,1.15,dark);
+     for(let row=0;row<3;row++)for(let j=0;j<13;j++)for(const s of [-1,1]){if((s>0&&j===12)||(s<0&&j===0))continue;
+       lace.push([24.375,4.25+rowH*(row+.5),z-.575+j*dz+s*dz/2,.022,len,.03,s*tilt,0,0]);}
+     for(const y of [4.25,5.10])box('Right hall south room jali white rail',24.375,y,z,.03,.05,1.19,whiteTrim);
+     for(const dzz of [-.585,.585])box('Right hall south room jali white rail',24.375,4.675,z+dzz,.03,.90,.05,whiteTrim);}
+   instances('Right hall south room jali lattice',new THREE.BoxGeometry(1,1,1),whiteTrim,lace);
+   const slab=box('Right hall south room roof slab',22.3,5.30,21.3,4.3,.20,3.8,innerWhite);K.roofs.push(slab);
+   box('Right hall south room slab red edge',24.47,5.30,21.3,.05,.20,3.8,red);
+   box('Right hall south room slab red edge',22.3,5.30,23.225,4.3,.20,.05,red);}
+  box('Right hall lower block balustrade red coping',24.22,5.85,21.25,.2,.1,3.7,red);
+  for(const z of [19.5,21.25,23.0])box('Right hall lower block balustrade red post',24.22,5.65,z,.2,.5,.2,red);
+  instances('Right hall lower block pierced balustrade',screenGeometry,entranceLace,[[24.22,5.61,20.37,.88,.44,1,0,Math.PI/2,0],[24.22,5.61,22.12,.88,.44,1,0,Math.PI/2,0]]);
   for(const z of [8.1,12.3,16.5]){
     box('Right hall pink window border',24.36,5.59,z,.09,1.23,1.86,pink);
     box('Right hall dark window inset',24.42,5.59,z,.025,1.03,1.66,maroon);
     const bars=[];for(let j=0;j<13;j++)bars.push([24.45,5.59,z-.76+j*.126,.04,1.07,.043]);
     instances('Right hall pink window grille',new THREE.BoxGeometry(1,1,1),pink,bars);
     box('Right hall pink grille middle rail',24.46,5.59,z,.06,.07,1.70,pink);
-    box('Right hall dark attic vent',24.39,7.04,z,.045,.57,2.4,dark);
-    for(let j=0;j<12;j++)for(const sign of [-1,1])K.beam(g,'Right hall attic diamond lattice',[24.44,6.79,z-1.13+j*.19],[24.44,7.28,z-1.13+j*.19+sign*.25],.028,oldStone);
   }
+  // 15.03.47 / 15.13.11 / 15.02.00: the vents under the eave are a continuous row of white
+  // diamond-lattice panels between narrow white piers (eight of 1.35 m), not one wide grey-latticed
+  // vent over each window.
+  {const lattice=[],dz=.1125,rowH=.245,len=Math.hypot(rowH,dz),tilt=Math.atan2(dz,rowH);
+   for(let k=0;k<8;k++){const z=7.2+k*1.6;
+     box('Right hall dark attic vent',24.39,7.04,z,.045,.57,1.35,dark);
+     for(let row=0;row<2;row++)for(let j=0;j<13;j++)for(const s of [-1,1]){if((s>0&&j===12)||(s<0&&j===0))continue;
+       lattice.push([24.44,6.79+rowH*(row+.5),z-.675+j*dz+s*dz/2,.022,len,.03,s*tilt,0,0]);}}
+   instances('Right hall attic diamond lattice',new THREE.BoxGeometry(1,1,1),whiteTrim,lattice);}
   corrugatedRoof('Right hall pitched gray upper roof',22.25,6.4+hallLen/2,5.4,hallLen+.8,7.45,1.25,greySheet);
   // Close the attic between the masonry and pitched roof. The roof overhang
   // remains outside this shell; the existing lattice vents stay below it.
