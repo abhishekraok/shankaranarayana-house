@@ -228,7 +228,7 @@ export function buildHouse(K) {
     floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,edgeStone,.41-EL);
     // house-front.jpg: a low masonry cheek stands out from the plinth either side of the entry slab.
     b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
-    b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,'stone');
+    b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,edgeStone); // house-front.jpg: smooth grey-brown (86,73,80 in shade), no joints
     // The facade and the door frame stand on a stone base where the floor now drops away.
     b('Main door stone base',s*.93,(EL+F)/2,2.0,.66,F-EL,.42,edgeStone);
   }
@@ -240,7 +240,7 @@ export function buildHouse(K) {
   const plinthDamp=mat('plaster').clone();plinthDamp.color.set('#7a6a55');
   for(const [x,w] of [[-4.62,6.35],[5.09,7.30]]){
     b('Front veranda weathered retaining plinth',x,.43,-.98,w,.86,.18,plinthFace,true);
-    b('Front veranda worn stone coping',x,.88,-.98,w+.025,.055,.23,'stone');
+    b('Front veranda worn stone coping',x,.88,-.98,w+.025,.055,.23,edgeStone); // house-front.jpg: a dark grey-brown line (86,71,75) over the buff plinth (128,105,96): darker than the plinth, not paler
     b('Front plinth splash-back damp band',x,.09,-1.074,w,.18,.008,plinthDamp);
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
@@ -260,8 +260,8 @@ export function buildHouse(K) {
   b('Entrance pedestal masonry right cheek',-3.86,.24,5.96,.23,.41,.16,nicheOxide,true);
   b('Entrance pedestal niche lintel',-3.40,.362,5.96,.88,.175,.16,nicheOxide);
   b('Entrance pedestal niche dark back',-3.40,.154,5.73,.64,.23,.025,'stone');
-  b('Entrance pedestal niche stone sill',-3.40,.055,5.94,.76,.04,.49,'stone');
-  b('Entrance pedestal worn coping',-3.40,.466,5.90,1.03,.032,.36,'stone');
+  b('Entrance pedestal niche stone sill',-3.40,.055,5.94,.76,.04,.49,edgeStone);
+  b('Entrance pedestal worn coping',-3.40,.466,5.90,1.03,.032,.36,edgeStone);
   for(const [w,d,h,y] of [[.82,.49,.125,.529],[.70,.40,.13,.6565],[.56,.29,.105,.774]])
     b('Entrance three-tier pale pedestal',pedestalX,y,pedestalZ,w,h,d,pedestalPaint,true);
   const nicheStone=new THREE.MeshStandardMaterial({color:'#8b9871',roughness:1});
@@ -278,7 +278,7 @@ export function buildHouse(K) {
   // three descending treads, and the peach round support beside the niche.
   b('Pedestal ledge stair-side return',-3.98,.23,5.96,.29,.43,.16,nicheOxide,true);
   b('Pedestal ledge solid return',-3.00,.23,5.96,.25,.43,.16,nicheOxide,true);
-  b('Pedestal ledge continuous dark coping',-3.50,.466,5.90,1.20,.032,.36,'stone');
+  b('Pedestal ledge continuous dark coping',-3.50,.466,5.90,1.20,.032,.36,edgeStone);
   // User's fixed 175312 pose: shift the complete niche/stepped pedestal
   // east onto the entry ledge. The 2013 reference is pale, unlike 2011 aqua.
   // 175312 / 'house, after entering, turning 135 degrees 2/3': the niche is set into the plinth face
