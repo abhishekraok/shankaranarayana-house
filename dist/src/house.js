@@ -330,16 +330,21 @@ export function buildHouse(K) {
   // User's 14.31.14 note: the blue railing runs on along the whole east veranda edge,
   // with no wall and no opening into the courtyard.
   stairSideFence(9.3,14.28,7.3);
-  // 14.46.04: the rear veranda is screened by weathered horizontal boards.
-  // User's 14.48.07 note: the screen is unbroken, with no opening into the courtyard.
-  for(const [a,end] of [[-8.3,7.3]]) {
-    for(let row=0;row<7;row++) {
-      const board=b('Courtyard weathered horizontal timber board',(a+end)/2,F+.10+row*.135,14.55,end-a,.112,.075,verandaTimber);
-      board.rotation.z=.004*Math.sin(row*2.1);
+  // 14.46.04 / 14.48.07 / 14.52.16: the rear veranda is screened by some fifteen thin, bleached, uneven
+  // slats stacked to about 1.3 m on pole uprights 1.5 m apart, standing on a dark, moss-blackened plinth
+  // (user's 14.48.07 note: 'No white steps'). The screen is unbroken, with no opening into the courtyard.
+  {const slatWood=new THREE.MeshStandardMaterial({color:'#8a7870',roughness:.95}),slatDark=new THREE.MeshStandardMaterial({color:'#6e625c',roughness:.95}); // 14.46.04: about 126,109,104 in the light
+   const plinthDark=new THREE.MeshStandardMaterial({color:'#3d4136',roughness:1}),plinthMoss=new THREE.MeshStandardMaterial({color:'#56682f',roughness:1});
+   for(const [a,end] of [[-8.3,7.3]]) {
+    for(let row=0;row<15;row++) {
+      const board=b('Courtyard weathered horizontal timber board',(a+end)/2,F+.07+row*.087,14.55+.014*Math.sin(row*1.7),end-a,.080+.007*((row*7)%3),.035,row%4===2?slatDark:slatWood); // overlapping, as stacked
+      board.rotation.z=.003*Math.sin(row*2.1);
     }
-    for(let x=a+.12;x<end;x+=1.13)b('Courtyard board fence upright',x,F+.57,14.50,.075,1.24,.11,verandaTimber);
-    K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
-  }
+    for(let x=a+.12;x<end;x+=1.5)b('Courtyard board fence upright',x,F+.66,14.50,.07,1.38,.07,slatDark);
+    K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.33);
+    b('Rear veranda mossy plinth face',(a+end)/2,.26,14.485,end-a,.45,.03,plinthDark);
+    b('Rear veranda plinth moss foot',(a+end)/2,.075,14.465,end-a,.08,.012,plinthMoss);
+   }}
   // Court entry steps match every deliberate veranda opening.
   for(const [x,z,w,d] of [[-8.2,10.8,.75,1.55]]) { // the court-front walkway is at ground level now: no step there
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
@@ -1583,9 +1588,16 @@ export function buildHouse(K) {
   }
   const grassGeom=new THREE.BufferGeometry();grassGeom.setAttribute('position',new THREE.Float32BufferAttribute(stems,3));grassGeom.setAttribute('color',new THREE.Float32BufferAttribute(stemColors,3));grassGeom.computeVertexNormals();
   const roofGrass=new THREE.Mesh(grassGeom,new THREE.MeshStandardMaterial({vertexColors:true,roughness:1,side:THREE.DoubleSide}));roofGrass.name='Rear roof scattered dry grass between tiles';rearRoof.add(roofGrass);
-  const gutterMat=K.M.plaster.clone();gutterMat.color.set('#b9c0b0');
-  const gutter=K.cylinder(rearRoof,'Rear veranda pale rain gutter',2.1,3.48,14.19,.065,.065,8.3,gutterMat,16);gutter.rotation.z=Math.PI/2;
-  for(const x of [-1.8,.4,2.6,4.8,6.15])K.beam(rearRoof,'Rear gutter timber support',[x,3.42,14.52],[x,3.42,14.10],.045,verandaTimber);
+  // 14.46.04 / 14.46.21 / 14.48.11 / 14.52.16: the white gutter hangs only on the west half of this eave, from
+  // just west of the carved post to past the stair, with a thinner white pipe beside it; under the east
+  // half a few long poles are stored instead.
+  const gutterMat=K.M.plaster.clone();gutterMat.color.set('#dbd5cc');
+  const gutter=K.cylinder(rearRoof,'Rear veranda pale rain gutter',-5.6,3.48,14.19,.065,.065,5.6,gutterMat,16);gutter.rotation.z=Math.PI/2;
+  const gutterPipe=K.cylinder(rearRoof,'Rear veranda thin white pipe under the gutter',-5.2,3.35,14.27,.028,.028,4.8,gutterMat,10);gutterPipe.rotation.z=Math.PI/2;
+  for(const x of [-8.0,-6.6,-5.2,-3.8,-3.0])K.beam(rearRoof,'Rear gutter timber support',[x,3.42,14.52],[x,3.42,14.10],.045,verandaTimber);
+  {const poleWood=new THREE.MeshStandardMaterial({color:'#5a4e3e',roughness:1});
+   for(let i=0;i<4;i++){const pole=K.cylinder(rearRoof,'Rear eave stored bamboo pole',.8+i*.12,3.185,14.28+i*.065,.025,.03,5.0-i*.25,poleWood,8);pole.rotation.z=Math.PI/2;}
+   for(const x of [-1.2,2.9])K.beam(rearRoof,'Rear eave pole sling',[x,3.145,14.24],[x,3.145,14.52],.02,poleWood,.02);}
 
   // Cover the full passage up to the exterior wall; the old narrow strip
   // left a 2.5 m opening beside the enclosed east rooms.
@@ -1616,7 +1628,7 @@ export function buildHouse(K) {
    for(const [x0,x1] of [[2.92,11.727]])b('Rear veranda red dado',(x0+x1)/2,F+.225,Z-.012,x1-x0,.45,.012,dado);
    b('Rear veranda dark post at the colour change',-4.2,F+1.5,17.66,.18,3.0,.18,'wood');
    // 14.30.57: an unpainted timber window, iron bars in its left half and a plank shutter in the right;
-   // laterite shows through the turquoise wash around it.
+   // bare plaster shows where the turquoise wash has come away around it.
    const oldTimber=new THREE.MeshStandardMaterial({color:'#4a3a2c',roughness:.95}),dark=new THREE.MeshStandardMaterial({color:'#15120f',roughness:1}),plank=new THREE.MeshStandardMaterial({color:'#5a4634',roughness:.95});
    b('Rear veranda timber window frame',5.7,F+1.45,17.72,1.26,1.46,.10,oldTimber);
    b('Rear veranda window dark opening',5.975,F+1.45,17.664,.51,1.26,.012,dark);
@@ -1624,12 +1636,22 @@ export function buildHouse(K) {
    b('Rear veranda window mid rail',5.975,F+1.45,17.648,.51,.045,.035,oldTimber);
    b('Rear veranda window plank shutter',5.425,F+1.45,17.655,.53,1.26,.03,plank);
    for(const x of [5.29,5.425,5.56])b('Rear veranda window shutter joint',x,F+1.45,17.638,.008,1.26,.004,dark);
-   const laterite=new THREE.MeshStandardMaterial({color:'#b48f7c',roughness:1});
-   for(const [x,y,w,h] of [[4.6,F+1.2,.7,.5],[4.2,F+.75,.9,.4],[6.9,F+.85,1.0,.45],[5.7,F+.62,.8,.22],[7.6,F+1.7,.5,.7],[4.75,F+2.3,.6,.35],[3.3,F+.7,.7,.3]]){
-     // three overlapping lobes each, so the edge is ragged rather than an oval
-     for(const [dx,dy,k,turn] of [[0,0,1,.2],[.32,.12,.6,-.5],[-.28,-.15,.55,.9]]){
-       const patch=new THREE.Mesh(new THREE.CircleGeometry(.5,9),laterite);patch.name='Rear veranda exposed laterite patch';
-       patch.scale.set(w*k,h*k,1);patch.rotation.set(0,Math.PI,turn);patch.position.set(x+dx*w,y+dy*h,Z-.0095);g.add(patch);}}}
+   // 14.30.57 / 14.31.01: the loss is ragged sheets, not spots: a pale band of bare plaster stands on the dado
+   // up to the sill, climbs to the window head on the window's east side, and is deeper red-brown at its foot there.
+   {let seed=3057;const rnd=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+    // mottled like broken plaster: paler lime skin, darker damp and a few red laterite grains
+    const mottle=(base,marks)=>paintedMap(256,(c,s)=>{c.fillStyle=base;c.fillRect(0,0,s,s);
+      for(let i=0;i<170;i++){c.fillStyle=`rgba(${marks[i%marks.length]},${.10+rnd()*.22})`;c.beginPath();c.ellipse(rnd()*s,rnd()*s,3+rnd()*18,2+rnd()*9,rnd()*3,0,Math.PI*2);c.fill();}},1);
+    const bare=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#b48f7c',['214,196,178','150,104,84','188,150,120','126,92,78'])});
+    const deep=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#9a5a40',['128,62,44','176,112,78','104,58,46'])});
+    const ragged=(name,profile,material,dz)=>{ // profile: [x, top edge above F]; the foot stands on the dado top
+      const s=new THREE.Shape();s.moveTo(-profile[0][0],F+.45);
+      for(let i=0;i<profile.length-1;i++){const [xa,ha]=profile[i],[xb,hb]=profile[i+1],n=Math.max(1,Math.round((xb-xa)/.11));
+        for(let k=0;k<n;k++){const t=k/n;s.lineTo(-(xa+(xb-xa)*t+(rnd()-.5)*.05),F+Math.max(.47,ha+(hb-ha)*t+(rnd()-.5)*.16));}}
+      s.lineTo(-profile.at(-1)[0],F+.45);s.closePath();
+      const m=new THREE.Mesh(new THREE.ShapeGeometry(s),material);m.name=name;m.rotation.y=Math.PI;m.position.set(0,0,Z-dz);g.add(m);};
+    ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.56],[4.3,.70],[5.0,.82],[6.36,.84],[6.42,1.25],[6.52,1.5],[6.8,1.62],[6.95,2.0],[7.2,2.2],[7.55,2.1],[7.8,1.62],[8.05,1.4],[8.35,1.0],[8.9,.8],[9.6,.62],[11.0,.52],[11.7,.47]],bare,.0095);
+    ragged('Rear veranda deeper bare laterite',[[6.2,.47],[6.35,.7],[6.6,.92],[6.95,1.0],[7.3,.86],[7.6,.62],[7.8,.47]],deep,.0105);}}
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
