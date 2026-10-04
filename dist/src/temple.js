@@ -1958,6 +1958,11 @@ export function buildTemple(K) {
     for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.45,29.36,.032,1.7,.03,white);
   }
   K.blocker(39,29.45,14.1,.1,1.5,3.5); // nothing but a thin panel line closes the rear above the ledge
+  // 15.08.42 / 'temple inner sanctum, left side': over the rear ledge a pent roof of long pale stone
+  // slabs in lapped courses slopes down towards the aisle, its eave just above the columns' brackets.
+  {const slab=mat('#a8946f',.95),tilt=-Math.atan2(1.0,1.8),n=4;
+   for(let i=0;i<n;i++){const t=(i+.5)/n,c=box('Inner rear pent roof stone slab course',39.5,3.62+1.0*t+.035*i,27.7+1.8*t,10.4,.07,.60,slab);c.rotation.x=tilt;K.roofs.push(c);}
+   box('Inner rear pent roof eave beam',39.5,3.53,27.78,10.4,.14,.16,sanctumStone);}
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
