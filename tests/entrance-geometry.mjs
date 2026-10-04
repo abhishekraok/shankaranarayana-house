@@ -189,9 +189,11 @@ assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefin
 const gatePiers=landscape.children.filter(o=>o.name==='Tank gate square stepped stone pier');
 assert.ok(gatePiers.every(o=>Math.abs(o.position.x-16.4)<.01),'Gate piers run perpendicular to the house-facing rail');
 assert.ok(!collision(50.08,-22.15,.055),'East bathing stair opening remains clear');
-for(const name of ['Stage upper left photographed figure','Stage upper right photographed figure','Stage lower left photographed figure','Stage lower right photographed figure']){
-  const figure=landscape.getObjectByName(name),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),figure.position.clone().sub(new THREE.Vector3(51,4,-5)).normalize());
-  assert.equal(ray.intersectObject(landscape,true)[0]?.object.name,name,'Decorative figure visible from the forecourt');
+// The figures are modelled stone groups (lotus base, body, arms), not photo panels: aim at the chest.
+for(const name of ['Stage upper left stone figure','Stage upper right stone figure','Stage lower left stone figure','Stage lower right stone figure']){
+  const figure=landscape.getObjectByName(name),chest=figure.position.clone().add(new THREE.Vector3(0,.9,0)),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),chest.sub(new THREE.Vector3(51,4,-5)).normalize());
+  assert.equal(ray.intersectObject(landscape,true)[0]?.object.parent?.name,name,'Decorative figure visible from the forecourt');
+  figure.traverse(o=>{if(o.isMesh)assert.ok(!o.material.map,'Stage figures carry no photograph');});
 }
 // The shop is beside the adjacent building, not another temple frontage.
 for(const key of ['shop','shoplake']){

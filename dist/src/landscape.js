@@ -1106,12 +1106,18 @@ export function buildLandscape(K, {mobile=false}={}) {
     const riser=new THREE.Mesh(new THREE.PlaneGeometry(3.77,.162),stageTileMat);riser.name='Stage blue-white diamond stair riser';riser.rotation.y=-Math.PI/2;riser.position.set(56.897+i*.31,(i+.5)*.162,-5);group.add(riser);
   }
   // 15.12.15 / 15.13.30: whitewashed pedestals carrying black stone elephants flank the stair.
-  const elephantStone=new THREE.MeshStandardMaterial({color:'#1c1c1b',roughness:.45});
+  // 15.13.30 (measured): matt dark grey stone, about 0.2 of the whitewash beside it, not glossy black.
+  const elephantStone=new THREE.MeshStandardMaterial({color:'#343536',roughness:.88});
   // 15.13.30: both elephants stand on the same (south) side, one above the other on stepped
   // pedestals beside the plain lower flight; the north side is clear.
-  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-7.35,55.2,.5]]){
-    box('Stage stair elephant pedestal',x0,top/2,z,1.3,top,.6,adjacentWhite,true);
-    const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);group.add(el);
+  // 15.19.57: an elephant stands 0.68 of a door-guardian's height (about 1.2 m), so 1.25x the first
+  // model; 15.13.30: each stands on a dark slab with a calf under its trunk.
+  for(const [z,x0,top] of [[-7.35,58.0,1.25],[-7.35,55.2,.5]]){
+    box('Stage stair elephant pedestal',x0,top/2,z,1.7,top,.7,adjacentWhite,true);
+    const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);el.scale.setScalar(1.25);group.add(el);
+    K.box(el,'Elephant base slab',-.06,.03,0,1.3,.06,.44,elephantStone);
+    {const calf=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),elephantStone);calf.scale.set(.19,.13,.12);calf.position.set(-.60,.19,0);calf.name='Elephant calf body';el.add(calf);
+     const calfHead=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),elephantStone);calfHead.position.set(-.78,.25,0);calfHead.name='Elephant calf head';el.add(calfHead);}
     const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);
     const head=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),elephantStone);head.position.set(-.5,.72,0);head.name='Elephant head';el.add(head);
     for(const s of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),elephantStone);ear.scale.set(.05,.2,.16);ear.position.set(-.42,.72,s*.2);ear.name='Elephant ear';el.add(ear);}
@@ -1294,17 +1300,6 @@ export function buildLandscape(K, {mobile=false}={}) {
    const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
    const roofMat=darkTile.clone();roofMat.side=THREE.DoubleSide;
    const roof=new THREE.Mesh(geom,roofMat);roof.name='Stage projecting gable roof slopes';roof.castShadow=roof.receiveShadow=true;group.add(roof);K.roofs.push(roof);}
-  // Four decorative figures are sampled from the already-approved 15.19.57
-  // photograph. Only the architectural figures, not people in its forecourt.
-  function stageFigure(name,a,y,rect){
-    const map=new THREE.TextureLoader().load('./assets/temple.jpg');map.colorSpace=THREE.SRGBColorSpace;
-    const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(.76,1.80),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
-    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(59.135,y,-5-a);group.add(panel);
-  }
-  stageFigure('Stage upper left photographed figure',2,6.68,[696,303,755,462]);
-  stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);
-  stageFigure('Stage lower left photographed figure',2,2.68,[680,682,758,859]);
-  stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
   // 15.13.51 / 15.19.57: curled brackets project beyond the capital collars
   // in both beam directions. Starting at the centre hid the old small profile
   // inside the one-metre collar; anchor these at the shaft face instead.
@@ -1364,6 +1359,30 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;
      box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,3.8,materials.basalt);}
    K.ramp(x0+n*run/2,-5,n*run,3.8,'x',0,ADY);K.ramp(58.45,-5,3.1,3.8,'x',ADY,1.62+ADY);}
+  // 15.13.30 / 15.19.57 / 14.28.15: the four door-guardians are free-standing grey granite
+  // figures on lotus bases, clear of the pillars: the lower pair on white pedestals at the stair
+  // head, the upper pair on brackets outside the balcony rail. Modelled in stone (measured in
+  // the photos at 0.4-0.5 of the whitewash, bluish), not photographs on planes. World heights.
+  {const figureStone=new THREE.MeshStandardMaterial({color:'#59646e',roughness:.85});
+   // 15.19.57: a figure is about 0.3 as wide as it is tall, full in the legs, with a tall crown.
+   const profile=[[.18,0],[.20,.22],[.18,.50],[.15,.74],[.21,.86],[.24,1.02],[.22,1.12],[.09,1.19],[.09,1.24],[.13,1.30],[.135,1.40],[.12,1.47],[.08,1.60],[0,1.66]].map(([r,y])=>new THREE.Vector2(r,y));
+   const bodyGeo=new THREE.LatheGeometry(profile,14),baseGeo=new THREE.CylinderGeometry(.23,.28,.16,14),armGeo=new THREE.BoxGeometry(.08,.44,.09),handGeo=new THREE.BoxGeometry(.10,.12,.16),maceGeo=new THREE.CylinderGeometry(.035,.05,1.0,8);
+   const figure=(name,x,y,z,folded,side)=>{
+     const f=new THREE.Group();f.name=name;f.position.set(x,y,z);group.add(f);
+     const add=(n,geo,px,py,pz,rx=0)=>{const m=new THREE.Mesh(geo,figureStone);m.name=n;m.position.set(px,py,pz);m.rotation.x=rx;m.castShadow=m.receiveShadow=true;f.add(m);return m;};
+     add('Stage figure lotus base',baseGeo,0,.08,0);
+     add('Stage figure body',bodyGeo,0,.16,0).scale.set(.62,1,1); // flattened front to back; faces the forecourt
+     if(folded){for(const s of [-1,1])add('Stage figure arm',armGeo,-.08,1.14,s*.14,s*.62);add('Stage figure folded hands',handGeo,-.15,1.02,0);}
+     else{for(const s of [-1,1])add('Stage figure arm',armGeo,-.02,1.02,s*.265,-s*.10);add('Stage figure mace',maceGeo,-.10,.66,side*.31);}
+   };
+   for(const [n,z,side] of [['left',-7.15,-1],['right',-2.85,1]]){
+     box('Stage statue pedestal',58.8,1.485,z,.5,2.97,.5,adjacentWhite,true);
+     figure('Stage lower '+n+' stone figure',58.8,2.97,z,false,side);
+   }
+   for(const [n,z] of [['left',-7],['right',-3]]){
+     box('Stage statue bracket',58.8,6.35,z,.42,.3,.42,adjacentWhite);
+     figure('Stage upper '+n+' stone figure',58.8,6.5,z,true,0);
+   }}
   K.labels.push({text:'Adjacent building',position:[60,11.7,-5]});
   // 15.20.13 and 15.28.26: the same shop, beside the adjacent two-storey
   // building, on the lake's eastern edge. The frontage faces -X, like its neighbor.
