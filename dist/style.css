@@ -11,6 +11,12 @@ body[data-mode=tour] #touch-controls{display:none}
 /* The caption card stays up during the tour and carries Pause / Next view; a soft backing keeps it readable over bright walls and grass. */
 .location-card{padding:10px 14px;margin:0 0 -10px -14px;border-radius:6px;background:#1b30298c;backdrop-filter:blur(8px)}
 #tour-controls{display:flex;gap:8px;margin-left:8px;pointer-events:auto;text-shadow:none}#tour-controls button{border:1px solid #e5dec566;padding:8px 12px;border-radius:4px;background:#20352ecc;font-size:12px;white-space:nowrap}
+/* Panels sit above the touch arrows and the caption; Settings has the same title row and close button as Photographs; open panels mark their toolbar button. */
+.photo-panel{z-index:2}.settings{z-index:3}
+.settings .panel-title h3{margin-bottom:16px}.settings .close{padding:0 2px;text-decoration:none}
+.settings input[type=checkbox]{accent-color:#decfa5;width:16px;height:16px;margin:0}
+.photo-panel{top:116px}.photo-panel>button{margin-right:18px}.photo-panel>#align-photo{float:right;margin-right:0;color:#c3cbb4}
+.toolbar button[aria-pressed=true],.toolbar button[aria-expanded=true]{color:var(--gold);box-shadow:inset 0 -2px var(--gold)}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}

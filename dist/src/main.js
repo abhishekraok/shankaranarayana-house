@@ -339,6 +339,9 @@ $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinati
 $('reset').onclick=()=>teleport(destinations.front);
 $('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);skyShade?.build();renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
 $('settings-btn').onclick=()=>{release();$('settings').hidden=!$('settings').hidden;$('settings-btn').setAttribute('aria-expanded',String(!$('settings').hidden));};
+$('close-settings').onclick=()=>{$('settings').hidden=true;$('settings-btn').setAttribute('aria-expanded','false');};
+// Escape closes an open panel first (Settings, then Photographs); only with none open does it go on to pause the tour.
+addEventListener('keydown',e=>{if(e.key!=='Escape'||aligning||document.querySelector('dialog[open]'))return;if(!$('settings').hidden)$('close-settings').click();else if(!$('photos').hidden)$('close-photos').click();else return;e.stopImmediatePropagation();});
 $('speed').oninput=e=>{speed=+e.target.value;$('speed-label').textContent=speed<2.2?'Slow':speed<3.5?'Gentle':'Brisk';};
 $('sensitivity').oninput=e=>sensitivity=+e.target.value;
 $('shadows').onchange=e=>{renderer.shadowMap.enabled=e.target.checked;renderer.shadowMap.needsUpdate=true;scene.traverse(o=>{if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.needsUpdate=true);}});};
