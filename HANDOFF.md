@@ -94,6 +94,56 @@ committed) still apply.
   set back at least 3.4 m (main.js ground strips, `terrainY` and the `templepond` viewpoint changed with it).
   The tour walks up the lane-end steps and over the lawn. Poses now 0.3-0.45 m low: 15.20.13, 14.59.54.
   Not done: fix 17's longer rear block, fixes 1, 8, 9, 10, 14B.
+- House (a sub-agent's eleven commits, merged; house fixes 22, 18, 13, 11, 21, 9, 19 and the eaves): the God
+  room is 0.45 m deeper as the owner's note on 14.37.50 asks (`DEEP` 1.85; rear wall about z 11.93, rear plinth
+  to z 12.55, tall block `z1` 11.97); its stair cheeks are flush with the platform with a double scroll and a
+  white side panel; the rear veranda has a white gutter on the west half, poles under the east eave, a stack of
+  logs, and a screen of fifteen bleached slats on a dark plinth in materials of its own (the fence is still
+  unbroken); ragged bare plaster replaces the pink lobes on the rear wall; the front room has dark boarding, a
+  radio on a hung shelf, a plaque and a calendar, and both sitting windows read as closed timber shutters
+  from inside (they were blank red-brown slabs); the east veranda's court eave shows rafter ends; the sitting
+  bays reach 0.32 m further toward the lane (z -.07) behind a stone strip, and the lower walk is 0.8 m wide;
+  the sitting window is half a metre nearer the door (centre x 2.5) and squarer, standing on the skirting;
+  the court stair is 1.1 m nearer the God room (`courtStairX` -5.65) with a two-tier casement in the wall
+  under it. Everything on the radio shelf must stay behind z 2.345 or it shows through the outer window.
+  Poses made stale by this: inside the God room (14.37.50, 14.35.26, 'house, God room, left side',
+  'house God room, right top corner'), on or beside the court stair (14.46.10, 14.46.21, 14.46.04, 14.48.07,
+  14.48.11, 14.48.31: +1.1 m in x), and both 'house above the right front window, from inside' photos.
+  For the owner's eye: the 1.1 m stair shift is an estimate (0.7-1.7), and 14.30.57 / 14.31.01 show no screen
+  on the rear veranda's east stretch (kept, because the fence is to stay unbroken).
+- Web light, sky occlusion (`main.js`; a sub-agent's two commits): light from the sky (hemisphere, ambient and
+  the fill light) is cut to 15% under roofs, using a top-down height map built at load and on each Lift roofs
+  click; walls look outward for the edge of the roof they stand under, and only walk colliders at least 0.9 m
+  long stop that search, so a room built of non-solid walls is lit like a veranda. The exposure rises indoors
+  (gain 5.3, eased over 0.5 s, instant when the camera is placed). Constants `SKY_OCCLUSION`, `SKY_FLOOR`,
+  `SKY_INDOOR_GAIN`, `SKY_ADAPT_SECONDS`; `SKY_OCCLUSION=false` restores the old light exactly. 14.44.09: the
+  wall under the court lean-to went from 155,198,191 to 37,75,69 (photo 22,18,30); open ground and facades in
+  the open are unchanged. Meshes whose names contain plant words (leaf, crown, palm, tree, canop, ...) never
+  shade; materials added after startup are not patched; `renderer.toneMappingExposure` is written every frame.
+  Left rough: at a veranda's edge looking out, the ceiling and posts go near-black; the map build takes 0.7 s.
+- Temple (a sub-agent's 25 commits, merged; temple fixes 3, 8, 11-17, 21-23, most of 2, and Codex's arch finding):
+  the old shrine's arched panels are real recesses in a 14 cm red facing (they stood proud of the wall), cream
+  on the east over a red foot band; its court side has a red-framed doorway, plain end panel, stone bench and
+  laterite piers; the rear range's west bay is a gate with barred side lights under the jali, no wall left of
+  it, a louvred window and the stair in the bay's shade (no stair at x 31.1 any more: the rear veranda is
+  reached by the east flight or the west veranda); the covered hall's lane wall has a real doorway with a
+  barred transom and open leaf (look-through only, not walkable), a narrow window and a red dado; under the
+  hall awning the ceiling and fans are gone and the court paving runs through; the right hall's upper storey
+  has a row of lattice vents and a first-floor room at the south end; the entrance doorway is 1.05 m wide in
+  a 2.5 m painted surround with white corbels, and the four paintings are 1.35 m tall over a 0.3 m marble
+  dado (centres x 42.975, 41.45, 36.55, 35.025; the three painting viewpoints in main.js follow); the sanctum
+  doorway has a band of touching brass plates, stone blocks and heavier leaves; the inner temple has 3 m
+  aisles, a blue room wall on a narrow ledge on the east, a 1.45 m west ledge, a rear ledge at 1.55 with six
+  1.8 m columns under a pent of stone slabs, the mandapa under sloping dark slabs, and warm pink-buff aisle
+  paving; the inner front has its steps in a cut in the plinth and a pierced white parapet between red piers;
+  the blue east porch is rebuilt (3.65 m round piers to a slab at 4.6, scalloped lintel, slate shutters,
+  mounting block) with the tower over the stair bay and two low pavilions (built near the end of buildTemple
+  in final coordinates). Red bases are flush on every square blue column (`blueColumn`).
+  Poses made stale: 15.14.30, 15.15.11, 15.15.17 (paintings moved), 15.08.42 and 'temple inner sanctum, left
+  side' (aisles widened). For the owner's eye: the west ledge has four piers where 15.08.42 suggests five or
+  six; the second low pavilion looks longer in 15.13.07; the ledge reliefs are still grey-green (photos:
+  pinkish friezes); the entrance panels use an emissive map, to be checked in the game. Not done: fixes 5, 6,
+  9, 20, 24, 25, 16(d).
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
