@@ -6,6 +6,29 @@ Claude owns model source, tests, photo findings and HANDOFF.md on `main` in the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-04 early morning (Claude)
+
+Main moved about 150 commits (house, temple and lake fixes from the photo review, a sweep for odd or unreal
+things, tour smoothing, web interface and web lighting); `HANDOFF.md` on main has the details. The game was
+rebuilt from main `3abfe30` at 02:27 and passes smoke and cold restart. Lighting and textures here were not
+retuned (the owner is happy with Codex's pass).
+
+Script changes on this branch, all because main's model changed under hard-wired expectations:
+- `material_targets.py`, `export_unreal.py`, `verify_materials.py`: the courtyard fence override is optional.
+  Main now authors the rear fence as a bleached slat screen in materials of its own, so the structural timber
+  gain no longer reaches it and `courtyard_fence_override()` returns None.
+- `materials.py`: the temple paving material may also be used by 'Covered hall lower grey walking floor'; stale
+  material slots left by a re-import are skipped when the fresh GLB has no material of that name (unnamed web
+  materials are named by index, so indices shift when main adds materials); the non-foliage name list lost
+  'Shrine east window deep pale canopy' (now a timber hood).
+- Any emissive web material becomes a plain glow here: main's entrance door panels briefly had an emissive map
+  and rendered as white blanks; main no longer uses emissive maps on panels.
+
+Codex's findings in the table below: the arch infill (15.11.08 / 15.11.17) and the chair hall's lane wall are
+fixed on main; the camera inside the east passage pier (14.31.25) is fixed (the wall is thinner and further
+forward); the notice in front of 14.58.02 / 14.58.05 is smaller and moved to the bathing gate; the other poses
+are in the owner's re-alignment list in HANDOFF.md.
+
 ## 2026-10-03 model follow-up
 
 Reviewed all 172 aligned poses at main `30e9675`; baseline overview:
