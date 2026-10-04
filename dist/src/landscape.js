@@ -177,7 +177,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   seed=sideRoadSeed;
   for (let i = 0; i < 70; i++) {
     const p=roadSamples[Math.floor(range(3,128))],x=p.x,z=p.z+(random()<.5?-1:1)*range(roadHalfWidth(p)+.1,roadHalfWidth(p)+.65);
-    blockBatch('loose shoulder stones', materials.path, x, roadRise(x)+.042, z, range(.12, .43), .05, range(.1, .3));
+    // Dull grey-brown lumps, not bright tan tiles (the tint is by index so no extra random draw shifts later seeds).
+    blockBatch('loose shoulder stones', materials.path, x, roadRise(x)+.042, z, range(.12, .43), .05, range(.1, .3), new THREE.Color().setScalar(.5+.035*((i*7)%5)));
   }
 
   // Upper footpaths form a complete loop. The southern path connects to lane.
@@ -401,8 +402,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
   // User's note (game): the open iron leaf stood out over the water; removed.
-  box('Bathing gate approach masonry',15.18,-.38,-9.4,2.45,.63,2.85,materials.basalt);
-  box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
+  // The slab stops under the roadside parapet (z -8.3): it used to show on the lane side as a tan plank along the wall's foot.
+  box('Bathing gate approach masonry',15.18,-.38,-9.5625,2.45,.63,2.525,materials.basalt);
+  box('Bathing gate approach landing',15.18,-.005,-9.5625,2.45,.12,2.525,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
   // Long masonry ledges descend lakeward below the house-side water rail.
   for(const [z,y,d] of [[-10.4,-.65,.3],[-10.7,-1.2,.3],[-11,-1.75,.3]]){
@@ -438,7 +440,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance west pillar collar',30.15,1.25,-7.9,.38,.16,.38,materials.oldWhite);
   box('Lake entrance black plaque',30.15,1.3,-7.585,.5,.32,.02,new THREE.MeshStandardMaterial({color:'#1b1b1a',roughness:.5}));
   // 15.20.29: the lake side has the same pedestal and stepped pillar under the roof's west end.
-  box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.38,.56,1.1,.5,materials.oldWhite,true);
+  box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.375,.56,1.1,.51,materials.oldWhite,true);
   box('Lake entrance west stepped white pillar',30.15,1.85,-10.38,.3,1.5,.3,materials.oldWhite,true);
   box('Lake entrance west pillar collar',30.15,1.25,-10.38,.38,.16,.38,materials.oldWhite);
   box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
