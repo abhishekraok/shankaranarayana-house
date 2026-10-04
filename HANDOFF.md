@@ -24,6 +24,48 @@ committed) still apply.
   in a plan rectangle.
 - Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
 
+## Night of 2026-10-03: the user's two new game notes, Codex's findings
+
+- Game notes of 2026-10-02 22:51 (`F:/Shankaranarayana/unreal-notes.json`, the last two): the court pocket
+  floor is the passage's smooth dark stone (it was green flagstones), and the raised red floor east of
+  the passage starts in line with the court's blue railing (`hallX` = 6.85 in house.js). From the east
+  sitting platform to there the hall floor is at ground level (`Inner hall ground-level floor`); the
+  sitting platform is an island with a scored pink face on its east end, the court post at x 4.1 stands
+  on a stone base, the rusty sheet stands on the ground at the court edge, and the court step there is
+  gone. `tests/entrance-geometry.mjs` walks the route at ground level and steps up at the railing line.
+- East passage (14.31.14, 14.31.25, 14.31.43; house fix 14): a plain blue-grey wall beam with one scalloped
+  bracket over the clock, the clock 0.3 m higher on a broad upright, near-black ceiling joists and lining,
+  the court railing in weathered blue (`courtBlue`, on the plaster base: the kit blue rendered with no red
+  at all), and the front end wall thinned to 0.12 m at z 5.66 so the 14.31.25 / 14.31.14 camera no longer
+  stands inside it (Codex's finding).
+- House court (14.44.09, 14.30.57, 14.31.01, 14.48.07): the split stone posts carry a speckled granite map
+  (`graniteMap`; the shrine-side ones are flat-shaded and jittered), the court top is one painted map of
+  weeds with worn soil paths (material `court weed cover`; `Damp courtyard soil` now has a material array),
+  the pole frame's supports stand 2.5 m apart with the pole run to the rear (fix 24), and the ledge pipe
+  lies flat again (its rotation had been swallowed by a trailing comment; `temple.js` has one more such
+  line, `shelterRoof.rotation.x=-.07`, to restore after the temple merge).
+- God room outside (14.44.14, 14.44.09, 14.46.10, 14.52.16; fix 7): three broad patterned bands at 1.75,
+  2.70 and 3.65 m (on the west the lower two only behind the window), the west window raised (sill 2.15 m)
+  under a long pale canopy, a dark timber hood with a red cap on the east window, and the low roof clipped
+  inside the tall walls so no tiled skirt shows. The upper wall east of it has a small timber window where
+  a wide pale grille was (14.44.14).
+- Wing and upper front (house-front-left.jpg, 14.59.36, 15.26.49; fix 12): no far window on the wing's lane
+  face, a dark standing slab 2 m off the wing end, the black band under the upper bay up to the sill, the
+  upper-left window in unpainted timber. Not done from fix 12: the grass apron east of the wing (it would lie
+  on the side road).
+- Front veranda lower walk: smooth worn grey cement instead of jointed flagstones (14.56.30).
+- Poses that no longer fit and need the owner's re-alignment: 14.31.43 (the clock moved up), 14.30.57 and
+  14.31.01 (the camera stands in the hall under the court lean-to added later; the photos were taken in
+  the court, about world 1.9, 1.6, 7.2), 14.52.16 (under the west lean-to, eye too high), and Codex's list
+  in PHOTOREAL-NOTES.md: 15.01.56, 14.58.02, 14.58.05, 15.14.56, 15.02.00, 15.04.51, 15.05.48, 15.25.49.
+- Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
+  serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
+  4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
+  of the tests with the port replaced).
+- The server on port 4173 may be a stale one from another worktree (it was serving the photoreal
+  checkout, without the photo folder). Browser tests then test that checkout, not this one. Check with
+  `curl -s http://127.0.0.1:4173/src/house.js | md5sum` against `dist/src/house.js` before trusting them.
+
 ## Morning of 2026-10-02: light, water, Vipra Bhavan
 
 - Web light (`main.js`): the sun now stands in the south-west (`sun.position 36,63,52`), where it

@@ -267,7 +267,9 @@ for(const side of [-1,1]){
 // User's notes: both raised sitting platforms are left empty.
 for(const n of ['Inner sitting platform storage trunk','Inner sitting bay red steel cupboard','Inner sitting bay curved-arm wooden chair','God room side desk'])assert.ok(!house.getObjectByName(n),n+' was removed');
 
-houseRoute('Inner veranda to the right front room (no facade door, per user)',[[5.5,5.1],[5.5,3.1],[7,3.1]]);
+// User's note (game, 2026-10-02): this hall floor is at ground level; the raised red floor starts at the court railing line (x 6.85).
+houseRoute('Inner veranda to the right front room (no facade door, per user)',[[5.5,5.1],[5.5,3.1],[7,3.1]],.075,.07);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.45)<.01,'Raised floor starts in line with the court railing');
 houseRoute('Entrance to left sitting bay',[[0,1.32],[2.65,1.32]],.075,.07);
 houseRoute('Entrance to right sitting bay',[[0,1.32],[-2.65,1.32]],.075,.07);
 houseRoute('Left sitting bay back to main door',[[2.65,1.32],[0,1.32],[0,3]],.75,.07);
