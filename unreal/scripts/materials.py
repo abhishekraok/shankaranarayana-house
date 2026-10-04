@@ -164,18 +164,19 @@ assert all(math.isfinite(v) for v in FOLIAGE_STYLE.values()), 'Invalid foliage s
 assert FOLIAGE_STYLE['LeafCellCM'] > 0 and FOLIAGE_STYLE['LeafClumpCM'] > 0, 'Foliage cells must be positive'
 assert 0 <= FOLIAGE_STYLE['LeafFineContrast'] <= 1.8 and 0 <= FOLIAGE_STYLE['LeafClumpContrast'] <= 2, 'Invalid foliage contrast'
 
-def exclusive_materials(object_name):
+def exclusive_materials(object_name, also=()):
     objects = [o for o in meta['objects'] if o['name'] == object_name]
     assert len(objects) == 1, f'Expected one object: {object_name}'
     materials = set(objects[0]['materials'])
     users = [o for o in meta['objects'] if materials.intersection(o['materials'])]
-    assert materials and len(users) == 1, f'Material shared outside {object_name}: {[o["name"] for o in users]}'
+    assert materials and {o['name'] for o in users} <= {object_name, *also}, f'Material shared outside {object_name}: {[o["name"] for o in users]}'
     return materials
 
 # Resolve from the authored object, never a shared name or an export-order index.
 # The arcade and west shed use cloned slope materials; their ridge is shared.
 arcade_roof_mats = exclusive_materials('Long lakeside bathing arcade tiled roof tiles')
-temple_paving_mats = exclusive_materials('Courtyard large stone paving')
+# Since 2026-10-03 the court paving runs on under the covered hall's awning (15.10.49), in the same material.
+temple_paving_mats = exclusive_materials('Courtyard large stone paving', also=('Covered hall lower grey walking floor',))
 
 def master(name, tint=False, two_sided=False, water=False, emissive=False, mapped=False, masked=False, linear_maps=False, foliage=False, foliage_map_contrast=False):
     assert not foliage_map_contrast or (foliage and mapped), 'Map contrast requires mapped foliage'
