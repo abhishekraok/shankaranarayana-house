@@ -654,6 +654,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.11.58: the arcade floor and the gate landing are worn concrete, patchy, not one flat tan.
   {const wornFloor=new THREE.MeshStandardMaterial({map:stainMap(60411,'#978e7f',[[14,'182,174,160',.45,16,50],[16,'112,102,90',.4,10,36],[8,'128,96,78',.3,8,24]]),roughness:1});wornFloor.name='worn concrete floor';
    for(const o of group.children)if(o.name==='Bathing arcade raised floor slab'||o.name==='Bathing gate approach landing')o.material=wornFloor;}
+  // 15.30.09: the paths round the tank are stony earth, grey-brown with laterite showing, not clean tan paving.
+  {const stonyPath=new THREE.MeshStandardMaterial({map:stainMap(71907,'#84786a',[[26,'150,142,128',.45,6,22],[26,'82,70,58',.5,5,20],[16,'132,88,66',.4,6,20],[8,'96,106,60',.3,4,12]]),roughness:1});stonyPath.name='stony earth path';
+   for(const o of group.children)if(/^tank perimeter path [124]$/.test(o.name))o.material=stonyPath;}
   const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#66605e',[[12,'150,144,140',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
   // 15.22.33: the roof slab's edge band is whitewash stained grey and black in patches; the floor inside is
@@ -1472,6 +1475,18 @@ export function buildLandscape(K, {mobile=false}={}) {
    // from there on only the building's own plinth shows behind it.
    for(const [zc,len] of [[-9.05,2.7],[.8,7.2]]){
      box('Adjacent building forecourt terrace',58.35,.85,zc,3.3,1.7,len,terraceMat,true);K.surface(58.35,zc,3.3,len,1.7);} // x 56.7..60: clear of the tour's path at x 56.2
+   // The world-mapped blotch texture went soft and smeared up close: the faces get a sharper one fitted to
+   // their 1.7 m height (rain streaks from the top, grit, moss at the foot) and the top a plain weathered one.
+   {const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d');let n=40127;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle='#80746b';x.fillRect(0,0,512,256);
+    for(let i=0;i<26;i++){const px=r()*512,py=r()*256,rad=14+r()*40,a=(.18+r()*.2).toFixed(3),rgb=r()<.5?'168,160,148':'70,62,56',g=x.createRadialGradient(px,py,0,px,py,rad);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(px-rad,py-rad,rad*2,rad*2);}
+    for(let i=0;i<150;i++){const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,`rgba(30,28,26,${(.2+r()*.3).toFixed(3)})`);g.addColorStop(.4+r()*.6,'rgba(30,28,26,0)');x.fillStyle=g;x.fillRect(r()*512,0,1+r()*4,256);}
+    for(let i=0;i<5000;i++){x.fillStyle=r()<.5?'rgba(170,164,152,.25)':'rgba(40,38,34,.28)';x.fillRect(r()*512,r()*256,1+r()*2,1+r()*2);}
+    {const g=x.createLinearGradient(0,206,0,256);g.addColorStop(0,'rgba(58,74,42,0)');g.addColorStop(1,'rgba(58,74,42,.55)');x.fillStyle=g;x.fillRect(0,206,512,50);}
+    const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.anisotropy=4;m.repeat.set(.5,1/.85);m.offset.set(0,.5);
+    const side=new THREE.MeshStandardMaterial({map:m,roughness:1});side.name='forecourt terrace stained side';
+    const top=new THREE.MeshStandardMaterial({map:stainMap(40128,'#7e776e',[[10,'160,154,144',.4,16,50],[14,'60,56,50',.4,10,36],[8,'74,86,52',.3,8,24]]),roughness:1});top.name='forecourt terrace top';
+    for(const o of group.children)if(o.name==='Adjacent building forecourt terrace')o.material=[side,side,top,side,side,side];}
    for(const [zc,d,top] of [[-7.3,.8,1.69],[-2.95,.3,1.7]]){
      box('Adjacent building stair white cheek',57.85,top/2,zc,2.3,top,d,adjacentWhite,true);K.surface(57.85,zc,2.3,d,top);}
    for(const [za,zb] of [[-15,-7.5],[-.7,5]])for(const [k,proj] of [.30,.18,.06].entries())
@@ -1514,13 +1529,25 @@ export function buildLandscape(K, {mobile=false}={}) {
   {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,lateritePath);path.rotation.y=-.165;
     K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
   box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,lateritePath);
+  // 15.20.13: in front of the shop's south half the path spreads into a broad, irregular worn patch
+  // that narrows towards the far end of the veranda. Own seed, so no later planting shifts.
+  {let n=44021;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   for(const [k,[cx,cz,rx,rz]] of [[55.7,-15.4,1.3,2.1],[56.4,-18.8,1.7,3.4],[57.3,-23.2,1.4,3.0],[58.7,-24.2,1.1,1.2],[57.6,-27.6,1.0,2.2]].entries()){
+     const y=lawnTop+.008+k*.002,pos=[cx,y,cz],uv=[cx*.5,cz*.5],idx=[],rad=Array.from({length:20},()=>.68+r()*.32);
+     for(let i=0;i<=20;i++){const a=i/20*Math.PI*2,q=rad[i%20],vx=cx+Math.cos(a)*rx*q,vz=cz+Math.sin(a)*rz*q;pos.push(vx,y,vz);uv.push(vx*.5,vz*.5);if(i)idx.push(0,i+1,i);}
+     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+     const m=new THREE.Mesh(g,lateritePath);m.name='Shop-front worn laterite patch';m.receiveShadow=true;group.add(m);}}
   // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
   // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
   steps('Lane-end concrete steps up to the lawn',52.4,-8.95,5.0,3.3,'-z',0,lawnTop,3,laneConcrete);
   box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
-  box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
-  box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  // 14.59.54: beside the steps lies a low run of grey cover slabs with a square drain opening, about
+  // level with the lawn; behind it stands a taller block, whitewashed and black-stained.
+  box('Lane-end raised concrete platform',57.1,.28,-11.6,1.0,.56,2.4,laneConcrete,true);
+  for(const z of [-11.2,-12.0])box('Platform cover slab joint',57.1,.561,z,1.0,.004,.025,materials.darkSoil);
+  box('Lane-end stained whitewashed block',58.25,.575,-11.6,1.3,1.15,2.4,pavilionGrey,true);
+  box('Platform dark drain opening',56.595,.30,-11.0,.02,.2,.3,materials.darkSoil);
   // 14.59.54: the steps are weathered concrete, pink-brown with laterite dust on the treads, with
   // paler worn patches and darker soiled risers; the platform is grey on top with black-stained sides.
   {const mk=(name,map)=>{const m=new THREE.MeshStandardMaterial({map,roughness:1});m.name=name;return m;};
