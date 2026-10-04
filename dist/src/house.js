@@ -1831,10 +1831,10 @@ export function buildHouse(K) {
   K.blocker(3.80,1.67,.75,.64,.75,1.84);
   K.blocker(3.60,.86,.38,1.28,.75,1.25);
   // Open pale wall cupboard at the end of the sitting bay, beyond the posts.
-  b('Veranda open pale cupboard back',4.90,2.12,.18,.045,1.78,.44,'paleStone');
+  b('Veranda open pale cupboard back',4.90,2.12,.18,.045,1.78,.44,'cream'); // veranda.jpg: pale painted boards; the stone material drew masonry joints on it
   for(const z of [-.04,.40])b('Veranda cupboard side',4.76,2.12,z,.28,1.78,.045,'cream');
   for(const y of [1.23,1.68,2.13,2.58,3.01])b('Veranda cupboard open shelf',4.76,y,.18,.28,.035,.44,'cream');
-  b('Veranda pale open cupboard door',4.48,2.12,-.055,.30,1.78,.03,'paleStone');
+  b('Veranda pale open cupboard door',4.55,2.12,-.055,.30,1.78,.03,'cream'); // hung at the end wall's corner (x 4.40); 7 cm of it lay flush in the wall's end face
   b('Veranda far closed timber doorway',9.19,1.94,1.05,.11,2.93,1.92,verandaTimber,true);
   // veranda.jpg / 14.56.30 / 14.56.07: the walkway ends in a turquoise wall up to the rafters.
   {const sh=new THREE.Shape();[[-.98,.455],[.09,.455],[.09,3.41],[2.05,3.41],[2.05,3.63],[0,3.63],[0,3.34],[-.98,2.74]].forEach(([z,y],k)=>k?sh.lineTo(z,y):sh.moveTo(z,y));sh.closePath();
