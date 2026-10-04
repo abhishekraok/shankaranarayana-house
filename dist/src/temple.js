@@ -1002,8 +1002,13 @@ export function buildTemple(K) {
   // (it used to stand at the post line, filling the central bay).
   box('Inner doorway painting backing',39,3.25,16.42,2.1,.8,.10,white);
   referencePanel('Photographed inner doorway painting',39,3.25,16.36,2.0,.74,[.414,.458,.518,.568]);
-  referencePanel('Photographed dark temple notice board',43.2,1.76,15.05,.9,2.12,[.11,.589,.183,.79]);
-  referencePanel('Photographed pale temple notice board',34.55,2.69,15.07,1.0,1.12,[.799,.486,.9,.608]);
+  // temple-upper-center.jpg: the dark board stands on the veranda's front edge, leaning on the fourth column;
+  // the pale notice hangs from the transom sill beside the first column, not across it. Each has a thin back
+  // board, so neither hovers in front of the plinth nor vanishes when seen from the veranda behind it.
+  box('Dark temple notice board back',43.2,1.59,15.098,.9,2.12,.02,dark);
+  referencePanel('Photographed dark temple notice board',43.2,1.59,15.085,.9,2.12,[.11,.589,.183,.79]);
+  box('Pale temple notice board back',33.95,2.69,15.119,1.0,1.12,.016,white);
+  referencePanel('Photographed pale temple notice board',33.95,2.69,15.105,1.0,1.12,[.799,.486,.9,.608]);
   const garland=[];for(let i=0;i<38;i++){const t=i/37;garland.push([38.12+t*1.76,2.74-.13*Math.abs(Math.sin(t*Math.PI*3)),16.08,.03,.033,.035]);}
   instances('Doorway flower garland',new THREE.SphereGeometry(1,6,4),mat('#d6b76b'),garland);
   const columns=[29.88,32.1,34.85,37.55,40.45,43.15,45.9,48.12];
@@ -2788,6 +2793,35 @@ export function buildTemple(K) {
      const xe=Math.min(x1,XC);K.surfaces.splice(K.surfaces.indexOf(r),1);
      if(z1>ZC+.1)K.surface((x0+xe)/2,(ZC+z1)/2,xe-x0,z1-ZC,r.y);
      if(x1>XC+.1)K.surface((XC+x1)/2,r.z,x1-XC,r.d,r.y);}}
+  // Flicker pass (tools/scan-zfight.mjs): where two finishes lay in one plane they shimmered as the
+  // camera moved. The part that should not show gives way by a few millimetres; nothing moves visibly
+  // and the navigation records are untouched. Stair treads sink under the floors they meet, caps
+  // overhang the blocks they cover, and trims stand proud of the faces they are painted on.
+  {const side=(x0,d)=>o=>{o.position.x+=o.position.x<x0?d:-d;};
+   const give={
+     'Inner front building foundation':[.002,-.006,0],
+     'Inner plinth cut end face':side(39,.004),
+     'Inner entrance raised platform':[.003,0,0],
+     'Inner rear raised ledge':o=>{o.scale.z*=1.032/1.04;o.scale.x*=14.092/14.1;},
+     'Inner plinth red trim':[0,0,-.004],
+     'Inner service door steps tread 2':[0,-.003,0],
+     'Courtyard exit landing':[0,.004,0],
+     'Courtyard descending stair tread 2':o=>{o.scale.y*=.97;o.position.y-=.0015;}, // top only: its foot stays on the landing
+     'Side bay central approach steps tread 3':[0,-.003,0],
+     'Temple gallery access stair tread 22':[0,-.003,0],
+     'Entrance circuit corner landing':[0,-.003,0],
+     'Entrance circuit worn corner steps tread 5':[0,-.003,0],
+     'Temple road balcony white soffit':o=>{if(o.position.x>30.5)o.position.z+=.004;},
+     'Temple road porch red foot':[0,0,.015],
+     'Sanctum cella side wall':[0,0,.004],
+     'Old inner shrine red rear wall':[.003,0,0],
+     'Old inner shrine red side wall':[0,0,-.003],
+     'Rear upper storey side return':side(29.75,.003),
+     'East range tower red top band':[0,.003,0],
+     'Covered hall front wall head':[-.003,0,0],
+   };
+   g.traverse(o=>{if(!o.isMesh||o.isInstancedMesh)return;const d=give[o.name];if(!d)return;
+     if(typeof d==='function')d(o);else{o.position.x+=d[0];o.position.y+=d[1];o.position.z+=d[2];}});}
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
   const ts=K.templeShiftZ||0;g.position.z+=ts;
