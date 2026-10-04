@@ -50,7 +50,8 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     at([39,2.17,20.2],[35.2,2.3,24],'The inner stone aisles'),
     at([35.2,2.17,20.2],[35.2,2.3,27.8],'Around the inner sanctum'),
     {...at([35.2,2.17,22.4],[39,2.3,24.2],'Beside the sanctum'),hold:.75},
-    at([35.2,2.17,27.8],[42.8,2.3,27.8],'Behind the sanctum'),
+    at([35.2,2.17,25.2],[35.5,2.1,30],'Along the west aisle'), // look up the aisle to the rear ledge (15.08.42), not into the grille beside the path
+    at([35.2,2.17,27.8],[42.8,2.4,29.4],'Behind the sanctum'), // towards the rear ledge's columns, not along the sanctum's dark back wall
     at([42.8,2.17,27.8],[42.8,2.3,21],'Returning along the inner aisle'),
     {...at([42.8,2.17,21],[39,2.25,16.3],'The inner entrance'),hold:.75},
     at([42.8,2.17,20.2],[39,2,20.2],'Returning to the courtyard'),
