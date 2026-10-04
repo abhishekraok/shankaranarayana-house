@@ -30,6 +30,9 @@ body[data-mode=orbit] .hint-orbit{display:block}
 /* Phones: the About pane gets more reading width, and the two top buttons a larger target. */
 @media(max-width:740px){dialog{padding:30px 22px 24px}dialog h2{font-size:27px;margin:12px 0 14px}}
 @media(min-width:360px) and (max-width:740px){.top-actions button{width:38px;height:38px}}
+/* Loading: the place name and a plain line under the spinner; no control shows until the first frame is drawn. */
+#loading p{margin:20px 0 8px;font-size:21px}#loading small{font:12px Arial,Helvetica,sans-serif;letter-spacing:.05em;color:#c9d2bc}
+body:has(#loading:not([hidden])) :is(.topbar,.toolbar,.location-card,#controls-toggle,#touch-controls,#note-btn){visibility:hidden}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
