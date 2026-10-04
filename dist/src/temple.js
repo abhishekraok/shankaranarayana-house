@@ -1865,6 +1865,10 @@ export function buildTemple(K) {
     uv.needsUpdate=true;
   }
   innerPaving('Inner sanctum continuous stone aisle',39,24.45,14.1,10.0,.55);
+  // 15.08.42 / 'temple inner sanctum, left side': the aisle's slabs are a warm pink-buff stone
+  // (167,135,115 and 182,157,144 beside a neutral white sleeve and cloth) where the shared paving
+  // rendered grey-green (143,146,130); the ledge tops keep the grey paving.
+  {const aislePaving=innerPavingMaterial.clone();aislePaving.color.set('#ffd6cc');g.children[g.children.length-1].material=aislePaving;}
   const innerPlatformStone=mat('#a8776a',.95);
   for(const x of [34.3,43.7]){
     // User: these platforms stand about a metre above the aisle (15.08.10).
