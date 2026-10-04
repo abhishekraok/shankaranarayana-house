@@ -200,7 +200,7 @@ let skyAdapted=-1,skyMetered=0,skyFrame=0;const skyOutdoor=renderer.toneMappingE
 function adaptExposure(dt){
  if(!skyShade)return;
  const p=camera.position,placed=skyAdapted<0||aligning||p.distanceTo(skyLast)>1.5||camera.quaternion.angleTo(skyTurn)>.5;
- if(placed||!phoneMode||skyFrame++%3===0)skyMetered=[[0,0],[.9,0],[-.9,0],[0,.9],[0,-.9]].some(([dx,dz])=>skyShade.below(p.x+dx,p.y,p.z+dz))?THREE.MathUtils.smoothstep(skyShade.meter(camera),.5,.9):0; // under a roof or within a step of one: the temple's entrance passage has an open well above it (15.15.51)
+ if(placed||!phoneMode||skyFrame++%3===0)skyMetered=(skyShade.below(p.x,p.y,p.z)||[[1.2,0],[-1.2,0],[0,1.2],[0,-1.2],[.85,.85],[.85,-.85],[-.85,.85],[-.85,-.85]].filter(([dx,dz])=>skyShade.below(p.x+dx,p.y,p.z+dz)).length>=5)?THREE.MathUtils.smoothstep(skyShade.meter(camera),.5,.9):0; // under a roof, or in a small well with roof on most sides (the temple's entrance passage, 15.15.51); the edge of a court does not count
  skyAdapted=placed?skyMetered:skyMetered+(skyAdapted-skyMetered)*Math.exp(-3*dt/SKY_ADAPT_SECONDS);skyLast.copy(p);skyTurn.copy(camera.quaternion);
  // Mean luminance falls as more of the view is roofed; the exposure is its inverse.
  renderer.toneMappingExposure=skyAdapted<.001?skyOutdoor:skyOutdoor/(1-skyAdapted+skyAdapted/SKY_INDOOR_GAIN);
@@ -208,7 +208,7 @@ function adaptExposure(dt){
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
-const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
+const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(-3.8,1.62,-2),lastSafe=new THREE.Vector3(-3.8,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
@@ -314,6 +314,8 @@ function setMode(value){if(value===mode&&entered)return;const wasWalking=entered
  else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62-lakeCameraLift(camera.position.x,camera.position.z);lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
 }
 function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
+// Walk carries on from where the tour is (during the opening flight: where it lands), or from a free look taken at standing height, instead of jumping back to the last walked spot.
+function walkOn(){let view=camera;if(mode==='tour'&&introClock!==null){view=tour.intro.sample(tour.intro.duration);introClock=null;tourTime=tourStartTime;}const x=view.position.x,z=view.position.z,f=view.position.y-1.62-lakeCameraLift(x,z),h=supportY(x,z,f);if(mode!=='tour'&&!(h>-4&&Math.abs(f-h)<.6&&!collision(x,z,h))){setMode('walk');return;}const e=new THREE.Euler().setFromQuaternion(view.quaternion,'YXZ');walkPosition.copy(view.position);setMode('walk');yaw=e.y;pitch=THREE.MathUtils.clamp(e.x,-.6,.6);syncLook();}
 // Phone toolbar disclosure: collapsed initially, dismissed after choosing an action.
 const compactControls=matchMedia('(max-width:740px), (max-width:950px) and (max-height:500px)');
 const controlsToggle=$('controls-toggle'),exploreControls=$('explore-controls');
@@ -335,15 +337,18 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&controlsToggle.getAttribute(
 compactControls.addEventListener('change',()=>setControlsExpanded(false,exploreControls.contains(document.activeElement)));
 setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
-$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{setMode('walk');capture();}};
+$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{if(mode==='tour'||mode==='fly')walkOn();else setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
-$('tour-btn').onclick=()=>{tourTime=tourStartTime;introClock=0;startTour();};
+$('tour-btn').onclick=()=>{if(mode==='tour'){tourTime=tourStartTime;introClock=0;}startTour();};// Returning from a walk resumes the tour where it was left; pressing Tour while it runs restarts it.
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
 $('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;introClock=null;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
 $('reset').onclick=()=>teleport(destinations.front);
 $('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);skyShade?.build();renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
 $('settings-btn').onclick=()=>{release();$('settings').hidden=!$('settings').hidden;$('settings-btn').setAttribute('aria-expanded',String(!$('settings').hidden));};
+$('close-settings').onclick=()=>{$('settings').hidden=true;$('settings-btn').setAttribute('aria-expanded','false');};
+// Escape closes an open panel first (Settings, then Photographs); only with none open does it go on to pause the tour.
+addEventListener('keydown',e=>{if(e.key!=='Escape'||aligning||document.querySelector('dialog[open]'))return;if(!$('settings').hidden)$('close-settings').click();else if(!$('photos').hidden)$('close-photos').click();else return;e.stopImmediatePropagation();});
 $('speed').oninput=e=>{speed=+e.target.value;$('speed-label').textContent=speed<2.2?'Slow':speed<3.5?'Gentle':'Brisk';};
 $('sensitivity').oninput=e=>sensitivity=+e.target.value;
 $('shadows').onchange=e=>{renderer.shadowMap.enabled=e.target.checked;renderer.shadowMap.needsUpdate=true;scene.traverse(o=>{if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.needsUpdate=true);}});};
@@ -423,7 +428,7 @@ function move(dt){if(aligning)alignPad(dt);else if(['walk','fly'].includes(mode)
  if(mode==='fly')return;
  const h=supportY(camera.position.x,camera.position.z,feet);if(h>-4)feet=h;camera.position.y=THREE.MathUtils.damp(camera.position.y,feet+1.62+lakeCameraLift(camera.position.x,camera.position.z),16,dt);walkPosition.copy(camera.position);if(!collision(camera.position.x,camera.position.z,feet))lastSafe.copy(camera.position);
 }
-function location(x,z,y){z=farZinv(z,x);const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';const tz=z-K.templeShiftZ;if(x>14.6&&x<21&&z>-7&&z<34+K.templeShiftZ)return x>17.3&&tz>11&&tz<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>21&&x<58.2&&tz>-1&&tz<45.8){if(tz<6.5)return y>4.3?'The temple upper gallery':'The temple entrance';if(tz>37.8)return x>50?'The three vaulted shrines':'The rear temple circuit';if(tz>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return 'The front veranda';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<3&&z<10)return 'The God room';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return 'The lane by the lake';}
+function location(x,z,y){z=farZinv(z,x);const hx=x-K.houseShiftX;if(hx>-8&&hx<9.8&&z>-.9&&z<=0&&y<4.3)return 'The front veranda';const tz=z-K.templeShiftZ;if(x>14.6&&x<21&&z>-7&&z<34+K.templeShiftZ)return x>17.3&&tz>11&&tz<20&&y>2.5?'Temple exterior stair':'The road between house and temple';if(x>55&&x<67&&z>-16&&z<6)return 'The adjacent building';if(x>21&&x<58.2&&tz>-1&&tz<45.8){if(y>4.3&&tz<9.2)return 'The temple upper gallery';if(tz<6.5)return 'The temple entrance';if(tz>37.8)return x>50?'The three vaulted shrines':'The rear temple circuit';if(tz>16&&(x<31.5||x>46.5))return 'The outer temple circuit';return 'The temple courtyard';}if(hx>-12&&hx<16.4&&z>0&&z<18){if(y>4.3)return 'The upper floor';if(hx<-8&&z>14)return 'The kitchen';if(Math.abs(hx)<2.6&&z>=4.1&&z<6.95)return 'In front of the God room';if(z<5)return z<2.05?'The front veranda':'The front hall';if(hx<-3&&z>7&&z<14)return 'The courtyard & Tulsi';if(Math.abs(hx)<2.1&&z<12)return 'The God room';if(z>14.5)return 'The rear veranda';if(z>=6&&hx<7.3&&hx>-8.4)return 'The courtyard';return 'The inner veranda';}if(z<-7.5&&x<58&&x>-8.5)return x>30.5&&x<37.5&&z<-28.4?'The lakeside pavilion':'Around the lake';if(z>20)return 'Behind the house';return hx>-16&&hx<17&&z>-7.5?'The lane in front of the house':'The lane by the lake';}
 const clock=new THREE.Clock();let frames=0,elapsed=0;
 let qualityFrames=0,qualityTime=0,qualityWarmup=0;
 function adaptPhoneResolution(frameTime){
@@ -435,7 +440,7 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);adaptExposure(frameTime);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);adaptExposure(frameTime);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel.replace(/ · \d\d\.\d\d\.\d\d$/,''):mode==='orbit'?'Seen from above':location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
