@@ -58,6 +58,27 @@ committed) still apply.
   14.31.01 (the camera stands in the hall under the court lean-to added later; the photos were taken in
   the court, about world 1.9, 1.6, 7.2), 14.52.16 (under the west lean-to, eye too high), and Codex's list
   in PHOTOREAL-NOTES.md: 15.01.56, 14.58.02, 14.58.05, 15.14.56, 15.02.00, 15.04.51, 15.05.48, 15.25.49.
+- The owner's goal now adds: remove things that look odd or unreal. A sweep of 96 tour frames and three new
+  headless scans found and fixed: the large yellow notice in the lane verge (now small, on its banded pole
+  at the bathing gate, x 11.6), the brown verge trough (grey cement), the far-bank hall's emblem hanging
+  0.9 m in front of its gable and its khaki door and windows (near-black), shrubs poking through the
+  temple's rear wall (the keep-out now allows for the shrub's radius), flat green on the lane verge and
+  far-bank top (textured turf), a 2.5 cm slit beside the court stair, and a 1.5 cm gap between the temple
+  gallery floor and its stair ramp that dropped the tour through the floor for a frame.
+- Tour (`tour.js`): the eye height is averaged over about a second of travel, so it glides over steps and
+  platform edges (it jumped 0.6-1.4 m in six places); holds and the half second either side of a waypoint
+  keep the exact height. `sample()` also returns `floorEye` (the unsmoothed height), which the two tour
+  support checks use. Three waypoints moved clear of the lamp canopy and a hall column.
+- New tools: `tools/scan-blocked-poses.mjs` (photo poses whose camera is inside or behind geometry; also
+  works on a file of tour frames via POSE_FILE), `tools/scan-floating.mjs` (meshes that touch nothing),
+  `tools/scan-surface-gaps.mjs` (hairline gaps between walkable surfaces). Still open from them: a 4 cm
+  slit in the temple between the covered hall's stage bay floor and the west veranda (x 22.60..22.64,
+  z 20.7..24.4), the shop's 'small far-left window' and the temple's 'Photographed pale temple notice
+  board', which touch nothing.
+- Game: rebuilt at 22:30 with this pass's house changes (smoke and cold restart passed). Codex's
+  `materials.py` asserts its list of non-foliage object names against the scene: renaming or removing one
+  of those objects on main (here the God room's east canopy) fails the materials step until the list is
+  updated on the photoreal branch.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
