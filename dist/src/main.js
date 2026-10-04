@@ -332,7 +332,7 @@ setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
 $('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{if(mode==='tour'||mode==='fly')walkOn();else setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
-$('tour-btn').onclick=()=>{tourTime=tourStartTime;introClock=0;startTour();};
+$('tour-btn').onclick=()=>{if(mode==='tour'){tourTime=tourStartTime;introClock=0;}startTour();};// Returning from a walk resumes the tour where it was left; pressing Tour while it runs restarts it.
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
 $('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;introClock=null;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
