@@ -723,10 +723,11 @@ export function buildHouse(K) {
     for(let i=0;i<pos.count;i++){
       const y=pos.getY(i),a=Math.atan2(pos.getZ(i),pos.getX(i));
       const pinch=1-.22*Math.max(0,y),fold=1+.06*Math.sin(a*3+y*2+x)+.03*Math.sin(a*7+1);
-      pos.setXYZ(i,pos.getX(i)*pinch*fold,Math.max(-.77,y),pos.getZ(i)*pinch*fold);
+      const sq=v=>Math.sign(v)*Math.pow(Math.abs(v),.62); // a filled sack lying down: squarer in plan and flatter on top than an egg
+      pos.setXYZ(i,sq(pos.getX(i))*pinch*fold,Math.max(-.77,y>0?y*.8:y),sq(pos.getZ(i))*pinch*fold);
     }
     geom.computeVertexNormals();const sack=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1}));
-    sack.name='Veranda stored fabric sack';sack.scale.set(sx,sy,sz);sack.position.set(x,F+sy*.77,z);sack.castShadow=true;sack.receiveShadow=true;g.add(sack);
+    sack.name='Veranda stored fabric sack';sack.scale.set(sx*.82,sy,sz*.82);sack.rotation.y=z*2.3;sack.position.set(x,F+sy*.77,z);sack.castShadow=true;sack.receiveShadow=true;g.add(sack);
   }
 
   // Posts and exposed timber run continuously around the inner verandas.
