@@ -2018,7 +2018,7 @@ export function buildTemple(K) {
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
   // Rear wall: 110,87,95 by a floor at 196,179,163 in 15.08.42 and 79,70,79 by 195,176,163 in 'left side'; '#5f4744'
   // rendered 177,146,138 and 123,93,87 (salmon). Half as bright and greyer brings both poses close.
-  const innerDarkStone=mat('#443942',.95);
+  const innerDarkStone=mat('#47383a',.95); // ('#443942' came out bluer than the photo: 129,115,131 for 110,87,95)
   for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
