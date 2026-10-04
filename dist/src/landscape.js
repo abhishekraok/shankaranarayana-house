@@ -648,6 +648,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(rx,ry);m.anisotropy=4;return m;};
   // 15.20.13 / 15.13.26 / 15.22.33: the worn footpaths are trodden laterite, patchy with dust, damp and grass, not one flat salmon.
   const lateritePath=new THREE.MeshStandardMaterial({map:stainMap(81233,'#8e604b',[[26,'170,124,98',.45,8,30],[26,'104,64,48',.5,6,26],[14,'98,108,60',.35,4,12]]),roughness:1});lateritePath.name='worn laterite footpath';
+  // 15.11.58: the arcade floor and the gate landing are worn concrete, patchy, not one flat tan.
+  {const wornFloor=new THREE.MeshStandardMaterial({map:stainMap(60411,'#978e7f',[[14,'182,174,160',.45,16,50],[16,'112,102,90',.4,10,36],[8,'128,96,78',.3,8,24]]),roughness:1});wornFloor.name='worn concrete floor';
+   for(const o of group.children)if(o.name==='Bathing arcade raised floor slab'||o.name==='Bathing gate approach landing')o.material=wornFloor;}
   const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#66605e',[[12,'150,144,140',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
   // 15.22.33: the roof slab's edge band is whitewash stained grey and black in patches; the floor inside is
