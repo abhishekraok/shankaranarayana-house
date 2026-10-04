@@ -513,6 +513,14 @@ for(const z of [9.3,12.9]){
 {const hit=new THREE.Raycaster(new THREE.Vector3(23.7,2.5,10.8),new THREE.Vector3(-1,0,0)).intersectObject(temple,true)[0];
  assert.equal(hit?.object.name,'Covered hall lane-side wall pier','The old middle window is solid wall');}
 checkRoute('Lower chair hall passage',[[29.2,11],[25.8,11],[25.8,15.5]],.1,.09);
+// 15.11.00 / 15.10.30 / '-45 degrees': the hall's lane wall has a real doorway with a barred transom,
+// open to look through and closed to walking, and a narrow window beyond it.
+{const through=new THREE.Raycaster(new THREE.Vector3(22.5,1.8,6.725),new THREE.Vector3(-1,0,0),0,3.2).intersectObject(temple,true)[0];
+ assert.ok(!through,'Lane doorway is a real opening, got '+through?.object.name);
+ const wall=new THREE.Raycaster(new THREE.Vector3(22.5,1.8,5.6),new THREE.Vector3(-1,0,0),0,3.2).intersectObject(temple,true)[0];
+ assert.ok(/blue wall face|lane-side wall/.test(wall?.object.name||''),'Wall beside the lane doorway is solid, got '+wall?.object.name);
+ assert.ok(collision(20.3,6.725,.6),'Lane doorway stays closed to walking');
+ assert.ok(temple.getObjectByName('Covered hall lane doorway transom timber bar')&&temple.getObjectByName('Covered hall narrow window pale glazing'),'Transom and narrow window are present');}
 checkRoute('Chair platform access',[[25.8,9.8],[23.7,9.8]],.112,.10);
 checkRoute('Chair platform descent',[[23.7,9.8],[25.8,9.8]],.6,.10);
 checkRoute('Lower hall to service porch',[[26.8,9.1],[26.8,7.1]],.112,.10);
