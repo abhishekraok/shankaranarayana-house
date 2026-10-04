@@ -159,6 +159,13 @@ if(textureLod(skyTop,(vSkyP.xz-skyRect.xy)*skyRect.z,0.).g>0.){vec3 skyN=inverse
   for(int k=0;k<${TAPS};k++){float d=${STEP.toFixed(2)}*float(k+1);vec4 s=SKY_AT(vSkyP.xz+skyDir*d);float h=s.g/max(s.r,.001)-skyY,c=s.r*mix(smoothstep(.05,.25,h),smoothstep(-.8,-.4,h),skyUnder);
    skyPass*=1.-mix(s.b,s.a,skyStorey)*c;skySeen+=skyRest*(1.-c)*skyPass*(1.-exp(-1.6*skySlope));skySlope=min(skySlope,mix(8.,max(h,0.)/d,c));skyRest*=c;}
   skyOcc+=skySide*(1.-skySeen);}
+ // A ceiling is lit from below by the ground outside: the more sides of it stand open within reach (walls block
+ // the search, as above), the more light it keeps. An open pavilion's soffit is grey, not black; a room's stays dark.
+ if(skyDown>.01&&skyOcc>.01){float skyOpen=0.,skyLvl=smoothstep(3.6,3.85,skyY-.5);
+  for(int a=0;a<4;a++){vec2 dir=a==0?vec2(1.,0.):a==1?vec2(0.,1.):a==2?vec2(-1.,0.):vec2(0.,-1.);float pass=1.,best=0.;
+   for(int k=1;k<=${Math.min(TAPS,4)};k++){vec4 s=SKY_AT(vSkyP.xz+dir*(${STEP.toFixed(2)}*float(k)));pass*=1.-mix(s.b,s.a,skyLvl);best=max(best,pass*(1.-s.r)*(1.-.18*float(k-1)));}
+   skyOpen+=best;}
+  skyOcc*=1.-.55*skyDown*min(1.,skyOpen*.5);}
  skyKeep=1.-skyDim*skyOcc;}
 `+THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );',`getDirectionalLightInfo( directionalLight, directLight );
 #if ( UNROLLED_LOOP_INDEX >= NUM_DIR_LIGHT_SHADOWS )
