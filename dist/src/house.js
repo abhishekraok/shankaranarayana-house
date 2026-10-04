@@ -891,9 +891,8 @@ export function buildHouse(K) {
   wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:1.47,top:2.62}],'plaster',.22); // 14.52.16 / 14.46.10: sill about 2.15 m, head just under the long canopy
   wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:1.58,top:2.87}],'plaster',.22);
   wallX('Shrine rear wall',-2.05,2.05,10.08,.68,2.9,[],'plaster',.22);
-  for(const z of [6.5,9.65]) {
-    detail(-2.18,1.28,z,.14,.13,.65,'red');detail(2.18,1.28,z,.14,.13,.65,'red');
-  }
+  // (Four short red blocks stood on the side walls at y 1.28, left over from the old low band's trim.
+  // 14.52.16 / 14.46.10 / 14.48.07 show plain plaster over the black dado there.)
   // 14.44.14 / 14.44.09 / 14.52.16 / 14.46.10: three broad patterned bands (about 0.25 m, at 1.75, 2.70 and
   // 3.65 m) run round the tall block; on the west the lower two exist only behind the window.
   const shrineBandSpans=(side,y)=>side<0?(y===3.65?[[6.0,10.2]]:[[9.14,10.2]]):(y===1.75?[[6.0,10.2]]:[[6.0,7.16],[9.14,10.2]]);
