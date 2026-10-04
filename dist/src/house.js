@@ -1645,6 +1645,12 @@ export function buildHouse(K) {
   // Cover the full passage up to the exterior wall; the old narrow strip
   // left a 2.5 m opening beside the enclosed east rooms.
   const eastPassageRoof=K.hipRoof(g,'East passage continuous tiled roof',9.65,10.1,5.05,8.8,3.6,.90);
+  // 14.30.57 / 14.31.01 / 14.44.09: along the court side of this roof a close row of rafter ends shows under
+  // the tiles, resting on the eave beam; there is no fascia board in front of them.
+  {const box=new THREE.Box3();
+   for(const o of eastPassageRoof.children.filter(o=>/fascia$/.test(o.name))){box.setFromObject(o);
+     if(box.max.x<7.4&&box.max.z-box.min.z>4){eastPassageRoof.remove(o);o.geometry.dispose();}}
+   for(let z=5.90;z<14.4;z+=.28)K.beam(eastPassageRoof,'East veranda exposed rafter end',[7.13,3.535,z],[7.76,3.76,z],.07,verandaTimber,.10);}
   // 14.31.14 / 14.31.25: flat, closely joisted ceiling over the clock-side
   // veranda. Keep all overhead members with the liftable roof assembly.
   const ceilingTimber=verandaTimber.clone();ceilingTimber.color.set('#80817a'); // 14.31.14 / 14.31.25: the ceiling is near-black (about 30,28,24)
