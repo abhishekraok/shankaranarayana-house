@@ -252,15 +252,17 @@ export function buildTemple(K) {
   box('Portico west wall above service porch',30.1,5.275,5.725,.24,3.05,1.75,white,true);
   box('Portico east wall',47.9,3.70,2.3,.24,6.2,8.6,white,true);
   for(const x of [33.72,44.28]){
-    const w=x<39?4.995:7.15,cx=x<39?34.7975:x;
+    // 15.15.51 (ceiling height as ruler): the doorway is only 1.05 m clear, so the wall runs in to
+    // x 39 +/- .66 on each side.
+    const w=x<39?6.04:8.195,cx=x<39?35.32:43.7575;
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
     box('Rear grey marble dado',cx,1.05,5.955,w,.40,.05,mat('#9a9a92',.4));
     box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
-  box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
+  box('Open passage header',39,3.345,6.1,1.32,1.15,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),doorLeafBlue=mat('#2e5f96',.72),doorStud=mat('#b8a26a',.45,{metalness:.6}),silver=mat('#ffffff',.63,{metalness:.25});
+  const doorPlinth=mat('#9a9a92',.4),doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),doorLeafBlue=mat('#2e5f96',.72),doorStud=mat('#b8a26a',.45,{metalness:.6}),silver=mat('#ffffff',.63,{metalness:.25});
   // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
   silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
@@ -270,40 +272,50 @@ export function buildTemple(K) {
     for(let i=0;i<300;i++){c.fillStyle=`rgba(50,56,58,${r()*.2})`;c.fillRect(r()*s,r()*s,1+r()*3,1+r()*3);}
   });
   K.worldMap(silver,.5);
-  box('Entrance doorway left blue surround',37.48,2.00,5.87,.69,2.80,.23,doorwayBlue);
-  box('Entrance doorway right blue surround',40.52,2.00,5.87,.69,2.80,.23,doorwayBlue);
-  box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
+  // 15.15.51 / 15.16.13 (photo review, ceiling height 3.69 m as ruler: opening 345 px, painted
+  // surround 820 px, pillars 1200 px apart): the painted panels meet a slim jamb at a 1.05 m
+  // opening, the whole surround is about 2.5 m wide, not 3.7, with a taller inscription header,
+  // and the silver pillars stand close beside it on broad red pedestals.
+  for(const s of [-1,1]){
+    box(s<0?'Entrance doorway left blue surround':'Entrance doorway right blue surround',39+s*.95,1.81,5.87,.58,1.92,.23,doorwayBlue);
+    box('Entrance doorway surround marble plinth',39+s*.95,.525,5.87,.58,.65,.23,doorPlinth);}
+  box('Entrance doorway blue inscription header',39,3.19,5.87,2.48,.84,.24,doorwayBlue);
+  floor('Entrance door threshold slab',39,5.76,1.34,.45,.32,mat('#8d8a82'));
   for(const side of [-1,1]){
-    // 15.15.51 / 15.16.13: the opening is about 1.45 m clear, framed by blue reveals.
     // User: full-length timber doors stand open against the passage sides (the earlier teal
     // reveals read as blue half-doors in front of hidden leaves).
-    box('Entrance doorway timber frame',39+side*.99,2.00,5.87,.42,2.80,.23,doorLeafWood,true);
-    box('Entrance doorway red inner jamb',39+side*.76,1.74,5.73,.07,2.26,.17,red);
+    box('Entrance doorway timber frame',39+side*.6275,1.545,5.87,.065,2.45,.23,doorLeafWood,true);
+    box('Entrance doorway red inner jamb',39+side*.56,1.545,5.73,.07,2.45,.17,red);
     // 15.16.13 / 15.16.09: the leaves are painted blue and studded with rows of metal bosses.
-    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafBlue);
-    {const studs=[];for(let y=.78;y<2.8;y+=.29)for(let z=5.9;z<6.5;z+=.18)studs.push([39+side*.695,y,z,.035,.035,.035]);
+    box('Entrance doorway open timber leaf',39+side*.54,1.545,6.18,.08,2.45,.78,doorLeafBlue);
+    {const studs=[];for(let y=.55;y<2.72;y+=.29)for(let z=5.9;z<6.5;z+=.18)studs.push([39+side*.495,y,z,.035,.035,.035]);
      instances('Entrance door leaf metal studs',new THREE.SphereGeometry(1,6,4),doorStud,studs);}
-    for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
-    const x=39+side*2.05;
-
-    box('Entrance doorway pillar red base',x,1.115,5.36,.58,.53,.58,red,true);
+    for(const y of [.90,1.545,2.20])box('Entrance doorway leaf panel rail',39+side*.49,y,6.18,.03,.08,.74,K.M.wood);
+    const x=39+side*1.57;
+    box('Entrance doorway pillar red base',x,1.15,5.36,.75,.60,.75,red,true);
     box('Entrance doorway silver carved shaft',x,2.20,5.36,.40,1.67,.40,silver);
-    box('Entrance doorway silver relief block',x,1.62,5.36,.50,.52,.50,silver);
-    for(const y of [1.43,1.88,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
-    box('Entrance doorway silver capital',x,3.38,5.36,.72,.18,.66,silver);
-    K.blocker(x,5.36,.60,.60,.6,3.5);
+    box('Entrance doorway silver relief block',x,1.71,5.36,.50,.52,.50,silver);
+    for(const y of [1.52,2.04,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
+    // 15.15.51 / 15.16.13: white capital and three white stepped corbel tiers carry the beam.
+    box('Entrance doorway silver capital',x,3.38,5.36,.72,.18,.66,whiteTrim);
+    [.60,.75,.92].forEach((w,i)=>box('Entrance doorway white stepped corbel',x,3.54+i*.14,5.36,w,.14,.66,whiteTrim));
+    K.blocker(x,5.36,.78,.78,.6,3.5);
   }
-  scallop('Entrance doorway scalloped white beam',39,5.37,3.65,3.64,.24,whiteTrim,.30);
-  box('Entrance doorway fluorescent tube',39,3.37,5.49,2.30,.075,.08,whiteTrim);
+  scallop('Entrance doorway scalloped white beam',39,5.37,2.74,3.64,.24,whiteTrim,.30);
+  // The scalloped valance runs on from the pillars to the side walls.
+  for(const s of [-1,1])for(let i=0;i<3;i++)scallop('Entrance hall scalloped white valance',39+s*(1.77+2.343*(i+.5)),5.37,2.343,3.64,.24,whiteTrim,.30);
+  box('Entrance doorway fluorescent tube',39,3.37,5.49,1.22,.075,.08,whiteTrim);
   // Preserve the photographed paintings and inscription using UV regions of the
   // unchanged original, rather than inventing sacred images or lettering.
   const doorTexture=new THREE.TextureLoader().load('./assets/temple-doorway.jpg');
   doorTexture.colorSpace=THREE.SRGBColorSpace;
-  function doorPhoto(n,x,y,z,w,h,rect){
+  function doorPhoto(n,x,y,z,w,h,rect,glow=.9){
     const geo=new THREE.PlaneGeometry(w,h),uv=geo.attributes.uv;
     const [u0,v0,u1,v1]=rect;
     for(let i=0;i<uv.count;i++)uv.setXY(i,u0+uv.getX(i)*(u1-u0),1-v1+uv.getY(i)*(v1-v0));
-    const material=new THREE.MeshStandardMaterial({map:doorTexture,roughness:.9});
+    // The source photograph is underexposed: the painted panels rendered at 24,32,33 beside a white
+    // wall at 187,194,186, where 15.15.51 has them at half the wall's value (54,59,63 / 112,111,104).
+    const material=new THREE.MeshStandardMaterial({map:doorTexture,emissiveMap:doorTexture,emissive:'#ffffff',emissiveIntensity:glow,roughness:.9});
     const o=mesh(n,geo,material,x,y,z);o.rotation.y=Math.PI;return o;
   }
   // Rectify the four photographed frames with a projective UV map. Source
@@ -329,13 +341,13 @@ export function buildTemple(K) {
   deityPhoto('Entrance doorway left original painting',42.35,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]]);
   deityPhoto('Entrance doorway right original painting',35.65,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]]);
   deityPhoto('Entrance Hanuman original painting',33.8,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]]);
-  doorPhoto('Entrance doorway original inscription',39,3.18,5.738,3.63,.59,[.306,.133,.690,.283]);
+  doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283]);
   // The painted blue marbling and red drapes of the surround, from the same photograph.
-  doorPhoto('Entrance doorway original painted left surround',40.52,1.74,5.745,.69,2.27,[.2975,.27,.395,.70]);
-  doorPhoto('Entrance doorway original painted right surround',37.48,1.74,5.745,.69,2.27,[.6175,.27,.705,.70]);
+  doorPhoto('Entrance doorway original painted left surround',39.95,1.81,5.745,.58,1.92,[.2975,.27,.395,.70]);
+  doorPhoto('Entrance doorway original painted right surround',38.05,1.81,5.745,.58,1.92,[.6175,.27,.705,.70]);
   const flowers=[];
   for(let i=0;i<=45;i++){
-    const t=i/45,x=37.95+2.1*t,y=2.96-.50*Math.sin(t*Math.PI);
+    const t=i/45,x=38.47+1.06*t,y=2.80-.45*Math.sin(t*Math.PI);
     flowers.push([x,y,5.60,.042,.045,.043]);
   }
   instances('Entrance doorway flower garland',new THREE.SphereGeometry(1,6,4),mat('#d1ad49'),flowers);
