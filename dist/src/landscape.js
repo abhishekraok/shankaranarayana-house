@@ -1690,7 +1690,11 @@ export function buildLandscape(K, {mobile=false}={}) {
    K.cylinder(group,'Lawn thin utility pole',52.5,LAWN+3.35,-32.5,.07,.08,6.7,materials.mortar,9,true);
    for(const [to,sag,dz] of [[[61.5,5.2+LAWN,-17.6],.45,-.5],[[61.5,5.2+LAWN,-16.8],.5,.5],[[59.4,9.4,-9],.6,0]]){
      const a=new THREE.Vector3(50.9,LAWN+6.9,-12.6+dz),b=new THREE.Vector3(...to),mid=a.clone().lerp(b,.5);mid.y-=sag;
-     const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),18,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}}
+     const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),18,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}
+   // The thin pole stood bare in the lawn: a short crossarm and two lines from the lamp pole carry the run on.
+   box('Lawn thin pole crossarm',52.5,LAWN+6.55,-32.5,.9,.07,.07,materials.mortar);
+   for(const dx of [-.4,.4]){const a=new THREE.Vector3(50.9+dx*.3,LAWN+7.2,-12.6),b=new THREE.Vector3(52.5+dx,LAWN+6.6,-32.5),mid=a.clone().lerp(b,.5);mid.y-=.8;
+     const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),22,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}}
   // The roofed tank-side structure is the long bathing arcade above.
   // There is no separate tiny gatehouse on the intervening boundary.
   function laneHouse(name,x,z,w,d,h,front){ // roofs use darkTile, defined with the materials
