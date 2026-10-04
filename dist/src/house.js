@@ -43,7 +43,9 @@ export function buildHouse(K) {
   },.5)});
   const rearWash=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.95,map:paintedMap(512,(c,s)=>{
     c.fillStyle='#cddfd6';c.fillRect(0,0,s,s);
-    for(let i=0;i<90;i++){const x=washRand()*s,y=washRand()*s,h=30+washRand()*120;const g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,`rgba(58,62,52,${.08+washRand()*.16})`);g.addColorStop(1,'rgba(58,62,52,0)');c.fillStyle=g;c.fillRect(x,y,3+washRand()*18,h);}
+    for(let i=0;i<90;i++){const x=washRand()*s,y=washRand()*s,h=30+washRand()*120;const a=.08+washRand()*.16,w=3+washRand()*18;
+      // soft-sided runs of damp: as hard-edged bars they read as grey rectangles on the kitchen and rear walls
+      for(let k=0;k<w;k++){const e=Math.sin(Math.PI*(k+.5)/w),g=c.createLinearGradient(0,y,0,y+h);g.addColorStop(0,'rgba(58,62,52,0)');g.addColorStop(.12,`rgba(58,62,52,${a*e*e})`);g.addColorStop(1,'rgba(58,62,52,0)');c.fillStyle=g;c.fillRect(x+k,y,1.05,h);}}
     for(let i=0;i<260;i++){const r=washRand()<.3;c.fillStyle=r?`rgba(150,82,56,${.06+washRand()*.14})`:`rgba(70,72,62,${.05+washRand()*.12})`;c.fillRect(washRand()*s,washRand()*s,1+washRand()*4,1+washRand()*4);}
   },.3)});
   const batches = new Map();
