@@ -285,7 +285,7 @@ for(const key of verandaKeys){
 for(const [key,point,prefix] of [
   ['verandaseat',[3.78,1.29,1.67],'Entrance-left chair seat'],
   ['verandaseat',[3.60,1.255,.86],'Entrance-left wooden bench'],
-  ['veranda',[3.0,1.99,2.06],'Veranda window grey middle crossrail'],
+  ['veranda',[2.5,2.135,2.165],'Veranda window grey middle crossrail'],
   ['verandaright',[-4.19,1.90,1.50],'Right sitting bay turquoise end wall'],
 ]){
   const eye=new THREE.Vector3(...photos[key].p).add(new THREE.Vector3(0,1.62,0));
@@ -721,13 +721,13 @@ for(const [prefix,base] of [['Front central stair',0],['Courtyard descending sta
 }
 // The photographed sitting-window recess must remove the old flat wall face.
 // Probe the reveal and rounded head beside/above the frame, not its trim.
-for(const [x,y] of [[3.84,2.60],[3,3.25]]){
+for(const [x,y] of [[3.34,2.60],[2.5,3.25]]){
   const hit=new THREE.Raycaster(new THREE.Vector3(x+K.houseShiftX,y,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
   assert.ok(hit&&hit.point.z>2.02,'Window reveal is recessed behind the facade');
 }
-{const hit=new THREE.Raycaster(new THREE.Vector3(4.02+K.houseShiftX,2.6,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
+{const hit=new THREE.Raycaster(new THREE.Vector3(3.52+K.houseShiftX,2.6,1),new THREE.Vector3(0,0,1)).intersectObject(house,true)[0];
  assert.ok(hit&&hit.point.z<1.94,'Facade remains in front of the window recess');}
-assert.ok(collision(3+K.houseShiftX,2.08,.75),'Closed sitting window cannot be walked through');
+assert.ok(collision(2.5+K.houseShiftX,2.08,.75),'Closed sitting window cannot be walked through');
 // Both lower column rows are solid, with an open aisle between them; the
 // inner row must not accidentally acquire upper-storey collisions.
 for(const z of [.6,-3,-7,-10.6]){

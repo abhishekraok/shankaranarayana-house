@@ -346,6 +346,13 @@ export function buildHouse(K) {
     b('Rear veranda mossy plinth face',(a+end)/2,.26,14.485,end-a,.45,.03,plinthDark);
     b('Rear veranda plinth moss foot',(a+end)/2,.075,14.465,end-a,.08,.012,plinthMoss);
    }}
+  // 14.30.57 / 14.31.01: a neat stack of pale round logs, about 1.3 m long and a metre high, stands on the
+  // rear veranda west of the east window, behind the court's stone supports.
+  {const logWood=new THREE.MeshStandardMaterial({color:'#ad9a90',roughness:1});
+   for(let row=0;row<8;row++)for(let k=0;k<4-row%2;k++){
+     const len=1.30+.08*Math.sin(row*2.3+k*1.7),log=K.cylinder(g,'Rear veranda stacked log',3.7+.04*Math.cos(row*1.9+k),F+.075+row*.132,15.02+k*.155+(row%2)*.0775,.07+.006*((row+k)%2),.075,len,logWood,10);
+     log.rotation.z=Math.PI/2;}
+   K.blocker(3.7,15.25,1.45,.66,F,F+1.1);}
   // Court entry steps match every deliberate veranda opening.
   for(const [x,z,w,d] of [[-8.2,10.8,.75,1.55]]) { // the court-front walkway is at ground level now: no step there
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
@@ -382,11 +389,14 @@ export function buildHouse(K) {
   // IMG_20130720_175306: the doorway is substantially narrower than the
   // lower entry passage. Its leaves must not project across the sitting bays.
   const mainDoorWidth=1.20,mainJambInset=(2.05-mainDoorWidth)/2;
-  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:3.0,w:1.90,bottom:.555,top:2.95}],verandaAqua);
+  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:2.5,w:1.90,bottom:.795,top:2.95}],verandaAqua);
   // User's note: no doorway at the facade's right end (x 7); that front room opens only inward.
+  // 14.56.56 (plain wall with a poster for over 0.9 m between the frame and the end wall) and
+  // veranda-left-passage.jpg (the chair by the end wall has plain wall behind it): the window stands
+  // half a metre nearer the door than first modelled, centred x 2.5.
   // 14.56.56 / 14.57.08: only the +x sitting-bay window has this rounded,
   // splayed plaster recess. Cut the facade rather than laying trim over it.
-  {const cx=3,front=1.925,back=2.105,bottom=1.005,shoulder=3.13,rise=.23,half=.95;
+  {const cx=2.5,front=1.925,back=2.105,bottom=1.245,shoulder=3.13,rise=.23,half=.95; // 14.56.56 / 14.57.08: the recess and frame stand on the red skirting's top line
     const outer=[],inner=[];
     for(let i=0;i<=24;i++){const a=i/24*Math.PI;outer.push([cx+half*Math.cos(a),shoulder+rise*Math.sin(a)]);inner.push([cx+(half-.08)*Math.cos(a),shoulder-.08+(rise-.015)*Math.sin(a)]);}
     const cap=new THREE.Shape();cap.moveTo(cx-half,3.40);cap.lineTo(cx+half,3.40);
@@ -402,7 +412,7 @@ export function buildHouse(K) {
     const surround=new THREE.Shape();surround.moveTo(cx-half+.08,bottom);surround.lineTo(cx+half-.08,bottom);for(const [x,y] of inner)surround.lineTo(x,y);surround.closePath();
     // The plaster backing stops outside the whole timber frame: cutting only
     // the grille aperture masks the recessed outer mouldings from oblique views.
-    const opening=new THREE.Path();opening.moveTo(cx-.79,1.025);opening.lineTo(cx-.79,2.975);opening.lineTo(cx+.79,2.975);opening.lineTo(cx+.79,1.025);opening.closePath();surround.holes.push(opening);
+    const opening=new THREE.Path();opening.moveTo(cx-.79,1.25);opening.lineTo(cx-.79,3.048);opening.lineTo(cx+.79,3.048);opening.lineTo(cx+.79,1.25);opening.closePath();surround.holes.push(opening);
     const face=new THREE.Mesh(new THREE.ShapeGeometry(surround),plaster);face.name='Sitting window recessed plaster backing';face.position.z=back;face.receiveShadow=true;g.add(face);
     b('Sitting window oxide sill surface',cx,bottom+.003,(front+back)/2,1.90,.012,back-front,verandaRed);
     K.blocker(cx,2.08,1.90,.31,F,3.4);
@@ -426,26 +436,29 @@ export function buildHouse(K) {
   const verandaShutter=new THREE.MeshStandardMaterial({color:'#94584a',bumpMap:timberMap,bumpScale:.002,roughness:.98});
   const windowIron=new THREE.MeshStandardMaterial({color:'#555852',roughness:.94});
   for(const side of [-1,1]) {
-    const x=side*3.0;
+    const x=side>0?2.5:-3.0;
     const windowStart=g.children.length;
-    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,side>0?sittingOchre:entranceOchre);
-    for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
-    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,verandaShutter); // closed shutters on both windows: a black slab read as a hole from inside
+    // 14.56.56 / 14.57.08: the sitting window's frame is squarer (about 0.88 wide to 1 high), standing on the
+    // skirting's top line (y 1.245) with its head close under the arch.
+    const wy=side>0?2.145:2.0,wh=side>0?1.80:1.94;
+    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,wy,2.025,.13,wh,.22,side>0?sittingOchre:entranceOchre);
+    for(const y of [wy-wh/2+.065,wy+wh/2-.065])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
+    b('Veranda window dark interior',x,wy,2.10,1.29,wh-.25,.05,verandaShutter); // closed shutters on both windows: a black slab read as a hole from inside
     if(side>0){
       // 14.56.56 / 14.57.08 / 14.57.13: closed red-brown shutters
       // behind a dense grille, with stepped blue mouldings and a grey crossrail.
       for(let layer=0;layer<3;layer++){
-        const w=1.12+layer*.073,h=1.61+layer*.073,z=2.01-layer*.030;
+        const w=1.12+layer*.073,h=wh-.33+layer*.073,z=2.01-layer*.030;
         const ring=new THREE.Shape(),hole=new THREE.Path();
         ring.moveTo(-w/2-.0275,-h/2-.0275);ring.lineTo(w/2+.0275,-h/2-.0275);ring.lineTo(w/2+.0275,h/2+.0275);ring.lineTo(-w/2-.0275,h/2+.0275);ring.closePath();
         hole.moveTo(-w/2+.0275,-h/2+.0275);hole.lineTo(-w/2+.0275,h/2-.0275);hole.lineTo(w/2-.0275,h/2-.0275);hole.lineTo(w/2-.0275,-h/2+.0275);hole.closePath();ring.holes.push(hole);
         const moulding=new THREE.Mesh(new THREE.ExtrudeGeometry(ring,{depth:.035,bevelEnabled:true,bevelThickness:.010,bevelSize:.009,bevelSegments:3,steps:1}),sittingBlue);
-        moulding.name='Veranda window rounded blue moulding';moulding.position.set(x,2,z-.020);moulding.castShadow=moulding.receiveShadow=true;g.add(moulding);
+        moulding.name='Veranda window rounded blue moulding';moulding.position.set(x,wy,z-.020);moulding.castShadow=moulding.receiveShadow=true;g.add(moulding);
       }
-      b('Veranda window grey middle crossrail',x,1.99,1.985,1.13,.065,.045,verandaIron);
-      for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,2,2.023,.014,1.54,.018,windowIron);
+      b('Veranda window grey middle crossrail',x,wy-.01,1.985,1.13,.065,.045,verandaIron);
+      for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,wy,2.023,.014,wh-.40,.018,windowIron);
       for(const dx of [-.39,-.195,0,.195,.39])
-        b('Veranda window closed shutter board joint',x+dx,2,2.072,.009,1.54,.009,verandaTimber);
+        b('Veranda window closed shutter board joint',x+dx,wy,2.072,.009,wh-.40,.009,verandaTimber);
     }else{
       for(const dx of [-.595,.595])b('Veranda blue window jamb',x+dx,2.0,2.02,.10,1.69,.10,'blue');
       for(const y of [1.20,1.99,2.80])b('Veranda blue window rail',x,y,2.02,1.25,.09,.10,'blue');
@@ -456,8 +469,7 @@ export function buildHouse(K) {
     b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,.99,.20,2.98,2.12,verandaAqua,true); // veranda.jpg: the end wall reaches the platform edge
     b('Sitting bay end red skirting',side*4.188,1.00,.99,.026,.49,2.12,verandaRed);
     if(side>0){
-      for(const [a,z] of [[1.25,2.05],[3.95,4.24]])b('Sitting bay wall red skirting',(a+z)/2,1.00,1.907,z-a,.49,.024,verandaRed);
-      b('Sitting window red sill return',3,.88,1.907,1.9,.25,.024,verandaRed);
+      b('Sitting bay wall red skirting',2.745,1.00,1.907,2.99,.49,.024,verandaRed); // runs on under the window
     }else b('Sitting bay wall red skirting',side*2.745,1.00,1.907,2.99,.49,.024,verandaRed);
     b('Sitting bay back corner timber',side*4.12,2.08,1.91,.13,2.96,.14,verandaTimber);
   }
@@ -465,8 +477,8 @@ export function buildHouse(K) {
   // from above the sitting window and loops down across its upper grille.
   // Keep the wire in front of the recessed frame; its exact attachment is hidden.
   {const curve=new THREE.CatmullRomCurve3([
-    [3.60,3.57,1.90],[3.48,3.04,2.04],[3.30,2.60,2.05],
-    [3.04,2.42,2.05],[2.78,2.52,2.05],[2.61,2.80,2.13]
+    [3.10,3.57,1.90],[2.98,3.04,2.04],[2.80,2.60,2.05],
+    [2.54,2.42,2.05],[2.28,2.52,2.05],[2.11,2.80,2.13]
   ].map(p=>new THREE.Vector3(...p)));
    const cable=new THREE.Mesh(new THREE.TubeGeometry(curve,64,.0028,5,false),new THREE.MeshStandardMaterial({name:'Sitting window faded red wire',color:'#a66c70',roughness:.95}));
    cable.name='Sitting window hanging wire';g.add(cable);}
@@ -492,20 +504,21 @@ export function buildHouse(K) {
   // 'house above the right front window, from inside, facing out 2.jpg': a squarish two-leaf timber shutter
   // directly under the hung radio shelf. A dark timber casing wraps the outer window's reveals, which stand
   // into the room, so no ochre frame or red-brown slab shows inside; the wall opening beside it is lined flush.
-  for(const x of [2.68,3.32]){
+  for(const x of [2.18,2.82]){
     b('Right front window closed timber shutter',x,1.90,2.35,.625,1.05,.07,cabinetWood);
     for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.90,2.395,.046,1.05,.025,cabinetWood);
     for(const y of [1.42,1.90,2.38])b('Right front shutter crossrail',x,y,2.395,.60,.053,.025,cabinetWood);
   }
-  b('Right front window interior timber lintel',3,2.45,2.38,1.47,.13,.15,cabinetWood);
+  b('Right front shutter meeting stile',2.5,1.90,2.395,.05,1.05,.025,cabinetWood);
+  b('Right front window interior timber lintel',2.5,2.45,2.38,1.47,.13,.15,cabinetWood);
   for(const s of [-1,1]){
-    b('Right front window timber casing side',3+s*.815,2.0,2.2575,.03,2.04,.175,cabinetWood);
-    b('Right front window timber casing stile',3+s*.73,1.9225,2.33,.20,1.095,.03,cabinetWood);
-    b('Right front window opening turquoise lining',3+s*.89,2.0,2.164,.12,2.0,.012,verandaAqua);
+    b('Right front window timber casing side',2.5+s*.815,2.145,2.2575,.03,1.87,.175,cabinetWood);
+    b('Right front window timber casing stile',2.5+s*.73,1.9225,2.33,.20,1.095,.03,cabinetWood);
+    b('Right front window opening turquoise lining',2.5+s*.89,2.12,2.164,.12,1.76,.012,verandaAqua);
   }
-  for(const y of [.995,3.005])b('Right front window timber casing end',3,y,2.2575,1.66,.03,.175,cabinetWood);
-  b('Right front window timber casing upper panel',3,2.745,2.33,1.66,.55,.03,cabinetWood);
-  b('Right front window timber casing apron',3,1.185,2.33,1.66,.38,.03,cabinetWood);
+  for(const y of [1.225,3.065])b('Right front window timber casing end',2.5,y,2.2575,1.66,.03,.175,cabinetWood);
+  b('Right front window timber casing upper panel',2.5,2.775,2.33,1.66,.61,.03,cabinetWood);
+  b('Right front window timber casing apron',2.5,1.2925,2.33,1.66,.165,.03,cabinetWood);
   // Tour-frame sweep: the other sitting window showed inside as a blank red-brown slab. Give it the same
   // closed two-leaf timber shutter in a plain frame, flush in the wall.
   for(const x of [-3.325,-2.675]){
@@ -542,7 +555,7 @@ export function buildHouse(K) {
     const print=new THREE.Mesh(new THREE.PlaneGeometry(.30,.26),new THREE.MeshStandardMaterial({map,roughness:.9}));print.name='Radio shelf propped orange print';
     print.position.set(3.05,S+.16,2.515);print.rotation.x=-.16;cabinet.add(print);
     const back=K.box(cabinet,'Radio shelf orange print card back',3.05,S+.16,2.509,.30,.26,.006,cabinetDark);back.rotation.x=-.16;}}
-  cabinet.position.z=.19; // the shelf hangs in front of the casing: nothing of it may reach the outer window in the wall's depth
+  cabinet.position.x=-.5;cabinet.position.z=.19; // centred on the window (x 2.5); the shelf hangs in front of the casing: nothing of it may reach the outer window in the wall's depth
   // Wall calendars are redrawn, with no source photo or personal content embedded.
   function wallCalendar(x,y,w,h){
     const c=document.createElement('canvas');c.width=256;c.height=384;const p=c.getContext('2d');
@@ -555,19 +568,19 @@ export function buildHouse(K) {
     const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:1}));sheet.name='Right front wall 2011 paper calendar';sheet.position.set(x,y,2.205);g.add(sheet);
   }
-  wallCalendar(1.93,1.98,.40,.64);wallCalendar(4.14,2.13,.40,.70);
+  wallCalendar(1.33,1.98,.40,.64);wallCalendar(3.66,2.13,.40,.70);
   {const plaqueRed=new THREE.MeshStandardMaterial({color:'#7c2a26',roughness:.8});
-   b('Right front wall red-framed plaque frame',1.60,2.44,2.18,.34,.40,.02,plaqueRed);
+   b('Right front wall red-framed plaque frame',1.08,2.58,2.18,.34,.40,.02,plaqueRed);
    const draw=(w,h,paint)=>{const c=document.createElement('canvas');c.width=w;c.height=h;paint(c.getContext('2d'));const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshStandardMaterial({map,roughness:1});};
    const plaque=new THREE.Mesh(new THREE.PlaneGeometry(.25,.31),draw(100,124,p=>{p.fillStyle='#d8cdb4';p.fillRect(0,0,100,124);p.strokeStyle='#b89a52';p.lineWidth=3;p.strokeRect(6,6,88,112);
      p.fillStyle='#c2a046';p.beginPath();p.ellipse(50,66,22,30,0,0,Math.PI*2);p.fill();p.fillStyle='#e6d9b0';p.beginPath();p.ellipse(50,66,13,20,0,0,Math.PI*2);p.fill();p.fillStyle='#b89a52';p.fillRect(30,20,40,6);}));
-   plaque.name='Right front wall red-framed plaque';plaque.position.set(1.60,2.44,2.1915);g.add(plaque);
+   plaque.name='Right front wall red-framed plaque';plaque.position.set(1.08,2.58,2.1915);g.add(plaque);
    const scenic=new THREE.Mesh(new THREE.PlaneGeometry(.34,.62),draw(136,248,p=>{p.fillStyle='#e4e0d2';p.fillRect(0,0,136,248);
      const sky=p.createLinearGradient(0,6,0,120);sky.addColorStop(0,'#5d86a8');sky.addColorStop(1,'#b9cdd6');p.fillStyle=sky;p.fillRect(6,6,124,118);
      p.fillStyle='#e9eef0';p.beginPath();p.moveTo(6,92);p.lineTo(44,40);p.lineTo(70,74);p.lineTo(96,30);p.lineTo(130,88);p.lineTo(130,124);p.lineTo(6,124);p.fill();
      p.fillStyle='#3f5d4a';p.fillRect(6,104,124,20);p.fillStyle='#8b3f3f';p.fillRect(6,130,124,16);
      p.fillStyle='#5b6068';for(let r=0;r<5;r++)for(let k=0;k<7;k++)p.fillRect(12+k*17,156+r*17,9,7);}));
-   scenic.name='Right front wall landscape calendar';scenic.position.set(4.62,2.50,2.205);g.add(scenic);}
+   scenic.name='Right front wall landscape calendar';scenic.position.set(4.10,2.50,2.205);g.add(scenic);}
   // IMG_20130720_175306: the lower entrance strip is dark, worn stone,
   // with broad polished patches rather than the tiled veranda surface.
   const entryCanvas=document.createElement('canvas');entryCanvas.width=entryCanvas.height=256;
@@ -1278,7 +1291,7 @@ export function buildHouse(K) {
   const courtRandom=()=>{courtSeed=(Math.imul(courtSeed,1664525)+1013904223)>>>0;return courtSeed/4294967296;};
   for(let i=0;i<6200;i++){const x=-7.9+courtRandom()*14.6,z=6.4+courtRandom()*7.7;
     // Leave the observed walking strips and cross-courtyard routes readable.
-    if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+6.5)<.65)continue;
+    if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+5.4)<.65)continue;
     weeds.push({x,z,a:i*2.3999});}
   // Six folded triangles retain pointed leaf silhouettes at a fraction of
   // the old tiny spheres' cost. Reuse the existing deterministic placements.
@@ -1335,7 +1348,9 @@ export function buildHouse(K) {
 
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
-  const courtStairX=-6.75,courtStairFront=6.55,courtStairBack=12.10;
+  // 14.52.16 / 14.46.10 / 14.48.31: the stair stands only about two metres from the God room's plinth
+  // (the strip was 3.4 m): the whole flight is 1.1 m nearer the shrine.
+  const courtStairX=-5.65,courtStairFront=6.55,courtStairBack=12.10;
   const courtStairStone=mat('plaster').clone();courtStairStone.color.set('#807e70');
   const courtStairWall=mat('plaster').clone();courtStairWall.color.set('#858779');
   // 14.46.21: uneven moss and washed lime patches on the stair cheeks.
@@ -1395,6 +1410,16 @@ export function buildHouse(K) {
     const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
     K.blocker(courtStairX+.44,z,.14,(courtStairBack-courtStairFront)/24,F,F+(i+.5)*(U-F)/24);
   }
+  // 14.52.16 / courtyard.jpg: the white wall under the flight has a two-tier casement in a pale frame,
+  // its upper leaves standing open into the strip (just past the lean-to's eave).
+  {const frame=new THREE.MeshStandardMaterial({color:'#c9c3ae',roughness:.9}),glass=new THREE.MeshStandardMaterial({color:'#2a2f2c',roughness:.5});
+   const wx=courtStairX+.51,z0=7.5,z1=8.2,y0=1.3,y1=2.6,zm=(z0+z1)/2,ym=(y0+y1)/2;
+   b('Under-stair casement dark glazing',wx+.006,ym,zm,.012,y1-y0,z1-z0,glass);
+   for(const y of [y0+.03,ym,y1-.03])b('Under-stair casement pale rail',wx+.02,y,zm,.04,.06,z1-z0,frame);
+   for(const z of [z0+.03,zm,z1-.03])b('Under-stair casement pale stile',wx+.02,ym,z,.04,y1-y0,.06,frame);
+   for(const s of [-1,1]){const pz=s<0?z0+.06:z1-.06,a=.96; // open about 55 degrees
+     const leaf=b('Under-stair casement open upper leaf',wx+.04+.16*Math.sin(a),(ym+y1)/2,pz-s*.16*Math.cos(a),.32,(y1-ym)-.06,.025,frame);leaf.rotation.y=s*(Math.PI/2-a);
+     const pane=b('Under-stair casement open leaf glass',wx+.04+.16*Math.sin(a),(ym+y1)/2,pz-s*.16*Math.cos(a),.22,(y1-ym)-.16,.03,glass);pane.rotation.y=s*(Math.PI/2-a);}}
   floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
   floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U+.003,'paleStone',.18);
   // Loose corrugated sheet rests against the shrine plinth, below the stair view.
@@ -1408,7 +1433,7 @@ export function buildHouse(K) {
   // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
   // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
   {const rust=new THREE.MeshStandardMaterial({color:'#74524a',roughness:1,side:THREE.DoubleSide}); // 14.44.09: pale pinkish rust; kept a step darker because it rendered pale in the game
-   for(const [x0,x1,z0,z1,y0,y1] of [[-6.25,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
+   for(const [x0,x1,z0,z1,y0,y1] of [[-5.05,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
      const w=x1-x0,run=z1-z0,drop=y0-y1,len=Math.hypot(run,drop);
      const geo=new THREE.PlaneGeometry(w,len,Math.round(w/.0225),1),gp=geo.attributes.position;
      for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));
@@ -1467,12 +1492,12 @@ export function buildHouse(K) {
   // 14.44.14 / 14.44.48 / 14.48.31: seen from the court this wall is plain white down to a dark damp
   // strip at its foot, with no red band; the red slab edge under it is plastered over.
   skirting=false;
-  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:.86,bottom:1.05,top:2.25},{c:10.2,w:1.7,top:2.5}],'plaster');
+  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-5.65,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:.86,bottom:1.05,top:2.25},{c:10.2,w:1.7,top:2.5}],'plaster');
   skirting=true;
   detail(0,U+.10,5.99,23.7,.20,.012,facadeDark);
   for(const side of [-1,1])b('Upper floor court edge plaster',side*7.2375,U-.11,6.008,9.275,.22,.012,'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
-  doorX(-6.75,5.86,.95,U,2.5,-1);
+  doorX(-5.65,5.86,.95,U,2.5,-1);
   // 14.44.14/48: tall narrow courtyard-facing timber window. The upper
   // half is shuttered; six bars cross the dark lower opening, facing +Z.
   const courtWindowWood=verandaTimber.clone();courtWindowWood.color.setRGB(1.25,1.13,1.04);
@@ -1817,9 +1842,9 @@ export function buildHouse(K) {
   }
   // Use only the photographed calendar region, without inventing its text.
   const calendarMap=new THREE.TextureLoader().load('./assets/veranda.jpg');calendarMap.colorSpace=THREE.SRGBColorSpace;
-  const calGeo=new THREE.PlaneGeometry(.16,.42);{const g=calGeo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,.591+g.getX(i)*.026,.656+g.getY(i)*.101);}
+  const calGeo=new THREE.PlaneGeometry(.40,.60);{const g=calGeo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,.591+g.getX(i)*.026,.656+g.getY(i)*.101);}
   const calendar=new THREE.Mesh(calGeo,new THREE.MeshStandardMaterial({map:calendarMap,roughness:1}));
-  calendar.name='Photographed veranda calendar';calendar.rotation.y=Math.PI;calendar.position.set(3.91,2.32,1.914);g.add(calendar);
+  calendar.name='Photographed veranda calendar';calendar.rotation.y=Math.PI;calendar.position.set(3.86,2.50,1.914);g.add(calendar);
   b('Small veranda table',-10.83,F+.57,8.85,.90,.09,.72,'wood',true);
   for(const dx of [-.36,.36])for(const dz of [-.27,.27])detail(-10.83+dx,F+.28,8.85+dz,.065,.56,.065,'wood');
   K.cylinder(g,'Table brass cup',-10.83,F+.68,8.85,.065,.052,.13,'gold',12);
