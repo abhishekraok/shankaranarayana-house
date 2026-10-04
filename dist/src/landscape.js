@@ -247,7 +247,11 @@ export function buildLandscape(K, {mobile=false}={}) {
     // Leave real notches through every course for the side-bank descents.
     for(const [a,b] of [[lake.z-d/2,-23.5],[-20.8,lake.z+d/2]])
       box(`${name} east`,lake.x+w/2-thickness/2,top-height/2,(a+b)/2,thickness,height,b-a,mat);
-    for(const [a,b] of [[lake.z-d/2,-25.2],[-22.8,lake.z+d/2]])
+    // West bank (15.22.00 frontal, 15.23.38): two narrow flights run along the face toward a
+    // shared landing. The bank-top strip and the first tier stop either side of the flights (their
+    // end faces show in 15.22.00); the two lower tiers open only for the water landing.
+    const westNotch=/^(upper|middle)/.test(name)?[-24.2,-18.8]:[-22.15,-20.85];
+    for(const [a,b] of [[lake.z-d/2,westNotch[0]],[westNotch[1],lake.z+d/2]])
       box(`${name} west`,lake.x-w/2+thickness/2,top-height/2,(a+b)/2,thickness,height,b-a,mat);
     // Leave the paired stairs and low connecting path exposed, rather than
     // burying them inside the old continuous retaining courses.
@@ -283,7 +287,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(1.39, .36, -1.70, .90, 'submerged tank course', mossWall, -1.61);
   for(const [a,b] of [[-4.6,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.60);
   for(const [a,b] of [[-4.6,-3.5],[-1.1,12.10],[14.40,32.9],[35.1,48.8]])K.surface((a+b)/2,-36.27,b-a,.40,-.35);
-  for(const [a,b] of [[-36.25,-25.2],[-22.8,-9.75]])K.surface(-4.67,(a+b)/2,.40,b-a,-.60);
+  for(const [a,b] of [[-36.25,-25.15],[-17.85,-9.75]])K.surface(-4.67,(a+b)/2,.40,b-a,-.60);
   for(const [a,b] of [[-36.25,-23.5],[-20.8,-9.75]])K.surface(48.67,(a+b)/2,.40,b-a,-.60);
   // Keep later planting stable when the longer shoreline needs more stones.
   const bankDetailSeed=seed;
@@ -484,7 +488,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.14.07 / 15.21.47 / 15.23.25 / 15.23.35 / 15.23.38 / 15.25.52 / 15.25.55 / 14.57.50: both side
   // banks have a solid dark masonry parapet with tall, capped whitewashed square posts
   // about 3.7 m apart, not open crossrails.
-  for(const [x,z1,z2,name] of [[50.08,-8.32,-20.8,'East'],[50.08,-23.5,-37.68,'East'],[-5.08,-10.0,-22.8,'West'],[-5.08,-25.2,-37.68,'West']]){
+  // West bank: a gap in the parapet at the head of each flight, a post either side (15.21.56, 15.23.38).
+  for(const [x,z1,z2,name] of [[50.08,-8.32,-20.8,'East'],[50.08,-23.5,-37.68,'East'],[-5.08,-10.0,-17.85,'West'],[-5.08,-18.95,-24.05,'West'],[-5.08,-25.15,-37.68,'West']]){
     const len=Math.abs(z2-z1),zc=(z1+z2)/2,n=Math.max(1,Math.round(len/3.7));
     box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
     box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
@@ -493,7 +498,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       // only a little above its coping (as on the east bank in that photo).
       box(name+' bank whitewashed square post',x,.56,z,.31,1.12,.31,fenceWhite);
       box(name+' bank post cap',x,1.14,z,.32,.05,.32,fenceWhite);}
-    K.blocker(x,zc,.45,len+.3,0,1.4);
+    if(name==='West')K.blocker(x,zc,.31,len,0,1.4);else K.blocker(x,zc,.45,len+.3,0,1.4); // the flights pass close under the west wall
   }
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
   // standing about 0.4 m above the raised ground behind the wall.
@@ -549,11 +554,22 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('east bank stair threshold',50.35,-.005,-22.15,.20,.12,2.45,materials.basalt);K.surface(50.35,-22.15,.20,2.45,.055);
   box('east bank lower landing', 47.65, -1.61, -22.15, .78, .12, 2.45, materials.wetStone);
   K.surface(47.65, -22.15, .78, 2.45, -1.55);
-  // 15.23.35 / 15.23.38: straight descent through the west parapet.
-  steps('west bank straight water stair',-4.15,-24,2.3,2.2,'-x',-1.55,.055,9);
-  box('west bank stair threshold',-5.35,-.005,-24,.20,.12,2.2,materials.basalt);K.surface(-5.35,-24,.20,2.2,.055);
-  box('west bank lower landing',-2.70,-1.61,-24,.70,.12,2.2,materials.wetStone);
-  K.surface(-2.70,-24,.70,2.2,-1.55);
+  // 15.22.00 (frontal) / 15.23.38 / 15.21.56: not one flight through the parapet but two narrow
+  // flights of about seven risers along the bank's face, descending toward each other to a
+  // shared landing two tiers down, the bank wall and a white pilaster between them.
+  steps('west bank south flight',-4.55,-23.25,.9,1.9,'-z',-1.15,.055,7,tankWall);
+  steps('west bank north flight',-4.55,-19.75,.9,1.9,'z',-1.15,.055,7,tankWall);
+  box('west bank stair landing',-4.55,-1.875,-21.5,.9,1.45,1.6,tankWall);K.surface(-4.55,-21.5,.9,1.6,-1.15);
+  box('west bank stair landing',-3.65,-1.875,-21.5,.9,1.45,5.4,tankWall);K.surface(-3.65,-21.5,.9,5.4,-1.15); // the broad tier the flights come down to
+  box('west bank lower landing',-2.35,-2.05,-21.5,1.7,1.10,1.3,mossWall);K.surface(-2.35,-21.5,1.7,1.3,-1.50);
+  box('west bank wall behind the flights',-4.99,-.65,-21.5,.04,1.40,5.4,tankWall); // closes the bank behind the treads and the landing
+  box('west bank stair white pilaster',-4.97,-.10,-21.5,.07,2.10,.16,fenceWhite);
+  for(const zc of [-24.675,-18.325]){
+    box('west bank stair head landing',-4.55,-.0125,zc,.9,.135,.95,materials.basalt);K.surface(-4.55,zc,.9,.95,.055);
+    box('west bank stair threshold',-5.18,-.005,zc<-20?-24.6:-18.4,.56,.12,1.1,materials.basalt);K.surface(-5.18,zc<-20?-24.6:-18.4,.56,1.1,.055);
+  }
+  // The old stair's notch in the bank-top ground strip (cut in main.js) is closed again.
+  box('west bank ground behind the parapet',-5.175,-.22,-24,.35,.44,2.4,K.M.earth);K.surface(-5.175,-24,.35,2.4,0);
   steps('far bank corner steps', -2.3, -36.60, 2.25, 3.60, '-z', -1.55, FAR_TOP, 16);
   box('far bank lower landing', -2.3, -1.61, -34.43, 2.25, .12, .76, materials.wetStone);
   K.surface(-2.3, -34.43, 2.25, .76, -1.55);

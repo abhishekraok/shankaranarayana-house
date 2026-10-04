@@ -352,7 +352,8 @@ for(const [x,z,height] of [[62.1,-1,2.82],[64.9,-1,3.42],[64.9,-9,3.42]]){
 }
 checkRoute('Pavilion entry from raised bank',[[34,-37.4],[34,-32]],1.38,-1.28);
 checkRoute('Pavilion return to raised bank',[[34,-32],[34,-37.4]],-1.27,-1.28);
-for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
+// West bank: in through the parapet gap, down the north flight along the face, across the landing.
+for(const [name,points,high] of [['West bank',[[-5.7,-18.4],[-4.45,-18.4],[-4.45,-21.5],[-2.4,-21.5]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 // User's note: no opening from the lane to the gate landing; the lower bank is reached from
 // the bathing arcade stair and the gate landing only from below.
