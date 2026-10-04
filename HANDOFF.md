@@ -144,6 +144,47 @@ committed) still apply.
   six; the second low pavilion looks longer in 15.13.07; the ledge reliefs are still grey-green (photos:
   pinkish friezes); the entrance panels use an emissive map, to be checked in the game. Not done: fixes 5, 6,
   9, 20, 24, 25, 16(d).
+- Landscape sweep (a sub-agent's ten commits, merged): the pavilion's roof top, edge band, floor and island read
+  as weathered concrete, stained whitewash and coursed stone; the lane-end steps and platform are worn
+  concrete; the arcade's east room carries a painted tin sign (abstract strokes, not real lettering); the 34
+  loose grey slabs on the far-bank path and the bright shoulder stones are gone or dulled; worn footpaths are
+  patchy laterite; the bathing-gate landing no longer pokes out under the roadside parapet; seven flicker
+  pairs were separated. `stainMap(seed,base,[[count,'r,g,b',alpha,r0,r1],...])` in landscape.js makes a
+  tileable blotch texture. `K.box` maps UVs at 2 m per tile, so a texture meant to fit a w x h face needs
+  `repeat.set(2/w,2/h); offset.set(.5,.5)`. Left: the terrain slab `ground(24.5,-6,59,6)` overhangs the south
+  0.4 m of the near-bank bathing steps (x 16.7..19.1) as a red shelf (needs a notch in main.js); the lawn's
+  thin utility pole carries no wire.
+- Sky occlusion follow-up: the exposure also adapts when the camera is within 0.9 m of a roofed spot (the
+  temple's entrance passage has an open well above it, so 15.15.51 rendered almost black), and the entrance
+  door panels lost their emissive map: the game turns any emissive material into a plain white glow, which
+  made the doorway a bright blank there. Avoid emissive maps for anything but lamps and flames.
+- Game: rebuilt at 00:24 on 2026-10-04 with all of the above (smoke and cold restart passed). The export and
+  material scripts on the photoreal branch had four hard-wired expectations that this pass broke and that are
+  now relaxed there: the old fence's material family (now optional), the paving material's single user (the
+  hall-awning floor is allowed), stale material slots left by re-import (skipped when the fresh GLB has no
+  such material), and the non-foliage name list.
+- Temple sweep (ten commits, merged): the covered hall's stage bay floor meets the west veranda (the 4 cm slit
+  is gone); the two notice boards stand on the veranda edge and hang from the transom sill, each with a back
+  board; a flicker table `give` near the end of buildTemple moves 20 named parts by a few millimetres (add a
+  name and offset there for future coplanar pairs), followed by a pass that stops the veranda plinths and
+  copings at the inner corners; the stored boards lie in a pile on the west veranda with a blocker; the
+  prabhavali arch stands on brass uprights; a continuous dark wall closes the gaps behind the rear ledge
+  columns; the inner front veranda has a white soffit; the rear ledge frieze is dusty rose; the lamp shelter
+  roof is timber, the naga stones darker, the vaulted shrines' steps stained concrete. For the owner's eye:
+  whether the gallery's dark back wall ('Courtyard gallery shaded upper back') should be white or open
+  (15.12.42), and whether the stored boards and work table should simply go.
+- House sweep (fifteen commits, merged): `edgeStone` is the smooth dark veranda stone on platform edges,
+  copings, steps and door bases (no flagstone joints); the God room's two stand-in prints are dim glazed
+  devotional prints; the front awning stops inside the balcony slab (its tiles and grass came up through
+  the upper floor); the sheet at the God room's west plinth really leans on it (Euler order 'ZYX');
+  `windowDark()` makes the upper court windows' dark a one-sided plane, so the rooms see out; the God room
+  side bands start at the tall block's corner (`shrineBandSpans` from z 6.96); rear wall damp runs, laundry
+  folds and sacks are softer; five flicker pairs fixed. Left: the outer parapet coping and entrance cheek
+  tops are still jointed green-grey 'stone'.
+- Also in this pass: the tree whose crown grew through the house's west upper room moved west (landscape.js
+  line with `[-23.4,6.5,10,4.7]`); the parked car is plain wine red; the bare lawn pole carries lines; a stone
+  coping course hides the terrain edge over the bathing recess; the tour looks up the temple's west aisle;
+  ceilings keep more sky-bounce light the more open sides they have (pavilion soffit grey, not black).
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
