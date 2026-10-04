@@ -1102,7 +1102,7 @@ export function buildHouse(K) {
     const du=(u1-u0)*inset,dv=(v1-v0)*inset,geo=new THREE.PlaneGeometry(w*(1-2*inset),h*(1-2*inset)),uv=geo.attributes.uv;
     for(let i=0;i<uv.count;i++)uv.setXY(i,(uv.getX(i)?u0+du:u1-du)/2000,1-(uv.getY(i)?v0+dv:v1-dv)/1500);
     const print=new THREE.Mesh(geo,printMat);print.name=name+' printed picture';print.rotation.y=Math.PI;print.position.set(0,h/2,-.011);holder.add(print);};
-  const frameWood=mat('wood').clone();frameWood.color.set('#2e241d');
+  const frameWood=mat('wood').clone();frameWood.color.set('#4c3c30'); // 'house, God room, left side': near-black timber (about #17100c), but not the pure black #2e241d rendered in this dim room
   const frameRed=new THREE.MeshStandardMaterial({color:'#b24a4f',roughness:.7});
   framed('Altar framed Lakshmi print',1,510,865,710,1025,frameWood,.03);
   framed('Altar small framed deity print',1,1405,1600,780,1080,frameWood,.06);
@@ -1166,20 +1166,29 @@ export function buildHouse(K) {
      for(const x of [d0+.05+inset,d1-.05-inset])b('Altar room stepped doorway jamb',x,shrineFloor+h/2,zz,.10,h,.06,frameWood);
      b('Altar room stepped doorway lintel',(d0+d1)/2,head-inset-.05,zz,d1-d0-2*inset,.10,.06,frameWood);
    }
-   // Flat framed prints on the wall ahead: painted stand-ins, not the photograph.
-   const print=(name,x,y,w,h,ground,figure,tilt)=>{
-     const c=document.createElement('canvas');c.width=128;c.height=160;const q=c.getContext('2d');
-     q.fillStyle='#e9e2cf';q.fillRect(0,0,128,160);q.fillStyle=ground;q.fillRect(8,8,112,144);
-     q.fillStyle=figure;q.beginPath();q.arc(64,62,17,0,Math.PI*2);q.fill();q.beginPath();q.moveTo(30,138);q.quadraticCurveTo(64,58,98,138);q.closePath();q.fill();
-     q.fillStyle='#f3d9a2';q.beginPath();q.arc(64,62,9,0,Math.PI*2);q.fill();q.fillStyle='#b8862f';q.fillRect(22,136,84,8);
+   // 'house, God room, left side': two old glazed devotional prints, painted soft and dim as they read from the door
+   // (not the photograph): a saint in an orange robe before a yellow shrine and a white cow on a blue ground, and a pale blue group scene above.
+   const print=(name,x,y,w,h,paint,tilt)=>{
+     const c=document.createElement('canvas'),W=c.width=Math.round(w*340),H=c.height=Math.round(h*340),q=c.getContext('2d');
+     const blob=(cx,cy,rx,ry,rgb,a)=>{q.save();q.translate(cx*W,cy*H);q.scale(rx*W,ry*H);const gr=q.createRadialGradient(0,0,0,0,0,1);
+       gr.addColorStop(0,`rgba(${rgb},${a})`);gr.addColorStop(.55,`rgba(${rgb},${a*.7})`);gr.addColorStop(1,`rgba(${rgb},0)`);q.fillStyle=gr;q.beginPath();q.arc(0,0,1,0,Math.PI*2);q.fill();q.restore();};
+     paint(q,W,H,blob);
+     // age and glass: a brown veil, darker corners and a faint diagonal sheen
+     q.fillStyle='rgba(58,44,28,.22)';q.fillRect(0,0,W,H);
+     for(const [cx,cy] of [[0,0],[1,0],[0,1],[1,1]])blob(cx,cy,.55,.55,'24,18,12',.38);
+     const sheen=q.createLinearGradient(0,0,W,H);sheen.addColorStop(.25,'rgba(255,255,255,0)');sheen.addColorStop(.42,'rgba(255,255,255,.10)');sheen.addColorStop(.58,'rgba(255,255,255,0)');q.fillStyle=sheen;q.fillRect(0,0,W,H);
      const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
      const frame=b(name+' dark frame',x,y,z-.065,w+.07,h+.07,.03,frameWood);
-     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:.75}));
+     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:.42}));
      sheet.name=name;sheet.rotation.y=Math.PI;sheet.position.set(x,y,z-.082);g.add(sheet);
      if(tilt&&frame){frame.rotation.x=-tilt;sheet.rotation.x=tilt;}
    };
-   print('Altar wall framed saint print',1.53,2.06,.42,.56,'#2f8f8b','#e2812d',0);
-   print('Altar wall upper framed print',1.50,3.30,.56,.34,'#35589a','#d9b24a',.16);
+   print('Altar wall framed saint print',1.53,2.06,.42,.56,(q,W,H,blob)=>{q.fillStyle='#8a8f6a';q.fillRect(0,0,W,H);q.fillStyle='#3d5f98';q.fillRect(W*.07,H*.05,W*.86,H*.90);
+     blob(.5,.27,.34,.20,'206,160,70',.95);blob(.5,.33,.20,.12,'196,112,104',.7);blob(.24,.52,.20,.15,'230,226,214',.8);
+     blob(.5,.68,.24,.20,'226,188,150',.95);blob(.5,.48,.085,.075,'206,150,116',.95);blob(.5,.86,.34,.09,'198,96,40',.9);blob(.5,.96,.44,.04,'70,96,60',.7);},0);
+   print('Altar wall upper framed print',1.50,3.30,.56,.34,(q,W,H,blob)=>{q.fillStyle='#7f9db3';q.fillRect(0,0,W,H);blob(.5,.12,.62,.30,'186,206,220',.7);
+     blob(.28,.56,.14,.30,'206,160,150',.85);blob(.50,.54,.13,.33,'60,96,150',.9);blob(.72,.57,.14,.30,'214,190,150',.85);
+     blob(.5,.30,.07,.10,'224,196,120',.7);blob(.5,.97,.7,.16,'40,60,92',.7);},.16);
   }
   detail(0,3.38,9.6,3.82,.2,.24,'wood');
   const lampMat=new THREE.MeshStandardMaterial({color:0xffe0a3,emissive:0xffb34a,emissiveIntensity:1.2});
