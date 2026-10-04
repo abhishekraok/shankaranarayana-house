@@ -410,7 +410,9 @@ export function buildTemple(K) {
   // 15.15.51: from the entrance hall the gallery slab reads as a whitewashed ceiling.
   box('Entrance hall whitewashed ceiling under gallery',37.79,3.892,2.08,15.23,.012,8.0,white);
   box('Entrance hall whitewashed ceiling under gallery',47.39,3.892,2.08,.87,.012,8.0,white);
-  steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
+  // The stair's solid flank and risers are whitewashed masonry like the hall around them (15.13.51: an
+  // all-white hall); in the default dark riser stone the flank was a 3.5 m olive triangle on the white wall.
+  steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22,stoneFloor,white);
   // Rails stay inside the stair well (x 45.42-46.94) and stop at the landing, clear of the
   // gallery slab and the upper stairwell guard.
   for(const x of [45.50,46.86]){K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.01,5.80],.065,K.M.wood);
@@ -796,7 +798,11 @@ export function buildTemple(K) {
   // not the former solid wall or the unsupported room above the west passage.
   // 15.11.17: the open upper terrace and the open ground bay read at about a third or less of the
   // sunlit wall beside them (23,28,32 and 52,46,47 against 136,155,186); '#73766d' rendered at half.
-  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#4e514b');
+  // The sky occlusion now supplies part of this shade. Painted '#4e514b' as well, the bay's back wall rendered
+  // 34,40,32 from the 15.11.17 pose beside a sunlit wall at 151,166,171, where the photo has 52,46,47 beside
+  // 136,155,186, and it read as an unlit olive slab from the veranda. Plain plaster ('#b4b6ad') rendered
+  // 130,140,124, far too light; this warm mid grey (58,51,43 from that pose) lands on the photo's ratio.
+  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#6b5d59');
   {const x0=24.8,x1=34.7,xm=(x0+x1)/2,w=x1-x0,zf=35.35,y0=3.69,y1=6.55;
    const XJ=28.15; // 15.11.17: the jali and the dome stand over the gate bay (x 26.7..29.6)
    K.box(rearRoof,'Rear upper storey back wall',xm,(y0+y1)/2,37.90,w,y1-y0,.22,shadedRearPlaster,true);
@@ -853,6 +859,8 @@ export function buildTemple(K) {
   box('Rear open bay shaded back wall',32.5,2.325,37.825,5.8,2.25,.02,shadedRearPlaster);
   box('Rear west gate room side wall',29.6,2.025,36.71,.2,2.85,2.26,shadedRearPlaster,true);
   box('Rear west doorway dark recess',28.15,1.775,35.62,2.6,2.35,.025,dark);
+  // From the veranda inside the gate room the recess sheet was a black slab; its room side is plaster.
+  box('Rear west gate room inner face',28.15,1.775,35.645,2.6,2.35,.012,shadedRearPlaster);
   {const gateNavy=mat('#1b2836'),gatePanel=mat('#5b8ca6'),xl=27.62,xr=28.67;
    for(const x of [xl,xr])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
    box('Rear west gate dark meeting stile',28.145,1.75,35.34,.06,2.3,.07,gateNavy);
@@ -1931,7 +1939,10 @@ export function buildTemple(K) {
   // 15.08.42 / 'temple inner sanctum, left side': the rear ledge is as high as the side ledges and
   // meets them at the corners; its face is pinkish-red stone, and a two-step stone block stands
   // against it in each corner under the end bay (shown, not walkable).
-  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
+  // Measured against the floor in the same frame (15.08.42: ledge 145,107,98 by floor 196,179,163; 'left side':
+  // 122,103,101 by 195,176,163) the render came out 203,190,178 and 223,204,193 by floors of 218 and 225: under
+  // the indoor exposure the old '#86635a' washed out to pale salmon. About a third of its brightness matches.
+  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#4e3835',.95),true);
   innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
   for(const x of [33.85,44.1]){
     box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
@@ -1977,7 +1988,7 @@ export function buildTemple(K) {
   // The rear ledge's carved frieze is the ledge's own dusty rose stone in 15.08.42 (142,106,100; shadows
   // 130,90,88) and 'temple inner sanctum, left side' (128,102,105; lights 146,117,120): grey-green fields
   // and ribs on the pink block read as stuck-on tiles.
-  {const rearRib=mat('#8e6a64',.95),rearRecess=mat('#6e5b58',.98),rearRelief=mat('#927578',.98);
+  {const rearRib=mat('#5a403c',.95),rearRecess=mat('#4f3835',.98),rearRelief=mat('#6e5350',.98); // darkened with the ledge
    recesses.length=ribs.length=foliage.length=0;
    ledgeFace(39,28.395,14.1,Math.PI);
    instances('Inner rear ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),rearRecess,recesses);
@@ -2005,7 +2016,9 @@ export function buildTemple(K) {
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
-  const innerDarkStone=mat('#5f4744',.95); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
+  // Rear wall: 110,87,95 by a floor at 196,179,163 in 15.08.42 and 79,70,79 by 195,176,163 in 'left side'; '#5f4744'
+  // rendered 177,146,138 and 123,93,87 (salmon). Half as bright and greyer brings both poses close.
+  const innerDarkStone=mat('#47383a',.95); // ('#443942' came out bluer than the photo: 129,115,131 for 110,87,95)
   for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
@@ -2187,7 +2200,12 @@ export function buildTemple(K) {
   cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
   const shelfLight=new THREE.PointLight('#fff0c8',3,1.0,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
-  const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
+  // 'Temple inner sanctum, God room 2': the doorway is black below the lit shelf (12,7,4 where the render had
+  // 129,89,40) and so is the wall above the frame (8,7,4 against 151,100,53). The glow stood in front of the
+  // inner gate at strength 7 with a 3.4 m reach, and point lights pass through walls, so it lit the gate's
+  // face, the floor, the step and the mandapa's ceiling orange. It now sits between the two lamp stands,
+  // behind the gate, and reaches only the idol, its arch and the pedestal.
+  const lampGlow=new THREE.PointLight('#ffae55',1.6,1.3,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.0,26.15);g.add(lampGlow);
   }
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
   // "Temple inner sanctum, God room" photos: the frame is a continuous band of square polished
