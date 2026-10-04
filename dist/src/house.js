@@ -1751,16 +1751,16 @@ export function buildHouse(K) {
     // mottled like broken plaster: paler lime skin, darker damp and a few red laterite grains
     const mottle=(base,marks)=>paintedMap(256,(c,s)=>{c.fillStyle=base;c.fillRect(0,0,s,s);
       for(let i=0;i<170;i++){c.fillStyle=`rgba(${marks[i%marks.length]},${.10+rnd()*.22})`;c.beginPath();c.ellipse(rnd()*s,rnd()*s,3+rnd()*18,2+rnd()*9,rnd()*3,0,Math.PI*2);c.fill();}},1);
-    const bare=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#b48f7c',['214,196,178','150,104,84','188,150,120','126,92,78'])});
-    const deep=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#9a5a40',['128,62,44','176,112,78','104,58,46'])});
+    const bare=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#a8958a',['200,188,176','150,124,110','178,152,134','132,112,102'])}); // 14.30.57: under the sill about (138,118,122), 0.65 of the wash beside it: a greyed pink-buff, not tan
+    const deep=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#a07868',['136,96,80','170,130,108','124,92,80'])});
     const ragged=(name,profile,material,dz)=>{ // profile: [x, top edge above F]; the foot stands on the dado top
       const s=new THREE.Shape();s.moveTo(-profile[0][0],F+.45);
       for(let i=0;i<profile.length-1;i++){const [xa,ha]=profile[i],[xb,hb]=profile[i+1],n=Math.max(1,Math.round((xb-xa)/.11));
         for(let k=0;k<n;k++){const t=k/n;s.lineTo(-(xa+(xb-xa)*t+(rnd()-.5)*.05),F+Math.max(.47,ha+(hb-ha)*t+(rnd()-.5)*.07));}} // a ragged edge; at +-8 cm it stood up in peaks like a mountain skyline
       s.lineTo(-profile.at(-1)[0],F+.45);s.closePath();
       const m=new THREE.Mesh(new THREE.ShapeGeometry(s),material);m.name=name;m.rotation.y=Math.PI;m.position.set(0,0,Z-dz);g.add(m);};
-    ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.56],[4.3,.70],[5.0,.82],[6.36,.84],[6.42,1.25],[6.52,1.5],[6.8,1.62],[6.95,2.0],[7.2,2.2],[7.55,2.1],[7.8,1.62],[8.05,1.4],[8.35,1.0],[8.9,.8],[9.6,.62],[11.0,.52],[11.7,.47]],bare,.0095);
-    ragged('Rear veranda deeper bare laterite',[[6.2,.47],[6.35,.7],[6.6,.92],[6.95,1.0],[7.3,.86],[7.6,.62],[7.8,.47]],deep,.0105);}}
+    ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.55],[4.3,.66],[5.0,.74],[5.6,.70],[6.3,.80],[6.9,.86],[7.3,.74],[7.9,.80],[8.35,.70],[8.9,.66],[9.6,.58],[11.0,.52],[11.7,.47]],bare,.0095); // 14.30.57: a low flaked band over the dado, under the sill; the old 2 m wide rise to 2.2 m beside the window read as a heap of sand (a narrow strip up the jamb read as a spire)
+    ragged('Rear veranda deeper bare laterite',[[6.2,.47],[6.4,.58],[6.7,.64],[7.0,.60],[7.3,.54],[7.5,.47]],deep,.0105);}}
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
