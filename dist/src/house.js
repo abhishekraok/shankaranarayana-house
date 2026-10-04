@@ -104,12 +104,12 @@ export function buildHouse(K) {
       detail(px+s*.04,y+h*.68,pz,.05,.08,width*.42,'blue');
     }
   }
-  function grilleX(x,z,w=1.5,y=F+1.1,h=1.25,reveal='cream',back='wood') {
+  function grilleX(x,z,w=1.5,y=F+1.1,h=1.25,reveal='cream',back='wood',bar='blue') {
     detail(x,y+h/2,z,w+.22,h+.22,.12,reveal);
     detail(x,y+h/2,z-.075,w,h,.1,back);
-    for(const yy of [y,y+h*.5,y+h])detail(x,yy,z-.145,w+.1,.09,.08,'blue');
-    for(const xx of [x-w/2,x+w/2])detail(xx,y+h/2,z-.145,.085,h+.1,.08,'blue');
-    for(let xx=x-w/2+.12;xx<x+w/2;xx+=.13)detail(xx,y+h/2,z-.17,.026,h,.035,'blue');
+    for(const yy of [y,y+h*.5,y+h])detail(x,yy,z-.145,w+.1,.09,.08,bar);
+    for(const xx of [x-w/2,x+w/2])detail(xx,y+h/2,z-.145,.085,h+.1,.08,bar);
+    for(let xx=x-w/2+.12;xx<x+w/2;xx+=.13)detail(xx,y+h/2,z-.17,.026,h,.035,bar);
   }
   function grilleZ(x,z,w=1.6,y=F+1.0,h=1.35) {
     detail(x,y+h/2,z,.13,h+.18,w+.18,'wood');
@@ -1452,8 +1452,8 @@ export function buildHouse(K) {
   detail(.3,U+1.03,.30,15.1,.095,.25,'pink');
   // Solid end balcony bays match the enclosure adjoining the facade stair.
   wallX('Lake-view left enclosed balcony bay',7.8,11.85,.3,U,2.83,[{c:10.2,w:.83,bottom:.68,top:2.21}],facadeWhite);
-  grilleX(10.2,.15,.83,U+.68,1.53,facadeWhite,'wood');
-  b('Upper enclosed bay dark lower band',9.825,U+.20,.148,4.05,.42,.035,facadeDark);
+  grilleX(10.2,.15,.83,U+.68,1.53,facadeWhite,'black','wood'); // 15.23.35 / house-front.jpg: an unpainted timber window, dark inside
+  b('Upper enclosed bay dark lower band',9.825,U+.33,.148,4.05,.66,.035,facadeDark); // house-front-left.jpg: the black band reaches the sill
   b('Upper stair-side wall dark lower band',-10.0,U+.20,1.605,3.65,.42,.035,facadeDark);
   b('Lake-view right stair enclosure',-7.7,U+.70,.3,1,1.4,.24,'aqua',true);
 
@@ -1630,8 +1630,7 @@ export function buildHouse(K) {
   b('Temple-side wing small barred front window',13.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
   for(const x of [13.4,13.53,13.66,13.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
   b('Temple-side wing front wall slit',11.2,1.6,wingZ0-.02,.2,.62,.035,'wood');
-  b('Temple-side wing far barred window',17.6,1.55,wingZ0-.02,.62,.78,.04,'wood');
-  for(const x of [17.4,17.53,17.66,17.79])detail(x,1.55,wingZ0-.05,.018,.74,.018,dampBase);
+  // house-front-left.jpg / 14.28.15: no second window at the far end of the wing's lane face.
   // 15.23.35 / 15.23.32: the wing's roof is taller than the wall under it. Its ridge runs into the
   // house's east wall (x 11.975) rather than through the upstairs floor; only a low strip of the
   // lane slope continues in front of the upper bay, where the old fascia stopped (x 9.28).
@@ -1652,7 +1651,7 @@ export function buildHouse(K) {
   b('Temple-facing block closed timber door',wingX1+.09,1.1,1.5,.045,1.8,.82,'wood');
   for(const z of [1.15,1.33,1.50,1.67,1.84])detail(wingX1+.12,1.1,z,.022,1.75,.022,dampBase);
   b('Temple-facing block door threshold',wingX1+.12,.19,1.5,.38,.10,1.12,'stone');
-  b('Temple-facing block stone boundary post',wingX1+.3,.70,wingZ0-.5,.24,1.38,.26,'stone',true);
+  b('Temple-facing block stone boundary post',wingX1+2.1,.875,wingZ0+.7,.42,1.75,.22,new THREE.MeshStandardMaterial({color:'#3b3a35',roughness:1}),true); // 14.59.36 / 15.26.49: a dark slab about 1.75 m tall standing 2 m off the wing end
   const tarp=new THREE.MeshStandardMaterial({color:'#218fad',roughness:.88,side:THREE.DoubleSide});
   const tarpGeometry=new THREE.PlaneGeometry(2.5,1.8,18,18),tp=tarpGeometry.attributes.position;
   for(let i=0;i<tp.count;i++){
