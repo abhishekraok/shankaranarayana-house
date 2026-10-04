@@ -1026,11 +1026,13 @@ export function buildTemple(K) {
   box('Inner veranda flat cornice',39,3.76,15.88,19.15,.22,1.85,weathered);
   box('Inner veranda red fascia',39,3.70,14.94,19.2,.14,.12,red);
   const parapetPosts=[];
-  for(let i=0;i<=9;i++)parapetPosts.push([29.55+i*2.1,4.31,15.36,.22,.95,.22]);
+  for(let i=0;i<=9;i++)parapetPosts.push([29.55+i*2.1,4.31,15.36,.62,.95,.22]); // 15.13.03: broad red piers, about 0.3 of the 2.1 m pitch
   instances('Inner parapet red posts',new THREE.BoxGeometry(1,1,1),red,parapetPosts);
   box('Inner parapet red coping',39,4.81,15.36,19.3,.12,.29,red);
   const panels=[];for(let i=0;i<9;i++)panels.push([30.60+i*2.1,4.32,15.36,1,1,1]);
-  instances('Inner parapet white floral openwork',floral,lace,panels);
+  // 15.13.03 / 15.12.56 / 15.03.55: the parapet panels are white pierced slabs, mostly solid, like
+  // the entrance balcony's screens; the thin ribbon rings read as empty frames.
+  instances('Inner parapet white floral openwork',screenGeometry,entranceLace,panels.map(p=>[p[0],4.31,p[2],.8,.88,1]));
   corrugatedRoof('Inner corrugated shelter roof',39,18.85,16.8,3.4,4.16,1.5,sheet);
   corrugatedGable('Inner blue-gray corrugated gable',39,17.15,16.8,4.16,1.5);
   // Beyond the blue facade: older, narrower construction with red walls,
