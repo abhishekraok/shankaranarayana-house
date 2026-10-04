@@ -79,6 +79,21 @@ committed) still apply.
   `materials.py` asserts its list of non-foliage object names against the scene: renaming or removing one
   of those objects on main (here the God room's east canopy) fails the materials step until the list is
   updated on the photoreal branch.
+- Lake and lane (a sub-agent's nine commits plus the pond, merged; landscape fixes 16, 14A, 17, 13, 11, 4, 2, 7):
+  the pavilion has a middle pier and twin cusped arches on its east and lane faces, one wide arch over the
+  bank entry and a small-lobed grey fascia; the stage roof is hand-built (2.0 m rise, 11 m ridge, a 6.2 m
+  gable with a round-headed niche; not `K.hipRoof`); the stage figures are modelled grey stone guardians on
+  pedestals and brackets (no photo panels), the elephants 1.25x and matt, both still south of the stair; the
+  forecourt has 1.7 m stained terraces either side of the stair, stepped white plinth courses, a side flight
+  and pale flared lower steps; the shop's cream end block is set back under a corrugated sheet, with a jali,
+  vent, damp bands and blue-grey shutter boards; the lane-end steps climb to a lawn 0.49 m above the lane
+  (`LAWN`), and the shop, east parapet and two utility poles stand on it (the shop is authored on level
+  ground and lifted by `shopLift` index ranges: add shop parts inside that block unlifted, or after it in
+  world heights); the west bank stair is two mirrored flights along the face (`westNotch` in `ringCourse`);
+  the forecourt pond is about 5.8 m further east (x 29.5), a 4.6 x 4.0 m cross, built only when the temple is
+  set back at least 3.4 m (main.js ground strips, `terrainY` and the `templepond` viewpoint changed with it).
+  The tour walks up the lane-end steps and over the lawn. Poses now 0.3-0.45 m low: 15.20.13, 14.59.54.
+  Not done: fix 17's longer rear block, fixes 1, 8, 9, 10, 14B.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
