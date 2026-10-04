@@ -208,7 +208,7 @@ function adaptExposure(dt){
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
-const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
+const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(-3.8,1.62,-2),lastSafe=new THREE.Vector3(-3.8,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
@@ -314,6 +314,8 @@ function setMode(value){if(value===mode&&entered)return;const wasWalking=entered
  else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62-lakeCameraLift(camera.position.x,camera.position.z);lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
 }
 function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
+// Walk carries on from where the tour is (during the opening flight: where it lands), or from a free look taken at standing height, instead of jumping back to the last walked spot.
+function walkOn(){let view=camera;if(mode==='tour'&&introClock!==null){view=tour.intro.sample(tour.intro.duration);introClock=null;tourTime=tourStartTime;}const x=view.position.x,z=view.position.z,f=view.position.y-1.62-lakeCameraLift(x,z),h=supportY(x,z,f);if(mode!=='tour'&&!(h>-4&&Math.abs(f-h)<.6&&!collision(x,z,h))){setMode('walk');return;}const e=new THREE.Euler().setFromQuaternion(view.quaternion,'YXZ');walkPosition.copy(view.position);setMode('walk');yaw=e.y;pitch=THREE.MathUtils.clamp(e.x,-.6,.6);syncLook();}
 // Phone toolbar disclosure: collapsed initially, dismissed after choosing an action.
 const compactControls=matchMedia('(max-width:740px), (max-width:950px) and (max-height:500px)');
 const controlsToggle=$('controls-toggle'),exploreControls=$('explore-controls');
@@ -335,15 +337,18 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&controlsToggle.getAttribute(
 compactControls.addEventListener('change',()=>setControlsExpanded(false,exploreControls.contains(document.activeElement)));
 setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
-$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{setMode('walk');capture();}};
+$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{if(mode==='tour'||mode==='fly')walkOn();else setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
-$('tour-btn').onclick=()=>{tourTime=tourStartTime;introClock=0;startTour();};
+$('tour-btn').onclick=()=>{if(mode==='tour'){tourTime=tourStartTime;introClock=0;}startTour();};// Returning from a walk resumes the tour where it was left; pressing Tour while it runs restarts it.
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
 $('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;introClock=null;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
 $('reset').onclick=()=>teleport(destinations.front);
 $('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);skyShade?.build();renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
 $('settings-btn').onclick=()=>{release();$('settings').hidden=!$('settings').hidden;$('settings-btn').setAttribute('aria-expanded',String(!$('settings').hidden));};
+$('close-settings').onclick=()=>{$('settings').hidden=true;$('settings-btn').setAttribute('aria-expanded','false');};
+// Escape closes an open panel first (Settings, then Photographs); only with none open does it go on to pause the tour.
+addEventListener('keydown',e=>{if(e.key!=='Escape'||aligning||document.querySelector('dialog[open]'))return;if(!$('settings').hidden)$('close-settings').click();else if(!$('photos').hidden)$('close-photos').click();else return;e.stopImmediatePropagation();});
 $('speed').oninput=e=>{speed=+e.target.value;$('speed-label').textContent=speed<2.2?'Slow':speed<3.5?'Gentle':'Brisk';};
 $('sensitivity').oninput=e=>sensitivity=+e.target.value;
 $('shadows').onchange=e=>{renderer.shadowMap.enabled=e.target.checked;renderer.shadowMap.needsUpdate=true;scene.traverse(o=>{if(o.material){const ms=Array.isArray(o.material)?o.material:[o.material];ms.forEach(m=>m.needsUpdate=true);}});};
@@ -435,7 +440,7 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);adaptExposure(frameTime);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);adaptExposure(frameTime);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel.replace(/ · \d\d\.\d\d\.\d\d$/,''):mode==='orbit'?'Seen from above':location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
