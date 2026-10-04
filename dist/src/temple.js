@@ -175,8 +175,10 @@ export function buildTemple(K) {
     K.blocker(x,z,.65*s,.65*s,baseY,baseY+height);
   }
   function blueColumn(n,x,z,base=.6,h=2.85){
-    box(n+' red base',x,base+.29,z,.34,.58,.34,red);
-    box(n+' blue shaft',x,base+(h+.58)/2,z,.25,h-.58,.25,paleBlue);
+    // 15.03.55 / 15.11.17 / 15.03.38: the red base is a painted band flush with the shaft and about
+    // 0.4 m high, not a wider block.
+    box(n+' red base',x,base+.21,z,.27,.42,.27,red);
+    box(n+' blue shaft',x,base+(h+.42)/2,z,.25,h-.42,.25,paleBlue);
     box(n+' capital',x,base+h-.055,z,.46,.11,.43,paleBlue);
     K.blocker(x,z,.37,.37,base,base+h);
   }
@@ -927,12 +929,20 @@ export function buildTemple(K) {
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
     mesh(n,geo,sheet);instances(n+' vertical seams',new THREE.BoxGeometry(1,1,1),greySheet,ribs);
   }
-  floor('Inner front building foundation',39,17.72,18.65,5.05,.55,oldStone);
-  floor('Inner front marble veranda',39,15.86,18.8,1.45,.57,dado);
-  box('Inner front weathered plinth',39,.27,15.15,18.8,.44,.18,weathered);
-  box('Inner plinth red trim',39,.5,15.12,18.9,.065,.12,red);
+  // 15.13.03 / 15.12.56 (from the gallery): the plinth is cut at the door and the dark steps lie
+  // inside the cut; nothing projects into the court.
+  floor('Inner front building foundation',39,18.3575,18.65,3.775,.55,oldStone);
+  for(const [a,b] of [[29.675,38.2],[39.8,48.325]])floor('Inner front building foundation',(a+b)/2,15.8325,b-a,1.275,.55,oldStone);
+  for(const [a,b] of [[29.6,38.2],[39.8,48.4]]){
+    floor('Inner front marble veranda',(a+b)/2,15.86,b-a,1.45,.57,dado);
+    box('Inner front weathered plinth',(a+b)/2,.27,15.15,b-a,.44,.18,weathered);
+    box('Inner plinth red trim',(a+b)/2,.5,15.12,b-a+.05,.065,.12,red);}
+  steps('Inner central threshold stairs',39,15.585,1.6,.9,.1,.57,'z',3,oldStone,oldStone);
+  floor('Inner central threshold landing',39,16.31,1.6,.55,.57,oldStone);
+  for(const x of [38.17,39.83])box('Inner plinth cut end face',x,.33,15.765,.06,.46,1.41,weathered);
   // The photographed stone interior is open behind this facade.
-  const frontHoles=[[32.65,34.65],[35.28,37.28],[38.12,39.88],[40.72,42.72],[43.35,45.35]];
+  // 15.03.55: the windows are about 1.5 m wide, not 2 m.
+  const frontHoles=[[32.88,34.42],[35.51,37.05],[38.12,39.88],[40.95,42.49],[43.58,45.12]];
   let frontEdge=29.8;
   for(const [left,right] of [...frontHoles,[48.2,48.2]]){
     if(left>frontEdge)box('Inner front facade pier',(frontEdge+left)/2,2.09,16.57,left-frontEdge,3.08,.20,innerWhite,true);
@@ -951,9 +961,9 @@ export function buildTemple(K) {
   // Openings are layered on the enclosed facade; the unseen sanctuary stays dark.
   function innerWindow(x){
     // Grilles are open to daylight on both sides of the wall.
-    for(const dx of [-1,0,1])box('Inner blue window upright',x+dx,1.91,16.27,.105,1.44,.16,vividBlue);
-    for(const y of [1.22,1.91,2.6])box('Inner blue window crossrail',x,y,16.25,2.1,.10,.17,vividBlue);
-    const bars=[];for(let i=0;i<18;i++)bars.push([x-.92+i*1.84/17,1.91,16.28,.021,1.28,.03]);
+    for(const dx of [-.72,0,.72])box('Inner blue window upright',x+dx,1.91,16.27,.105,1.44,.16,vividBlue);
+    for(const y of [1.22,1.91,2.6])box('Inner blue window crossrail',x,y,16.25,1.55,.10,.17,vividBlue);
+    const bars=[];for(let i=0;i<14;i++)bars.push([x-.68+i*1.36/13,1.91,16.28,.021,1.28,.03]);
     instances('Inner window white bars',new THREE.BoxGeometry(1,1,1),whiteTrim,bars);
   }
   for(const x of [33.65,36.28,41.72,44.35])innerWindow(x);
@@ -964,9 +974,8 @@ export function buildTemple(K) {
     steps('Inner service door steps',x,14.84,1.35,.85,.1,.57,'z',2);
   }
   // Central doorway remains open into the stone hall.
-  for(const x of [38.1,39.9])box('Inner decorated blue door jamb',x,1.75,16.19,.21,2.4,.14,vividBlue);
-  box('Inner central doorway lintel',39,2.79,16.20,2,.18,.17,vividBlue);
-  steps('Inner central threshold stairs',39,14.75,1.8,1.0,.1,.57,'z',2);
+  for(const x of [38.25,39.75])box('Inner decorated blue door jamb',x,1.75,16.19,.30,2.4,.14,vividBlue);
+  box('Inner central doorway lintel',39,2.79,16.20,1.8,.18,.17,vividBlue);
   // Original photo regions are used intact as surface details. No invented text/iconography.
   const sourceTexture=new THREE.TextureLoader().load('./assets/temple-upper-center.jpg');sourceTexture.colorSpace=THREE.SRGBColorSpace;
   function referencePanel(n,x,y,z,w,h,region){
@@ -976,8 +985,10 @@ export function buildTemple(K) {
     const m=new THREE.MeshStandardMaterial({map:sourceTexture,roughness:.9});
     const panel=mesh(n,geometry,m,x,y,z);panel.rotation.y=Math.PI;return panel;
   }
-  box('Inner doorway painting backing',39,3.23,15.26,2.3,.88,.10,white);
-  referencePanel('Photographed inner doorway painting',39,3.23,15.19,2.28,.86,[.414,.458,.518,.568]);
+  // 15.03.55: the framed painting hangs on the back wall over the garlanded door, behind the posts
+  // (it used to stand at the post line, filling the central bay).
+  box('Inner doorway painting backing',39,3.25,16.42,2.1,.8,.10,white);
+  referencePanel('Photographed inner doorway painting',39,3.25,16.36,2.0,.74,[.414,.458,.518,.568]);
   referencePanel('Photographed dark temple notice board',43.2,1.76,15.05,.9,2.12,[.11,.589,.183,.79]);
   referencePanel('Photographed pale temple notice board',34.55,2.69,15.07,1.0,1.12,[.799,.486,.9,.608]);
   const garland=[];for(let i=0;i<38;i++){const t=i/37;garland.push([38.12+t*1.76,2.74-.13*Math.abs(Math.sin(t*Math.PI*3)),16.08,.03,.033,.035]);}
@@ -993,7 +1004,6 @@ export function buildTemple(K) {
   }
   const transom=[];
   for(let i=0;i<columns.length-1;i++){
-    if(i===3)continue; // The doorway painting occupies the central bay.
     const a=columns[i]+.16,b=columns[i+1]-.16;
     for(const y of [3.18,3.63])box('Maroon pierced transom frame',(a+b)/2,y,15.25,b-a,.07,.08,maroon);
     for(let x=a;x<=b;x+=.135){transom.push([x,3.40,15.25,.037,.4,.047]);}
