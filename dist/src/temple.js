@@ -175,8 +175,10 @@ export function buildTemple(K) {
     K.blocker(x,z,.65*s,.65*s,baseY,baseY+height);
   }
   function blueColumn(n,x,z,base=.6,h=2.85){
-    box(n+' red base',x,base+.29,z,.34,.58,.34,red);
-    box(n+' blue shaft',x,base+(h+.58)/2,z,.25,h-.58,.25,paleBlue);
+    // 15.03.55 / 15.11.17 / 15.03.38: the red base is a painted band flush with the shaft and about
+    // 0.4 m high, not a wider block.
+    box(n+' red base',x,base+.21,z,.27,.42,.27,red);
+    box(n+' blue shaft',x,base+(h+.42)/2,z,.25,h-.42,.25,paleBlue);
     box(n+' capital',x,base+h-.055,z,.46,.11,.43,paleBlue);
     K.blocker(x,z,.37,.37,base,base+h);
   }
@@ -252,15 +254,17 @@ export function buildTemple(K) {
   box('Portico west wall above service porch',30.1,5.275,5.725,.24,3.05,1.75,white,true);
   box('Portico east wall',47.9,3.70,2.3,.24,6.2,8.6,white,true);
   for(const x of [33.72,44.28]){
-    const w=x<39?4.995:7.15,cx=x<39?34.7975:x;
+    // 15.15.51 (ceiling height as ruler): the doorway is only 1.05 m clear, so the wall runs in to
+    // x 39 +/- .66 on each side.
+    const w=x<39?6.04:8.195,cx=x<39?35.32:43.7575;
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
     box('Rear grey marble dado',cx,1.05,5.955,w,.40,.05,mat('#9a9a92',.4));
     box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
-  box('Open passage header',39,3.25,6.1,3.45,1.34,.25,white);
+  box('Open passage header',39,3.345,6.1,1.32,1.15,.25,white);
   // The actual entrance door (15.15.51), with an open view into the courtyard.
-  const doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),doorLeafBlue=mat('#2e5f96',.72),doorStud=mat('#b8a26a',.45,{metalness:.6}),silver=mat('#ffffff',.63,{metalness:.25});
+  const doorPlinth=mat('#9a9a92',.4),doorwayBlue=mat('#294c57'),doorLeafWood=mat('#3a2518',.75),doorLeafBlue=mat('#2e5f96',.72),doorStud=mat('#b8a26a',.45,{metalness:.6}),silver=mat('#ffffff',.63,{metalness:.25});
   // Silver-painted carved stone: flutes, recessed relief panels and worn edges.
   silver.map=canvasMap(256,(c,s)=>{let n=4409;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     c.fillStyle='#c3c9ca';c.fillRect(0,0,s,s);
@@ -270,72 +274,95 @@ export function buildTemple(K) {
     for(let i=0;i<300;i++){c.fillStyle=`rgba(50,56,58,${r()*.2})`;c.fillRect(r()*s,r()*s,1+r()*3,1+r()*3);}
   });
   K.worldMap(silver,.5);
-  box('Entrance doorway left blue surround',37.48,2.00,5.87,.69,2.80,.23,doorwayBlue);
-  box('Entrance doorway right blue surround',40.52,2.00,5.87,.69,2.80,.23,doorwayBlue);
-  box('Entrance doorway blue inscription header',39,3.18,5.87,3.70,.62,.24,doorwayBlue);
+  // 15.15.51 / 15.16.13 (photo review, ceiling height 3.69 m as ruler: opening 345 px, painted
+  // surround 820 px, pillars 1200 px apart): the painted panels meet a slim jamb at a 1.05 m
+  // opening, the whole surround is about 2.5 m wide, not 3.7, with a taller inscription header,
+  // and the silver pillars stand close beside it on broad red pedestals.
+  for(const s of [-1,1]){
+    box(s<0?'Entrance doorway left blue surround':'Entrance doorway right blue surround',39+s*.95,1.81,5.87,.58,1.92,.23,doorwayBlue);
+    box('Entrance doorway surround marble plinth',39+s*.95,.525,5.87,.58,.65,.23,doorPlinth);}
+  box('Entrance doorway blue inscription header',39,3.19,5.87,2.48,.84,.24,doorwayBlue);
+  floor('Entrance door threshold slab',39,5.76,1.34,.45,.32,mat('#8d8a82'));
   for(const side of [-1,1]){
-    // 15.15.51 / 15.16.13: the opening is about 1.45 m clear, framed by blue reveals.
     // User: full-length timber doors stand open against the passage sides (the earlier teal
     // reveals read as blue half-doors in front of hidden leaves).
-    box('Entrance doorway timber frame',39+side*.99,2.00,5.87,.42,2.80,.23,doorLeafWood,true);
-    box('Entrance doorway red inner jamb',39+side*.76,1.74,5.73,.07,2.26,.17,red);
+    box('Entrance doorway timber frame',39+side*.6275,1.545,5.87,.065,2.45,.23,doorLeafWood,true);
+    box('Entrance doorway red inner jamb',39+side*.56,1.545,5.73,.07,2.45,.17,red);
     // 15.16.13 / 15.16.09: the leaves are painted blue and studded with rows of metal bosses.
-    box('Entrance doorway open timber leaf',39+side*.74,1.74,6.18,.08,2.26,.78,doorLeafBlue);
-    {const studs=[];for(let y=.78;y<2.8;y+=.29)for(let z=5.9;z<6.5;z+=.18)studs.push([39+side*.695,y,z,.035,.035,.035]);
+    box('Entrance doorway open timber leaf',39+side*.54,1.545,6.18,.08,2.45,.78,doorLeafBlue);
+    {const studs=[];for(let y=.55;y<2.72;y+=.29)for(let z=5.9;z<6.5;z+=.18)studs.push([39+side*.495,y,z,.035,.035,.035]);
      instances('Entrance door leaf metal studs',new THREE.SphereGeometry(1,6,4),doorStud,studs);}
-    for(const y of [1.05,1.74,2.43])box('Entrance doorway leaf panel rail',39+side*.69,y,6.18,.03,.08,.74,K.M.wood);
-    const x=39+side*2.05;
-
-    box('Entrance doorway pillar red base',x,1.115,5.36,.58,.53,.58,red,true);
+    for(const y of [.90,1.545,2.20])box('Entrance doorway leaf panel rail',39+side*.49,y,6.18,.03,.08,.74,K.M.wood);
+    const x=39+side*1.57;
+    box('Entrance doorway pillar red base',x,1.15,5.36,.75,.60,.75,red,true);
     box('Entrance doorway silver carved shaft',x,2.20,5.36,.40,1.67,.40,silver);
-    box('Entrance doorway silver relief block',x,1.62,5.36,.50,.52,.50,silver);
-    for(const y of [1.43,1.88,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
-    box('Entrance doorway silver capital',x,3.38,5.36,.72,.18,.66,silver);
-    K.blocker(x,5.36,.60,.60,.6,3.5);
+    box('Entrance doorway silver relief block',x,1.71,5.36,.50,.52,.50,silver);
+    for(const y of [1.52,2.04,2.50,2.91,3.25])box('Entrance doorway silver carved collar',x,y,5.36,.52,.14,.52,silver);
+    // 15.15.51 / 15.16.13: white capital and three white stepped corbel tiers carry the beam.
+    box('Entrance doorway silver capital',x,3.38,5.36,.72,.18,.66,whiteTrim);
+    [.60,.75,.92].forEach((w,i)=>box('Entrance doorway white stepped corbel',x,3.54+i*.14,5.36,w,.14,.66,whiteTrim));
+    K.blocker(x,5.36,.78,.78,.6,3.5);
   }
-  scallop('Entrance doorway scalloped white beam',39,5.37,3.65,3.64,.24,whiteTrim,.30);
-  box('Entrance doorway fluorescent tube',39,3.37,5.49,2.30,.075,.08,whiteTrim);
+  scallop('Entrance doorway scalloped white beam',39,5.37,2.74,3.64,.24,whiteTrim,.30);
+  // The scalloped valance runs on from the pillars to the side walls.
+  for(const s of [-1,1])for(let i=0;i<3;i++)scallop('Entrance hall scalloped white valance',39+s*(1.77+2.343*(i+.5)),5.37,2.343,3.64,.24,whiteTrim,.30);
+  box('Entrance doorway fluorescent tube',39,3.37,5.49,1.22,.075,.08,whiteTrim);
   // Preserve the photographed paintings and inscription using UV regions of the
   // unchanged original, rather than inventing sacred images or lettering.
   const doorTexture=new THREE.TextureLoader().load('./assets/temple-doorway.jpg');
   doorTexture.colorSpace=THREE.SRGBColorSpace;
-  function doorPhoto(n,x,y,z,w,h,rect){
+  function doorPhoto(n,x,y,z,w,h,rect,glow=.9){
     const geo=new THREE.PlaneGeometry(w,h),uv=geo.attributes.uv;
     const [u0,v0,u1,v1]=rect;
     for(let i=0;i<uv.count;i++)uv.setXY(i,u0+uv.getX(i)*(u1-u0),1-v1+uv.getY(i)*(v1-v0));
-    const material=new THREE.MeshStandardMaterial({map:doorTexture,roughness:.9});
+    // The source photograph is underexposed: the painted panels rendered at 24,32,33 beside a white
+    // wall at 187,194,186, where 15.15.51 has them at half the wall's value (54,59,63 / 112,111,104).
+    const material=new THREE.MeshStandardMaterial({map:doorTexture,emissiveMap:doorTexture,emissive:'#ffffff',emissiveIntensity:glow,roughness:.9});
     const o=mesh(n,geo,material,x,y,z);o.rotation.y=Math.PI;return o;
   }
   // Rectify the four photographed frames with a projective UV map. Source
   // photographs remain unchanged; subdivision preserves the perspective warp.
-  function deityPhoto(name,x,url,corners){
+  // 15.14.30 / 15.15.11 / 15.15.51: the frames hang a hand above the marble dado and end near the
+  // door-head line (about 1.5 m tall, not 2 m); the outer pair (Ganesh, Hanuman) is about 1.3 times
+  // as wide as the inner pair, which starts some 0.4 m beyond a notched white pilaster at the
+  // door surround, with about 0.4 m of wall between frames.
+  function deityPhoto(name,x,url,corners,w,h=1.5){
+    const yc=1.35+h/2;
     const tex=new THREE.TextureLoader().load('./assets/'+url);tex.colorSpace=THREE.SRGBColorSpace;
     const q=corners.map(([u,v])=>[u/1824,v/1368]);
     const [a,b,c,d]=q,dx1=b[0]-c[0],dx2=d[0]-c[0],dx3=a[0]-b[0]+c[0]-d[0];
     const dy1=b[1]-c[1],dy2=d[1]-c[1],dy3=a[1]-b[1]+c[1]-d[1];
     const det=dx1*dy2-dx2*dy1,hg=(dx3*dy2-dx2*dy3)/det,hh=(dx1*dy3-dx3*dy1)/det;
-    const geo=new THREE.PlaneGeometry(1.55,1.92,16,20),uv=geo.attributes.uv;
+    const geo=new THREE.PlaneGeometry(w-.11,h-.11,16,20),uv=geo.attributes.uv;
     for(let i=0;i<uv.count;i++){
       const u=uv.getX(i),v=1-uv.getY(i),den=hg*u+hh*v+1;
       uv.setXY(i,((b[0]-a[0]+hg*b[0])*u+(d[0]-a[0]+hh*d[0])*v+a[0])/den,
         1-((b[1]-a[1]+hg*b[1])*u+(d[1]-a[1]+hh*d[1])*v+a[1])/den);
     }
-    const o=mesh(name,geo,new THREE.MeshStandardMaterial({map:tex,roughness:.92}),x,2.0,5.82);o.rotation.y=Math.PI;
-    box(name+' timber frame',x,2.0,5.86,1.66,2.03,.055,K.M.wood);
+    const o=mesh(name,geo,new THREE.MeshStandardMaterial({map:tex,roughness:.92}),x,yc,5.82);o.rotation.y=Math.PI;
+    box(name+' timber frame',x,yc,5.86,w,h,.055,K.M.wood);
     o.userData.source=url;o.userData.photoCorners=corners;
   }
   // Facing into the temple, +X is the viewer's left: Ganesh, Shiva, Vishnu, Hanuman.
-  deityPhoto('Entrance Ganesh original painting',44.2,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[867,984],[316,991]]);
-  deityPhoto('Entrance doorway left original painting',42.35,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]]);
-  deityPhoto('Entrance doorway right original painting',35.65,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]]);
-  deityPhoto('Entrance Hanuman original painting',33.8,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]]);
-  doorPhoto('Entrance doorway original inscription',39,3.18,5.738,3.63,.59,[.306,.133,.690,.283]);
+  // Ganesh: the lower corners stop under the caption, above the red pedestal that stood in front
+  // of the frame's corner in the source photograph.
+  deityPhoto('Entrance Ganesh original painting',43.375,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[863,902],[312,917]],1.55);
+  deityPhoto('Entrance doorway left original painting',41.6,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]],1.2);
+  deityPhoto('Entrance doorway right original painting',36.4,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]],1.2);
+  deityPhoto('Entrance Hanuman original painting',34.625,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]],1.55);
+  // 15.16.13 / 15.14.30: white pilaster with projecting blocks between the surround and the first
+  // painting on each side; the marble dado returns round its foot.
+  for(const s of [-1,1]){
+    box('Entrance rear wall notched pilaster',39+s*1.37,2.125,5.89,.26,2.55,.18,whiteTrim);
+    for(const y of [1.55,2.30,3.05])box('Entrance rear wall pilaster block',39+s*1.56,y,5.89,.12,.35,.18,whiteTrim);
+    box('Entrance rear wall pilaster marble foot',39+s*1.43,1.05,5.875,.40,.40,.20,doorPlinth);}
+  doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283]);
   // The painted blue marbling and red drapes of the surround, from the same photograph.
-  doorPhoto('Entrance doorway original painted left surround',40.52,1.74,5.745,.69,2.27,[.2975,.27,.395,.70]);
-  doorPhoto('Entrance doorway original painted right surround',37.48,1.74,5.745,.69,2.27,[.6175,.27,.705,.70]);
+  doorPhoto('Entrance doorway original painted left surround',39.95,1.81,5.745,.58,1.92,[.2975,.27,.395,.70]);
+  doorPhoto('Entrance doorway original painted right surround',38.05,1.81,5.745,.58,1.92,[.6175,.27,.705,.70]);
   const flowers=[];
   for(let i=0;i<=45;i++){
-    const t=i/45,x=37.95+2.1*t,y=2.96-.50*Math.sin(t*Math.PI);
+    const t=i/45,x=38.47+1.06*t,y=2.80-.45*Math.sin(t*Math.PI);
     flowers.push([x,y,5.60,.042,.045,.043]);
   }
   instances('Entrance doorway flower garland',new THREE.SphereGeometry(1,6,4),mat('#d1ad49'),flowers);
@@ -706,10 +733,15 @@ export function buildTemple(K) {
     }
     const rg=new THREE.Group();rg.name='Outer circuit veranda roof';g.add(rg);K.roofs.push(rg);
     if(!r.round){
-      K.box(rg,'Outer circuit flat white soffit',xc,3.57,zc,w+.5,.24,d+.18,agedWhite);
-      K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.27,3.47,zc,.19,.30,d+.20,red); // 15.05.42 / 15.04.59: a 0.3 m red band standing clear of the soffit edge
-      if(r.side>0)K.box(rg,'Outer circuit weathered terrace parapet',r.edge,4.01,zc,.22,.76,d,agedWhite);
-      else {
+      // 15.02.23 / 15.01.44: the tall blue porch (z 8.3..11.7) interrupts the east veranda's roof, red
+      // fascia and parapet; its own slab stands a metre higher.
+      for(const [sa,sb] of r.side>0?[[r.a,8.3],[11.7,r.b]]:[[r.a,r.b]]){const sc=(sa+sb)/2,sd=sb-sa;
+        K.box(rg,'Outer circuit flat white soffit',xc,3.57,sc,w+.5,.24,sd+.18,agedWhite);
+        // 15.05.42 / 15.04.59: a 0.3 m red band standing clear of the soffit edge. 15.02.23: the short
+        // stretch north of the blue porch has a plain white slab edge, no red band.
+        if(!(r.side>0&&sb<=8.3))K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.27,3.47,sc,.19,.30,sd+.20,red);
+        if(r.side>0)K.box(rg,'Outer circuit weathered terrace parapet',r.edge,4.01,sc,.22,.76,sd,agedWhite);}
+      if(r.side<0){
         // 15.11.17: pierced white parapet and blue scallops above the west aisle.
         const pitch=(d-.4)/count;
         const panel=new THREE.Shape();panel.moveTo(-pitch/2+.14,-.32);panel.lineTo(pitch/2-.14,-.32);panel.lineTo(pitch/2-.14,.32);panel.lineTo(-pitch/2+.14,.32);panel.closePath();
@@ -727,19 +759,24 @@ export function buildTemple(K) {
         K.blocker(r.edge,zc,.12,d,3.69,4.48);
       }
     }
-    box('Outer circuit pale blue lintel',r.edge,3.35,zc,.28,.21,d,agedWhite); // white beam under the red band (name kept)
+    for(const [sa,sb] of r.side>0?[[r.a,8.3],[11.7,r.b]]:[[r.a,r.b]])box('Outer circuit pale blue lintel',r.edge,3.35,(sa+sb)/2,.28,.21,sb-sa,agedWhite); // white beam under the red band (name kept)
   }
   // Rear range is authored at its final X extents, then translated 7.5 m in Z.
   const rearStart=markAssembly();
   floor('Rear circuit raised red veranda',40.25,36.65,35,2.65,.6,oxideFloor);
   box('Rear circuit weathered white wall',40.25,2.05,37.98,35,2.9,.28,agedWhite,true);
   box('Rear circuit red dado',40.25,.90,37.8,35,.60,.08,red);
-  for(const x of [23.8,26.7,29.6,32.5,35.4,38.3,41.2,44.1,47,49.9,52.8,55.7,57.1])blueColumn('Rear circuit blue column',x,35.32);
-  for(const [a,b] of [[22.75,30.4],[31.8,52.9],[54.3,57.75]]){
+  // 15.11.17: the gate bay has a blue pier on its stair side only (x 29.6); the white window wall
+  // starts straight from the gate's other edge, so there is no column at x 26.7.
+  for(const x of [23.8,29.6,32.5,35.4,38.3,41.2,44.1,47,49.9,52.8,55.7,57.1])blueColumn('Rear circuit blue column',x,35.32);
+  for(const [a,b] of [[22.75,52.9],[54.3,57.75]]){
     box('Rear circuit outlined plinth',(a+b)/2,.30,35.3,b-a,.40,.22,outlinedPlinth);
     box('Rear circuit white plinth coping',(a+b)/2,.56,35.3,b-a,.09,.29,whiteTrim);
   }
-  for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3,oxideFloor,red);
+  // 15.11.17 / 15.11.08: the plinth runs unbroken past the open stair bay (no red flight at
+  // x 31.1); a grey stone block lies in front of the closed blue gate instead.
+  steps('Rear circuit access stair',53.6,34.75,1.4,1.15,.1,.6,'z',3,oxideFloor,red);
+  box('Rear west gate grey stone step',28.15,.225,35.0,1.15,.25,.38,mat('#a09a96'));K.surface(28.15,35.0,1.15,.38,.35);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
   // A real stairwell interrupts the slab, leaving the front terrace continuous.
   for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.3,37.21,7.6,1.9],[44.55,37.21,26.9,1.9]]){
@@ -752,15 +789,18 @@ export function buildTemple(K) {
   // 15.05.42 / 15.11.08: an upper room occupies the west part of the rear range,
   // distinct from the east corner pavilion, with open bays and a broad jali screen,
   // not the former solid wall or the unsupported room above the west passage.
+  // 15.11.17: the open upper terrace and the open ground bay read at about a third or less of the
+  // sunlit wall beside them (23,28,32 and 52,46,47 against 136,155,186); '#73766d' rendered at half.
+  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#4e514b');
   {const x0=24.8,x1=34.7,xm=(x0+x1)/2,w=x1-x0,zf=35.35,y0=3.69,y1=6.55;
-   const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#73766d');
+   const XJ=28.15; // 15.11.17: the jali and the dome stand over the gate bay (x 26.7..29.6)
    K.box(rearRoof,'Rear upper storey back wall',xm,(y0+y1)/2,37.90,w,y1-y0,.22,shadedRearPlaster,true);
    for(const x of [x0+.11,x1-.11])K.box(rearRoof,'Rear upper storey side return',x,(y0+y1)/2,36.6,.22,y1-y0,2.6,agedWhite,true);
    K.box(rearRoof,'Rear upper storey red skirting',xm,y0+.25,37.77,w,.5,.03,red);
    K.box(rearRoof,'Rear upper storey flat slab',xm,y1+.08,36.6,w+.6,.16,3.6,agedWhite);
    K.box(rearRoof,'Rear upper storey red slab edge',xm,y1+.08,34.82,w+.6,.18,.12,red);
-   K.box(rearRoof,'Rear upper storey solid west facade',25.355,(y0+y1)/2,zf,1.11,y1-y0,.22,agedWhite,true);
-   for(const x of [24.91,25.8,29.0,34.59])K.box(rearRoof,'Rear upper open veranda pier',x,(y0+y1)/2,zf,.22,y1-y0,.24,agedWhite,true);
+   K.box(rearRoof,'Rear upper storey solid west facade',25.7,(y0+y1)/2,zf,1.8,y1-y0,.22,agedWhite,true);
+   for(const x of [24.91,26.6,29.7,34.59])K.box(rearRoof,'Rear upper open veranda pier',x,(y0+y1)/2,zf,.22,y1-y0,.24,agedWhite,true);
    for(const x of [25.4,32.5]){
      K.box(rearRoof,'Rear upper storey blue window frame',x,5.15,37.77,1.05,1.05,.05,mat('#3d7fa3'));
      K.box(rearRoof,'Rear upper storey dark window glass',x,5.15,37.74,.85,.85,.02,dark);}
@@ -769,37 +809,60 @@ export function buildTemple(K) {
      const x=(col-7)*.19,y=(row-4.5)*.19,hole=new THREE.Path();
      hole.moveTo(x,y+.078);hole.lineTo(x+.078,y);hole.lineTo(x,y-.078);hole.lineTo(x-.078,y);hole.closePath();screen.holes.push(hole);
    }
-   mesh('Rear upper storey pierced jali panel',new THREE.ExtrudeGeometry(screen,{depth:.09,bevelEnabled:false}),whiteTrim,27.4,5.32,zf-.045,rearRoof);
-   K.blocker(27.4,zf,2.98,.09,4.30,6.34);
+   mesh('Rear upper storey pierced jali panel',new THREE.ExtrudeGeometry(screen,{depth:.09,bevelEnabled:false}),whiteTrim,XJ,5.32,zf-.045,rearRoof);
+   K.blocker(XJ,zf,2.98,.09,4.30,6.34);
    // The gallery photograph retains the dome behind this screen, supported by
    // the upper roof. Its exact position remains inferred from the oblique views.
-   K.box(rearRoof,'Rear dome square roof base',27.4,6.80,37.25,2.35,.28,2.1,whiteTrim);
-   mesh('Rear dome white drum',new THREE.CylinderGeometry(.92,1.06,.38,24),whiteTrim,27.4,7.10,37.25,rearRoof);
+   K.box(rearRoof,'Rear dome square roof base',XJ,6.80,37.25,2.35,.28,2.1,whiteTrim);
+   mesh('Rear dome white drum',new THREE.CylinderGeometry(.92,1.06,.38,24),whiteTrim,XJ,7.10,37.25,rearRoof);
    const domeProfile=[[.60,0],[.73,.10],[.87,.29],[.88,.42],[.77,.57],[.55,.73],[.26,.85],[.13,.96]].map(p=>new THREE.Vector2(...p));
-   mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,27.4,7.29,37.25,rearRoof);
-   mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,27.4,8.38,37.25,rearRoof);
+   mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,XJ,7.29,37.25,rearRoof);
+   mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,XJ,8.38,37.25,rearRoof);
   }
   // User's note with 15.11.17: no sideways stair across the open bay. The photo's steep
   // flight climbs straight back beside the door pier and vanishes into the floor above;
   // it is shown but not walkable.
-  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12);
+  // 15.11.17: the flight stands in the bay's shade (43,38,39 beside the sunlit wall's 130,144,170);
+  // the default pale treads rendered as bright as that wall.
+  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12,oldStone,oldStone);
   K.blocker(30.6,36.85,1.0,1.9,.6,3.5);
   // 15.11.08 / 15.11.17: enclosed white door/window bay in front of the
   // rear wall, with the stair bay open immediately to its east.
-  for(const [a,b] of [[24.8,25.025],[25.975,27.15],[28.65,30.0]])
+  // 15.11.17 and the owner's note on 15.11.08 (no wall left of the gate): the gate fills the
+  // whole bay from the blue pier at x 29.6 to the window wall, right under the jali. It is a dark
+  // double door between two barred side lights that stand on a solid blue panel over the red
+  // dado. The window beside it has closed blue louvred shutters reaching up to the beam.
+  for(const [a,b] of [[24.8,24.925],[25.875,26.85]])
     box('Rear west enclosed white facade',(a+b)/2,2.025,35.48,b-a,2.85,.20,agedWhite,true);
-  box('Rear west window white sill wall',25.5,1.15,35.48,.95,1.10,.20,agedWhite,true);
-  box('Rear west window white head wall',25.5,3.10,35.48,.95,.70,.20,agedWhite,true);
-  box('Rear west door white header',27.9,3.25,35.48,1.50,.40,.20,agedWhite,true);
-  for(const [a,b] of [[24.8,27.15],[28.65,30.0]])box('Rear west facade red dado',(a+b)/2,.85,35.36,b-a,.50,.045,red);
-  blueWindow('Rear west blue barred window',25.5,35.35,.80,2.25);
-  for(let y=1.74;y<2.82;y+=.13)box('Rear west window horizontal bar',25.5,y,35.30,.80,.026,.035,blue);
-  box('Rear west doorway dark recess',27.9,1.775,35.62,1.45,2.35,.025,dark);
-  for(const x of [27.22,27.90,28.58])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
-  for(const x of [27.56,28.24])box('Rear west gate lower blue panel',x,1.04,35.34,.60,.84,.06,blue);
-  for(let x=27.30;x<28.58;x+=.13)box('Rear west gate slender blue bar',x,2.20,35.34,.026,1.42,.035,blue);
-  K.blocker(27.9,35.34,1.43,.09,.6,3.0);
-  scallop('Rear west doorway scallops',27.9,35.35,2.5,3.36,.20,paleBlue,.47);
+  box('Rear west window white sill wall',25.4,1.15,35.48,.95,1.10,.20,agedWhite,true);
+  box('Rear west window white head wall',25.4,3.425,35.48,.95,.05,.20,agedWhite,true);
+  box('Rear west door white header',28.15,3.2,35.48,2.6,.50,.20,agedWhite,true);
+  box('Rear west facade red dado',25.825,.85,35.36,2.05,.50,.045,red);
+  {const shutterBlue=mat('#27456a'),shutterSlat=mat('#3f678f'); // 15.11.17: 20,38,52 beside the white wall's 136,155,186
+   // Measured on 15.11.17 against the 2.9 m gate bay: about .95 wide, from 1.7 m up to the beam.
+   box('Rear west blue louvred window frame',25.4,2.55,35.36,.95,1.7,.06,shutterBlue);
+   box('Rear west blue louvred window meeting stile',25.4,2.55,35.325,.07,1.62,.03,shutterBlue);
+   for(const s of [-1,1])for(let i=0;i<11;i++)box('Rear west blue louvred window slat',25.4+s*.235,1.88+i*.134,35.322,.34,.05,.025,shutterSlat);}
+  // The open stair bay is in deep shade (52,46,47 against the sunlit wall's 136,155,186), and the
+  // gate room's side wall closes it on the gate side.
+  box('Rear open bay shaded back wall',32.5,2.325,37.825,5.8,2.25,.02,shadedRearPlaster);
+  box('Rear west gate room side wall',29.6,2.025,36.71,.2,2.85,2.26,shadedRearPlaster,true);
+  box('Rear west doorway dark recess',28.15,1.775,35.62,2.6,2.35,.025,dark);
+  {const gateNavy=mat('#1b2836'),gatePanel=mat('#5b8ca6'),xl=27.62,xr=28.67;
+   for(const x of [xl,xr])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
+   box('Rear west gate dark meeting stile',28.145,1.75,35.34,.06,2.3,.07,gateNavy);
+   for(const x of [27.885,28.41]){
+     box('Rear west gate lower dark panel',x,1.12,35.34,.47,1.0,.05,gateNavy);
+     for(const y of [1.66,2.86])box('Rear west gate dark rail',x,y,35.34,.47,.07,.06,gateNavy);
+     for(let i=0;i<5;i++)box('Rear west gate slender dark bar',x-.18+i*.09,2.26,35.34,.024,1.2,.03,gateNavy);}
+   for(const [a,b] of [[26.85,xl],[xr,29.45]]){const xm=(a+b)/2,w=b-a;
+     box('Rear west gate side light red dado',xm,.85,35.36,w,.50,.08,red);
+     box('Rear west gate side light blue panel',xm,1.36,35.36,w,.52,.08,gatePanel);
+     for(const y of [1.65,2.74])box('Rear west gate side light blue rail',xm,y,35.34,w,.07,.075,blue);
+     for(let i=1;i<7;i++)box('Rear west gate side light pale bar',a+i*w/7,2.195,35.34,.02,1.03,.03,paleBlue);}
+   box('Rear west gate blue upright',26.885,1.78,35.34,.07,2.35,.075,blue);}
+  K.blocker(28.15,35.34,2.6,.09,.6,3.0);
+  scallop('Rear west doorway scallops',28.15,35.35,2.6,3.36,.20,paleBlue,.6);
   const cornerStart=markAssembly(),cornerRoofStart=rearRoof.children.length;
   frontDoor('Rear corner blue barred door',49.6,37.77,.6,1.25,2.35);
   scallop('Rear corner doorway scallops',49.6,35.35,2.9,3.36,.20,paleBlue,.47);
@@ -874,12 +937,20 @@ export function buildTemple(K) {
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
     mesh(n,geo,sheet);instances(n+' vertical seams',new THREE.BoxGeometry(1,1,1),greySheet,ribs);
   }
-  floor('Inner front building foundation',39,17.72,18.65,5.05,.55,oldStone);
-  floor('Inner front marble veranda',39,15.86,18.8,1.45,.57,dado);
-  box('Inner front weathered plinth',39,.27,15.15,18.8,.44,.18,weathered);
-  box('Inner plinth red trim',39,.5,15.12,18.9,.065,.12,red);
+  // 15.13.03 / 15.12.56 (from the gallery): the plinth is cut at the door and the dark steps lie
+  // inside the cut; nothing projects into the court.
+  floor('Inner front building foundation',39,18.3575,18.65,3.775,.55,oldStone);
+  for(const [a,b] of [[29.675,38.2],[39.8,48.325]])floor('Inner front building foundation',(a+b)/2,15.8325,b-a,1.275,.55,oldStone);
+  for(const [a,b] of [[29.6,38.2],[39.8,48.4]]){
+    floor('Inner front marble veranda',(a+b)/2,15.86,b-a,1.45,.57,dado);
+    box('Inner front weathered plinth',(a+b)/2,.27,15.15,b-a,.44,.18,weathered);
+    box('Inner plinth red trim',(a+b)/2,.5,15.12,b-a+.05,.065,.12,red);}
+  steps('Inner central threshold stairs',39,15.585,1.6,.9,.1,.57,'z',3,oldStone,oldStone);
+  floor('Inner central threshold landing',39,16.31,1.6,.55,.57,oldStone);
+  for(const x of [38.17,39.83])box('Inner plinth cut end face',x,.33,15.765,.06,.46,1.41,weathered);
   // The photographed stone interior is open behind this facade.
-  const frontHoles=[[32.65,34.65],[35.28,37.28],[38.12,39.88],[40.72,42.72],[43.35,45.35]];
+  // 15.03.55: the windows are about 1.5 m wide, not 2 m.
+  const frontHoles=[[32.88,34.42],[35.51,37.05],[38.12,39.88],[40.95,42.49],[43.58,45.12]];
   let frontEdge=29.8;
   for(const [left,right] of [...frontHoles,[48.2,48.2]]){
     if(left>frontEdge)box('Inner front facade pier',(frontEdge+left)/2,2.09,16.57,left-frontEdge,3.08,.20,innerWhite,true);
@@ -898,9 +969,9 @@ export function buildTemple(K) {
   // Openings are layered on the enclosed facade; the unseen sanctuary stays dark.
   function innerWindow(x){
     // Grilles are open to daylight on both sides of the wall.
-    for(const dx of [-1,0,1])box('Inner blue window upright',x+dx,1.91,16.27,.105,1.44,.16,vividBlue);
-    for(const y of [1.22,1.91,2.6])box('Inner blue window crossrail',x,y,16.25,2.1,.10,.17,vividBlue);
-    const bars=[];for(let i=0;i<18;i++)bars.push([x-.92+i*1.84/17,1.91,16.28,.021,1.28,.03]);
+    for(const dx of [-.72,0,.72])box('Inner blue window upright',x+dx,1.91,16.27,.105,1.44,.16,vividBlue);
+    for(const y of [1.22,1.91,2.6])box('Inner blue window crossrail',x,y,16.25,1.55,.10,.17,vividBlue);
+    const bars=[];for(let i=0;i<14;i++)bars.push([x-.68+i*1.36/13,1.91,16.28,.021,1.28,.03]);
     instances('Inner window white bars',new THREE.BoxGeometry(1,1,1),whiteTrim,bars);
   }
   for(const x of [33.65,36.28,41.72,44.35])innerWindow(x);
@@ -911,9 +982,8 @@ export function buildTemple(K) {
     steps('Inner service door steps',x,14.84,1.35,.85,.1,.57,'z',2);
   }
   // Central doorway remains open into the stone hall.
-  for(const x of [38.1,39.9])box('Inner decorated blue door jamb',x,1.75,16.19,.21,2.4,.14,vividBlue);
-  box('Inner central doorway lintel',39,2.79,16.20,2,.18,.17,vividBlue);
-  steps('Inner central threshold stairs',39,14.75,1.8,1.0,.1,.57,'z',2);
+  for(const x of [38.25,39.75])box('Inner decorated blue door jamb',x,1.75,16.19,.30,2.4,.14,vividBlue);
+  box('Inner central doorway lintel',39,2.79,16.20,1.8,.18,.17,vividBlue);
   // Original photo regions are used intact as surface details. No invented text/iconography.
   const sourceTexture=new THREE.TextureLoader().load('./assets/temple-upper-center.jpg');sourceTexture.colorSpace=THREE.SRGBColorSpace;
   function referencePanel(n,x,y,z,w,h,region){
@@ -923,8 +993,10 @@ export function buildTemple(K) {
     const m=new THREE.MeshStandardMaterial({map:sourceTexture,roughness:.9});
     const panel=mesh(n,geometry,m,x,y,z);panel.rotation.y=Math.PI;return panel;
   }
-  box('Inner doorway painting backing',39,3.23,15.26,2.3,.88,.10,white);
-  referencePanel('Photographed inner doorway painting',39,3.23,15.19,2.28,.86,[.414,.458,.518,.568]);
+  // 15.03.55: the framed painting hangs on the back wall over the garlanded door, behind the posts
+  // (it used to stand at the post line, filling the central bay).
+  box('Inner doorway painting backing',39,3.25,16.42,2.1,.8,.10,white);
+  referencePanel('Photographed inner doorway painting',39,3.25,16.36,2.0,.74,[.414,.458,.518,.568]);
   referencePanel('Photographed dark temple notice board',43.2,1.76,15.05,.9,2.12,[.11,.589,.183,.79]);
   referencePanel('Photographed pale temple notice board',34.55,2.69,15.07,1.0,1.12,[.799,.486,.9,.608]);
   const garland=[];for(let i=0;i<38;i++){const t=i/37;garland.push([38.12+t*1.76,2.74-.13*Math.abs(Math.sin(t*Math.PI*3)),16.08,.03,.033,.035]);}
@@ -940,7 +1012,6 @@ export function buildTemple(K) {
   }
   const transom=[];
   for(let i=0;i<columns.length-1;i++){
-    if(i===3)continue; // The doorway painting occupies the central bay.
     const a=columns[i]+.16,b=columns[i+1]-.16;
     for(const y of [3.18,3.63])box('Maroon pierced transom frame',(a+b)/2,y,15.25,b-a,.07,.08,maroon);
     for(let x=a;x<=b;x+=.135){transom.push([x,3.40,15.25,.037,.4,.047]);}
@@ -964,25 +1035,48 @@ export function buildTemple(K) {
     c.fillStyle='#5e4640';c.fillRect(0,0,s,s); // 15.03.38 / 15.04.55: dark weathered brown, not brick red
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
+  // 15.11.08 / 15.11.17: the wall facing the open court is a laterite red-brown, redder than the
+  // east side (sampled 64,35,28 against this model's 69,51,43), and its plastered recesses sit in
+  // the eave's shade (141,136,140 against 190,195,188), stained dark along the foot.
+  const courtLaterite=mat('#6e4236',.95);courtLaterite.map=canvasMap(256,(c,s)=>{let n=733;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#ffffff';c.fillRect(0,0,s,s);
+    for(let i=0;i<520;i++){c.fillStyle=`rgba(34,24,20,${.05+r()*.25})`;c.fillRect(r()*s,r()*s,1+r()*6,3+r()*20);}
+  });
+  const courtPanel=white.clone();courtPanel.color.set('#ada5a8');courtPanel.map=canvasMap(512,(c,s)=>{let n=5081;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#e1e0d6';c.fillRect(0,0,s,s);
+    for(let i=0;i<900;i++){c.fillStyle=`rgba(42,52,37,${.02+r()*.12})`;c.fillRect(r()*s,r()*s,1+r()*5,3+r()*27);}
+    // The panels' shape coordinates are metres; with repeat .5 the canvas spans y 0..2, so the damp
+    // foot of a recess (y 1.1..1.45) is the band from .275s to .45s and the canvas below it is its base.
+    const gr=c.createLinearGradient(0,.275*s,0,.45*s);gr.addColorStop(0,'rgba(40,40,36,0)');gr.addColorStop(1,'rgba(40,40,36,.55)');c.fillStyle=gr;c.fillRect(0,.275*s,s,.175*s);
+    c.fillStyle='rgba(40,40,36,.55)';c.fillRect(0,.45*s,s,.18*s);
+  },1,.5);
   // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
   // shrine is wider on the east than the sanctum's axis; SX/SH are its centre and half-width.
   const SX=39.96,SH=8.14,SE=SH-7.18;
   floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
-  for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
+  for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,x<SX?courtLaterite:wornRed,true);
   box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
-  const stainedRecess=mat('#5a4a42',.95);
+  const stainedRecess=mat('#5a4a42',.95),eastPanel=courtPanel.clone();eastPanel.color.set('#8f7f77');
   for(const side of [-1,1]){
     const x=SX+side*(7.34+SE);
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
     for(let i=0;i<7;i++){
       const z=20.45+i*1.39,shape=new THREE.Shape();
       shape.moveTo(-.53,.87);shape.lineTo(.53,.87);shape.lineTo(.53,2.18);shape.absarc(0,2.18,.53,0,Math.PI,false);shape.closePath();
-      // East side (15.03.33, 15.04.55): the arched recesses read dark and stained, not whitewashed.
-      const painted=mesh(side>0?'Old inner shrine dark stained arched recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?stainedRecess:agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
-      box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,wornRed);
+      // East side (15.03.38, lit; 15.04.55, in shadow): the recesses are plastered too, a stained
+      // cream at about half the value of the white block beside them (93,80,77 against 149,154,164),
+      // over a red foot band; they are not dark brown like the piers.
+      // Court side (15.11.08, 15.11.17): a wide plain panel in the first bay and a doorway in the
+      // fifth replace their arches (both are built after the lengthening pass below); every other
+      // recess has a laterite-red foot band.
+      if(side>0||(i!==0&&i!==4)){
+        const painted=mesh(side>0?'Old inner shrine east stained cream recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?eastPanel:courtPanel,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
+        box('Old inner shrine recess red foot band',x+side*.03,.925,z,.03,.35,1.06,side<0?courtLaterite:wornRed);
+      }
+      box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,side<0?courtLaterite:wornRed);
       K.beam(g,'Old inner shrine projecting eave corbel',[x,2.84,z+.62],[x+side*.65,3.12,z+.62],.17,weathered,.23);
     }
-    for(const z of [22,25.8,28.6]){
+    for(const z of side>0?[22,25.8,28.6]:[]){ // 15.11.08: no lamp racks stand along the court side
       for(const zz of [z-.52,z+.52])K.beam(g,'Old inner shrine metal lamp rack leg',[x+side*.30,.55,zz],[x+side*.30,1.52,zz],.028,K.M.metal);
       for(const y of [.65,1.50])K.beam(g,'Old inner shrine lamp rack rail',[x+side*.30,y,z-.54],[x+side*.30,y,z+.54],.029,K.M.metal);
       for(let i=0;i<7;i++)cyl('Small unlit rack oil dish',x+side*.30,1.53,z-.46+i*.15,.045,.023,.035,oldStone,8);
@@ -1063,18 +1157,42 @@ export function buildTemple(K) {
   box('Right hall tall white upper storey',22.27,5.59,6.4+hallLen/2,4.1,3.37,hallLen,innerWhite,true);
   box('Right hall lower block flat roof',22.3,3.62,21.25,4.1,.24,3.7,innerWhite);
   box('Right hall lower block roof red edge',24.33,3.6,21.25,.08,.2,3.7,red);
-  box('Right hall lower block balustrade red coping',24.22,4.52,21.25,.2,.1,3.7,red);
-  for(const z of [19.5,21.25,23.0])box('Right hall lower block balustrade red post',24.22,4.1,z,.2,.8,.2,red);
-  instances('Right hall lower block pierced balustrade',screenGeometry,entranceLace,[[24.22,4.1,20.37,.88,.72,1,0,Math.PI/2,0],[24.22,4.1,22.12,.88,.72,1,0,Math.PI/2,0]]);
+  // 15.13.11 (and the heavy red-edged slab in 15.11.17): this block is a first-floor room, not a
+  // roof terrace. White walls with two jali screens to the court stand on the old roof slab, a
+  // red-edged slab lies at about 5.3 m, and the red-post balustrade stands on that.
+  {const lace=[],dz=.0958,rowH=.2833,len=Math.hypot(rowH,dz),tilt=Math.atan2(dz,rowH);
+   box('Right hall south room court wall',24.25,4.47,21.25,.2,1.46,3.7,innerWhite,true);
+   box('Right hall south room lane wall',20.35,4.47,21.25,.2,1.46,3.7,innerWhite,true);
+   box('Right hall south room end wall',22.3,4.47,23.0,3.7,1.46,.2,innerWhite,true);
+   for(const z of [20.55,21.95]){
+     box('Right hall south room jali dark backing',24.355,4.675,z,.02,.85,1.15,dark);
+     for(let row=0;row<3;row++)for(let j=0;j<13;j++)for(const s of [-1,1]){if((s>0&&j===12)||(s<0&&j===0))continue;
+       lace.push([24.375,4.25+rowH*(row+.5),z-.575+j*dz+s*dz/2,.022,len,.03,s*tilt,0,0]);}
+     for(const y of [4.25,5.10])box('Right hall south room jali white rail',24.375,y,z,.03,.05,1.19,whiteTrim);
+     for(const dzz of [-.585,.585])box('Right hall south room jali white rail',24.375,4.675,z+dzz,.03,.90,.05,whiteTrim);}
+   instances('Right hall south room jali lattice',new THREE.BoxGeometry(1,1,1),whiteTrim,lace);
+   const slab=box('Right hall south room roof slab',22.3,5.30,21.3,4.3,.20,3.8,innerWhite);K.roofs.push(slab);
+   box('Right hall south room slab red edge',24.47,5.30,21.3,.05,.20,3.8,red);
+   box('Right hall south room slab red edge',22.3,5.30,23.225,4.3,.20,.05,red);}
+  box('Right hall lower block balustrade red coping',24.22,5.85,21.25,.2,.1,3.7,red);
+  for(const z of [19.5,21.25,23.0])box('Right hall lower block balustrade red post',24.22,5.65,z,.2,.5,.2,red);
+  instances('Right hall lower block pierced balustrade',screenGeometry,entranceLace,[[24.22,5.61,20.37,.88,.44,1,0,Math.PI/2,0],[24.22,5.61,22.12,.88,.44,1,0,Math.PI/2,0]]);
   for(const z of [8.1,12.3,16.5]){
     box('Right hall pink window border',24.36,5.59,z,.09,1.23,1.86,pink);
     box('Right hall dark window inset',24.42,5.59,z,.025,1.03,1.66,maroon);
     const bars=[];for(let j=0;j<13;j++)bars.push([24.45,5.59,z-.76+j*.126,.04,1.07,.043]);
     instances('Right hall pink window grille',new THREE.BoxGeometry(1,1,1),pink,bars);
     box('Right hall pink grille middle rail',24.46,5.59,z,.06,.07,1.70,pink);
-    box('Right hall dark attic vent',24.39,7.04,z,.045,.57,2.4,dark);
-    for(let j=0;j<12;j++)for(const sign of [-1,1])K.beam(g,'Right hall attic diamond lattice',[24.44,6.79,z-1.13+j*.19],[24.44,7.28,z-1.13+j*.19+sign*.25],.028,oldStone);
   }
+  // 15.03.47 / 15.13.11 / 15.02.00: the vents under the eave are a continuous row of white
+  // diamond-lattice panels between narrow white piers (eight of 1.35 m), not one wide grey-latticed
+  // vent over each window.
+  {const lattice=[],dz=.1125,rowH=.245,len=Math.hypot(rowH,dz),tilt=Math.atan2(dz,rowH);
+   for(let k=0;k<8;k++){const z=7.2+k*1.6;
+     box('Right hall dark attic vent',24.39,7.04,z,.045,.57,1.35,dark);
+     for(let row=0;row<2;row++)for(let j=0;j<13;j++)for(const s of [-1,1]){if((s>0&&j===12)||(s<0&&j===0))continue;
+       lattice.push([24.44,6.79+rowH*(row+.5),z-.675+j*dz+s*dz/2,.022,len,.03,s*tilt,0,0]);}}
+   instances('Right hall attic diamond lattice',new THREE.BoxGeometry(1,1,1),whiteTrim,lattice);}
   corrugatedRoof('Right hall pitched gray upper roof',22.25,6.4+hallLen/2,5.4,hallLen+.8,7.45,1.25,greySheet);
   // Close the attic between the masonry and pitched roof. The roof overhang
   // remains outside this shell; the existing lattice vents stay below it.
@@ -1102,13 +1220,20 @@ export function buildTemple(K) {
   const leanGeo=new THREE.BufferGeometry();leanGeo.setAttribute('position',new THREE.Float32BufferAttribute(leanPos,3));leanGeo.computeVertexNormals();
   const leanRoof=mesh('Right hall low corrugated veranda awning',leanGeo,greySheet);K.roofs.push(leanRoof);
   K.beam(g,'Right hall white gutter',[29.12,3.48,6.2],[29.12,3.48,16.2],.105,whiteTrim);
+  // 15.02.00 / 15.10.43 / 15.10.49 / 15.10.30: the walkway under this awning has no ceiling; the
+  // sheets lie open on dark purlins and a light frame at each round column.
+  {const awningFrame=mat('#3a3a36',.9),sheetY=x=>4.14-(x-24.1)*.128;
+   for(const x of [24.6,25.6,26.6,27.6,28.6])K.beam(g,'Right hall awning purlin',[x,sheetY(x)-.06,6.2],[x,sheetY(x)-.06,16.2],.05,awningFrame,.08);
+   for(const z of [6.6,10.1,16.0]){
+     K.beam(g,'Right hall awning rafter',[24.36,sheetY(24.36)-.14,z],[29.05,sheetY(29.05)-.14,z],.05,awningFrame,.07);
+     K.beam(g,'Right hall awning steel tie',[24.42,3.44,z],[28.45,3.44,z],.04,awningFrame);}}
   // 15.10.49 / 15.11.00: the right-hand covered hall continues behind
   // the round veranda columns. Its interior is open, with square blue piers.
   const hallBlue=mat('#98bbc5'),hallFloor=oxideFloor.clone();hallFloor.roughness=.46;
   // 180635/180653 and 15.10.49: only the enclosed chair hall is raised.
   // The broad grey passage outside its square piers stays at courtyard level.
   floor('Covered hall continuous oxide floor',22.25,11.3,3.90,9.8,.60,hallFloor);
-  floor('Covered hall lower grey walking floor',26.30,11.3,4.20,9.8,.112,stoneFloor);
+  floor('Covered hall lower grey walking floor',26.30,11.3,4.20,9.8,.112,flagstones); // 15.10.43 / 15.02.00: the court's stone paving runs on under the awning
   for(const [a,b] of [[6.4,9.2],[10.4,16.2]]){
     box('Covered hall inner raised plinth',24.2,.30,(a+b)/2,.14,.40,b-a,outlinedPlinth);
     box('Covered hall inner platform coping',24.2,.57,(a+b)/2,.22,.08,b-a,whiteTrim);
@@ -1127,7 +1252,9 @@ export function buildTemple(K) {
   // 180635: two high-silled windows, with a solid wall and beam pilaster
   // between them. The old third window occupied the electrical-board wall.
   const hallWindowCenters=[9.0,12.6],windowPaint=mat('#426577');
-  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,stageEnd]])
+  // The wall starts at the lane doorway's inner jamb (z 7.15); the doorway is built with the
+  // road-corner block below.
+  for(const [a,b] of [[7.15,8.35],[9.65,11.95],[13.25,stageEnd]])
     box('Covered hall lane-side wall pier',20.30,2.03,(a+b)/2,.20,2.86,b-a,hallBlue,true);
   for(const z of hallWindowCenters){
     box('Covered hall window sill wall',20.30,1.22,z,.20,1.24,1.30,hallBlue,true);
@@ -1143,17 +1270,23 @@ export function buildTemple(K) {
   // Continuous wall heads meet the ceiling underside; the original wall
   // pieces stopped six centimetres short and leaked a strip of outdoor light.
   box('Covered hall lane wall ceiling closure',20.30,3.51,(6.4+stageEnd)/2,.22,.14,stageEnd-6.4,hallBlue);
-  box('Covered hall rear wall ceiling closure',24.25,3.51,16.10,8.0,.14,.22,hallBlue);
-  const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
+  // 15.10.49 / 15.02.00: the white ceiling belongs to the enclosed chair hall only (it used to run
+  // out to x 28.1 under the awning, with three more fans). The hall's front is a deep white beam on
+  // the square piers with a red band along its top, as on the circuit verandas.
+  box('Covered hall rear wall ceiling closure',22.4,3.51,16.10,4.3,.14,.22,hallBlue);
+  const hallCeiling=box('Covered hall flat white ceiling',22.35,3.60,11.3,4.1,.16,9.8,white);K.roofs.push(hallCeiling);
+  box('Covered hall front white beam',24.3,3.24,11.3,.24,.44,9.8,white);
+  box('Covered hall front beam red band',24.42,3.57,11.3,.22,.22,9.8,red);
+  box('Covered hall front wall head',24.22,3.80,11.3,.20,.26,9.8,white);
   for(const z of [9.0,12.7]){
     box('Covered hall square blue pier',24.15,2.08,z,.38,2.96,.38,hallBlue,true);
     box('Covered hall square pier red foot',24.15,.87,z,.40,.54,.40,red);
 
   }
-  const hallBeam=box('Covered hall transverse white ceiling beam',24.2,3.35,11.0,7.8,.35,.30,white);K.roofs.push(hallBeam);
+  const hallBeam=box('Covered hall transverse white ceiling beam',22.35,3.35,11.0,4.1,.35,.30,white);K.roofs.push(hallBeam);
   // Stationary three-bladed ceiling fans and slim fluorescent wall fittings.
   const fanMaterial=mat('#514b3e',.79);
-  for(const [x,z] of [[22.1,8.0],[26.2,9.2],[22.1,11.0],[26.2,11.0],[22.1,14.3],[26.2,14.3]]){
+  for(const [x,z] of [[22.1,8.0],[22.1,11.0],[22.1,14.3]]){
     cyl('Covered hall fan downrod',x,3.15,z,.018,.018,.60,fanMaterial,8);
     const motor=mesh('Covered hall fan motor',new THREE.SphereGeometry(1,12,8),fanMaterial,x,2.84,z);motor.scale.set(.14,.08,.14);
     for(let j=0;j<3;j++){
@@ -1274,16 +1407,8 @@ export function buildTemple(K) {
       const t=i/23;cyl('Outer shrine hanging flower garland',51.0,3.02-.30*Math.sin(t*Math.PI),z-.8+t*1.6,.032,.028,.055,i%3?K.M.cream:red,7);
     }
   }
-  // Large closed blue shutter bay nearest the entrance (15.01.44 / 15.02.23).
-  box('Outer entrance shrine blue closed shutters',53.64,2.12,10,.08,1.95,2.45,blue);
-  box('Outer entrance shrine shutter central stile',53.56,2.12,10,.09,1.95,.065,dark);
-  sideScallop('Outer entrance shrine wide scalloped arch',51.04,10,3.00,3.63,.62);
-  for(const z of [8.55,11.45])blueColumn('Outer entrance shrine tall pale blue pier',51.04,z,.6,3.06);
-  for(const z of [8.95,11.05]){
-    box('Outer entrance shrine blue lower panel',51.01,.97,z,.06,.70,.72,blue);
-    const grille=[];for(let i=0;i<5;i++)grille.push([50.96,.97,z-.29+i*.145,.025,.54,.035]);
-    instances('Outer entrance shrine brass grille',new THREE.BoxGeometry(1,1,1),brass,grille);
-  }
+  // The blue east porch (15.01.44 / 15.02.23) is built with its plinth near the end of this
+  // function, after the east shift and the veranda raise.
   // 15.02.17: looking back-left after entry ends at a closed service corner.
   // Join the entrance block to the first blue shrine; it is not an exit outside.
   box('Entrance circuit closed return wall',50.91,1.95,6.38,6.18,3.70,.26,agedWhite,true);
@@ -1360,9 +1485,13 @@ export function buildTemple(K) {
   const markerStone=mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
   const markerNav=K.colliders.length;K.blocker(48.9,24.31,.94,.22,.1,1.37);
   // Two unequal upright stones stand outside the rear door/window bay.
-  for(const [x,h] of [[26.05,1.10],[26.90,.88]]){
-    const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,x,.10,42.06);
-    rearStone.scale.set(.70,h/1.27,1);K.blocker(x,42.17,.66,.22,.1,.1+h);
+  // 15.11.17: they are pale weathered stones (96,90,93 beside a white wall at 136,155,186, where
+  // the dark marker granite rendered near black), a tall one at the corner and a broader, shorter
+  // one under the shuttered window, standing against the veranda plinth.
+  const paleStandingStone=mat('#958e86',.95);
+  for(const [x,h,sx] of [[24.9,1.5,.70],[25.75,1.1,.84]]){
+    const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),paleStandingStone,x,.10,42.4);
+    rearStone.scale.set(sx,h/1.27,1);K.blocker(x,42.51,sx*.94,.22,.1,.1+h);
   }
 
   // Deepastambha: layered square foot, dark shaft and a vertical series of lamp dishes.
@@ -1738,14 +1867,50 @@ export function buildTemple(K) {
     innerColumn('Inner hall carved stone column',x,18.8,2.11,1.58,.63);
   }
   // The two front platforms leave the central entrance passage lower and clear.
-  for(const x of [33.05,44.95]){
-    box('Inner side raised stone ledge',x,1.05,24.5,2.25,.96,8.0,sanctumStone,true);
-    innerPaving('Inner side ledge paving',x,24.5,2.33,8.08,1.55);
-    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
+  // West (15.08.42): the piers stand at the edge of a ledge about 1.45 m deep, on red base slabs,
+  // and the aisle beside the mandapa is about 3 m wide (it was 2.05).
+  {const x=33.05,pierRed=mat('#8c3a30',.9);
+    box('Inner side raised stone ledge',32.65,1.05,24.5,1.45,.96,8.0,sanctumStone,true);
+    innerPaving('Inner side ledge paving',32.65,24.5,1.53,8.08,1.55);
+    for(const z of [21.1,23.5,25.9,28.0]){innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.9);
+      box('Inner perimeter column red base slab',x,1.61,z,.70,.12,.70,pierRed);}
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
-  box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
-  innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.03);
+  // East (owner's note with 'temple inner sanctum, left side': a blue wall and a room, not an open
+  // platform): a bright blue wall rises from a narrow grey ledge with a sloping top; above its sill
+  // blue posts frame white slatted panels; three stepped dark stone slabs form the eave; a blue
+  // plank door closes the far end beside the rear ledge. The room lies between this wall and the
+  // shrine's east wall. The aisle is about 3.2 m wide.
+  {const roomBlue=mat('#1f8fc8',.8),slat=mat('#c9cabf'),eaveStone=mat('#3a3835',.95),zc=24.975,len=8.95;
+    box('Inner east narrow stone ledge',45.25,.95,24.5,.5,.8,8.0,sanctumStone,true);
+    const cap=box('Inner east ledge sloping cap',45.25,1.375,24.5,.53,.05,8.0,sanctumStone);cap.rotation.z=.13;
+    box('Inner east blue room wall',45.6,1.225,zc,.2,1.35,len,roomBlue,true);
+    box('Inner east blue room upper wall',45.62,2.45,zc,.16,1.1,len,roomBlue,true);
+    box('Inner east blue room front wall',46.85,1.775,20.42,2.3,2.45,.16,roomBlue,true);
+    for(let k=0;k<=8;k++)box('Inner east blue room post',45.5,2.175,20.5+k,.15,1.65,.15,roomBlue);
+    const slats=[];
+    for(let k=0;k<4;k++){const z=21.0+k;
+      box('Inner east white slatted panel',45.525,2.45,z,.03,1.0,.8,whiteTrim);
+      for(let i=0;i<12;i++)slats.push([45.505,2.0+i*.082,z,.02,.03,.76]);}
+    instances('Inner east slatted panel louvre',new THREE.BoxGeometry(1,1,1),slat,slats);
+    box('Inner east blue plank door',44.95,2.275,28.75,.9,1.45,.06,blue);
+    for(const dx of [-.5,.5])box('Inner east blue plank door frame',44.95+dx,2.275,28.75,.10,1.45,.10,roomBlue);
+    for(const dx of [-.225,0,.225])box('Inner east blue plank door joint',44.95+dx,2.275,28.715,.012,1.40,.012,vividBlue);
+    [[45.2,3.06],[44.95,3.18],[44.7,3.30]].forEach(([x0,y])=>{const s=box('Inner east stepped stone eave slab',(x0+47.98)/2,y,zc,47.98-x0,.12,len+.3,eaveStone);K.roofs.push(s);});
+  }
+  // 15.08.42 / 'temple inner sanctum, left side': the rear ledge is as high as the side ledges and
+  // meets them at the corners; its face is pinkish-red stone, and a two-step stone block stands
+  // against it in each corner under the end bay (shown, not walkable).
+  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
+  innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
+  for(const x of [34.55,44.1]){
+    box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
+    box('Inner rear corner stone step block',x,.88,28.27,.9,.66,.25,sanctumStone,true);}
+  // 15.08.42: a black steel post stands in the west aisle at the mandapa's plinth, up to the
+  // skylight frame.
+  {const steelBlack=mat('#1f2022',.6);
+   box('Inner aisle black steel post',36.0,2.6,23.0,.10,4.1,.10,steelBlack,true);
+   box('Inner aisle black steel post base plate',36.0,.565,23.0,.5,.03,.5,steelBlack);}
   // 15.08.42: the perimeter column ledges have recessed relief panels,
   // narrow dividing ribs and layered projecting copings. Individual figures are
   // unresolved; use subdued foliage relief instead of inventing deity portraits.
@@ -1774,30 +1939,32 @@ export function buildTemple(K) {
       foliage.push(place(u,.856,.025,.025,.026,.010));
     }
   }
-  ledgeFace(34.175,24.5,8,Math.PI/2);
-  ledgeFace(43.825,24.5,8,-Math.PI/2);
+  ledgeFace(33.375,24.5,8,Math.PI/2);
+  ledgeFace(45.0,24.5,8,-Math.PI/2);
   ledgeFace(39,28.395,14.1,Math.PI);
   instances('Inner ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),ledgeRecess,recesses);
   instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
   instances('Inner ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),ledgeRelief,foliage);
-  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.03,2.45,.77);
+  // The rear columns, curtains, panels and doors stand on the raised ledge (top 1.55).
+  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.55,1.93,.77);
   for(const x of [36.9,40.5]){
-    box('Inner rear white cloth curtain',x,2.18,29.39,2.25,2.15,.025,whiteTrim);
-    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
+    box('Inner rear white cloth curtain',x,2.45,29.39,2.25,1.7,.025,whiteTrim);
+    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.45,29.36,.032,1.7,.03,white);
   }
+  K.blocker(39,29.45,14.1,.1,1.5,3.5); // nothing but a thin panel line closes the rear above the ledge
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
-  const innerDarkStone=mat('#6d6a62',.95),innerEastBlue=mat('#3a82ad',.85);
-  for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
-    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:white);
+  const innerDarkStone=mat('#5f4744',.95); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
+  for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
-    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
-  box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
-  box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
-  // 15.08.42: the west corridor also ends at a blue door beside its last pillar.
-  box('Inner rear west closed blue double door',34.55,2.13,29.40,1.35,2.2,.06,blue);
-  box('Inner rear west blue door stile',34.55,2.13,29.34,.05,2.2,.08,vividBlue);
+    box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
+  // 'temple inner sanctum, left side': at the east end the blue door is the plank door at the end
+  // of the blue room wall (built with that wall), not a double door in the rear wall.
+  // 15.08.42: the west corridor also ends at a blue door beside its last pillar; it stands on the
+  // ledge, about a metre wide and as tall as the columns.
+  box('Inner rear west closed blue double door',34.55,2.50,29.40,1.03,1.9,.06,blue);
+  box('Inner rear west blue door stile',34.55,2.50,29.34,.05,1.9,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
@@ -1889,8 +2056,13 @@ export function buildTemple(K) {
   {const cellaStone=sanctumStone.clone();cellaStone.color.set('#8f8a78');
   const cellaDark=mat('#3a332b',.96),idolStone=mat('#151412',.32),flame=new THREE.MeshStandardMaterial({color:'#ffd27a',emissive:'#ff9a2e',emissiveIntensity:3.2,roughness:.6});
   const cF=1.06,cTop=3.5,cz0=24.2,cz1=27.05,cx0=37.2,cx1=40.8;
-  for(const [a,b] of [[cx0,38.09],[39.91,cx1]])box('Sanctum cella front wall',(a+b)/2,(cF+cTop)/2,cz0,b-a,cTop-cF,.3,cellaStone,true);
-  box('Sanctum cella wall over the doorway',39,3.41,cz0,1.82,.18,.3,cellaStone);
+  // 'Temple inner sanctum, God room' (both): the doorway is narrower and lower than modelled, the
+  // wall around it is dark stone (it shows black between the open leaves' tubes) and soot-black
+  // above the lintel; the frame stands on two worn carved stone blocks either side of a step.
+  for(const [a,b] of [[cx0,38.3],[39.7,cx1]])box('Sanctum cella front wall',(a+b)/2,(cF+cTop)/2,cz0,b-a,cTop-cF,.3,cellaDark,true);
+  box('Sanctum cella wall over the doorway',39,3.225,cz0,1.4,.55,.3,mat('#2a2723',.96));
+  box('Sanctum doorway stone step',39,1.15,23.95,.9,.18,.40,cellaStone);
+  {const blockStone=mat('#4a4239',.95);for(const x of [38.34,39.66])box('Sanctum doorway carved stone block',x,1.285,23.95,.45,.45,.55,blockStone,true);}
   for(const x of [cx0,cx1])box('Sanctum cella side wall',x,(cF+cTop)/2,(cz0+cz1)/2,.3,cTop-cF,cz1-cz0+.3,cellaStone,true);
   box('Sanctum cella rear wall',39,(cF+cTop)/2,cz1,cx1-cx0,cTop-cF,.3,cellaStone,true);
   box('Sanctum cella stone ceiling',39,cTop-.09,(cz0+cz1)/2,cx1-cx0,.18,cz1-cz0,cellaStone);
@@ -1925,7 +2097,7 @@ export function buildTemple(K) {
   }
   // The lit shelf across the top of the doorway: brass-bossed side panels, a framed
   // image, a small brass pot, and the lamp that makes it glow in the photographs.
-  const shelfY=2.62,shelfWood=mat('#2c2419',.8);
+  const shelfY=2.30,shelfWood=mat('#2c2419',.8);
   box('Sanctum doorway lit shelf board',39,shelfY,24.5,1.56,.06,.55,shelfWood);
   box('Sanctum doorway shelf front beam',39,shelfY-.09,24.28,1.56,.12,.08,shelfWood);
   for(const x of [38.34,39.66])for(let j=0;j<3;j++){
@@ -1934,34 +2106,39 @@ export function buildTemple(K) {
   box('Sanctum shelf framed image frame',39,shelfY+.26,24.66,.52,.44,.03,shelfWood);
   box('Sanctum shelf framed image',39,shelfY+.26,24.645,.44,.36,.01,mat('#efe6d2',.6,{emissive:'#fff1d0',emissiveIntensity:.25}));
   cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
-  const shelfLight=new THREE.PointLight('#fff0c8',3,1.6,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
+  const shelfLight=new THREE.PointLight('#fff0c8',3,1.0,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
   const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
   }
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
-  for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,24.16,.27,2.18,.14,vividBlue);
-  box('Inner sanctum blue doorway lintel',39,3.21,24.16,1.84,.27,.14,vividBlue);
-  const bulbColors=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'];
-  for(const x of [38.22,39.78])for(let j=0;j<8;j++){
-    const y=1.19+j*.27;
-    const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,24.05);boss.scale.z=.38;
-    mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,24.02);
-  }
-  // "Temple inner sanctum, God room" photos: nine bosses span the whole lintel with a row of
-  // coloured bulbs below, and two tall blue barred gate leaves stand open at the frame.
-  for(let j=0;j<9;j++){
-    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.0+j*.25,3.36,24.05);boss.scale.z=.38;
-  }
-  for(let j=0;j<8;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),38.37+j*.18,3.08,24.02);
-  const gateBlue=mat('#1b8fb8',.6);
+  // "Temple inner sanctum, God room" photos: the frame is a continuous band of square polished
+  // brass plates, each with a dome, touching edge to edge (nine across the lintel, nine down each
+  // side counting the corners); inside it runs a narrow blue band carrying the coloured bulbs.
+  // Opening .92 wide, head at 2.71. Brass sampled 150,118,85 where the old bosses rendered 52,37,23.
+  {const P=.155,x0=38.3775,zf=24.05,plateBrass=mat('#c2a04e',.45,{metalness:.3}),plates=[],domes=[];
+   for(const x of [38.42,39.58])box('Inner sanctum blue doorway jamb',x,1.885,24.2,.24,1.65,.3,vividBlue,true);
+   box('Inner sanctum blue doorway lintel',39,2.83,24.2,1.4,.24,.3,vividBlue);
+   for(let j=0;j<9;j++){plates.push([x0+j*P,2.8725,zf-.006,P-.008,P-.008,.012]);domes.push([x0+j*P,2.8725,zf-.012,.065,.065,.028]);}
+   for(const x of [x0,x0+8*P])for(let k=0;k<8;k++){const y=2.7175-k*P;plates.push([x,y,zf-.006,P-.008,P-.008,.012]);domes.push([x,y,zf-.012,.065,.065,.028]);}
+   instances('Inner doorway square brass plate',new THREE.BoxGeometry(1,1,1),plateBrass,plates);
+   instances('Inner doorway round brass boss',new THREE.SphereGeometry(1,12,8),plateBrass,domes);
+   const bulbs=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'].map(c=>mat(c,.35));
+   for(const x of [38.4975,39.5025])for(let j=0;j<8;j++)mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.03,8,6),bulbs[j%5],x,1.63+j*.15,zf-.02);
+   for(let j=0;j<7;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.03,8,6),bulbs[(j+2)%5],38.61+j*.13,2.7525,zf-.02);
+   box('Sanctum doorway tube light batten',39,3.05,zf-.03,1.2,.06,.08,whiteTrim);
+   box('Sanctum doorway pale control box',38.14,3.0,zf-.04,.18,.30,.08,mat('#b9bcb8'));}
+  // Sampled 40,190,228 on the leaves against 0,142,176 rendered.
+  const gateBlue=mat('#1ba3d8',.6);
   for(const side of [-1,1]){
     const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.9);leaf.rotation.y=side*(Math.PI-.14);g.add(leaf); // folded back flat beside the frame, as in 'God room 2'
     const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
     const lw=-side*.9;
     // 'God room 2': the leaves rise to the lintel above the bossed frame (~0.45 m taller).
-    for(const y of [.62,2.1,3.8])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
-    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.22,.1,3.35,gateBlue);
-    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.22,.045,3.15,whiteTrim);
+    // The leaves are heavy: broad stiles and deep rails, standing on the mandapa floor (1.06) and
+    // ending under its cornice (they used to run from 0.55 to 3.9 with thin members).
+    for(const [y,h] of [[1.155,.15],[1.75,.28],[2.95,.28],[3.405,.15]])part('Inner sanctum gate blue rail',lw/2,y,.9,h,gateBlue);
+    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.28,.24,2.4,gateBlue);
+    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.28,.045,2.3,whiteTrim);
   }
   // User-labelled right side of inner sanctum: large horizontal drum,
   // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
@@ -2010,16 +2187,60 @@ export function buildTemple(K) {
   box('Temple road corner lower frontage',25.15,1.91,1.6,9.7,3.38,.3,edgeWhite,true);
   box('Temple road corner lower frontage east block',27.1,1.91,3.29,5.8,3.38,3.08,edgeWhite,true);
   // User's note: no white filler wall between the east block and the service bay.
-  box('Temple road corner lane-side wall',20.27,1.91,4.075,.14,3.38,4.65,edgeWhite,true);
+  // 15.11.00, '-45 degrees' and 15.10.30 (inside the hall): next to the hall's second window the
+  // lane wall has a real doorway with a barred transom, its panelled timber leaf swung into the
+  // hall on the road-side jamb; a narrow window stands between it and the road-end corner; a
+  // red dado runs along all the hall walls and a grey rolling shutter fills the road-end wall.
+  const laneDoor=[6.3,7.15],laneSlit=[3.825,4.475];
+  for(const [a,b] of [[1.75,laneSlit[0]],[laneSlit[1],laneDoor[0]]]){
+    box('Temple road corner lane-side wall',20.27,1.91,(a+b)/2,.14,3.38,b-a,edgeWhite,true);
+    box('Covered hall front extension blue wall face',20.36,2.08,(a+b)/2,.02,2.96,b-a,hallBlue);}
   floor('Covered hall front extension oxide floor',22.27,4.075,3.86,4.65,.60,hallFloor);
-  for(const [x,z,w,d] of [[20.36,4.075,.02,4.65],[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  for(const [x,z,w,d] of [[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  {const zs=(laneSlit[0]+laneSlit[1])/2,ws=laneSlit[1]-laneSlit[0],zd=(laneDoor[0]+laneDoor[1])/2,wd=laneDoor[1]-laneDoor[0];
+   // Narrow window: same sill and head as the hall's two windows, half their width.
+   box('Temple road corner lane-side wall',20.27,1.03,zs,.14,1.62,ws,edgeWhite,true);
+   box('Temple road corner lane-side wall',20.27,3.435,zs,.14,.33,ws,edgeWhite,true);
+   box('Covered hall front extension blue wall face',20.36,1.22,zs,.02,1.24,ws,hallBlue);
+   box('Covered hall front extension blue wall face',20.36,3.415,zs,.02,.29,ws,hallBlue);
+   for(const dz of [-ws/2,ws/2])box('Covered hall narrow window blue jamb',20.36,2.555,zs+dz,.12,1.50,.07,windowPaint);
+   for(const y of [1.84,2.38,2.94,3.27])box('Covered hall narrow window blue crossbar',20.36,y,zs,.12,.07,ws+.07,windowPaint);
+   box('Covered hall narrow window middle upright',20.36,2.39,zs,.10,1.10,.05,windowPaint);
+   const slit=mesh('Covered hall narrow window pale glazing',new THREE.PlaneGeometry(ws,1.43),new THREE.MeshStandardMaterial({color:0xdce5dd,roughness:.95,side:THREE.DoubleSide}),20.30,2.555,zs);slit.rotation.y=Math.PI/2;
+   K.blocker(20.27,zs,.14,ws,1.84,3.27);
+   // Doorway .85 x 2.1 with a .4 barred transom; open to look through, closed to walking (the
+   // lane lies .56 m below the hall floor).
+   const doorTimber=mat('#5b4a44'),doorPanel=mat('#4a3c37');
+   box('Covered hall lane doorway head wall',20.30,3.35,zd,.20,.50,wd,hallBlue,true);
+   box('Covered hall lane doorway threshold',20.28,.51,zd,.16,.18,wd,hallFloor);
+   box('Covered hall lane doorway foundation',20.27,.32,zd,.14,.20,wd,edgeWhite);
+   for(const z of [laneDoor[0]+.04,laneDoor[1]-.04])box('Covered hall lane doorway blue frame',20.30,1.85,z,.24,2.50,.08,windowPaint);
+   for(const y of [2.70,3.08])box('Covered hall lane doorway blue frame',20.30,y,zd,.24,.08,wd,windowPaint);
+   for(let i=1;i<7;i++)box('Covered hall lane doorway transom timber bar',20.30,2.89,laneDoor[0]+.08+i*(wd-.16)/7,.035,.30,.03,doorTimber);
+   const leaf=new THREE.Group();leaf.name='Covered hall lane door open leaf';leaf.position.set(20.44,0,laneDoor[0]+.03);leaf.rotation.y=.17;g.add(leaf);
+   K.box(leaf,'Covered hall lane door timber leaf',.425,1.65,0,.85,2.10,.045,doorTimber);
+   for(let row=0;row<3;row++)for(const x of [.225,.625])K.box(leaf,'Covered hall lane door leaf sunk panel',x,.98+row*.66,.024,.31,.54,.012,doorPanel);
+   K.blocker(20.86,laneDoor[0]-.04,.86,.24,.6,2.7);
+   K.blocker(20.30,zd,.20,wd,.6,2.7);
+   // Red dado on the hall's walls (the rear wall and the piers already have theirs).
+   for(const [x,a,b] of [[20.3825,1.77,laneDoor[0]],[20.4125,laneDoor[1],stageEnd-.215],[24.1675,1.77,6.4]])box('Covered hall lane wall red dado',x,.88,(a+b)/2,.025,.56,b-a,red);
+   for(const [a,b] of [[20.37,20.90],[23.70,24.18]])box('Covered hall road-end wall red dado',(a+b)/2,.88,1.7825,b-a,.56,.025,red);
+   // The street shutter seen from inside: dark grey corrugated face under its roller housing
+   // (35,38,43 beside the blue wall's 160,188,199 in 15.11.00).
+   const shutterGrey=mat('#4a4e54',.7),ribs=[];
+   box('Covered hall road shutter inner face',22.3,1.775,1.785,2.72,2.35,.03,shutterGrey);
+   for(let y=.68;y<2.93;y+=.11)ribs.push([22.3,y,1.806,2.72,.04,.02]);
+   instances('Covered hall road shutter corrugation',new THREE.BoxGeometry(1,1,1),shutterGrey,ribs);
+   for(const x of [20.92,23.68])box('Covered hall road shutter guide rail',x,1.775,1.80,.06,2.35,.06,shutterGrey);
+   box('Covered hall road shutter roller housing',22.3,3.10,1.87,2.90,.30,.20,shutterGrey);
+  }
   box('Covered hall front extension ceiling',22.27,3.60,4.075,3.86,.16,4.65,white);
   box('Covered hall front square blue pier',22.27,2.08,6.4,.38,2.96,.38,hallBlue,true);
   box('Covered hall front pier red foot',22.27,.87,6.4,.40,.54,.40,red);
   box('Covered hall transverse white ceiling beam',22.27,3.36,6.4,3.86,.32,.30,white);
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
-  box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
+  for(const [a,b] of [[1.375,6.3],[7.15,8.925]])box('Temple road side red skirting',20.26,.47,(a+b)/2,.07,.5,b-a,red); // cut at the lane doorway
   // 14.59.21 / 15.19.36 / 15.20.01 (close, from the forecourt): five slim piers on even bays of
   // about 3.6 m, one thing per bay from the road corner: shutter, window, sign board, window.
   for(const x of [20.38,24.0,27.63]){
@@ -2075,10 +2296,11 @@ export function buildTemple(K) {
   for(const x of [20.20,30.03])box('Temple road rooftop side parapet',x,7.24,4.37,.18,.80,9.25,balconyRed);
   // Narrow weathered covering hangs along the road-facing side of the balcony.
   const sideAwning=box('Temple road side sloping eave',19.91,6.40,4.73,.87,.09,9.2,darkRoof);sideAwning.rotation.z=.25;K.roofs.push(sideAwning);
-  for(const z of [4.15,6.70,8.46]){
-    box('Temple roadside small dark doorway',20.265,1.40,z,.025,2.28,.82,blue);
-    box('Temple roadside projecting door canopy',19.98,2.69,z,.74,.12,1.18,edgeWhite);
-  }
+  // The lane wall's doorway (z 6.3..7.15) and narrow window (z 4.15) are real openings now; the
+  // window's canopy sits above its head instead of across it. The flat blue door panels are gone:
+  // they lay inside the wall, and the third showed only as a blue patch in the hall window's
+  // opening (180635 shows that window clear).
+  for(const z of [4.15,6.70,8.46])box('Temple roadside projecting door canopy',19.98,z<5?3.36:2.69,z,.74,.12,1.18,edgeWhite);
   box('Temple road rear connector ceiling',22.26,3.56,10.23,4.0,.12,2.65,edgeWhite);
   // The narrow exterior stair is photographed. Its upper connection is estimated.
 
@@ -2201,23 +2423,30 @@ export function buildTemple(K) {
   // 15.01.44 / 15.02.17 (re-checked): not one broad storey. A narrow full-height block stands at
   // the far end (z 14.3-16.5) with one small window; a set-back arched rooftop pavilion sits over
   // the shutter bay (z 8.6-12.4); the rest is open terrace behind the balcony band.
-  {const x0=55.1,x1=57.9,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
-   box('East range upper balcony band',x0-.05,4.6,zc,.3,1.2,len,white);
-   box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
-   {const a=14.3,b=z1,c=(a+b)/2,l=b-a;
+  // Photo review (15.01.44, 15.02.23, both clear): the heavy weathered band stands only over the
+  // blue porch, on the front edge of its slab (pier top 4.6), without a red coping; one open
+  // pavilion stands on that slab; the narrow full-height block is a tower directly against the
+  // porch over the open stair bay (z 11.8..14.3), with a red band round its top and one small
+  // louvred window.
+  {const x0=55.1,x1=57.9,z0=6.45,y0=3.7;
+   box('East range upper balcony band',54.3,5.1,10.0,.3,1.0,4.2,white);
+   box('East range upper balcony band',56.0,5.1,7.95,3.7,1.0,.3,white);
+   box('East range upper balcony band',54.75,5.1,12.05,.9,1.0,.3,white);
+   {const a=11.8,b=14.3,c=(a+b)/2,l=b-a,y1=6.45;
     box('East range upper storey front wall',x0+.11,(y0+y1)/2,c,.22,y1-y0,l,white);
     box('East range upper storey back wall',x1-.11,(y0+y1)/2,c,.22,y1-y0,l,white);
     for(const z of [a+.11,b-.11])box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z,x1-x0,y1-y0,.22,white);
-    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,c,x1-x0+.6,.16,l+.4,white);K.roofs.push(roof);
-    box('East range upper slab red edge',x0-.3,y1+.08,c,.1,.18,l+.4,red);
-    box('East range upper window blue frame',x0-.01,6.0,15.3,.05,.8,.8,blue);box('East range upper window dark glass',x0-.02,6.0,15.3,.03,.6,.6,dark);}
-   {const a=8.6,b=12.4,c=(a+b)/2,l=b-a,px0=56.2,py1=6.3;
-    box('East range rooftop pavilion back wall',x1-.11,(y0+py1)/2,c,.22,py1-y0,l,white);
-    for(const z of [a+.11,b-.11])box('East range rooftop pavilion end wall',(px0+x1)/2,(y0+py1)/2,z,x1-px0,py1-y0,.22,white);
-    {const sc=scallop('East range rooftop pavilion scalloped arches',px0,c,l,py1-.1,.18,white,.55);sc.rotation.y=Math.PI/2;sc.position.set(px0-.09,0,c);}
-    const r=box('East range rooftop pavilion slab',(px0+x1)/2,py1+.07,c,x1-px0+.5,.14,l+.4,white);K.roofs.push(r);
-    box('East range rooftop pavilion red edge',px0-.25,py1+.07,c,.1,.16,l+.4,red);}
-   box('East range open terrace floor',(x0+x1)/2,y0-.05,(z0+14.3)/2,x1-x0,.1,14.3-z0,white);}
+    box('East range tower red top band',(x0+x1)/2,y1-.175,c,x1-x0+.1,.35,l+.1,red);
+    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.04,c,x1-x0+.2,.08,l+.2,white);K.roofs.push(roof);
+    box('East range upper window dark opening',x0-.01,5.4,13.0,.05,.9,1.0,dark);
+    for(let i=0;i<5;i++)box('East range upper window blue louvre',x0-.04,5.05+i*.175,13.0,.03,.04,1.0,blue);}
+   {const py0=4.75,py1=6.75,edge=mat('#7a2f25');
+    for(const x of [54.6,57.6])for(const z of [8.5,11.5])box('East range rooftop pavilion post',x,(py0+py1)/2,z,.25,py1-py0,.25,white);
+    for(const x of [54.6,57.6]){const sc=scallop('East range rooftop pavilion scalloped arches',0,0,3.0,py1,.18,white,.5);sc.rotation.y=Math.PI/2;sc.position.set(x-.09,0,10.0);}
+    for(const z of [8.5,11.5])scallop('East range rooftop pavilion scalloped arches',56.1,z,3.0,py1,.18,white,.5);
+    const r=box('East range rooftop pavilion slab',56.1,py1+.075,10.0,4.4,.15,4.4,white);K.roofs.push(r);
+    for(const [x,z,w,d] of [[53.87,10,.06,4.46],[58.33,10,.06,4.46],[56.1,7.77,4.4,.06],[56.1,12.23,4.4,.06]])box('East range rooftop pavilion red edge',x,py1+.075,z,w,.17,d,edge);}
+   box('East range open terrace floor',(x0+x1)/2,y0-.05,(z0+7.8)/2,x1-x0,.1,7.8-z0,white);}
   // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
   // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
   // projecting portico front starts there. The entrance hall and its paintings stay behind.
@@ -2351,8 +2580,21 @@ export function buildTemple(K) {
    for(const list of [K.surfaces,K.ramps])for(let i=list.length-1;i>=0;i--){const r=list[i],lo=r.x-r.w/2,hi=r.x+r.w/2;
      if(lo>=XW-.02||r.z-r.d/2<Z0||r.z+r.d/2>Z1||hi<28.9)continue;
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
-   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
+   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,courtLaterite,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.11.08 / 15.11.17 (court side of the old shrine, built after its lengthening): a wide plain
+  // plastered panel under the roof's north corner, three arches, a narrow red-framed doorway and
+  // four more arches; a broad dark stone bench runs along the wall foot, broken at the doorway.
+  {const xw=31.648,zd=26.01,rect=(w,y0,y1)=>{const s=new THREE.Shape();s.moveTo(-w/2,y0);s.lineTo(w/2,y0);s.lineTo(w/2,y1);s.lineTo(-w/2,y1);s.closePath();return new THREE.ShapeGeometry(s);};
+   const plain=mesh('Old inner shrine court plain plastered panel',rect(2.0,.78,2.72),courtPanel,31.53,0,20.0);plain.rotation.y=-Math.PI/2;
+   const bay=mesh('Old inner shrine court doorway plastered bay',rect(1.06,.75,2.74),courtPanel,xw,0,zd);bay.rotation.y=-Math.PI/2;
+   box('Old inner shrine court doorway dark opening',xw-.02,1.6,zd,.03,1.75,.65,dark);
+   for(const s of [-1,1])box('Old inner shrine court doorway red frame',xw-.05,1.6,zd+s*.385,.1,1.75,.12,courtLaterite);
+   box('Old inner shrine court doorway red frame',xw-.05,2.535,zd,.1,.12,.89,courtLaterite);
+   for(const [x0,z0,z1] of [[30.45,19.0,25.5],[30.85,26.5,33.0]]){const xm=(x0+31.66)/2,w=31.66-x0,zm=(z0+z1)/2,d=z1-z0;
+     box('Old inner shrine court stone bench',xm,.44,zm,w-.08,.46,d-.08,weathered,true);
+     box('Old inner shrine court stone bench base course',xm,.16,zm,w,.12,d,weathered);
+     box('Old inner shrine court stone bench top slab',xm-.02,.71,zm,w+.04,.08,d+.06,weathered);}}
   // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
   // inside the upper storey.
   {const b3=new THREE.Box3();for(const o of [...g.children])if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)g.remove(o);}} // photo review: lifted, this copy floated over the 'East range rooftop pavilion' already standing there
@@ -2391,15 +2633,50 @@ export function buildTemple(K) {
   // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
   // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
   // the bay to its north is open, with a steep concrete stair climbing inside it.
-  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95);
-   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.48,(z0+z1)/2,.7,.96,z1-z0,rubble,true);
-   box('East porch plinth rubble face',54.21,.48,10,.02,.94,3.6,rubble);
-   steps('East porch front steps',54.1,10,1.6,1.2,.1,.95,'x',4);
-   box('East porch projecting flat roof slab',56.0,3.89,10,3.6,.46,4.0,white);
-   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.95,2.9,'x',9);
-   K.ramps.splice(r0);K.blocker(56.55,13.05,2.0,1.1,.6,3.2);
-   box('East range open bay stair side wall',56.65,1.95,13.66,2.1,2.7,.12,white,true);
-   box('East range open bay red lintel band',54.98,3.32,13.25,.14,.22,3.0,red);}
+  // Photo review, 15.02.23 head-on (red base .75 m as ruler): two round piers rise 3.65 m from the
+  // porch floor to a slab well above the veranda's red fascia, under a deep blue lintel with a
+  // scalloped underside and a tube light; dull slate shutters fill the back wall; a blue-framed
+  // green lattice panel stands inside each pier; the rubble plinth is unbroken and is climbed by a
+  // mounting block whose red-nosed steps descend sideways. In the next bay a white pier shares the
+  // piers' red base, a concrete stair climbs behind a sloping white balustrade under a red
+  // lintel band, and three red-nosed steps lead up from the court.
+  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95),blockStone=mat('#6e6b63',.97),stepRed=mat('#8a2f28',.9),slate=mat('#3f5a6b',.8),frameBlue=mat('#1f86c8');
+   for(const z of [8.55,11.45]){
+     cyl('Outer entrance shrine tall pale blue pier red base',55.04,1.325,z,.17,.17,.75,red,16);
+     cyl('Outer entrance shrine tall pale blue pier blue shaft',55.04,3.15,z,.16,.165,2.9,paleBlue,16);
+     K.blocker(55.04,z,.36,.36,.6,4.6);}
+   sideScallop('Outer entrance shrine wide scalloped arch',55.04,10,2.9,4.6,1.0);
+   box('Outer entrance shrine lintel tube light',54.83,4.42,10,.05,.05,1.1,whiteTrim);
+   const slab=box('East porch projecting flat roof slab',56.0,4.675,10,3.6,.15,4.2,white);K.roofs.push(slab);
+   box('East porch back wall upper',57.86,4.05,10,.28,1.1,4.2,white,true);
+   box('East porch north cheek above the veranda roof',56.45,4.15,8.22,2.82,.92,.14,white);
+   box('East porch back wall dark red band',57.7,4.325,10,.04,.55,2.9,mat('#5e2f2b'));
+   box('Outer entrance shrine blue closed shutters',57.66,3.0,10,.06,2.1,2.4,slate);
+   for(const [y,h,z,d] of [[3.0,2.1,10,.06],[3.0,2.16,8.8,.06],[3.0,2.16,11.2,.06],[1.95,.06,10,2.4],[4.05,.06,10,2.4]])box('Outer entrance shrine shutter blue frame',57.62,y,z,.03,h,d,frameBlue);
+   const latticeGreen=mat('#ffffff',.9);latticeGreen.map=canvasMap(128,(c,s)=>{c.fillStyle='#b7c4a0';c.fillRect(0,0,s,s);c.strokeStyle='#8f9c7c';c.lineWidth=3;
+     for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.moveTo(i*32+16,j*32+3);c.lineTo(i*32+29,j*32+16);c.lineTo(i*32+16,j*32+29);c.lineTo(i*32+3,j*32+16);c.closePath();c.stroke();}
+     c.fillStyle='#5a6450';for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.arc(i*32+16,j*32+16,4,0,7);c.fill();}});
+   for(const z of [9.06,10.94]){
+     box('Outer entrance shrine blue lower panel',55.0,1.325,z,.07,.75,.82,frameBlue);
+     box('Outer entrance shrine green lattice panel',54.955,1.325,z,.03,.57,.64,latticeGreen);}
+   // Plinth: one unbroken rubble front; only the stretch behind the block's landing can be stepped onto.
+   box('East porch mossy rubble plinth',54.55,.48,10,.7,.96,3.6,rubble);
+   for(const [a,b] of [[8.2,9.1],[10.3,11.8]])K.blocker(54.55,(a+b)/2,.7,b-a,0,.96);
+   K.surface(54.625,10,.85,3.6,.955);
+   box('East porch mounting block landing',53.75,.36,9.7,.9,.52,1.2,blockStone);K.surface(53.75,9.7,.9,1.2,.62);
+   steps('East porch block south steps',53.75,10.6,.9,.6,.1,.42,'-z',2,blockStone,blockStone);
+   steps('East porch block north steps',53.75,8.8,.9,.6,.1,.42,'z',2,blockStone,blockStone);
+   for(const [y,z,d] of [[.595,9.7,1.2],[.395,10.45,.3],[.235,10.75,.3],[.395,8.95,.3],[.235,8.65,.3]])box('East porch block red nosing',53.29,y,z,.02,.05,d,stepRed);
+   // Stair bay.
+   box('East range stair bay white pier',55.05,2.45,12.0,.32,1.5,.32,white,true);
+   box('East range stair bay pier red base',55.05,1.325,11.87,.34,.75,.6,red);
+   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,12.625,2.0,.95,.95,2.6,'x',9,concrete,concrete);
+   K.ramps.splice(r0);K.blocker(56.55,12.625,2.0,.95,.6,3.2);
+   {const s=new THREE.Shape();s.moveTo(55.5,.95);s.lineTo(57.6,.95);s.lineTo(57.6,3.45);s.lineTo(55.5,1.85);s.closePath();
+    mesh('East range open bay stair balustrade',new THREE.ExtrudeGeometry(s,{depth:.10,bevelEnabled:false}),white,0,0,13.1);K.blocker(56.55,13.15,2.1,.1,.6,3.4);}
+   box('East range open bay red lintel band',54.9,3.335,13.25,.18,.37,3.0,red);
+   steps('East range stair bay court steps',54.6,12.6,.9,1.2,.1,.95,'x',3,blockStone,blockStone);
+   for(let i=0;i<3;i++)box('East range stair bay step red nosing',54.16+i*.3,.1+.85*(i+1)/3-.03,12.6,.03,.06,1.2,stepRed);}
   // 15.15.11 / 15.14.30: the bell-hall and stair-enclosure walls stop behind the entrance hall's
   // rear wall (z 5.98); their ends showed as posts beneath the paintings.
   {const b3=new THREE.Box3();g.updateMatrixWorld(true);

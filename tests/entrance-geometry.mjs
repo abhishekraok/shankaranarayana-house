@@ -97,8 +97,8 @@ assert.equal(temple.getObjectByName('Central white entrance gable'),undefined,'A
 assert.equal(temple.getObjectByName('Left lower guardian'),undefined);
 const doorEye=new THREE.Vector3(...photos.templedoor.p).add(new THREE.Vector3(0,1.62,0));
 for(const [point,prefix] of [
-  [[42.35,1.95,5.82],'Entrance doorway left original painting'],
-  [[35.65,1.95,5.82],'Entrance doorway right original painting'],
+  [[41.6,2.1,5.82],'Entrance doorway left original painting'],
+  [[36.4,2.1,5.82],'Entrance doorway right original painting'],
   [[39,3.18,5.738],'Entrance doorway original inscription'],
 ]){
   const ray=new THREE.Raycaster(doorEye,new THREE.Vector3(...point).sub(doorEye).normalize());
@@ -383,7 +383,19 @@ assert.ok(!collision(58.8,40,.1),'East range remains clear of the garden boundar
 checkRoute('Complete outer temple circuit',circuitRoute,.1,.09);
 checkRoute('Complete outer circuit in reverse',[...circuitRoute].reverse(),.1,.09);
 checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
-checkRoute('Circuit rear veranda stair',[[31.1,41.3],[31.1,43.15]],.1,.09);
+// 15.02.23: the blue east porch is climbed by a mounting block whose steps descend sideways, and
+// the stair bay beside it by three court steps; the porch piers reach its slab at 4.6 m.
+checkRoute('East porch mounting block',[[53.75,11.25],[53.75,9.7],[56.2,9.7]],.1,.09);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.95)<.02,'Mounting block leads onto the porch floor');
+checkRoute('East stair bay court steps',[[53.6,12.6],[55.25,12.6]],.1,.09);
+assert.ok(collision(54.55,8.6,.1)&&collision(54.55,11.2,.1),'The rubble plinth is unbroken either side of the block');
+{const pier=new THREE.Box3();for(const o of temple.children)if(o.name==='Outer entrance shrine tall pale blue pier blue shaft')pier.expandByObject(o);
+ const fascia=new THREE.Box3();temple.traverse(o=>{if(o.name==='Outer circuit red roof fascia'&&o.getWorldPosition(new THREE.Vector3()).x>50)fascia.expandByObject(o);});
+ assert.ok(pier.max.y>fascia.max.y+.9,'Porch piers stand about a metre above the veranda fascia');}
+// 15.11.17 / 15.11.08: the plinth is unbroken in front of the open stair bay, so the rear veranda
+// is climbed by its east flight; the grey block at the closed blue gate is only a standing step.
+checkRoute('Circuit rear veranda stair',[[53.6,41.3],[53.6,43.15]],.1,.09);
+assert.ok(!K.ramps.some(r=>Math.abs(r.x-31.1)<.8&&Math.abs(r.z-42.25)<.8),'No flight in front of the open stair bay');
 assert.ok(!temple.getObjectByName('Rear right dome pavilion white room'),'Unsupported room over the west passage is removed');
 // User's note with 15.11.17: the rear stair climbs straight back inside the open bay, not sideways.
 assert.ok(!K.ramps.some(r=>r.axis&&r.axis.includes('x')&&r.x>30&&r.x<35&&Math.abs(r.z-44.45)<.2),'No sideways rear stair');
@@ -393,10 +405,14 @@ assert.ok(domeBase.min.z>=upperRoof.min.z&&domeBase.max.z<=upperRoof.max.z&&dome
 // Rear west facade and colonnade follow the independent 15.11.08 / 15.11.17 views.
 assert.equal(temple.children.filter(o=>o.name==='Rear west paired upright stone').length,2,'Both unequal marker stones are present');
 assert.ok(temple.getObjectByName('Rear west enclosed white facade'),'Door/window bay is enclosed');
-assert.ok(temple.getObjectByName('Rear west blue barred window blue grille'),'Rear bay includes its barred window');
+assert.ok(temple.getObjectByName('Rear west blue louvred window frame'),'Rear bay includes its closed louvred window (15.11.17)');
+{const gate=new THREE.Box3();for(const o of temple.children)if(/^Rear west gate /.test(o.name)&&!/step|room/.test(o.name))gate.expandByObject(o);
+ assert.ok(gate.min.x<26.9&&gate.max.x>29.4,'Gate and its side lights fill the bay up to the blue pier, with no wall left of it (15.11.08 note)');
+ const jali=new THREE.Box3().setFromObject(temple.getObjectByName('Rear upper storey pierced jali panel'));
+ assert.ok(Math.abs((jali.min.x+jali.max.x)/2-(gate.min.x+gate.max.x)/2)<.15,'Jali stands over the gate bay');}
 assert.ok(temple.getObjectByName('West veranda blue scalloped bay'),'West aisle has scalloped openings');
 assert.ok(temple.getObjectByName('West veranda pierced parapet'),'West parapet has real openings');
-for(const x of [26.05,26.90])assert.ok(collision(x,42.17,.1),'Paired marker stones have matching blockers');
+for(const x of [24.9,25.75])assert.ok(collision(x,42.51,.1),'Paired marker stones have matching blockers');
 assert.ok(!K.ramps.some(r=>r.x<28&&r.x>24&&Math.abs(r.z-22)<.01),'Unsupported near west-veranda access stair is removed');
 // Test physical meshes above the route, not only the authored wall colliders.
 for(let j=1;j<circuitRoute.length;j++){
