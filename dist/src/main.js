@@ -60,13 +60,152 @@ const water=new Reflector(new THREE.PlaneGeometry(54.4,farZ(-9)-farZ(-37)),{colo
 const reflectFrame=water.onBeforeRender;let reflectionFrame=0;
 water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)reflectFrame.apply(this,args);};
 
+// Sky occlusion. Ambient and hemisphere light are not shadowed, so without this every room and
+// veranda ceiling is as bright as open ground. A height map of the built area, drawn once from
+// straight above, records where a roof stands overhead and how high; every lit material dims its
+// indirect light under one, and the exposure follows the camera indoors (eye adaptation), so a
+// room is dark from outside and readable from inside. SKY_OCCLUSION=false restores the old light.
+// SKY_FLOOR is the share of indirect light left where no sky is seen; SKY_INDOOR_GAIN multiplies the
+// outdoor exposure (set on the renderer above, and never changed in the open) for a wholly roofed view.
+const SKY_OCCLUSION=true,SKY_FLOOR=.15,SKY_INDOOR_GAIN=5.3,SKY_ADAPT_SECONDS=.5;
+const skyShade=SKY_OCCLUSION?(()=>{
+ // 10 cm texels over house, temple, lakeside buildings and pavilion (20 cm on phones).
+ // Walls look for the roof's edge along TAPS samples, STEP metres apart: fewer and coarser on phones.
+ const N=phoneMode?512:1024,X0=-30,Z0=-42,S=102.4,Y0=-12,YR=64,px=S/N,OCCLUDER=3,TAPS=phoneMode?4:6,STEP=phoneMode?1.05:.7;
+ const cover=new Float32Array(N*N),roofSum=new Float32Array(N*N),top=new Float32Array(N*N),tmp=new Float32Array(N*N),floor=new Float32Array(N*N),walls=[new Float32Array(N*N),new Float32Array(N*N)];
+ const bytes=new Uint8Array(N*N*4),half=new Uint16Array(N*N*4),halfTop=new Uint16Array(N*N*2);
+ // skyMap: roof cover, cover x roof height (both blurred), ground-storey walls, upper-storey walls.
+ // skyTop: roof height, sharp; and whether any roof stands within reach, so open country skips the work.
+ const map=new THREE.DataTexture(half,N,N,THREE.RGBAFormat,THREE.HalfFloatType),topMap=new THREE.DataTexture(halfTop,N,N,THREE.RGFormat,THREE.HalfFloatType);map.magFilter=map.minFilter=topMap.magFilter=topMap.minFilter=THREE.LinearFilter;
+ const uniforms={skyMap:{value:map},skyTop:{value:topMap}},skyRect=`vec3(${X0.toFixed(1)},${Z0.toFixed(1)},${(1/S).toFixed(8)})`,skyDim=(1-SKY_FLOOR).toFixed(3);
+ const target=new THREE.WebGLRenderTarget(N,N),eye=new THREE.OrthographicCamera(-S/2,S/2,S/2,-S/2,1,200);
+ eye.position.set(X0+S/2,120,Z0+S/2);eye.rotation.x=-Math.PI/2;eye.layers.set(OCCLUDER);
+ // Height goes out as 16 bits in two colour bytes, so the read-back needs no float target.
+ const heightMaterial=new THREE.ShaderMaterial({side:THREE.DoubleSide,vertexShader:`varying float h;
+void main(){vec4 p=vec4(position,1.);
+#ifdef USE_INSTANCING
+p=instanceMatrix*p;
+#endif
+p=modelMatrix*p;h=(p.y-(${Y0.toFixed(1)}))/${YR.toFixed(1)};gl_Position=vec4((p.x-(${X0.toFixed(1)}))/${S.toFixed(1)}*2.-1.,(p.z-(${Z0.toFixed(1)}))/${S.toFixed(1)}*2.-1.,1.-2.*h,1.);}`,fragmentShader:'varying float h;void main(){float v=clamp(h,0.,1.)*65535.,hi=floor(v/256.);gl_FragColor=vec4(hi/255.,(v-hi*256.)/255.,0.,1.);}'});
+ // Trees, shrubs and palms shade nothing here: open ground stays exactly as it was calibrated.
+ const plant=/frond|trunk|canop|leaves|leaf|shrub|grass|weed|foliage|crown|coconut|palm|areca|tree|tulsi|creeper/i;
+ for(const root of [house,temple,landscape])root.traverse(o=>{if(o.isMesh&&!o.material.transparent&&!plant.test(o.userData.sourceNames?.[0]||o.name))o.layers.enable(OCCLUDER);});
+ const sweep=(src,dst,r,pick,dx,dy)=>{for(let j=0;j<N;j++)for(let i=0;i<N;i++){let v=src[j*N+i];for(let k=1;k<=r;k++){const a=i-k*dx,b=j-k*dy,c=i+k*dx,d=j+k*dy;if(a>=0&&b>=0)v=pick(v,src[b*N+a]);if(c<N&&d<N)v=pick(v,src[d*N+c]);}dst[j*N+i]=v;}};
+ const blur=(a,r)=>{const w=2*r+1,at=i=>Math.min(N-1,Math.max(0,i));for(let pass=0;pass<3;pass++){
+  for(let j=0;j<N;j++){const o=j*N;let s=0;for(let i=-r;i<=r;i++)s+=a[o+at(i)];for(let i=0;i<N;i++){tmp[o+i]=s/w;s+=a[o+at(i+r+1)]-a[o+at(i-r)];}}
+  for(let i=0;i<N;i++){let s=0;for(let j=-r;j<=r;j++)s+=tmp[at(j)*N+i];for(let j=0;j<N;j++){a[j*N+i]=s/w;s+=tmp[at(j+r+1)*N+i]-tmp[at(j-r)*N+i];}}}};
+ function build(){
+  const was={target:renderer.getRenderTarget(),background:scene.background,auto:renderer.shadowMap.autoUpdate,need:renderer.shadowMap.needsUpdate,color:renderer.getClearColor(new THREE.Color()),alpha:renderer.getClearAlpha()};
+  scene.background=null;scene.overrideMaterial=heightMaterial;renderer.shadowMap.autoUpdate=false;renderer.shadowMap.needsUpdate=false;
+  renderer.setRenderTarget(target);renderer.setClearColor(0,0);renderer.render(scene,eye);renderer.readRenderTargetPixels(target,0,0,N,N,bytes);
+  renderer.setRenderTarget(was.target);renderer.setClearColor(was.color,was.alpha);scene.background=was.background;scene.overrideMaterial=null;renderer.shadowMap.autoUpdate=was.auto;renderer.shadowMap.needsUpdate=was.need;
+  for(let k=0;k<N*N;k++)top[k]=bytes[k*4+3]?Y0+(bytes[k*4]*256+bytes[k*4+1])/65535*YR:-50;
+  // Opening (erode, then dilate): posts, railings, wall tops and wires under about half a metre wide are not roofs.
+  const thin=Math.max(1,Math.round(.25/px));
+  sweep(top,tmp,thin,Math.min,1,0);sweep(tmp,top,thin,Math.min,0,1);sweep(top,tmp,thin,Math.max,1,0);sweep(tmp,top,thin,Math.max,0,1);
+  // A roof is whatever stands more than 1.9 m above the lowest floor one can walk on below it
+  // (the parked car, at 1.7 m under the front eave, is not one).
+  floor.fill(Infinity);
+  const mark=(x,z,w,d,y)=>{const i0=Math.max(0,Math.floor((x-w/2-X0)/px)),i1=Math.min(N-1,Math.floor((x+w/2-X0)/px)),j0=Math.max(0,Math.floor((z-d/2-Z0)/px)),j1=Math.min(N-1,Math.floor((z+d/2-Z0)/px));for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)if(y<floor[j*N+i])floor[j*N+i]=y;};
+  for(const s of K.surfaces)mark(s.x,s.z,s.w,s.d,s.y);for(const r of K.ramps)mark(r.x,r.z,r.w,r.d,r.lowY);
+  for(let k=0;k<N*N;k++){if(floor[k]===Infinity)floor[k]=0;const roof=top[k]-floor[k]>1.9?1:0;cover[k]=roof;roofSum[k]=roof*top[k];}
+  const soft=Math.max(1,Math.round(.25/px));blur(cover,soft);blur(roofSum,soft);
+  // Walls stop sky light on its way in under a roof: every walk collider of wall length that fills
+  // most of a storey's height. A thin wall is widened across its thickness, so that sight-line
+  // samples one STEP apart cannot straddle it, and shortened a little so its ends do not reach
+  // through the wall it meets.
+  walls.forEach((wall,storey)=>{const lo=storey?3.9:.3,hi=storey?6:2.8;wall.fill(0);
+   for(const c of K.colliders){const w=c.maxX-c.minX,d=c.maxZ-c.minZ;if(Math.min(c.top,hi)-Math.max(c.bottom,lo)<1.5||Math.max(w,d)<.9)continue;
+    const gx=w>=STEP?(d<STEP?-.12:0):STEP/2-.05,gz=d>=STEP?(w<STEP?-.12:0):STEP/2-.05,i0=Math.max(0,Math.round((c.minX-gx-X0)/px)),i1=Math.min(N,Math.round((c.maxX+gx-X0)/px)),j0=Math.max(0,Math.round((c.minZ-gz-Z0)/px)),j1=Math.min(N,Math.round((c.maxZ+gz-Z0)/px));for(let j=j0;j<j1;j++)wall.fill(1,j*N+i0,j*N+i1);}
+   blur(wall,phoneMode?1:2);});
+  // Coarse cells (about 0.8 m) with a roof within the walls' reach.
+  const cell=Math.round(.8/px),M=N/cell,near=new Uint8Array(M*M),reach=Math.ceil((TAPS*STEP+.8)/(cell*px));
+  for(let k=0;k<N*N;k++)if(cover[k]>.001){const i=Math.floor(k%N/cell),j=Math.floor(Math.floor(k/N)/cell);if(!near[j*M+i]){near[j*M+i]=1;k+=cell-1-k%cell;}}
+  for(const [dx,dy] of [[1,0],[0,1]]){const src=near.slice();for(let j=0;j<M;j++)for(let i=0;i<M;i++){let v=0;for(let r=-reach;r<=reach&&!v;r++){const a=i+r*dx,b=j+r*dy;if(a>=0&&b>=0&&a<M&&b<M)v=src[b*M+a];}near[j*M+i]=v;}}
+  const h=THREE.DataUtils.toHalfFloat,one=h(1);
+  for(let k=0;k<N*N;k++){half[k*4]=h(cover[k]);half[k*4+1]=h(roofSum[k]);half[k*4+2]=h(walls[0][k]);half[k*4+3]=h(walls[1][k]);halfTop[k*2]=h(top[k]);halfTop[k*2+1]=near[Math.floor(Math.floor(k/N)/cell)*M+Math.floor(k%N/cell)]?one:0;}
+  map.needsUpdate=topMap.needsUpdate=true;
+ }
+ // Is the point (x,y,z) below a roof? The same test on the CPU, for the exposure meter.
+ const at=(a,x,z)=>{const i=Math.floor((x-X0)/px),j=Math.floor((z-Z0)/px);return i<0||j<0||i>=N||j>=N?0:a[j*N+i];};
+ const roofed=(x,z)=>at(cover,x,z)>.5,below=(x,y,z)=>roofed(x,z)&&y<at(roofSum,x,z)/at(cover,x,z)-.2;
+ // The exposure meters the view as a camera does: the share of a 6 x 4 grid of sight lines that
+ // end on a surface under a roof. Walls and posts come from the walk colliders; roofs, ceilings
+ // and open ground from the map.
+ const ray=new THREE.Vector3(),o=[0,0,0],d=[0,0,0],boxes=new Float32Array(K.colliders.flatMap(c=>[c.minX,c.bottom,c.minZ,c.maxX,c.top,c.maxZ]));
+ function meter(camera){
+  const t=Math.tan(camera.fov*Math.PI/360),p=camera.position;let dark=0;p.toArray(o);
+  for(let j=0;j<4;j++)for(let i=0;i<6;i++){
+   ray.set((i-2.5)/3*t*camera.aspect,(j-1.5)/2*t,-1).applyQuaternion(camera.quaternion).normalize().toArray(d);
+   let far=30;
+   for(let k=0;k<boxes.length;k+=6){let t0=0,t1=far;
+    for(let a=0;a<3&&t0<=t1;a++){const lo=boxes[k+a],hi=boxes[k+3+a];if(Math.abs(d[a])<1e-6){if(o[a]<lo||o[a]>hi)t0=Infinity;}else{const u=(lo-o[a])/d[a],v=(hi-o[a])/d[a];t0=Math.max(t0,Math.min(u,v));t1=Math.min(t1,Math.max(u,v));}}
+    if(t0<=t1&&t0>0)far=t0;}
+   let under=below(p.x,p.y,p.z);
+   for(let s=.5;s<far;s+=.5){const x=p.x+ray.x*s,y=p.y+ray.y*s,z=p.z+ray.z*s,now=below(x,y,z);
+    if(under&&!now&&roofed(x,z))break; // came up against the ceiling
+    under=now;if(y<=(under?at(floor,x,z):Math.max(0,at(top,x,z)))+.05)break;}
+   dark+=under;}
+  return dark/24;}
+ // Floors and ceilings look straight up. A wall looks out along its normal for the edge of the roof
+ // it stands under: it sees sky only below the line to that edge, so a facade under its eave stays
+ // lit, the back wall of a veranda is dim and darkest at the top, and a room, whose light would
+ // have to come through a wall, is dark. A roof that starts above the wall's face still covers it
+ // further out where it has sloped lower; a roof well below the wall (a lean-to under it) does not.
+ const glsl=`float skyKeep=1.;
+if(textureLod(skyTop,(vSkyP.xz-skyRect.xy)*skyRect.z,0.).g>0.){vec3 skyN=inverseTransformDirection(nonPerturbedNormal,viewMatrix);float skyY=vSkyP.y,skyUp=smoothstep(.35,.7,skyN.y),skyDown=smoothstep(.35,.7,-skyN.y),skySide=1.-skyUp-skyDown;
+ vec4 skyT=SKY_AT(vSkyP.xz+skyN.xz*.3);float skyH=skyT.g/max(skyT.r,.001)-skyY,skyOcc=skyT.r*(skyUp*smoothstep(.5,1.2,skyH)+skyDown*smoothstep(-.8,-.3,skyH));
+ if(skySide>.01){vec2 skyDir=skyN.xz/max(length(skyN.xz),.0001);float skyUnder=smoothstep(0.,.1,textureLod(skyTop,(vSkyP.xz+skyDir*.15-skyRect.xy)*skyRect.z,0.).r-skyY),skyStorey=smoothstep(3.6,3.85,skyY),skyRest=1.,skyPass=1.,skySlope=8.,skySeen=0.;
+  for(int k=0;k<${TAPS};k++){float d=${STEP.toFixed(2)}*float(k+1);vec4 s=SKY_AT(vSkyP.xz+skyDir*d);float h=s.g/max(s.r,.001)-skyY,c=s.r*mix(smoothstep(.05,.25,h),smoothstep(-.8,-.4,h),skyUnder);
+   skyPass*=1.-mix(s.b,s.a,skyStorey)*c;skySeen+=skyRest*(1.-c)*skyPass*(1.-exp(-1.6*skySlope));skySlope=min(skySlope,mix(8.,max(h,0.)/d,c));skyRest*=c;}
+  skyOcc+=skySide*(1.-skySeen);}
+ skyKeep=1.-skyDim*skyOcc;}
+`+THREE.ShaderChunk.lights_fragment_begin.replace('getDirectionalLightInfo( directionalLight, directLight );',`getDirectionalLightInfo( directionalLight, directLight );
+#if ( UNROLLED_LOOP_INDEX >= NUM_DIR_LIGHT_SHADOWS )
+directLight.color*=skyKeep; // the unshadowed sky fill is hidden by a roof as well
+#endif`)+`
+#if defined( RE_IndirectDiffuse )
+irradiance*=skyKeep;
+#endif`;
+ // The landscape's plants keep their plain shader: they hold most of the scene's vertices and stand in the open.
+ const wild=new Set();landscape.traverse(o=>{if(o.isMesh&&plant.test(o.userData.sourceNames?.[0]||o.name))wild.add(o);});
+ const lit=new Set();scene.traverse(o=>{if(o.isMesh&&!wild.has(o))for(const m of [].concat(o.material))if(m.isMeshStandardMaterial||m.isMeshLambertMaterial||m.isMeshPhongMaterial)lit.add(m);});
+ for(const m of lit){const compile=m.onBeforeCompile,key=m.customProgramCacheKey;
+  m.onBeforeCompile=function(s,r){compile.call(this,s,r);Object.assign(s.uniforms,uniforms);
+   s.vertexShader='varying vec3 vSkyP;\n'+s.vertexShader.replace('#include <project_vertex>',`#include <project_vertex>
+vec4 skyP=vec4(transformed,1.);
+#ifdef USE_INSTANCING
+skyP=instanceMatrix*skyP;
+#endif
+vSkyP=(modelMatrix*skyP).xyz;`);
+   s.fragmentShader=`uniform sampler2D skyMap,skyTop;varying vec3 vSkyP;const vec3 skyRect=${skyRect};const float skyDim=${skyDim};
+#define SKY_AT(p) textureLod(skyMap,((p)-skyRect.xy)*skyRect.z,0.)
+`+s.fragmentShader.replace('#include <lights_fragment_begin>',glsl);};
+  m.customProgramCacheKey=function(){return key.call(this)+'|sky';};}
+ build();
+ return {N,X0,Z0,S,cover,roofSum,top,walls,uniforms,build,below,meter};
+})():null;
+// A camera that is placed (teleport, photo viewpoint, alignment, capture tool) settles at once, so
+// fixed-camera captures are deterministic; a camera that walks or flies adapts over half a second.
+// The eye adapts only under a roof, and only once most of the view is roofed: from the veranda's
+// edge the court keeps its outdoor exposure and the rooms beyond it stay dark. Phones meter every third frame.
+let skyAdapted=-1,skyMetered=0,skyFrame=0;const skyOutdoor=renderer.toneMappingExposure,skyLast=new THREE.Vector3(),skyTurn=new THREE.Quaternion();
+function adaptExposure(dt){
+ if(!skyShade)return;
+ const p=camera.position,placed=skyAdapted<0||aligning||p.distanceTo(skyLast)>1.5||camera.quaternion.angleTo(skyTurn)>.5;
+ if(placed||!phoneMode||skyFrame++%3===0)skyMetered=skyShade.below(p.x,p.y,p.z)?THREE.MathUtils.smoothstep(skyShade.meter(camera),.5,.9):0;
+ skyAdapted=placed?skyMetered:skyMetered+(skyAdapted-skyMetered)*Math.exp(-3*dt/SKY_ADAPT_SECONDS);skyLast.copy(p);skyTurn.copy(camera.quaternion);
+ // Mean luminance falls as more of the view is roofed; the exposure is its inverse.
+ renderer.toneMappingExposure=skyAdapted<.001?skyOutdoor:skyOutdoor/(1-skyAdapted+skyAdapted/SKY_INDOOR_GAIN);
+}
+
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
 const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
- front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-2],target:[39,3.7,9.5]},templecourt:{p:[30,.1,18.5],target:[41,2,21.5]}
+ front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-9.5,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-2],target:[39,3.7,9.5]},templecourt:{p:[30,.1,18.5],target:[41,2,21.5]}
 
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
@@ -88,7 +227,7 @@ destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};
 destinations.godroomdesk={p:[-8.8,.45,5.55],target:[-9.9,1.20,5.15],fov:65};
 destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
 destinations.courtstair={p:[-7.8,.035,12],target:[-8.1,1.8,6.2],fov:72};
-destinations.courtstairtop={p:[-10.55,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
+destinations.courtstairtop={p:[-9.45,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
 photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-7.2,.035,6.85],target:[-8.8,1.2,11]};
 photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.081,4.45],target:[-3.8,1.80,6.92],fov:92};
 photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[4.2,0,-7],target:[60,3.5,-5],fov:54};
@@ -196,7 +335,7 @@ $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
 $('tour-next').onclick=()=>{const next=tour.spans.find(s=>s.a.photo&&s.start>tourTime%tour.duration+.5)||tour.spans.find(s=>s.a.photo);tourTime=next.start;introClock=null;startTour();};
 $('destination').onchange=e=>{if(destinations[e.target.value])teleport(destinations[e.target.value]);e.target.value='';};
 $('reset').onclick=()=>teleport(destinations.front);
-$('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
+$('roof-btn').onclick=()=>{lifted=!lifted;K.roofs.forEach(r=>r.visible=!lifted);skyShade?.build();renderer.shadowMap.needsUpdate=true;$('roof-btn').setAttribute('aria-pressed',String(lifted));$('roof-btn').textContent=lifted?'Replace roofs':'Lift roofs';};
 $('settings-btn').onclick=()=>{release();$('settings').hidden=!$('settings').hidden;$('settings-btn').setAttribute('aria-expanded',String(!$('settings').hidden));};
 $('speed').oninput=e=>{speed=+e.target.value;$('speed-label').textContent=speed<2.2?'Slow':speed<3.5?'Gentle':'Brisk';};
 $('sensitivity').oninput=e=>sensitivity=+e.target.value;
@@ -289,14 +428,14 @@ function adaptPhoneResolution(frameTime){
   if(average>1/32&&renderScale>.75){renderScale=Math.max(.75,renderScale-.125);renderer.setPixelRatio(renderScale);}
   qualityTime=0;qualityFrames=0;
 }
-function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
+function animate(){requestAnimationFrame(animate);const frameTime=clock.getDelta();adaptPhoneResolution(frameTime);const dt=Math.min(frameTime,.10);elapsed+=dt;if(!aligning&&!['walk','fly'].includes(mode))walkPad(dt);if(mode==='tour'){const step=!tourPaused&&!$('about').open?Math.min(frameTime,1):0;if(introClock!==null){introClock+=step;if(introClock>=tour.intro.duration)introClock=null;}else tourTime+=step;const view=introClock!==null?tour.intro.sample(introClock):tour.sample(tourTime);camera.position.copy(view.position);if(introClock===null)camera.position.y+=lakeCameraLift(camera.position.x,camera.position.z);camera.quaternion.copy(view.quaternion);setLens(view.fov);tourLabel=view.label;if(view.photo&&currentPhoto!==view.photo)showPhoto(view.photo);}else move(dt);if(mode==='orbit')orbit.update();waterMat.uniforms.time.value=elapsed;waterMat.uniforms.eye.value.copy(camera.position);adaptExposure(frameTime);renderer.render(scene,camera);renderer.shadowMap.autoUpdate=false;if(frames++%8===0){$('location').textContent=mode==='tour'?tourLabel:location(camera.position.x,camera.position.z,camera.position.y);}}
 startTour();animate();$('loading').hidden=true;
 // ?align opens the photo alignment tool directly; ?align=14.59.54 jumps to that photo.
 {const find=new URLSearchParams(window.location.search).get('align');if(find!==null)photoAlignment.open(find);}
 addEventListener('resize',()=>{if(aligning)return;camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 
 // Shared with the visible controls for reproducible navigation checks and future edits.
-window.houseWalk={ready:true,optimization,phoneMode,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
+window.houseWalk={ready:true,optimization,phoneMode,skyShade,K,scene,camera,renderer,house,temple,landscape,teleport,setMode,destinations,photos,tour,collision,supportY,blockedRise,getState:()=>({mode,entered,feet,position:camera.position.toArray(),direction:camera.getWorldDirection(new THREE.Vector3()).toArray(),tourTime,tourPaused,tourLabel,wheelTravel,location:location(camera.position.x,camera.position.z,camera.position.y),roofLifted:lifted,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles}),moveFor:(code,seconds)=>{keys.add(code);for(let t=0;t<seconds;t+=1/60)move(1/60);keys.delete(code);return window.houseWalk.getState();}};
 if(document.modelContext?.registerTool){
  const c=document.modelContext;
  try{Promise.resolve(c.registerTool({name:'visit_place',description:'Move to a place in the Shankaranarayana reconstruction, using the same destinations as the Go to menu.',inputSchema:{type:'object',properties:{place:{type:'string',enum:Object.keys(destinations)}},required:['place'],additionalProperties:false},annotations:{readOnlyHint:false},execute(input){if(!input||!destinations[input.place]||Object.keys(input).length!==1)throw new Error('Choose a listed place.');teleport(destinations[input.place]);return window.houseWalk.getState();}})).catch(()=>{});}catch{}
