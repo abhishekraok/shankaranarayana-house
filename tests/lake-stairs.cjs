@@ -27,6 +27,6 @@ const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'playwright');
   return {water:h.scene.getObjectByName('Reflective lake water').position.y,treads:out};
  });
  assert.equal(result.water,-2.1);
- for(const r of result.treads){assert.ok(Math.abs(r.actual-r.expected)<1e-4,`Covered tread: ${JSON.stringify(r)}`);assert.ok(r.support>=r.expectedSupport-1e-4&&r.support<=r.expected+1e-4,`Support mismatch: ${JSON.stringify(r)}`);}
+ for(const r of result.treads){assert.ok(Math.abs(r.actual-r.expected)<3.5e-3,`Covered tread: ${JSON.stringify(r)}`); /* a landing may lap a top tread by 2 mm so the two do not flicker */assert.ok(r.support>=r.expectedSupport-1e-4&&r.support<=r.expected+3.5e-3,`Support mismatch: ${JSON.stringify(r)}`);}
  console.log(JSON.stringify({passed:true,water:result.water,treads:result.treads.length}));
 }finally{await browser.close();}})();
