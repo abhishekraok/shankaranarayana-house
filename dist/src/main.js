@@ -201,7 +201,7 @@ function adaptExposure(dt){
 
 const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.dampingFactor=.09;orbit.target.set(8,1,-7);orbit.minDistance=4;orbit.maxDistance=145;orbit.maxPolarAngle=Math.PI*.48;orbit.minPolarAngle=.04;
 orbit.enableZoom=false;
-const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(0,1.62,-2),lastSafe=new THREE.Vector3(0,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
+const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,lastMouse=null,yaw=Math.PI,pitch=0,feet=0,speed=2.6,sensitivity=1,lifted=false,walkPosition=new THREE.Vector3(-3.8,1.62,-2),lastSafe=new THREE.Vector3(-3.8,1.62,-2),currentPhoto='house',wheelTravel=0,tourTime=0,tourPaused=false,tourLabel='In front of the house';
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
@@ -307,6 +307,8 @@ function setMode(value){if(value===mode&&entered)return;const wasWalking=entered
  else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62-lakeCameraLift(camera.position.x,camera.position.z);lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
 }
 function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
+// Walk carries on from where the tour is (during the opening flight: where it lands), or from a free look taken at standing height, instead of jumping back to the last walked spot.
+function walkOn(){let view=camera;if(mode==='tour'&&introClock!==null){view=tour.intro.sample(tour.intro.duration);introClock=null;tourTime=tourStartTime;}const x=view.position.x,z=view.position.z,f=view.position.y-1.62-lakeCameraLift(x,z),h=supportY(x,z,f);if(mode!=='tour'&&!(h>-4&&Math.abs(f-h)<.6&&!collision(x,z,h))){setMode('walk');return;}const e=new THREE.Euler().setFromQuaternion(view.quaternion,'YXZ');walkPosition.copy(view.position);setMode('walk');yaw=e.y;pitch=THREE.MathUtils.clamp(e.x,-.6,.6);syncLook();}
 // Phone toolbar disclosure: collapsed initially, dismissed after choosing an action.
 const compactControls=matchMedia('(max-width:740px), (max-width:950px) and (max-height:500px)');
 const controlsToggle=$('controls-toggle'),exploreControls=$('explore-controls');
@@ -328,7 +330,7 @@ addEventListener('keydown',e=>{if(e.key==='Escape'&&controlsToggle.getAttribute(
 compactControls.addEventListener('change',()=>setControlsExpanded(false,exploreControls.contains(document.activeElement)));
 setControlsExpanded(false);
 $('enter').onclick=()=>teleport(destinations.front,true);
-$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{setMode('walk');capture();}};
+$('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{if(mode==='tour'||mode==='fly')walkOn();else setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
 $('tour-btn').onclick=()=>{tourTime=tourStartTime;introClock=0;startTour();};
 $('tour-pause').onclick=()=>{tourPaused=!tourPaused;updateModeUI();};
