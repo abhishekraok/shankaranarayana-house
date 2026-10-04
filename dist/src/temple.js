@@ -1971,10 +1971,18 @@ export function buildTemple(K) {
   }
   ledgeFace(33.375,24.5,8,Math.PI/2);
   ledgeFace(45.0,24.5,8,-Math.PI/2);
-  ledgeFace(39,28.395,14.1,Math.PI);
   instances('Inner ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),ledgeRecess,recesses);
   instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
   instances('Inner ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),ledgeRelief,foliage);
+  // The rear ledge's carved frieze is the ledge's own dusty rose stone in 15.08.42 (142,106,100; shadows
+  // 130,90,88) and 'temple inner sanctum, left side' (128,102,105; lights 146,117,120): grey-green fields
+  // and ribs on the pink block read as stuck-on tiles.
+  {const rearRib=mat('#8e6a64',.95),rearRecess=mat('#6e5b58',.98),rearRelief=mat('#927578',.98);
+   recesses.length=ribs.length=foliage.length=0;
+   ledgeFace(39,28.395,14.1,Math.PI);
+   instances('Inner rear ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),rearRecess,recesses);
+   instances('Inner rear ledge coping and panel ribs',new THREE.BoxGeometry(1,1,1),rearRib,ribs);
+   instances('Inner rear ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),rearRelief,foliage);}
   // The rear columns, curtains, panels and doors stand on the raised ledge (top 1.55).
   // 15.08.42 and 'temple inner sanctum, left side' each show two rear columns within their aisle's
   // width, about 1.8 m apart, stout and square on red base slabs (there were three slim ones 3.4 m
