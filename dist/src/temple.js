@@ -1869,18 +1869,43 @@ export function buildTemple(K) {
     innerColumn('Inner hall carved stone column',x,18.8,2.11,1.58,.63);
   }
   // The two front platforms leave the central entrance passage lower and clear.
-  for(const x of [33.05,44.95]){
-    box('Inner side raised stone ledge',x,1.05,24.5,2.25,.96,8.0,sanctumStone,true);
-    innerPaving('Inner side ledge paving',x,24.5,2.33,8.08,1.55);
-    for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
+  // West (15.08.42): the piers stand at the edge of a ledge about 1.45 m deep, on red base slabs,
+  // and the aisle beside the mandapa is about 3 m wide (it was 2.05).
+  {const x=33.05,pierRed=mat('#8c3a30',.9);
+    box('Inner side raised stone ledge',32.65,1.05,24.5,1.45,.96,8.0,sanctumStone,true);
+    innerPaving('Inner side ledge paving',32.65,24.5,1.53,8.08,1.55);
+    for(const z of [21.1,23.5,25.9,28.0]){innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.9);
+      box('Inner perimeter column red base slab',x,1.61,z,.70,.12,.70,pierRed);}
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
+  }
+  // East (owner's note with 'temple inner sanctum, left side': a blue wall and a room, not an open
+  // platform): a bright blue wall rises from a narrow grey ledge with a sloping top; above its sill
+  // blue posts frame white slatted panels; three stepped dark stone slabs form the eave; a blue
+  // plank door closes the far end beside the rear ledge. The room lies between this wall and the
+  // shrine's east wall. The aisle is about 3.2 m wide.
+  {const roomBlue=mat('#1f8fc8',.8),slat=mat('#c9cabf'),eaveStone=mat('#3a3835',.95),zc=24.975,len=8.95;
+    box('Inner east narrow stone ledge',45.25,.95,24.5,.5,.8,8.0,sanctumStone,true);
+    const cap=box('Inner east ledge sloping cap',45.25,1.375,24.5,.53,.05,8.0,sanctumStone);cap.rotation.z=.13;
+    box('Inner east blue room wall',45.6,1.225,zc,.2,1.35,len,roomBlue,true);
+    box('Inner east blue room upper wall',45.62,2.45,zc,.16,1.1,len,roomBlue,true);
+    box('Inner east blue room front wall',46.85,1.775,20.42,2.3,2.45,.16,roomBlue,true);
+    for(let k=0;k<=8;k++)box('Inner east blue room post',45.5,2.175,20.5+k,.15,1.65,.15,roomBlue);
+    const slats=[];
+    for(let k=0;k<4;k++){const z=21.0+k;
+      box('Inner east white slatted panel',45.525,2.45,z,.03,1.0,.8,whiteTrim);
+      for(let i=0;i<12;i++)slats.push([45.505,2.0+i*.082,z,.02,.03,.76]);}
+    instances('Inner east slatted panel louvre',new THREE.BoxGeometry(1,1,1),slat,slats);
+    box('Inner east blue plank door',44.95,2.275,28.75,.9,1.45,.06,blue);
+    for(const dx of [-.5,.5])box('Inner east blue plank door frame',44.95+dx,2.275,28.75,.10,1.45,.10,roomBlue);
+    for(const dx of [-.225,0,.225])box('Inner east blue plank door joint',44.95+dx,2.275,28.715,.012,1.40,.012,vividBlue);
+    [[45.2,3.06],[44.95,3.18],[44.7,3.30]].forEach(([x0,y])=>{const s=box('Inner east stepped stone eave slab',(x0+47.98)/2,y,zc,47.98-x0,.12,len+.3,eaveStone);K.roofs.push(s);});
   }
   // 15.08.42 / 'temple inner sanctum, left side': the rear ledge is as high as the side ledges and
   // meets them at the corners; its face is pinkish-red stone, and a two-step stone block stands
   // against it in each corner under the end bay (shown, not walkable).
   box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
   innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
-  for(const x of [34.55,43.45]){
+  for(const x of [34.55,44.1]){
     box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
     box('Inner rear corner stone step block',x,.88,28.27,.9,.66,.25,sanctumStone,true);}
   // 15.08.42: a black steel post stands in the west aisle at the mandapa's plinth, up to the
@@ -1916,8 +1941,8 @@ export function buildTemple(K) {
       foliage.push(place(u,.856,.025,.025,.026,.010));
     }
   }
-  ledgeFace(34.175,24.5,8,Math.PI/2);
-  ledgeFace(43.825,24.5,8,-Math.PI/2);
+  ledgeFace(33.375,24.5,8,Math.PI/2);
+  ledgeFace(45.0,24.5,8,-Math.PI/2);
   ledgeFace(39,28.395,14.1,Math.PI);
   instances('Inner ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),ledgeRecess,recesses);
   instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
@@ -1932,13 +1957,12 @@ export function buildTemple(K) {
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
-  const innerDarkStone=mat('#5f4744',.95),innerEastBlue=mat('#3a82ad',.85); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
-  for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
-    box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:white);
+  const innerDarkStone=mat('#5f4744',.95); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
+  for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
-  box('Inner rear closed blue double door',43.45,2.50,29.40,1.03,1.9,.06,blue);
-  box('Inner rear blue door stile',43.45,2.50,29.34,.05,1.9,.08,vividBlue);
+  // 'temple inner sanctum, left side': at the east end the blue door is the plank door at the end
+  // of the blue room wall (built with that wall), not a double door in the rear wall.
   // 15.08.42: the west corridor also ends at a blue door beside its last pillar; it stands on the
   // ledge, about a metre wide and as tall as the columns.
   box('Inner rear west closed blue double door',34.55,2.50,29.40,1.03,1.9,.06,blue);
