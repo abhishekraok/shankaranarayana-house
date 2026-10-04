@@ -170,6 +170,29 @@ export function buildHouse(K) {
   floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
   const dampCourt=mat('earth').clone();dampCourt.color.set('#b08774');dampCourt.roughness=.80; // 14.44.09 / 14.48.07 / courtyard.jpg: wet red laterite, not grey-green
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
+  // 14.30.57 / 14.31.01 / 14.44.09: the court is green with weeds; the red soil shows only along the worn
+  // paths, under the lean-tos and before the rear fence. One painted map over the whole court top.
+  if(typeof document!=='undefined'){const W=1024,H=554,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
+    let n=140911;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#935c4a';c.fillRect(0,0,W,H);
+    for(let i=0;i<700;i++){c.fillStyle=r()<.6?`rgba(92,52,40,${.10+r()*.2})`:`rgba(176,124,100,${.06+r()*.12})`;c.beginPath();c.ellipse(r()*W,r()*H,4+r()*26,3+r()*14,r()*3,0,7);c.fill();}
+    const near=(v,centre,half)=>Math.min(1,Math.abs(v-centre)/half);
+    const greens=['78,116,66','100,138,82','116,152,96','62,100,54','90,126,74'];
+    for(let i=0;i<16000;i++){const px=r()*W,py=r()*H,x=-8.4+px/W*15.7,z=6+py/H*8.5;
+      let d=.93;
+      d*=.12+.88*near(x,3.25,.75);
+      if(x<-2.7){d*=.15+.85*near(x,-3.7,.7);d*=.2+.8*near(z,10.8,.7);}
+      d*=.15+.85*Math.min(1,Math.max(0,(z-6.1)/.9));
+      if(z<7.7&&(x>2.3||x<-2.3))d*=.35;
+      d*=.3+.7*Math.min(1,Math.max(0,(14.4-z)/.6));
+      if(r()>d)continue;
+      const q=5+r()*11,gr=c.createRadialGradient(px,py,0,px,py,q);gr.addColorStop(0,`rgba(${greens[i%5]},${.55+r()*.4})`);gr.addColorStop(1,`rgba(${greens[i%5]},0)`);c.fillStyle=gr;c.fillRect(px-q,py-q,2*q,2*q);
+      if(i%2){c.fillStyle=`rgba(${i%4===1?'44,78,32':'150,176,96'},${.25+r()*.3})`;c.beginPath();c.ellipse(px+r()*8-4,py+r()*8-4,1+r()*2.5,.6+r()*1.2,r()*3,0,7);c.fill();}}
+    const cover=new THREE.CanvasTexture(cv);cover.colorSpace=THREE.SRGBColorSpace;cover.anisotropy=8;
+    const coverMat=new THREE.MeshStandardMaterial({name:'court weed cover',map:cover,roughness:.95});
+    const soil=g.children.at(-1),sp=soil.geometry.attributes.position,sn=soil.geometry.attributes.normal,su=soil.geometry.attributes.uv;
+    for(let i=0;i<sp.count;i++)if(sn.getY(i)>.5)su.setXY(i,(sp.getX(i)+7.85)/15.7,1-(sp.getZ(i)+4.25)/8.5);
+    soil.material=[dampCourt,dampCourt,coverMat,dampCourt,dampCourt,dampCourt];}
   const plinthFace=mat('plaster').clone();plinthFace.color.set('#9d8a73');
   // Lowered central entrance with paired raised sitting platforms.
   // Entrance photos show raised seating against the room wall, with a lower
@@ -284,8 +307,13 @@ export function buildHouse(K) {
     K.beam(g,'Courtyard stored ladder rung',[-8.18,.50,z],[-8.24,1.04,z],.048,ladderWood,.050);
   }
 
-  const courtSupport=K.M.plaster.clone();courtSupport.color.set('#746a6b'); // 14.30.57 / 14.44.14 / 14.31.14: dark weathered granite, neutral not olive
-  courtSupport.roughness=1;
+  // Speckled granite with lichen blotches for the court's split stone posts (no masonry joints: each is a monolith).
+  const graniteMap=(()=>{let n=90217;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    return paintedMap(256,(c,s)=>{c.fillStyle='#b9b5b3';c.fillRect(0,0,s,s);
+      for(let i=0;i<1100;i++){const v=r();c.fillStyle=v<.45?`rgba(58,56,54,${.12+r()*.28})`:v<.8?`rgba(238,234,228,${.10+r()*.2})`:`rgba(122,112,98,${.15+r()*.2})`;c.beginPath();c.arc(r()*s,r()*s,.6+r()*2.2,0,7);c.fill();}
+      for(let i=0;i<30;i++){const x=r()*s,y=r()*s,q=8+r()*24,gr=c.createRadialGradient(x,y,0,x,y,q);gr.addColorStop(0,`rgba(66,70,60,${.12+r()*.2})`);gr.addColorStop(1,'rgba(66,70,60,0)');c.fillStyle=gr;c.fillRect(x-q,y-q,2*q,2*q);}
+    },4);})();
+  const courtSupport=new THREE.MeshStandardMaterial({map:graniteMap,color:'#756d6d',roughness:1}); // 14.30.57 / 14.44.14 / 14.31.14: dark weathered granite, neutral not olive
   // 14.31.01 / 14.44.09 / 14.44.43: the east veranda edge matches the west one.
   for(const [sx,z] of [[-8.28,6.19],[-8.28,9.86],[-8.28,14.42],[7.18,6.19],[7.18,9.86],[7.18,14.42]]){
     const sd=sx<0?1:-1;
@@ -884,20 +912,25 @@ export function buildHouse(K) {
   const moss=K.M.plaster.clone();moss.color.set('#4f5839');
   // 14.44.09/14, 14.44.19, 14.44.48, 14.30.57: rough freestanding stone uprights and a
   // rounded pole follow the God room's east side, along the planted strip toward the east veranda.
-  const roughSupport=K.M.plaster.clone();roughSupport.color.set('#aaa2a8');roughSupport.roughness=1; // 14.30.57: pale lichened granite
+  const roughSupport=new THREE.MeshStandardMaterial({map:graniteMap,color:'#a39c9f',roughness:1,flatShading:true}); // 14.44.09 / 14.30.57: pale lichened granite, split not sawn
+  const poleGrey=K.M.plaster.clone();poleGrey.color.set('#aaa2a8');poleGrey.roughness=1;
   for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
-    const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position;
+    const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position,gn=geo.attributes.normal,guv=geo.attributes.uv;
+    const jit=(x,y,zz,k)=>{const v=Math.sin(x*127.1+y*311.7+zz*74.7+j*19.3+k*5.1)*43758.5453;return v-Math.floor(v)-.5;};
     for(let i=0;i<p.count;i++){
       const x=p.getX(i),y=p.getY(i),zz=p.getZ(i),wear=.008*Math.sin(y*17+zz*11+j);
-      p.setXYZ(i,x*(1-.10*(y+1.22)/2.44)+wear,y,zz+.007*Math.sin(y*13+x*19+j));
+      const nx=x*(1-.10*(y+1.22)/2.44)+wear+.022*jit(x,y,zz,0),nz=zz+.007*Math.sin(y*13+x*19+j)+.022*jit(x,y,zz,1);
+      if(Math.abs(gn.getX(i))>.5)guv.setXY(i,zz*.5+j*.37,y*.5);else if(Math.abs(gn.getY(i))>.5)guv.setXY(i,x*.5,zz*.5);else guv.setXY(i,x*.5+j*.37,y*.5);
+      p.setXYZ(i,nx,y,nz);
     }
     geo.computeVertexNormals();const post=new THREE.Mesh(geo,roughSupport);post.name='Shrine-side rough stone pole support';post.position.set(2.96,1.255,z);post.castShadow=post.receiveShadow=true;g.add(post);
     K.blocker(2.96,z,.26,.27,.035,2.475);
   }
-  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,9.0,.075,.09,4.15,roughSupport,12);pole.rotation.x=Math.PI/2;
+  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,9.0,.075,.09,4.15,poleGrey,12);pole.rotation.x=Math.PI/2;
   // 14.30.57: pale pipe lies on the soil beside the shrine-side supports.
   const courtPipe=K.M.plaster.clone();courtPipe.color.set('#d0d2bc');
-  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.45,1.04,8.53,.034,.034,5.10,courtPipe,8); // lies on the east ledgegroundPipe.rotation.x=Math.PI/2;
+  const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.45,1.04,8.53,.034,.034,5.10,courtPipe,8); // lies on the east ledge
+  groundPipe.rotation.x=Math.PI/2; // (a comment had swallowed this call and the pipe stood on end)
   for(const z of [6.03,8.12,10.98]){
     const joint=K.cylinder(g,'Courtyard ground pipe coupling',2.45,1.04,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
   }
