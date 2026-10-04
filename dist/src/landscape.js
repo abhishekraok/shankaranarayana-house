@@ -443,8 +443,24 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
   box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
   box('Lake entrance east room dark doorway',47.9,1.05,-10.276,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
-  box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
-  K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
+  // 14.59.54: the sign is a painted tin sheet, orange at its top and bottom edges and faded pale
+  // in between, with big red-and-yellow letters, black number lines above and a blue line below.
+  {const c=document.createElement('canvas');c.width=256;c.height=168;const x=c.getContext('2d');
+   const g=x.createLinearGradient(0,0,0,168);g.addColorStop(0,'#c9683a');g.addColorStop(.28,'#e6bfa6');g.addColorStop(.74,'#ead0bc');g.addColorStop(1,'#cf7646');x.fillStyle=g;x.fillRect(0,0,256,168);
+   x.fillStyle='#2b2523';for(const [y,x0,k] of [[14,96,9],[30,120,7]])for(let i=0;i<k;i++)x.fillRect(x0+i*15,y,10,9);
+   x.lineCap='round';
+   for(const [w,col] of [[15,'#e3b63a'],[9,'#b3261e']]){x.strokeStyle=col;x.lineWidth=w;
+     const A=(cx,cy,rad,a,b)=>{x.beginPath();x.arc(cx,cy,rad,a,b);x.stroke();},L=(x0,y0,x1,y1)=>{x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();};
+     A(44,92,17,.6,5.4);L(56,74,66,62);A(100,90,15,2.2,7.2);A(106,118,8,3.4,6.6);A(156,82,10,0,5);A(156,104,12,3.6,8.4);A(210,92,16,1.2,6.0);L(232,68,232,116);}
+   x.fillStyle='#2c4f9a';for(let i=0;i<13;i++)x.fillRect(28+i*16,146,10+(i%3)*2,6);
+   x.strokeStyle='rgba(60,40,30,.5)';x.lineWidth=3;x.strokeRect(1.5,1.5,253,165);
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.anisotropy=4;
+   m.repeat.set(2/.95,2/.62);m.offset.set(.5,.5); // K.box maps 2 m of box to one texture: fit the sheet to the sign
+   const signMat=new THREE.MeshStandardMaterial({map:m,roughness:.8});signMat.name='lake entrance painted sign';
+   box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,signMat);}
+  // 14.59.54: the pipe comes straight out of the wall and turns down to the tap.
+  K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.74],[48.55,.95,-7.56],.03,'metal');
+  K.beam(group,'Lake entrance brass tap pipe drop',[48.55,.965,-7.56],[48.55,.52,-7.56],.03,'metal');
   // 14.59.39 / 15.11.58: the notice hangs on a yellow-and-black banded pole beside the west pedestal.
   box('Lake entrance yellow notice board',29.55,1.93,-7.35,.04,.72,.75,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   for(let k=0;k<8;k++)K.cylinder(group,'Lake entrance notice banded pole',29.55,.125+k*.25,-7.35,.035,.035,.25,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
@@ -959,7 +975,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   seed = tuftSeed;
   // 15.25.49: weeds, not bare laterite, between the hall and the tank path, beside its approach.
-  const weedyGround = new THREE.MeshStandardMaterial({ color: '#6d7443', roughness: 1 });
+  // 15.30.09: the weedy ground is rough and mixed, darker and lighter clumps with dry patches, not one flat olive.
+  const weedyGround = new THREE.MeshStandardMaterial({ map: stainMap(33170,'#6d7443',[[46,'132,146,78',.5,6,22],[46,'54,70,38',.55,5,20],[16,'124,106,68',.4,6,18]]), roughness: 1 });weedyGround.name='weedy ground';K.worldMap(weedyGround,.4);
   for (const [a, b] of [[-21, -19.2], [-16.6, -9.9]])
     box('Opposite bank weedy ground before the hall', (a + b) / 2, .012, -42.45, b - a, .02, 4.7, weedyGround);
   // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
