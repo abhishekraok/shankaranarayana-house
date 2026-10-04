@@ -49,10 +49,10 @@ checkRoute('Forecourt in front of the corner porch',[[20.6,-4],[27.5,TS-3.6],[32
 const tour=createPhotoTour(photos,supportY,HX,TS),problems=[];
 for(const span of tour.spans){
   const distance=new THREE.Vector3(...span.a.p).distanceTo(new THREE.Vector3(...span.b.p)),steps=Math.max(1,Math.ceil(distance*1.5/.05));
-  for(let i=0;i<=steps;i++){const t=span.start+span.hold+span.travel*i/steps,p=tour.sample(t).position;
+  for(let i=0;i<=steps;i++){const t=span.start+span.hold+span.travel*i/steps,smp=tour.sample(t),p=smp.position,eye=smp.floorEye;
     const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-1.50<c.top);
     if(hit)problems.push({t,position:p.toArray(),hit});
-    else if(Math.abs(p.y-1.62-supportY(p.x,p.z,p.y-1.62))>=.015)problems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,p.y-1.62)});}}
+    else if(Math.abs(eye-1.62-supportY(p.x,p.z,eye-1.62))>=.015||Math.abs(p.y-eye)>.9)problems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,eye-1.62)});}}
 if(problems.length)console.error(JSON.stringify(problems.filter((p,i,a)=>i===0||JSON.stringify(p.hit)!==JSON.stringify(a[i-1].hit)).slice(0,12)));
 assert.equal(problems.length,0,'Tour must not pass through walls or posts at the shipped placement');
 // Photo viewpoints inside the temple stand on walkable floor there.

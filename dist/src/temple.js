@@ -371,7 +371,7 @@ export function buildTemple(K) {
   box('First storey side cornice',29.94,3.76,4.025,.20,.24,4.45,whiteTrim);
   // The family identifies the inner-building photos as views from this gallery.
   // Open its courtyard side and leave a real stairwell in the upper floor.
-  floor('Upper gallery main floor',37.79,2.08,15.23,8.0,4.08,oxideFloor);
+  floor('Upper gallery main floor',37.805,2.08,15.26,8.0,4.08,oxideFloor); // its east edge now meets the stair's ramp: a 1.5 cm gap there let a walker or the tour drop through
   floor('Upper gallery stair-side strip',47.39,2.08,.87,8.0,4.08,oxideFloor);
   floor('Upper gallery front bridge',46.18,-.42,1.56,3.0,4.08,oxideFloor);
   floor('Upper gallery stair landing',46.18,6.02,1.56,.36,4.08,oxideFloor);

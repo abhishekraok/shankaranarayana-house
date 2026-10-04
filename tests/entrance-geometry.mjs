@@ -606,12 +606,12 @@ for(const span of tour.spans){
   const distance=new THREE.Vector3(...span.a.p).distanceTo(new THREE.Vector3(...span.b.p));
   const steps=Math.max(1,Math.ceil(distance*1.5/.05));
   for(let i=0;i<=steps;i++){
-    const t=span.start+span.hold+span.travel*i/steps,p=tour.sample(t).position;
+    const t=span.start+span.hold+span.travel*i/steps,smp=tour.sample(t),p=smp.position,eye=smp.floorEye;
     collisionSamples++;
     const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-1.50<c.top);
     if(hit)tourProblems.push({t,position:p.toArray(),hit});
     assert.ok(p.y>1.60&&p.y<5.9,'Tour stays at walking height on the dry route');
-    if(Math.abs(p.y-1.62-supportY(p.x,p.z,p.y-1.62))>=.015)tourProblems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,p.y-1.62)});
+    if(Math.abs(eye-1.62-supportY(p.x,p.z,eye-1.62))>=.015||Math.abs(p.y-eye)>.9)tourProblems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,eye-1.62)});
   }
   if(span.a.photo){
     assert.ok(span.start+span.hold<tour.duration,'Every tour photograph must be visited before the loop repeats');
