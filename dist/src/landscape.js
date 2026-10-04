@@ -346,14 +346,14 @@ export function buildLandscape(K, {mobile=false}={}) {
     K.blocker((a+b)/2,z,b-a,.39,0,.70);
   }
   // 15.30.02: a grass verge about 2.4 m wide lies between the lake wall and the lane.
-  box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,materials.grass);
+  box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,verge);
   K.surface(3.65,-8.65,17.4,2.4,.015);
   // 14.41.43: a laterite water trough stands on the verge just east of the corner pier.
-  box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#7a5a45',roughness:1}),true);
+  box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#8d897e',roughness:1}),true); // house-front-left.jpg: grey cement, not a brown box
   box('Verge trough dark water',-4.2,.46,-8.6,1.6,.02,.4,new THREE.MeshStandardMaterial({color:'#2c3a2c',roughness:.3}));
-  // 15.30.02: a second yellow notice stands on the verge west of the bathing gate, on a banded pole.
-  for(let k=0;k<5;k++)K.cylinder(group,'Lake gate notice banded pole',9.7,.13+k*.26,-9.3,.025,.025,.26,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
-  box('Lake gate yellow notice board',9.7,1.62,-9.3,.04,.65,.55,new THREE.MeshStandardMaterial({color:'#d9b545',roughness:.85}));
+  // 15.30.02 / 14.58.02 / 14.58.05: a small yellow notice on a banded pole beside the bathing gate (it stood 2 m further west, large, in front of two photo viewpoints).
+  for(let k=0;k<5;k++)K.cylinder(group,'Lake gate notice banded pole',11.6,.13+k*.26,-9.65,.025,.025,.26,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
+  box('Lake gate yellow notice board',11.6,1.48,-9.65,.03,.36,.30,new THREE.MeshStandardMaterial({color:'#d9b545',roughness:.85}));
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     // Stubby dark posts with flat caps, a little taller than the wall.
@@ -872,7 +872,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(range(-.3, .3), range(0, 6.28), range(-.3, .3)));
     const scale = [size, size * range(.55, .9), size * range(.7, 1.15)], tint = foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3);
     // Nothing grows inside the temple complex, wherever it is placed (same random draws either way).
-    if (x > 20.5 && x < 58.5 && z > (K.templeShiftZ || 0) && z < 46.2 + (K.templeShiftZ || 0)) return;
+    {const m = size * 1.2; if (x > 20.5 - m && x < 58.5 + m && z > (K.templeShiftZ || 0) - m && z < 46.2 + (K.templeShiftZ || 0) + m) return;}
     // Nor on the straight asphalt of the lane.
     if (x > -40 && x < 20 && Math.abs(z + 5) < 2.1 + size * .5) return;
     instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], scale, q, tint);
@@ -951,12 +951,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Tall white hall, with gabled facade, two barred upper windows and balcony.
   ow('hall foundation',-12,.18,-60.1,9.5,.36,18.4,materials.mortar,true);
   ow('hall white body',-12,4.155,-60.1,9.3,7.55,18,oppositeWhite,true);
-  ow('hall ground dark door',-12,1.55,-51.065,1.45,2.30,.055,materials.darkSoil);
-  for(const x of [-15.1,-9.0])ow('hall ground window',x,1.75,-51.06,1.22,1.20,.06,materials.darkSoil);
+  const hallDark=new THREE.MeshStandardMaterial({color:'#20221f',roughness:.55}); // 15.11.58 / 15.30.09: the hall's door and windows read near-black, not khaki
+  ow('hall ground dark door',-12,1.55,-51.065,1.45,2.30,.055,hallDark);
+  for(const x of [-15.1,-9.0])ow('hall ground window',x,1.75,-51.06,1.22,1.20,.06,hallDark);
   ow('hall ground white canopy',-12,3.18,-50.67,10.0,.17,1.22);
   ow('hall upper balcony slab',-12,3.60,-50.84,10.15,.17,1.38);
   for(const x of [-14.55,-9.45]){
-    ow('hall upper window dark inset',x,5.70,-51.057,1.85,1.65,.055,materials.darkSoil);
+    ow('hall upper window dark inset',x,5.70,-51.057,1.85,1.65,.055,hallDark);
     for(const xx of [x-.99,x+.99])ow('hall upper window pale jamb',xx,5.70,-51.01,.075,1.80,.10);
     for(const y of [4.82,6.58])ow('hall upper window pale sill',x,y,-51.01,2.06,.09,.14);
     for(let j=0;j<13;j++)ow('hall upper iron window bars',x-.86+j*.144,5.70,-50.99,.023,1.59,.025,materials.mortar);
@@ -971,14 +972,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of hallSpindles)instance('Opposite bank hall balcony balusters',cylinder,oppositeWhite,a.slice(0,3),a.slice(3));
   ow('hall red awning fascia',-12,2.59,-50.17,9.98,.08,.18,'red');
   // Original lettering and emblem, sampled only from the white hall in 15.30.09.
-  function hallPhoto(n,x,y,w,h,rect){
+  function hallPhoto(n,x,y,w,h,rect,z=-50.04){
     const tex=new THREE.TextureLoader().load('./assets/house-upper-ahead.jpg');tex.colorSpace=THREE.SRGBColorSpace;
     // Crop through the UVs, not texture repeat/offset, so exported scenes keep the crop.
     const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(w,h),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
-    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,-50.04);group.add(panel);
+    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,z);group.add(panel);
   }
   hallPhoto('Opposite bank hall original sign',-12,2.94,3.50,.79,[408,567,611,641]);
-  hallPhoto('Opposite bank hall original relief emblem',-12,7.4,1.28,1.40,[444,320,545,432]);
+  hallPhoto('Opposite bank hall original relief emblem',-12,7.4,1.28,1.40,[444,320,545,432],-50.94); // on the gable face (it hung 0.9 m in front of it)
   ow('hall left balcony side parapet',-16.76,3.83,-54.15,.17,.62,7.35);
   // 15.11.58 / 15.30.09 (photo review): the hall is as tall as it is wide and runs far back under one
   // grey sheet roof; its east flank is a grey concrete frame, each upper bay a window under red brick lattice.
@@ -1016,7 +1017,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ow('pink house low white rooms',29,1.42,-60.8,11.0,2.72,5.5,oppositeWhite,true);
   K.hipRoof(group,'Opposite bank pink house low tiled roof',29,-60.8,12.1,6.5,2.84,.96,darkTile);
   ow('pink house veranda dark recess',28,1.20,-57.99,6.9,2.15,.06,materials.darkSoil);
-  for(const x of [24.55,28,31.45])ow('pink house veranda post',x,1.38,-57.3,.17,2.6,.17,oppositeWhite,true);
+  for(const x of [24.55,28,31.45])ow('pink house veranda post',x,1.38,-57.55,.17,2.6,.17,oppositeWhite,true);
   ow('tiled house tall rear block',39,3.65,-63.6,7.5,3.0,5.1,oppositeWhite,true);
   K.hipRoof(group,'Opposite bank tall tiled house roof',39,-63.6,8.4,6.1,5.25,1.10,darkTile);
   ow('tiled house lower rooms',39,1.37,-59.7,10.8,2.60,6.0,oppositeWhite,true);
@@ -1879,7 +1880,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const r of K.ramps)if(r.z+r.d/2<edge){const l=lift(r.x);r.lowY+=l;r.highY+=l;}
    for(const l of K.labels)if(l.position[2]<edge)l.position=[l.position[0],l.position[1]+lift(l.position[0]),l.position[2]];
    // Weedy ground rather than bare laterite, with a worn footpath along the bank top.
-   const earth=new THREE.MeshStandardMaterial({color:'#6d7443',roughness:1}),zc=(edge+back)/2,d=edge-back;
+   const earth=verge.clone(),zc=(edge+back)/2,d=edge-back;earth.color.set('#d7d9c3'); // the same worn turf as the other banks, a little duller (it was one flat olive)
    for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]]){
      box('Far bank raised earth terrace',(a+b)/2,(FAR_TOP-.3)/2,zc,b-a,FAR_TOP+.3,d,earth);K.surface((a+b)/2,zc,b-a,d,FAR_TOP);
    }

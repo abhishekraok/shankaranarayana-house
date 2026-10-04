@@ -1669,7 +1669,8 @@ export function buildTemple(K) {
      K.beam(g,'Passage bell rusted chain',[x,3.78,(front+back)/2],[x,3.33,(front+back)/2],.03,dark);
    }}
   // Little lamp canopy projects toward the entrance from the black pole's base.
-  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,brass); // starts at the shaft face, not through itshelterRoof.rotation.x=-.07;
+  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,brass); // starts at the shaft face, not through it
+  shelterRoof.rotation.x=-.07; // (a trailing comment had swallowed this tilt)
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
   // User's note: no small brass oil lamp here (it stood through the pole's plinth).
 
