@@ -2192,7 +2192,12 @@ export function buildTemple(K) {
   cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
   const shelfLight=new THREE.PointLight('#fff0c8',3,1.0,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
-  const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
+  // 'Temple inner sanctum, God room 2': the doorway is black below the lit shelf (12,7,4 where the render had
+  // 129,89,40) and so is the wall above the frame (8,7,4 against 151,100,53). The glow stood in front of the
+  // inner gate at strength 7 with a 3.4 m reach, and point lights pass through walls, so it lit the gate's
+  // face, the floor, the step and the mandapa's ceiling orange. It now sits between the two lamp stands,
+  // behind the gate, and reaches only the idol, its arch and the pedestal.
+  const lampGlow=new THREE.PointLight('#ffae55',1.6,1.3,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.0,26.15);g.add(lampGlow);
   }
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
   // "Temple inner sanctum, God room" photos: the frame is a continuous band of square polished
