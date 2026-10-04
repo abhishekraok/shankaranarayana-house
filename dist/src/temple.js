@@ -733,10 +733,15 @@ export function buildTemple(K) {
     }
     const rg=new THREE.Group();rg.name='Outer circuit veranda roof';g.add(rg);K.roofs.push(rg);
     if(!r.round){
-      K.box(rg,'Outer circuit flat white soffit',xc,3.57,zc,w+.5,.24,d+.18,agedWhite);
-      K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.27,3.47,zc,.19,.30,d+.20,red); // 15.05.42 / 15.04.59: a 0.3 m red band standing clear of the soffit edge
-      if(r.side>0)K.box(rg,'Outer circuit weathered terrace parapet',r.edge,4.01,zc,.22,.76,d,agedWhite);
-      else {
+      // 15.02.23 / 15.01.44: the tall blue porch (z 8.3..11.7) interrupts the east veranda's roof, red
+      // fascia and parapet; its own slab stands a metre higher.
+      for(const [sa,sb] of r.side>0?[[r.a,8.3],[11.7,r.b]]:[[r.a,r.b]]){const sc=(sa+sb)/2,sd=sb-sa;
+        K.box(rg,'Outer circuit flat white soffit',xc,3.57,sc,w+.5,.24,sd+.18,agedWhite);
+        // 15.05.42 / 15.04.59: a 0.3 m red band standing clear of the soffit edge. 15.02.23: the short
+        // stretch north of the blue porch has a plain white slab edge, no red band.
+        if(!(r.side>0&&sb<=8.3))K.box(rg,'Outer circuit red roof fascia',r.edge-r.side*.27,3.47,sc,.19,.30,sd+.20,red);
+        if(r.side>0)K.box(rg,'Outer circuit weathered terrace parapet',r.edge,4.01,sc,.22,.76,sd,agedWhite);}
+      if(r.side<0){
         // 15.11.17: pierced white parapet and blue scallops above the west aisle.
         const pitch=(d-.4)/count;
         const panel=new THREE.Shape();panel.moveTo(-pitch/2+.14,-.32);panel.lineTo(pitch/2-.14,-.32);panel.lineTo(pitch/2-.14,.32);panel.lineTo(-pitch/2+.14,.32);panel.closePath();
@@ -754,7 +759,7 @@ export function buildTemple(K) {
         K.blocker(r.edge,zc,.12,d,3.69,4.48);
       }
     }
-    box('Outer circuit pale blue lintel',r.edge,3.35,zc,.28,.21,d,agedWhite); // white beam under the red band (name kept)
+    for(const [sa,sb] of r.side>0?[[r.a,8.3],[11.7,r.b]]:[[r.a,r.b]])box('Outer circuit pale blue lintel',r.edge,3.35,(sa+sb)/2,.28,.21,sb-sa,agedWhite); // white beam under the red band (name kept)
   }
   // Rear range is authored at its final X extents, then translated 7.5 m in Z.
   const rearStart=markAssembly();
@@ -1402,16 +1407,8 @@ export function buildTemple(K) {
       const t=i/23;cyl('Outer shrine hanging flower garland',51.0,3.02-.30*Math.sin(t*Math.PI),z-.8+t*1.6,.032,.028,.055,i%3?K.M.cream:red,7);
     }
   }
-  // Large closed blue shutter bay nearest the entrance (15.01.44 / 15.02.23).
-  box('Outer entrance shrine blue closed shutters',53.64,2.12,10,.08,1.95,2.45,blue);
-  box('Outer entrance shrine shutter central stile',53.56,2.12,10,.09,1.95,.065,dark);
-  sideScallop('Outer entrance shrine wide scalloped arch',51.04,10,3.00,3.63,.62);
-  for(const z of [8.55,11.45])blueColumn('Outer entrance shrine tall pale blue pier',51.04,z,.6,3.06);
-  for(const z of [8.95,11.05]){
-    box('Outer entrance shrine blue lower panel',51.01,.97,z,.06,.70,.72,blue);
-    const grille=[];for(let i=0;i<5;i++)grille.push([50.96,.97,z-.29+i*.145,.025,.54,.035]);
-    instances('Outer entrance shrine brass grille',new THREE.BoxGeometry(1,1,1),brass,grille);
-  }
+  // The blue east porch (15.01.44 / 15.02.23) is built with its plinth near the end of this
+  // function, after the east shift and the veranda raise.
   // 15.02.17: looking back-left after entry ends at a closed service corner.
   // Join the entrance block to the first blue shrine; it is not an exit outside.
   box('Entrance circuit closed return wall',50.91,1.95,6.38,6.18,3.70,.26,agedWhite,true);
@@ -2425,23 +2422,30 @@ export function buildTemple(K) {
   // 15.01.44 / 15.02.17 (re-checked): not one broad storey. A narrow full-height block stands at
   // the far end (z 14.3-16.5) with one small window; a set-back arched rooftop pavilion sits over
   // the shutter bay (z 8.6-12.4); the rest is open terrace behind the balcony band.
-  {const x0=55.1,x1=57.9,z0=6.45,z1=16.5,y0=3.7,y1=7.0,zc=(z0+z1)/2,len=z1-z0;
-   box('East range upper balcony band',x0-.05,4.6,zc,.3,1.2,len,white);
-   box('East range upper balcony red coping',x0-.05,5.23,zc,.38,.08,len,red);
-   {const a=14.3,b=z1,c=(a+b)/2,l=b-a;
+  // Photo review (15.01.44, 15.02.23, both clear): the heavy weathered band stands only over the
+  // blue porch, on the front edge of its slab (pier top 4.6), without a red coping; one open
+  // pavilion stands on that slab; the narrow full-height block is a tower directly against the
+  // porch over the open stair bay (z 11.8..14.3), with a red band round its top and one small
+  // louvred window.
+  {const x0=55.1,x1=57.9,z0=6.45,y0=3.7;
+   box('East range upper balcony band',54.3,5.1,10.0,.3,1.0,4.2,white);
+   box('East range upper balcony band',56.0,5.1,7.95,3.7,1.0,.3,white);
+   box('East range upper balcony band',54.75,5.1,12.05,.9,1.0,.3,white);
+   {const a=11.8,b=14.3,c=(a+b)/2,l=b-a,y1=6.45;
     box('East range upper storey front wall',x0+.11,(y0+y1)/2,c,.22,y1-y0,l,white);
     box('East range upper storey back wall',x1-.11,(y0+y1)/2,c,.22,y1-y0,l,white);
     for(const z of [a+.11,b-.11])box('East range upper storey end wall',(x0+x1)/2,(y0+y1)/2,z,x1-x0,y1-y0,.22,white);
-    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.08,c,x1-x0+.6,.16,l+.4,white);K.roofs.push(roof);
-    box('East range upper slab red edge',x0-.3,y1+.08,c,.1,.18,l+.4,red);
-    box('East range upper window blue frame',x0-.01,6.0,15.3,.05,.8,.8,blue);box('East range upper window dark glass',x0-.02,6.0,15.3,.03,.6,.6,dark);}
-   {const a=8.6,b=12.4,c=(a+b)/2,l=b-a,px0=56.2,py1=6.3;
-    box('East range rooftop pavilion back wall',x1-.11,(y0+py1)/2,c,.22,py1-y0,l,white);
-    for(const z of [a+.11,b-.11])box('East range rooftop pavilion end wall',(px0+x1)/2,(y0+py1)/2,z,x1-px0,py1-y0,.22,white);
-    {const sc=scallop('East range rooftop pavilion scalloped arches',px0,c,l,py1-.1,.18,white,.55);sc.rotation.y=Math.PI/2;sc.position.set(px0-.09,0,c);}
-    const r=box('East range rooftop pavilion slab',(px0+x1)/2,py1+.07,c,x1-px0+.5,.14,l+.4,white);K.roofs.push(r);
-    box('East range rooftop pavilion red edge',px0-.25,py1+.07,c,.1,.16,l+.4,red);}
-   box('East range open terrace floor',(x0+x1)/2,y0-.05,(z0+14.3)/2,x1-x0,.1,14.3-z0,white);}
+    box('East range tower red top band',(x0+x1)/2,y1-.175,c,x1-x0+.1,.35,l+.1,red);
+    const roof=box('East range upper flat slab',(x0+x1)/2,y1+.04,c,x1-x0+.2,.08,l+.2,white);K.roofs.push(roof);
+    box('East range upper window dark opening',x0-.01,5.4,13.0,.05,.9,1.0,dark);
+    for(let i=0;i<5;i++)box('East range upper window blue louvre',x0-.04,5.05+i*.175,13.0,.03,.04,1.0,blue);}
+   {const py0=4.75,py1=6.75,edge=mat('#7a2f25');
+    for(const x of [54.6,57.6])for(const z of [8.5,11.5])box('East range rooftop pavilion post',x,(py0+py1)/2,z,.25,py1-py0,.25,white);
+    for(const x of [54.6,57.6]){const sc=scallop('East range rooftop pavilion scalloped arches',0,0,3.0,py1,.18,white,.5);sc.rotation.y=Math.PI/2;sc.position.set(x-.09,0,10.0);}
+    for(const z of [8.5,11.5])scallop('East range rooftop pavilion scalloped arches',56.1,z,3.0,py1,.18,white,.5);
+    const r=box('East range rooftop pavilion slab',56.1,py1+.075,10.0,4.4,.15,4.4,white);K.roofs.push(r);
+    for(const [x,z,w,d] of [[53.87,10,.06,4.46],[58.33,10,.06,4.46],[56.1,7.77,4.4,.06],[56.1,12.23,4.4,.06]])box('East range rooftop pavilion red edge',x,py1+.075,z,w,.17,d,edge);}
+   box('East range open terrace floor',(x0+x1)/2,y0-.05,(z0+7.8)/2,x1-x0,.1,7.8-z0,white);}
   // 15.19.36 / 15.21.50 / 15.22.36 / 15.23.25 / 15.23.28 / 15.23.32 / 15.25.52 / 15.25.55:
   // the red-balustraded road-corner frontage runs on east to about x 35; the blue-arched
   // projecting portico front starts there. The entrance hall and its paintings stay behind.
@@ -2628,15 +2632,50 @@ export function buildTemple(K) {
   // 15.02.23 / 15.01.44 / 15.02.17: the blue east porch stands higher than the veranda on a
   // mossy rubble plinth with a centred three-step stair; a flat slab roof projects over it;
   // the bay to its north is open, with a steep concrete stair climbing inside it.
-  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95);
-   for(const [z0,z1] of [[8.2,9.4],[10.6,11.8]])box('East porch mossy rubble plinth',54.55,.48,(z0+z1)/2,.7,.96,z1-z0,rubble,true);
-   box('East porch plinth rubble face',54.21,.48,10,.02,.94,3.6,rubble);
-   steps('East porch front steps',54.1,10,1.6,1.2,.1,.95,'x',4);
-   box('East porch projecting flat roof slab',56.0,3.89,10,3.6,.46,4.0,white);
-   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,13.05,2.0,1.1,.95,2.9,'x',9);
-   K.ramps.splice(r0);K.blocker(56.55,13.05,2.0,1.1,.6,3.2);
-   box('East range open bay stair side wall',56.65,1.95,13.66,2.1,2.7,.12,white,true);
-   box('East range open bay red lintel band',54.98,3.32,13.25,.14,.22,3.0,red);}
+  // Photo review, 15.02.23 head-on (red base .75 m as ruler): two round piers rise 3.65 m from the
+  // porch floor to a slab well above the veranda's red fascia, under a deep blue lintel with a
+  // scalloped underside and a tube light; dull slate shutters fill the back wall; a blue-framed
+  // green lattice panel stands inside each pier; the rubble plinth is unbroken and is climbed by a
+  // mounting block whose red-nosed steps descend sideways. In the next bay a white pier shares the
+  // piers' red base, a concrete stair climbs behind a sloping white balustrade under a red
+  // lintel band, and three red-nosed steps lead up from the court.
+  {const rubble=mat('#77736a',.98),concrete=mat('#b9b6ab',.95),blockStone=mat('#6e6b63',.97),stepRed=mat('#8a2f28',.9),slate=mat('#3f5a6b',.8),frameBlue=mat('#1f86c8');
+   for(const z of [8.55,11.45]){
+     cyl('Outer entrance shrine tall pale blue pier red base',55.04,1.325,z,.17,.17,.75,red,16);
+     cyl('Outer entrance shrine tall pale blue pier blue shaft',55.04,3.15,z,.16,.165,2.9,paleBlue,16);
+     K.blocker(55.04,z,.36,.36,.6,4.6);}
+   sideScallop('Outer entrance shrine wide scalloped arch',55.04,10,2.9,4.6,1.0);
+   box('Outer entrance shrine lintel tube light',54.83,4.42,10,.05,.05,1.1,whiteTrim);
+   const slab=box('East porch projecting flat roof slab',56.0,4.675,10,3.6,.15,4.2,white);K.roofs.push(slab);
+   box('East porch back wall upper',57.86,4.05,10,.28,1.1,4.2,white,true);
+   box('East porch north cheek above the veranda roof',56.45,4.15,8.22,2.82,.92,.14,white);
+   box('East porch back wall dark red band',57.7,4.325,10,.04,.55,2.9,mat('#5e2f2b'));
+   box('Outer entrance shrine blue closed shutters',57.66,3.0,10,.06,2.1,2.4,slate);
+   for(const [y,h,z,d] of [[3.0,2.1,10,.06],[3.0,2.16,8.8,.06],[3.0,2.16,11.2,.06],[1.95,.06,10,2.4],[4.05,.06,10,2.4]])box('Outer entrance shrine shutter blue frame',57.62,y,z,.03,h,d,frameBlue);
+   const latticeGreen=mat('#ffffff',.9);latticeGreen.map=canvasMap(128,(c,s)=>{c.fillStyle='#b7c4a0';c.fillRect(0,0,s,s);c.strokeStyle='#8f9c7c';c.lineWidth=3;
+     for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.moveTo(i*32+16,j*32+3);c.lineTo(i*32+29,j*32+16);c.lineTo(i*32+16,j*32+29);c.lineTo(i*32+3,j*32+16);c.closePath();c.stroke();}
+     c.fillStyle='#5a6450';for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.arc(i*32+16,j*32+16,4,0,7);c.fill();}});
+   for(const z of [9.06,10.94]){
+     box('Outer entrance shrine blue lower panel',55.0,1.325,z,.07,.75,.82,frameBlue);
+     box('Outer entrance shrine green lattice panel',54.955,1.325,z,.03,.57,.64,latticeGreen);}
+   // Plinth: one unbroken rubble front; only the stretch behind the block's landing can be stepped onto.
+   box('East porch mossy rubble plinth',54.55,.48,10,.7,.96,3.6,rubble);
+   for(const [a,b] of [[8.2,9.1],[10.3,11.8]])K.blocker(54.55,(a+b)/2,.7,b-a,0,.96);
+   K.surface(54.625,10,.85,3.6,.955);
+   box('East porch mounting block landing',53.75,.36,9.7,.9,.52,1.2,blockStone);K.surface(53.75,9.7,.9,1.2,.62);
+   steps('East porch block south steps',53.75,10.6,.9,.6,.1,.42,'-z',2,blockStone,blockStone);
+   steps('East porch block north steps',53.75,8.8,.9,.6,.1,.42,'z',2,blockStone,blockStone);
+   for(const [y,z,d] of [[.595,9.7,1.2],[.395,10.45,.3],[.235,10.75,.3],[.395,8.95,.3],[.235,8.65,.3]])box('East porch block red nosing',53.29,y,z,.02,.05,d,stepRed);
+   // Stair bay.
+   box('East range stair bay white pier',55.05,2.45,12.0,.32,1.5,.32,white,true);
+   box('East range stair bay pier red base',55.05,1.325,11.87,.34,.75,.6,red);
+   const r0=K.ramps.length;steps('East range open bay concrete stair',56.55,12.625,2.0,.95,.95,2.6,'x',9,concrete,concrete);
+   K.ramps.splice(r0);K.blocker(56.55,12.625,2.0,.95,.6,3.2);
+   {const s=new THREE.Shape();s.moveTo(55.5,.95);s.lineTo(57.6,.95);s.lineTo(57.6,3.45);s.lineTo(55.5,1.85);s.closePath();
+    mesh('East range open bay stair balustrade',new THREE.ExtrudeGeometry(s,{depth:.10,bevelEnabled:false}),white,0,0,13.1);K.blocker(56.55,13.15,2.1,.1,.6,3.4);}
+   box('East range open bay red lintel band',54.9,3.335,13.25,.18,.37,3.0,red);
+   steps('East range stair bay court steps',54.6,12.6,.9,1.2,.1,.95,'x',3,blockStone,blockStone);
+   for(let i=0;i<3;i++)box('East range stair bay step red nosing',54.16+i*.3,.1+.85*(i+1)/3-.03,12.6,.03,.06,1.2,stepRed);}
   // 15.15.11 / 15.14.30: the bell-hall and stair-enclosure walls stop behind the entrance hall's
   // rear wall (z 5.98); their ends showed as posts beneath the paintings.
   {const b3=new THREE.Box3();g.updateMatrixWorld(true);

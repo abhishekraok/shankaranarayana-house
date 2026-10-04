@@ -383,6 +383,15 @@ assert.ok(!collision(58.8,40,.1),'East range remains clear of the garden boundar
 checkRoute('Complete outer temple circuit',circuitRoute,.1,.09);
 checkRoute('Complete outer circuit in reverse',[...circuitRoute].reverse(),.1,.09);
 checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
+// 15.02.23: the blue east porch is climbed by a mounting block whose steps descend sideways, and
+// the stair bay beside it by three court steps; the porch piers reach its slab at 4.6 m.
+checkRoute('East porch mounting block',[[53.75,11.25],[53.75,9.7],[56.2,9.7]],.1,.09);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.95)<.02,'Mounting block leads onto the porch floor');
+checkRoute('East stair bay court steps',[[53.6,12.6],[55.25,12.6]],.1,.09);
+assert.ok(collision(54.55,8.6,.1)&&collision(54.55,11.2,.1),'The rubble plinth is unbroken either side of the block');
+{const pier=new THREE.Box3();for(const o of temple.children)if(o.name==='Outer entrance shrine tall pale blue pier blue shaft')pier.expandByObject(o);
+ const fascia=new THREE.Box3();temple.traverse(o=>{if(o.name==='Outer circuit red roof fascia'&&o.getWorldPosition(new THREE.Vector3()).x>50)fascia.expandByObject(o);});
+ assert.ok(pier.max.y>fascia.max.y+.9,'Porch piers stand about a metre above the veranda fascia');}
 // 15.11.17 / 15.11.08: the plinth is unbroken in front of the open stair bay, so the rear veranda
 // is climbed by its east flight; the grey block at the closed blue gate is only a standing step.
 checkRoute('Circuit rear veranda stair',[[53.6,41.3],[53.6,43.15]],.1,.09);
