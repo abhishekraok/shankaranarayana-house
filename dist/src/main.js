@@ -126,7 +126,7 @@ photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuma
 photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[23.7,.051,0.4],target:[23.7,-.25,3.2],fov:78};
 photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,1.38,-37.4],target:[36,3.6,5.5],fov:58};
 for(const key of ['templepicturesleft','templevishnu','templehanuman','templepond','templeacross'])destinations[key]=photos[key];
-photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.036,-12.6],target:[59.6,2.57,-21.1],fov:60};
+photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.486,-12.6],target:[59.6,2.57,-21.1],fov:60};
 photos.shoplake={url:'shop-across-lake.jpg',caption:'September 2011 · Shop and adjacent building from across the lake · 15.28.26',p:[-6.3,0,-23],target:[59.8,-.8,-25.4],fov:34};
 destinations.shop=photos.shop;destinations.shoplake=photos.shoplake;
 destinations.lakefence={p:[9.8,0,-7.6],target:[56,3.2,-7],fov:74};

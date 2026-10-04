@@ -210,7 +210,7 @@ const shopScreen=new THREE.Vector3(61.5,3,-25).project(shopCamera),adjacentScree
 assert.ok(shopScreen.x<adjacentScreen.x,'Shop is left of the adjacent building across the lake');
 assert.ok(Math.abs(shopScreen.x)<1&&Math.abs(adjacentScreen.x)<1,'Both buildings fit in the across-lake composition');
 assert.ok(landscape.getObjectByName('Shop cream end upper block').position.z>landscape.getObjectByName('Shop upper white rear block').position.z,'Cream end block is nearest the adjacent building');
-assert.ok(!collision(58.9,-25,.041),'Shop forecourt remains accessible');
+assert.ok(!collision(58.9,-25,.486),'Shop forecourt remains accessible'); // on the raised lawn
 // The two late-afternoon front photographs are on the near lake bank/front lane.
 for(const key of ['house','houseleft']){
   const p=photos[key].p;

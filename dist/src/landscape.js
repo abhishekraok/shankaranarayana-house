@@ -218,6 +218,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       }
       continue;
     }
+    if(i===3)continue; // this strip now lies under the raised shop lawn
     box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], i===0||i===3||i===5?verge:materials.path);
     K.surface(p[0], p[1], p[2], p[3], .052);
   }
@@ -485,20 +486,22 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   for(const [a,b] of [[-4.6,-3.5],[-1.1,12.10],[14.40,32.9],[35.1,48.8]])for(const [top,z] of [[FAR_LEDGE,-36.47],[-.35,-36.04],[-.98,-35.58],[-1.61,-35.23]])
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
+  const LAWN=.45; // 15.13.26 / 14.59.54: the shop lawn stands three risers above the lane end
   // 15.14.07 / 15.21.47 / 15.23.25 / 15.23.35 / 15.23.38 / 15.25.52 / 15.25.55 / 14.57.50: both side
   // banks have a solid dark masonry parapet with tall, capped whitewashed square posts
   // about 3.7 m apart, not open crossrails.
   // West bank: a gap in the parapet at the head of each flight, a post either side (15.21.56, 15.23.38).
-  for(const [x,z1,z2,name] of [[50.08,-8.32,-20.8,'East'],[50.08,-23.5,-37.68,'East'],[-5.08,-10.0,-17.85,'West'],[-5.08,-18.95,-24.05,'West'],[-5.08,-25.15,-37.68,'West']]){
+  // East bank: north of the lane-end steps the parapet stands on the raised shop lawn (base b).
+  for(const [x,z1,z2,name,b=0] of [[50.08,-8.32,-10.6,'East'],[50.08,-10.6,-20.8,'East',LAWN],[50.08,-23.5,-37.68,'East',LAWN],[-5.08,-10.0,-17.85,'West'],[-5.08,-18.95,-24.05,'West'],[-5.08,-25.15,-37.68,'West']]){
     const len=Math.abs(z2-z1),zc=(z1+z2)/2,n=Math.max(1,Math.round(len/3.7));
-    box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
-    box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
+    box(name+' bank solid dark parapet',x,(.9+b)/2,zc,.3,.9+b,len,fenceStone);
+    box(name+' bank parapet coping',x,.93+b,zc,.38,.07,len,fenceStone);
     for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
       // User's 15.28.26 note: the posts are flush with the parapet faces and stand
       // only a little above its coping (as on the east bank in that photo).
-      box(name+' bank whitewashed square post',x,.56,z,.31,1.12,.31,fenceWhite);
-      box(name+' bank post cap',x,1.14,z,.32,.05,.32,fenceWhite);}
-    if(name==='West')K.blocker(x,zc,.31,len,0,1.4);else K.blocker(x,zc,.45,len+.3,0,1.4); // the flights pass close under the west wall
+      box(name+' bank whitewashed square post',x,(1.12+b)/2,z,.31,1.12+b,.31,fenceWhite);
+      box(name+' bank post cap',x,1.14+b,z,.32,.05,.32,fenceWhite);}
+    if(name==='West')K.blocker(x,zc,.31,len,0,1.4);else K.blocker(x,zc,.45,len+.3,0,1.4+b); // the flights pass close under the west wall
   }
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
   // standing about 0.4 m above the raised ground behind the wall.
@@ -1431,6 +1434,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   const shopBlue=K.M.blue.clone();shopBlue.color.set('#849b96');
   const shopWood=K.M.wood.clone();shopWood.color.set('#665046');
   const sb=(n,a,y,depth,w,h,d,m=shopWhite,solid=false)=>box('Shop '+n,60+depth,y,-25-a,d,h,w,m,solid);
+  // The shop is authored on level ground and lifted with its lawn at the end of this block.
+  const shopLift=[[group.children.length,K.colliders.length,K.surfaces.length]];
   sb('long white shopfront body',0,1.79,4.2,18.4,3.08,4.0,shopWhite,true);
   sb('dark damp wall base',0,.46,2.185,18.45,.48,.06,materials.basalt);
   sb('raised veranda slab',0,.19,1.14,18.8,.22,2.65,materials.path);
@@ -1438,22 +1443,28 @@ export function buildLandscape(K, {mobile=false}={}) {
   sb('mossy platform front',0,.15,-.20,18.9,.22,.12,materials.wetStone);
   // 15.20.13 / 14.59.54: a broad mown lawn runs from the tank rail to the shop,
   // crossed lengthwise by a worn red laterite footpath about 3 m from the veranda.
-  box('Shop-front lawn beside the tank',55.35,.018,-27.9,7.9,.036,31.2,verge);
-  K.surface(55.35,-27.9,7.9,31.2,.036);
+  // 15.13.26 / 14.59.54: the lawn lies three risers above the lane end (in 14.59.54 the three
+  // step edges only space evenly, about 0.85 m apart, if each is 0.15 m higher than the last),
+  // so it is a slab LAWN high from the tank parapet to the shop and the stage. It stops short
+  // of the east bank stair's head, where one more step comes up from the stair's threshold.
+  shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
+  const lawnTop=LAWN+.036;
+  for(const [xa,za,zb] of [[50.24,-43.5,-23.5],[50.85,-23.5,-20.8],[50.24,-20.8,-12.3]]){
+    box('Shop-front lawn beside the tank',(xa+60)/2,lawnTop/2,(za+zb)/2,60-xa,lawnTop,zb-za,verge);
+    K.surface((xa+60)/2,(za+zb)/2,60-xa,zb-za,lawnTop);}
+  box('east bank lawn step',50.65,.135,-22.15,.4,.27,2.7,materials.basalt);K.surface(50.65,-22.15,.4,2.7,.27);
   // The path starts beside the far end of the veranda and bends toward the lane steps.
-  {const path=box('Shop-front worn laterite footpath',56.75,.021,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
-    K.surface(56.75,-24.3,2.6,22.4,.041);}
-  box('Footpath widening at the lane steps',55.0,.022,-13.5,2.2,.04,1.4,materials.redSoil);
-  // 14.59.54: broad concrete steps lead down from the lane end to the lawn;
-  // 15.20.13 is taken from their foot. A raised concrete platform with a drain
-  // opening stands to their right.
+  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
+    K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
+  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,materials.redSoil);
+  // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
+  // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
-  // 14.59.54 is taken from the top landing and 15.20.13 from the foot: both fit 1.8 m further
-  // west than first placed.
-  box('Lane-end concrete landing',52.4,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(52.4,-8.95,5.0,3.3,.45);
-  steps('Lane-end concrete steps down to the lawn',52.4,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
+  steps('Lane-end concrete steps up to the lawn',52.4,-8.95,5.0,3.3,'-z',0,lawnTop,3,laneConcrete);
+  box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
   // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
   // Broken grassy edges and the narrow concrete threshold step.
@@ -1574,7 +1585,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of [-5.0,-3.5])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
   for(let j=0;j<24;j++){
     const a=2.6+(j%5)*.21,y=.42+Math.floor(j/8)*.15,depth=1.44+(Math.floor(j/5)%3)*.19;
-    instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y,-25-a],[.14,.17,.15]);
+    instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y+LAWN,-25-a],[.14,.17,.15]);
   }
   sb('yellow bottle crate',-8,.52,1.22,.70,.41,.55,new THREE.MeshStandardMaterial({color:'#b4a33d',roughness:.94}));
   for(let i=0;i<6;i++)K.cylinder(group,'Shop green glass bottle',61.1+(i%2)*.15,.84,-17.22+Math.floor(i/2)*.15,.045,.054,.28,materials.wetStone,8);
@@ -1591,17 +1602,25 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Rain gutter/drain beside the end block, with an open ditch behind its lip.
   box('Shop side open drain bottom',64.0,.025,-15.24,7.5,.04,.34,materials.wetStone);
   for(const z of [-15.47,-15.02])box('Shop side drain concrete lip',64,.11,z,7.5,.18,.12,materials.mortar);
-  K.labels.push({text:'Lakeside shop',position:[60.1,3.6,-25]});
+  // Lift the shop (everything above except the lawn and the lane-end pieces) onto the lawn,
+  // and raise the ground it stands on.
+  {const end=[group.children.length,K.colliders.length,K.surfaces.length];
+   for(const [a,b] of [[shopLift[0],shopLift[1]],[shopLift[2],end]]){
+     for(const o of group.children.slice(a[0],b[0]))o.position.y+=LAWN;
+     for(const c of K.colliders.slice(a[1],b[1])){c.bottom+=LAWN;c.top+=LAWN;}
+     for(const s of K.surfaces.slice(a[2],b[2]))s.y+=LAWN;}
+   box('Shop raised ground',64.15,lawnTop/2,-25.75,8.3,lawnTop,21.5,K.M.earth);K.surface(64.15,-25.75,8.3,21.5,lawnTop);}
+  K.labels.push({text:'Lakeside shop',position:[60.1,3.6+LAWN,-25]});
   // 15.13.26 / 15.14.07: a concrete lamp pole stands on the lawn just inside the tank's
   // south-east corner, its lamp arm over the bank, wires running to the shop eave and the
-  // stage; a thinner pole stands further along the lawn. (Bases at the lawn's present level.)
-  {K.cylinder(group,'Lawn concrete utility pole',50.9,3.75,-12.6,.09,.11,7.5,materials.mortar,9,true);
-   box('Lawn utility pole crossarm',50.9,6.9,-12.6,.08,.08,1.25,materials.mortar);
-   K.beam(group,'Lawn utility pole lamp arm',[50.9,6.6,-12.6],[49.7,6.75,-12.6],.04,'metal');
-   box('Lawn utility pole lamp',49.62,6.72,-12.6,.34,.07,.14,materials.mortar);
-   K.cylinder(group,'Lawn thin utility pole',52.5,3.35,-32.5,.07,.08,6.7,materials.mortar,9,true);
-   for(const [to,sag,dz] of [[[61.5,5.2,-17.6],.45,-.5],[[61.5,5.2,-16.8],.5,.5],[[59.4,9.4,-9],.6,0]]){
-     const a=new THREE.Vector3(50.9,6.9,-12.6+dz),b=new THREE.Vector3(...to),mid=a.clone().lerp(b,.5);mid.y-=sag;
+  // stage; a thinner pole stands further along the lawn.
+  {K.cylinder(group,'Lawn concrete utility pole',50.9,LAWN+3.75,-12.6,.09,.11,7.5,materials.mortar,9,true);
+   box('Lawn utility pole crossarm',50.9,LAWN+6.9,-12.6,.08,.08,1.25,materials.mortar);
+   K.beam(group,'Lawn utility pole lamp arm',[50.9,LAWN+6.6,-12.6],[49.7,LAWN+6.75,-12.6],.04,'metal');
+   box('Lawn utility pole lamp',49.62,LAWN+6.72,-12.6,.34,.07,.14,materials.mortar);
+   K.cylinder(group,'Lawn thin utility pole',52.5,LAWN+3.35,-32.5,.07,.08,6.7,materials.mortar,9,true);
+   for(const [to,sag,dz] of [[[61.5,5.2+LAWN,-17.6],.45,-.5],[[61.5,5.2+LAWN,-16.8],.5,.5],[[59.4,9.4,-9],.6,0]]){
+     const a=new THREE.Vector3(50.9,LAWN+6.9,-12.6+dz),b=new THREE.Vector3(...to),mid=a.clone().lerp(b,.5);mid.y-=sag;
      const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),18,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}}
   // The roofed tank-side structure is the long bathing arcade above.
   // There is no separate tiny gatehouse on the intervening boundary.
