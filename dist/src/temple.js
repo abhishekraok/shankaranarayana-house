@@ -609,7 +609,7 @@ export function buildTemple(K) {
   box('Entrance wash trough',29.66,.31,-.09,.80,.06,3.9,stoneFloor);
   for(const z of [1.21,.41,-.39,-1.19]){
     K.beam(g,'Entrance wash tap spout',[29.96,1.04,z],[29.72,1.04,z],.035,gateMetal);
-    box('Entrance wash tap handle',29.85,1.12,z,.03,.026,.15,gateMetal);
+    box('Entrance wash tap handle',29.85,1.073,z,.03,.026,.15,gateMetal); // sits on the spout; it hovered 5 cm above it
   }
   box('Entrance projecting corner white pier',30.1,2.13,-1.82,.37,3.06,.37,white,true);
   box('Entrance projecting corner stone foot',30.1,.86,-1.82,.45,.52,.45,stoneFloor);
@@ -1485,8 +1485,10 @@ export function buildTemple(K) {
   // photograph. (They used to hover 9 cm above the floor as a striped block that overhung the court by a metre.)
   for(let i=0;i<6;i++)box('Rear circuit stacked dark boards',23.16+(i%2)*.03,.629+i*.06,40.1+((i*7)%3-1)*.06,.60-(i%3)*.04,.058,2.40-(i%2)*.14,K.M.wood);
   K.blocker(23.16,40.1,.66,2.54,.6,1.0);
-  box('Rear circuit old work table top',24.15,1.40,43.1,1.90,.10,.80,K.M.wood);
-  for(const x of [23.37,24.93])for(const z of [42.79,43.41])box('Rear circuit table leg',x,1.0,z,.085,.80,.085,K.M.wood);
+  // 32 cm further onto the rear veranda: the corner column passed through its top and its two front
+  // legs stood half over the veranda's edge.
+  box('Rear circuit old work table top',24.15,1.40,43.42,1.90,.10,.80,K.M.wood);
+  for(const x of [23.37,24.93])for(const z of [43.11,43.73])box('Rear circuit table leg',x,1.0,z,.085,.80,.085,K.M.wood);
   const circuitStones=[[47.55,21.3],[47.55,27.7],[47.55,30.55],[42.6,32.15],[35.8,32.15],[30.5,27.7]];
   for(const [x,z] of circuitStones){box('Small circuit ritual stone foot',x,.145,z,.25,.09,.25,oldStone);cyl('Small circuit rounded stone',x,.23,z,.08,.105,.10,weathered,8);}
   // A gentle fall to a shallow edge drain replaces a perfectly bare perimeter.
@@ -2132,6 +2134,8 @@ export function buildTemple(K) {
   const idol=mesh('Sanctum idol dark stone form',new THREE.CapsuleGeometry(.2,.62,6,14),idolStone,39,cF+1.03,26.45);idol.scale.set(1,1,.62);
   mesh('Sanctum idol brass crown',new THREE.ConeGeometry(.15,.32,12),brass,39,cF+1.55,26.45);
   const prabhavali=mesh('Sanctum brass prabhavali arch',new THREE.TorusGeometry(.58,.045,8,28,Math.PI),brass,39,cF+1.0,26.78);prabhavali.scale.y=1.25;
+  // The arch stands on two brass uprights rising from the pedestal's lowest step; it used to hang in the air behind the idol.
+  for(const x of [38.42,39.58])cyl('Sanctum prabhavali brass upright',x,cF+.62,26.78,.045,.045,.76,brass,10);
   const garland=mesh('Sanctum marigold garland',new THREE.TorusGeometry(.2,.04,6,18),mat('#e0891e',.9),39,cF+.95,26.3);garland.rotation.x=1.2;garland.scale.x=1.1;
   for(const x of [38.45,39.55]){
     cyl('Sanctum brass oil lamp stand',x,cF+.45,26.1,.035,.05,.9,brass,10);
