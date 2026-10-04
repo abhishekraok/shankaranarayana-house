@@ -1521,7 +1521,9 @@ export function buildHouse(K) {
   // 14.44.14/48: tall narrow courtyard-facing timber window. The upper
   // half is shuttered; six bars cross the dark lower opening, facing +Z.
   const courtWindowWood=verandaTimber.clone();courtWindowWood.color.setRGB(1.25,1.13,1.04);
-  b('Upper courtyard window dark recessed interior',-1.6,U+1.425,5.90,.85,1.65,.025,'black');
+  // The darkness behind the bars is a one-sided plane facing the court: as a box it was a black slab in the window from inside the upper room.
+  const windowDark=(name,x,y,w,h)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat('black'));m.name=name;m.position.set(x,y,5.9125);g.add(m);};
+  windowDark('Upper courtyard window dark recessed interior',-1.6,U+1.425,.85,1.65);
   for(const x of [-2.075,-1.125])b('Upper courtyard tall wooden window jamb',x,U+1.425,6.015,.10,1.82,.12,courtWindowWood);
   for(const y of [U+.555,U+2.295])b('Upper courtyard wooden window sill and head',-1.6,y,6.025,1.05,.095,.15,courtWindowWood);
   b('Upper courtyard window middle rail',-1.6,U+1.42,6.04,.90,.075,.095,courtWindowWood);
@@ -1532,7 +1534,7 @@ export function buildHouse(K) {
   }
   // 14.44.14: the same kind of timber window, smaller, shows right of the God room's eave (it was a wide pale grille).
   {const cx=3.6,y0=U+1.05,y1=U+2.25,ym=(y0+y1)/2,hh=y1-y0;
-   b('Upper courtyard east window dark recessed interior',cx,ym,5.90,.85,hh,.025,'black');
+   windowDark('Upper courtyard east window dark recessed interior',cx,ym,.85,hh);
    for(const x of [cx-.475,cx+.475])b('Upper courtyard east window jamb',x,ym,6.015,.10,hh+.17,.12,courtWindowWood);
    for(const y of [y0-.045,y1+.045])b('Upper courtyard east window sill and head',cx,y,6.025,1.05,.095,.15,courtWindowWood);
    b('Upper courtyard east window middle rail',cx,y0+hh*.55,6.04,.90,.075,.095,courtWindowWood);
