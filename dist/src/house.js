@@ -174,11 +174,11 @@ export function buildHouse(K) {
   // paths, under the lean-tos and before the rear fence. One painted map over the whole court top.
   if(typeof document!=='undefined'){const W=1024,H=554,cv=document.createElement('canvas');cv.width=W;cv.height=H;const c=cv.getContext('2d');
     let n=140911;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
-    c.fillStyle='#935c4a';c.fillRect(0,0,W,H);
+    c.fillStyle='#86523f';c.fillRect(0,0,W,H);
     for(let i=0;i<700;i++){c.fillStyle=r()<.6?`rgba(92,52,40,${.10+r()*.2})`:`rgba(176,124,100,${.06+r()*.12})`;c.beginPath();c.ellipse(r()*W,r()*H,4+r()*26,3+r()*14,r()*3,0,7);c.fill();}
     const near=(v,centre,half)=>Math.min(1,Math.abs(v-centre)/half);
     const greens=['78,116,66','100,138,82','116,152,96','62,100,54','90,126,74'];
-    for(let i=0;i<16000;i++){const px=r()*W,py=r()*H,x=-8.4+px/W*15.7,z=6+py/H*8.5;
+    for(let i=0;i<44000;i++){const px=r()*W,py=r()*H,x=-8.4+px/W*15.7,z=6+py/H*8.5;
       let d=.93;
       d*=.12+.88*near(x,3.25,.75);
       if(x<-2.7){d*=.15+.85*near(x,-3.7,.7);d*=.2+.8*near(z,10.8,.7);}
@@ -186,7 +186,7 @@ export function buildHouse(K) {
       if(z<7.7&&(x>2.3||x<-2.3))d*=.35;
       d*=.3+.7*Math.min(1,Math.max(0,(14.4-z)/.6));
       if(r()>d)continue;
-      const q=5+r()*11,gr=c.createRadialGradient(px,py,0,px,py,q);gr.addColorStop(0,`rgba(${greens[i%5]},${.55+r()*.4})`);gr.addColorStop(1,`rgba(${greens[i%5]},0)`);c.fillStyle=gr;c.fillRect(px-q,py-q,2*q,2*q);
+      const q=2.5+r()*6.5,gr=c.createRadialGradient(px,py,0,px,py,q);gr.addColorStop(0,`rgba(${greens[i%5]},${.55+r()*.4})`);gr.addColorStop(1,`rgba(${greens[i%5]},0)`);c.fillStyle=gr;c.fillRect(px-q,py-q,2*q,2*q);
       if(i%2){c.fillStyle=`rgba(${i%4===1?'44,78,32':'150,176,96'},${.25+r()*.3})`;c.beginPath();c.ellipse(px+r()*8-4,py+r()*8-4,1+r()*2.5,.6+r()*1.2,r()*3,0,7);c.fill();}}
     const cover=new THREE.CanvasTexture(cv);cover.colorSpace=THREE.SRGBColorSpace;cover.anisotropy=8;
     const coverMat=new THREE.MeshStandardMaterial({name:'court weed cover',map:cover,roughness:.95});
