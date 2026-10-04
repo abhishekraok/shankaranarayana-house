@@ -1176,7 +1176,9 @@ export function buildTemple(K) {
   // 180635: two high-silled windows, with a solid wall and beam pilaster
   // between them. The old third window occupied the electrical-board wall.
   const hallWindowCenters=[9.0,12.6],windowPaint=mat('#426577');
-  for(const [a,b] of [[6.4,8.35],[9.65,11.95],[13.25,stageEnd]])
+  // The wall starts at the lane doorway's inner jamb (z 7.15); the doorway is built with the
+  // road-corner block below.
+  for(const [a,b] of [[7.15,8.35],[9.65,11.95],[13.25,stageEnd]])
     box('Covered hall lane-side wall pier',20.30,2.03,(a+b)/2,.20,2.86,b-a,hallBlue,true);
   for(const z of hallWindowCenters){
     box('Covered hall window sill wall',20.30,1.22,z,.20,1.24,1.30,hallBlue,true);
@@ -2062,16 +2064,60 @@ export function buildTemple(K) {
   box('Temple road corner lower frontage',25.15,1.91,1.6,9.7,3.38,.3,edgeWhite,true);
   box('Temple road corner lower frontage east block',27.1,1.91,3.29,5.8,3.38,3.08,edgeWhite,true);
   // User's note: no white filler wall between the east block and the service bay.
-  box('Temple road corner lane-side wall',20.27,1.91,4.075,.14,3.38,4.65,edgeWhite,true);
+  // 15.11.00, '-45 degrees' and 15.10.30 (inside the hall): next to the hall's second window the
+  // lane wall has a real doorway with a barred transom, its panelled timber leaf swung into the
+  // hall on the road-side jamb; a narrow window stands between it and the road-end corner; a
+  // red dado runs along all the hall walls and a grey rolling shutter fills the road-end wall.
+  const laneDoor=[6.3,7.15],laneSlit=[3.825,4.475];
+  for(const [a,b] of [[1.75,laneSlit[0]],[laneSlit[1],laneDoor[0]]]){
+    box('Temple road corner lane-side wall',20.27,1.91,(a+b)/2,.14,3.38,b-a,edgeWhite,true);
+    box('Covered hall front extension blue wall face',20.36,2.08,(a+b)/2,.02,2.96,b-a,hallBlue);}
   floor('Covered hall front extension oxide floor',22.27,4.075,3.86,4.65,.60,hallFloor);
-  for(const [x,z,w,d] of [[20.36,4.075,.02,4.65],[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  for(const [x,z,w,d] of [[24.19,4.075,.02,4.65],[22.27,1.76,3.86,.02]])box('Covered hall front extension blue wall face',x,2.08,z,w,2.96,d,hallBlue);
+  {const zs=(laneSlit[0]+laneSlit[1])/2,ws=laneSlit[1]-laneSlit[0],zd=(laneDoor[0]+laneDoor[1])/2,wd=laneDoor[1]-laneDoor[0];
+   // Narrow window: same sill and head as the hall's two windows, half their width.
+   box('Temple road corner lane-side wall',20.27,1.03,zs,.14,1.62,ws,edgeWhite,true);
+   box('Temple road corner lane-side wall',20.27,3.435,zs,.14,.33,ws,edgeWhite,true);
+   box('Covered hall front extension blue wall face',20.36,1.22,zs,.02,1.24,ws,hallBlue);
+   box('Covered hall front extension blue wall face',20.36,3.415,zs,.02,.29,ws,hallBlue);
+   for(const dz of [-ws/2,ws/2])box('Covered hall narrow window blue jamb',20.36,2.555,zs+dz,.12,1.50,.07,windowPaint);
+   for(const y of [1.84,2.38,2.94,3.27])box('Covered hall narrow window blue crossbar',20.36,y,zs,.12,.07,ws+.07,windowPaint);
+   box('Covered hall narrow window middle upright',20.36,2.39,zs,.10,1.10,.05,windowPaint);
+   const slit=mesh('Covered hall narrow window pale glazing',new THREE.PlaneGeometry(ws,1.43),new THREE.MeshStandardMaterial({color:0xdce5dd,roughness:.95,side:THREE.DoubleSide}),20.30,2.555,zs);slit.rotation.y=Math.PI/2;
+   K.blocker(20.27,zs,.14,ws,1.84,3.27);
+   // Doorway .85 x 2.1 with a .4 barred transom; open to look through, closed to walking (the
+   // lane lies .56 m below the hall floor).
+   const doorTimber=mat('#5b4a44'),doorPanel=mat('#4a3c37');
+   box('Covered hall lane doorway head wall',20.30,3.35,zd,.20,.50,wd,hallBlue,true);
+   box('Covered hall lane doorway threshold',20.28,.51,zd,.16,.18,wd,hallFloor);
+   box('Covered hall lane doorway foundation',20.27,.32,zd,.14,.20,wd,edgeWhite);
+   for(const z of [laneDoor[0]+.04,laneDoor[1]-.04])box('Covered hall lane doorway blue frame',20.30,1.85,z,.24,2.50,.08,windowPaint);
+   for(const y of [2.70,3.08])box('Covered hall lane doorway blue frame',20.30,y,zd,.24,.08,wd,windowPaint);
+   for(let i=1;i<7;i++)box('Covered hall lane doorway transom timber bar',20.30,2.89,laneDoor[0]+.08+i*(wd-.16)/7,.035,.30,.03,doorTimber);
+   const leaf=new THREE.Group();leaf.name='Covered hall lane door open leaf';leaf.position.set(20.44,0,laneDoor[0]+.03);leaf.rotation.y=.17;g.add(leaf);
+   K.box(leaf,'Covered hall lane door timber leaf',.425,1.65,0,.85,2.10,.045,doorTimber);
+   for(let row=0;row<3;row++)for(const x of [.225,.625])K.box(leaf,'Covered hall lane door leaf sunk panel',x,.98+row*.66,.024,.31,.54,.012,doorPanel);
+   K.blocker(20.86,laneDoor[0]-.04,.86,.24,.6,2.7);
+   K.blocker(20.30,zd,.20,wd,.6,2.7);
+   // Red dado on the hall's walls (the rear wall and the piers already have theirs).
+   for(const [x,a,b] of [[20.3825,1.77,laneDoor[0]],[20.4125,laneDoor[1],stageEnd-.215],[24.1675,1.77,6.4]])box('Covered hall lane wall red dado',x,.88,(a+b)/2,.025,.56,b-a,red);
+   for(const [a,b] of [[20.37,20.90],[23.70,24.18]])box('Covered hall road-end wall red dado',(a+b)/2,.88,1.7825,b-a,.56,.025,red);
+   // The street shutter seen from inside: dark grey corrugated face under its roller housing
+   // (35,38,43 beside the blue wall's 160,188,199 in 15.11.00).
+   const shutterGrey=mat('#4a4e54',.7),ribs=[];
+   box('Covered hall road shutter inner face',22.3,1.775,1.785,2.72,2.35,.03,shutterGrey);
+   for(let y=.68;y<2.93;y+=.11)ribs.push([22.3,y,1.806,2.72,.04,.02]);
+   instances('Covered hall road shutter corrugation',new THREE.BoxGeometry(1,1,1),shutterGrey,ribs);
+   for(const x of [20.92,23.68])box('Covered hall road shutter guide rail',x,1.775,1.80,.06,2.35,.06,shutterGrey);
+   box('Covered hall road shutter roller housing',22.3,3.10,1.87,2.90,.30,.20,shutterGrey);
+  }
   box('Covered hall front extension ceiling',22.27,3.60,4.075,3.86,.16,4.65,white);
   box('Covered hall front square blue pier',22.27,2.08,6.4,.38,2.96,.38,hallBlue,true);
   box('Covered hall front pier red foot',22.27,.87,6.4,.40,.54,.40,red);
   box('Covered hall transverse white ceiling beam',22.27,3.36,6.4,3.86,.32,.30,white);
   box('Temple road corner upper storey',25.15,5.15,5.18,9.7,2.90,7.46,edgeWhite,true);
   box('Temple road corner red skirting',25.15,.47,1.42,9.72,.5,.07,red);
-  box('Temple road side red skirting',20.26,.47,5.15,.07,.5,7.55,red);
+  for(const [a,b] of [[1.375,6.3],[7.15,8.925]])box('Temple road side red skirting',20.26,.47,(a+b)/2,.07,.5,b-a,red); // cut at the lane doorway
   // 14.59.21 / 15.19.36 / 15.20.01 (close, from the forecourt): five slim piers on even bays of
   // about 3.6 m, one thing per bay from the road corner: shutter, window, sign board, window.
   for(const x of [20.38,24.0,27.63]){
@@ -2127,10 +2173,11 @@ export function buildTemple(K) {
   for(const x of [20.20,30.03])box('Temple road rooftop side parapet',x,7.24,4.37,.18,.80,9.25,balconyRed);
   // Narrow weathered covering hangs along the road-facing side of the balcony.
   const sideAwning=box('Temple road side sloping eave',19.91,6.40,4.73,.87,.09,9.2,darkRoof);sideAwning.rotation.z=.25;K.roofs.push(sideAwning);
-  for(const z of [4.15,6.70,8.46]){
-    box('Temple roadside small dark doorway',20.265,1.40,z,.025,2.28,.82,blue);
-    box('Temple roadside projecting door canopy',19.98,2.69,z,.74,.12,1.18,edgeWhite);
-  }
+  // The lane wall's doorway (z 6.3..7.15) and narrow window (z 4.15) are real openings now; the
+  // window's canopy sits above its head instead of across it. The flat blue door panels are gone:
+  // they lay inside the wall, and the third showed only as a blue patch in the hall window's
+  // opening (180635 shows that window clear).
+  for(const z of [4.15,6.70,8.46])box('Temple roadside projecting door canopy',19.98,z<5?3.36:2.69,z,.74,.12,1.18,edgeWhite);
   box('Temple road rear connector ceiling',22.26,3.56,10.23,4.0,.12,2.65,edgeWhite);
   // The narrow exterior stair is photographed. Its upper connection is estimated.
 
