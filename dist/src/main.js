@@ -42,7 +42,7 @@ ground(-73.675,0,136.65,240);ground(-5.175,-72.6,.35,94.8);ground(-5.175,48.6,.3
 // Shallow notch below the far-bank stair's first below-grade risers.
 ground(-4.25,-77,1.5,80);ground(5.5,-77,13.2,80);ground(-2.3,-77.7,2.4,78.6);ground(23.65,-77,18.5,80);ground(44.55,-77,18.9,80);ground(34,-79.4,2.2,81.2);ground(13.25,-77.1,2.3,79.8);
 // Leave an actual opening under the small forecourt pond (21.2..26.2, 3 m deep, set back with the temple).
-ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);ground(24.5,-3+K.templeShiftZ/2,59,K.templeShiftZ);ground(24.5,60+K.templeShiftZ/2,59,120-K.templeShiftZ);ground(8.1,K.templeShiftZ-1.5,26.2,3);ground(40.1,K.templeShiftZ-1.5,27.8,3);
+ground(24.5,-6,59,6);ground(52.175,-23,3.65,28);ground(49.875,-30.25,.95,13.5);ground(49.875,-14.9,.95,11.8);ground(24.5,K.templeShiftZ/2-4.3,59,K.templeShiftZ-2.6);ground(24.5,K.templeShiftZ-.7,59,1.4);ground(24.5,60+K.templeShiftZ/2,59,120-K.templeShiftZ);ground(11,K.templeShiftZ-3.5,32,4.2);ground(43,K.templeShiftZ-3.5,22,4.2);
 const landscape=buildLandscape(K,{mobile:phoneMode});scene.add(landscape);const house=buildHouse(K);scene.add(house);const temple=buildTemple(K);scene.add(temple);
 const optimization=[house,temple,landscape].map(root=>optimizeStaticScene(root,K.roofs,phoneMode?12:24,phoneMode?16:32));
 
@@ -123,7 +123,7 @@ for(const key of ['lakeleft','lakemiddle','lakehouse'])destinations[key]=photos[
 photos.templepicturesleft={url:'temple-ganesh-shiva.jpg',caption:'September 2011 · Ganesh and Shiva, left of the entrance · 15.14.30',p:[42.8,.85,7.75],target:[43.3,2.25,10.32],fov:76};
 photos.templevishnu={url:'temple-vishnu.jpg',caption:'September 2011 · Vishnu, right of the entrance · 15.15.11',p:[35.5,.85,7.75],target:[35.65,2.25,10.32],fov:58};
 photos.templehanuman={url:'temple-hanuman.jpg',caption:'September 2011 · Hanuman, far right · 15.15.17',p:[33.8,.85,7.75],target:[33.8,2.25,10.32],fov:58};
-photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[23.7,.051,0.4],target:[23.7,-.25,3.2],fov:78};
+photos.templepond={url:'temple-front-pond.jpg',caption:'September 2011 · Small pond in front of the temple · 15.20.01',p:[29.5,.051,-2.4],target:[29.5,-.25,1.0],fov:78};
 photos.templeacross={url:'temple-across-lake.jpg',caption:'September 2011 · Temple frontage from across the lake · 15.22.12',p:[42,1.38,-37.4],target:[36,3.6,5.5],fov:58};
 for(const key of ['templepicturesleft','templevishnu','templehanuman','templepond','templeacross'])destinations[key]=photos[key];
 photos.shop={url:'shop-temple-side.jpg',caption:'September 2011 · Shop beside the adjacent building, from outside the temple · 15.20.13',p:[54.37,.486,-12.6],target:[59.6,2.57,-21.1],fov:60};
@@ -148,7 +148,7 @@ function lakeCameraLift(x,z){z=farZinv(z,x);
 }
 
 function inside(x,z,r){return Math.abs(x-r.x)<=r.w/2+.001&&Math.abs(z-r.z)<=r.d/2+.001;}
-function terrainY(x,z){z=farZinv(z,x);if(x>32.9&&x<35.1&&z>-38.8&&z<=-37)return -8;if(x>-5.35&&x<=-5&&z>-25.2&&z<-22.8||x>=49.4&&x<50.35&&z>-23.5&&z<-20.8||x>-3.5&&x<-1.1&&z>-38.4&&z<=-37||x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(x>21.3&&x<26.1&&z>K.templeShiftZ-3&&z<K.templeShiftZ)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
+function terrainY(x,z){z=farZinv(z,x);if(x>32.9&&x<35.1&&z>-38.8&&z<=-37)return -8;if(x>-5.35&&x<=-5&&z>-25.2&&z<-22.8||x>=49.4&&x<50.35&&z>-23.5&&z<-20.8||x>-3.5&&x<-1.1&&z>-38.4&&z<=-37||x>12.10&&x<14.40&&z>-37.20&&z<=-37)return -8;if(K.templeShiftZ>=3.4&&x>27.2&&x<31.8&&z>K.templeShiftZ-5.5&&z<K.templeShiftZ-1.5)return -1.05;return x>-5&&x<49.4&&z>-37&&z<-9?-8:0;}
 function supportY(x,z,previous){let best=terrainY(x,z);for(const s of K.surfaces){if(inside(x,z,s)&&s.y<=previous+.38&&s.y>best)best=s.y;}
  for(const r of K.ramps)if(inside(x,z,r)){let t=r.axis.endsWith('x')?(x-(r.x-r.w/2))/r.w:(z-(r.z-r.d/2))/r.d;if(r.axis.startsWith('-'))t=1-t;const h=THREE.MathUtils.lerp(r.lowY,r.highY,THREE.MathUtils.clamp(t,0,1));if(h<=previous+.38&&h>best)best=h;}
  return best;

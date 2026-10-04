@@ -129,11 +129,9 @@ for(const m of main.matchAll(/ground\(([-.\d]+),([-.\d]+),([-.\d]+),([-.\d]+)\)/
   const [x,z,w,d]=m.slice(1).map(Number);K.box(soilGroup,'Actual terrain',x,-.22,z,w,.44,d,'earth');
 }
 soilGroup.updateMatrixWorld(true);
-for(const [x,z] of [[23.7,-1.5],[22.4,-1.5],[25.0,-1.5]]){
-  const hits=new THREE.Raycaster(new THREE.Vector3(x,2,z),new THREE.Vector3(0,-1,0)).intersectObjects([landscape,soilGroup,temple],true);
-  assert.equal(hits[0]?.object.name,'Temple small pond recessed water','The pond is open, with no soil or road covering the water');
-  assert.ok(hits[0].point.y<-.7,'Water lies below ground level');
-}
+// The forecourt pond needs the set-back forecourt, so it is not built at this authored placement;
+// tests/temple-setback.mjs checks that it is open at the shipped one.
+assert.equal(landscape.getObjectByName('Temple small pond recessed water'),undefined,'No pond without the set-back');
 for(const key of ['templepond','templeacross']){
   const p=photos[key].p;assert.ok(!collision(p[0],p[2],p[1]),key+' viewpoint is clear');
   assert.ok(Math.abs(supportY(p[0],p[2],p[1])-p[1])<.06,key+' viewpoint is supported');
