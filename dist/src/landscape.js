@@ -562,6 +562,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Two opposed flights in 15.28.13: down from the rotated gate and up
   // to the long arcade, joined by the exposed low ledge beside the water.
   steps('near bank bathing steps',17.75,bathingGateZ,2.7,2.1,'-x',-1.55,.055,9);
+  // The terrain slab overhangs the bathing recess by 0.4 m and showed as a red shelf over the steps and walkway;
+  // a stone coping course wraps that edge (x 16.4..29.6).
+  box('Bathing recess stone coping course',23.0,-.2325,-8.81,13.2,.475,.42,tankWall);
   box('near bank lower landing',19.25,-1.61,bathingGateZ,.4,.12,2.1,materials.wetStone);
   K.surface(19.25,bathingGateZ,.4,2.1,-1.55);
   box('Temple bank lower connecting walkway',23.44,-1.63,bathingGateZ,8.78,.16,2.1,materials.wetStone);
