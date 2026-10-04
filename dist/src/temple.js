@@ -410,7 +410,9 @@ export function buildTemple(K) {
   // 15.15.51: from the entrance hall the gallery slab reads as a whitewashed ceiling.
   box('Entrance hall whitewashed ceiling under gallery',37.79,3.892,2.08,15.23,.012,8.0,white);
   box('Entrance hall whitewashed ceiling under gallery',47.39,3.892,2.08,.87,.012,8.0,white);
-  steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22);
+  // The stair's solid flank and risers are whitewashed masonry like the hall around them (15.13.51: an
+  // all-white hall); in the default dark riser stone the flank was a 3.5 m olive triangle on the white wall.
+  steps('Temple gallery access stair',46.18,3.49,1.52,4.86,.6,4.08,'z',22,stoneFloor,white);
   // Rails stay inside the stair well (x 45.42-46.94) and stop at the landing, clear of the
   // gallery slab and the upper stairwell guard.
   for(const x of [45.50,46.86]){K.beam(g,'Gallery stair timber handrail',[x,1.58,1.06],[x,5.01,5.80],.065,K.M.wood);
