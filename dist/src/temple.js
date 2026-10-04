@@ -259,7 +259,8 @@ export function buildTemple(K) {
     const w=x<39?6.04:8.195,cx=x<39?35.32:43.7575;
     box('Ground rear wall',cx,2.26,6.1,w,3.32,.24,white,true);
     // 15.14.30 / 15.15.11: grey veined marble dado under the paintings, not red skirting.
-    box('Rear grey marble dado',cx,1.05,5.955,w,.40,.05,mat('#9a9a92',.4));
+    // Both photos show the dado at about 0.22 of a frame's height: 0.3 m, not 0.4.
+    box('Rear grey marble dado',cx,1.0,5.955,w,.30,.05,mat('#9a9a92',.4));
     box('Upper wall white band',cx,3.62,5.955,w,.19,.05,white); // 15.14.30: plain white up to the ceiling
   }
   box('Open passage header',39,3.345,6.1,1.32,1.15,.25,white);
@@ -322,12 +323,13 @@ export function buildTemple(K) {
   }
   // Rectify the four photographed frames with a projective UV map. Source
   // photographs remain unchanged; subdivision preserves the perspective warp.
-  // 15.14.30 / 15.15.11 / 15.15.51: the frames hang a hand above the marble dado and end near the
-  // door-head line (about 1.5 m tall, not 2 m); the outer pair (Ganesh, Hanuman) is about 1.3 times
+  // 15.14.30 / 15.15.11 / 15.15.51: the frames hang a hand above the marble dado and end a little
+  // below the door head (measured on 15.15.51 against the 2.48 m surround: about 1.35 m tall, top
+  // about 0.2 m under the opening's head; they were 2 m); the outer pair (Ganesh, Hanuman) is about 1.3 times
   // as wide as the inner pair, which starts some 0.4 m beyond a notched white pilaster at the
   // door surround, with about 0.4 m of wall between frames.
-  function deityPhoto(name,x,url,corners,w,h=1.5){
-    const yc=1.35+h/2;
+  function deityPhoto(name,x,url,corners,w,h=1.35){
+    const yc=1.22+h/2; // bottom 7 cm above the dado; top 0.25 m under the door head, as in 15.15.51
     const tex=new THREE.TextureLoader().load('./assets/'+url);tex.colorSpace=THREE.SRGBColorSpace;
     const q=corners.map(([u,v])=>[u/1824,v/1368]);
     const [a,b,c,d]=q,dx1=b[0]-c[0],dx2=d[0]-c[0],dx3=a[0]-b[0]+c[0]-d[0];
@@ -346,16 +348,19 @@ export function buildTemple(K) {
   // Facing into the temple, +X is the viewer's left: Ganesh, Shiva, Vishnu, Hanuman.
   // Ganesh: the lower corners stop under the caption, above the red pedestal that stood in front
   // of the frame's corner in the source photograph.
-  deityPhoto('Entrance Ganesh original painting',43.375,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[863,902],[312,917]],1.55);
-  deityPhoto('Entrance doorway left original painting',41.6,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]],1.2);
-  deityPhoto('Entrance doorway right original painting',36.4,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]],1.2);
-  deityPhoto('Entrance Hanuman original painting',34.625,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]],1.55);
+  // Sizes: inner pair 1.0 x 1.35 (portrait, width/height .72-.74 in the near-frontal 15.15.11 and in
+  // 15.14.30), outer pair 1.35 square; the inner frames' door-side edges lie just behind the
+  // pillars as seen in 15.15.51 (1.95 m from the axis).
+  deityPhoto('Entrance Ganesh original painting',42.975,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[863,902],[312,917]],1.35);
+  deityPhoto('Entrance doorway left original painting',41.45,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]],1.0);
+  deityPhoto('Entrance doorway right original painting',36.55,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]],1.0);
+  deityPhoto('Entrance Hanuman original painting',35.025,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]],1.35);
   // 15.16.13 / 15.14.30: white pilaster with projecting blocks between the surround and the first
   // painting on each side; the marble dado returns round its foot.
   for(const s of [-1,1]){
     box('Entrance rear wall notched pilaster',39+s*1.37,2.125,5.89,.26,2.55,.18,whiteTrim);
     for(const y of [1.55,2.30,3.05])box('Entrance rear wall pilaster block',39+s*1.56,y,5.89,.12,.35,.18,whiteTrim);
-    box('Entrance rear wall pilaster marble foot',39+s*1.43,1.05,5.875,.40,.40,.20,doorPlinth);}
+    box('Entrance rear wall pilaster marble foot',39+s*1.43,1.0,5.875,.40,.30,.20,doorPlinth);}
   doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283]);
   // The painted blue marbling and red drapes of the surround, from the same photograph.
   doorPhoto('Entrance doorway original painted left surround',39.95,1.81,5.745,.58,1.92,[.2975,.27,.395,.70]);

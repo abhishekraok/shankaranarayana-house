@@ -97,6 +97,7 @@ assert.equal(temple.getObjectByName('Central white entrance gable'),undefined,'A
 assert.equal(temple.getObjectByName('Left lower guardian'),undefined);
 const doorEye=new THREE.Vector3(...photos.templedoor.p).add(new THREE.Vector3(0,1.62,0));
 for(const [point,prefix] of [
+  // Aim a little off the panels' centre line: a ray along a shared triangle edge can miss both faces.
   [[41.6,2.1,5.82],'Entrance doorway left original painting'],
   [[36.4,2.1,5.82],'Entrance doorway right original painting'],
   [[39,3.18,5.738],'Entrance doorway original inscription'],
