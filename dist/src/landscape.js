@@ -1475,6 +1475,18 @@ export function buildLandscape(K, {mobile=false}={}) {
    // from there on only the building's own plinth shows behind it.
    for(const [zc,len] of [[-9.05,2.7],[.8,7.2]]){
      box('Adjacent building forecourt terrace',58.35,.85,zc,3.3,1.7,len,terraceMat,true);K.surface(58.35,zc,3.3,len,1.7);} // x 56.7..60: clear of the tour's path at x 56.2
+   // The world-mapped blotch texture went soft and smeared up close: the faces get a sharper one fitted to
+   // their 1.7 m height (rain streaks from the top, grit, moss at the foot) and the top a plain weathered one.
+   {const c=document.createElement('canvas');c.width=512;c.height=256;const x=c.getContext('2d');let n=40127;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle='#80746b';x.fillRect(0,0,512,256);
+    for(let i=0;i<26;i++){const px=r()*512,py=r()*256,rad=14+r()*40,a=(.18+r()*.2).toFixed(3),rgb=r()<.5?'168,160,148':'70,62,56',g=x.createRadialGradient(px,py,0,px,py,rad);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(px-rad,py-rad,rad*2,rad*2);}
+    for(let i=0;i<150;i++){const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,`rgba(30,28,26,${(.2+r()*.3).toFixed(3)})`);g.addColorStop(.4+r()*.6,'rgba(30,28,26,0)');x.fillStyle=g;x.fillRect(r()*512,0,1+r()*4,256);}
+    for(let i=0;i<5000;i++){x.fillStyle=r()<.5?'rgba(170,164,152,.25)':'rgba(40,38,34,.28)';x.fillRect(r()*512,r()*256,1+r()*2,1+r()*2);}
+    {const g=x.createLinearGradient(0,206,0,256);g.addColorStop(0,'rgba(58,74,42,0)');g.addColorStop(1,'rgba(58,74,42,.55)');x.fillStyle=g;x.fillRect(0,206,512,50);}
+    const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.anisotropy=4;m.repeat.set(.5,1/.85);m.offset.set(0,.5);
+    const side=new THREE.MeshStandardMaterial({map:m,roughness:1});side.name='forecourt terrace stained side';
+    const top=new THREE.MeshStandardMaterial({map:stainMap(40128,'#7e776e',[[10,'160,154,144',.4,16,50],[14,'60,56,50',.4,10,36],[8,'74,86,52',.3,8,24]]),roughness:1});top.name='forecourt terrace top';
+    for(const o of group.children)if(o.name==='Adjacent building forecourt terrace')o.material=[side,side,top,side,side,side];}
    for(const [zc,d,top] of [[-7.3,.8,1.69],[-2.95,.3,1.7]]){
      box('Adjacent building stair white cheek',57.85,top/2,zc,2.3,top,d,adjacentWhite,true);K.surface(57.85,zc,2.3,d,top);}
    for(const [za,zb] of [[-15,-7.5],[-.7,5]])for(const [k,proj] of [.30,.18,.06].entries())
