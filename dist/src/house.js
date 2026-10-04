@@ -610,7 +610,7 @@ export function buildHouse(K) {
   for(const s of [-1,1])b('Inner passage plinth face',s*1.21,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey); // 2.5 cm proud of the red plinth: flush, the two flickered
   // User's notes (game, 2026-10-02): the court pocket and the lowered hall floor are the passage's smooth dark stone.
   for(const o of g.children)if(o.name==='Entrance right lower court pocket'||o.name==='Inner hall ground-level floor')o.material=innerEntryStone;
-  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.19,hallX-3.81,F-EL,.03,riserGrey);
+  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2-.002,2.19,hallX-3.81,F-EL-.004,.03,riserGrey); // top 4 mm under the plinth top: flush, a 3 cm strip of the two flickered at the foot of the facade wall
   floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,edgeStone,.26-EL); // the veranda's smooth dark stone: the jointed green-grey kit stone read as a stack of blocks on the smooth dark floor
   const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
   const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
