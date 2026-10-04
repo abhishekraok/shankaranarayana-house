@@ -229,7 +229,8 @@ export function buildLandscape(K, {mobile=false}={}) {
       const zz=z+range(-.72,.72),w=range(.38,1.0),d=range(.32,.63),color=new THREE.Color().setScalar(range(.77,1.15));
       if(x+w/2>-3.5&&x-w/2<-1.1&&zz+6+d/2>-38.4)continue;
       if(x+w/2>32.9&&x-w/2<35.1&&zz+6+d/2>-38.8)continue;
-      blockBatch('path paving variation',materials.mortar,x,.057,zz,w,.012,d,color);
+      // The loose grey slabs this used to scatter on the far-bank path are in no photograph and read as
+      // stray manhole covers on the mud road and the lawn terraces; the draws above stay so later seeds hold.
     }
   }
 
