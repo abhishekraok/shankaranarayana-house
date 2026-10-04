@@ -859,6 +859,8 @@ export function buildTemple(K) {
   box('Rear open bay shaded back wall',32.5,2.325,37.825,5.8,2.25,.02,shadedRearPlaster);
   box('Rear west gate room side wall',29.6,2.025,36.71,.2,2.85,2.26,shadedRearPlaster,true);
   box('Rear west doorway dark recess',28.15,1.775,35.62,2.6,2.35,.025,dark);
+  // From the veranda inside the gate room the recess sheet was a black slab; its room side is plaster.
+  box('Rear west gate room inner face',28.15,1.775,35.645,2.6,2.35,.012,shadedRearPlaster);
   {const gateNavy=mat('#1b2836'),gatePanel=mat('#5b8ca6'),xl=27.62,xr=28.67;
    for(const x of [xl,xr])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
    box('Rear west gate dark meeting stile',28.145,1.75,35.34,.06,2.3,.07,gateNavy);
