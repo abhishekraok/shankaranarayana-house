@@ -1254,7 +1254,8 @@ export function buildTemple(K) {
   const stageEnd=19.9;
   box('Covered hall rear end wall',21.45,2.03,stageEnd-.1,2.4,2.86,.20,hallBlue,true);
   box('Covered hall rear red dado',21.45,.88,stageEnd-.215,2.4,.56,.025,red);
-  floor('Covered hall stage bay oxide floor',21.45,(16.2+stageEnd)/2,2.3,stageEnd-16.2,.60,hallFloor);
+  // Runs to the west veranda's edge (x 22.64): a 4 cm slit used to show the ground between the two floors.
+  floor('Covered hall stage bay oxide floor',21.47,(16.2+stageEnd)/2,2.34,stageEnd-16.2,.60,hallFloor);
   box('Covered hall stage bay white ceiling',21.45,3.60,(16.2+stageEnd)/2,2.4,.16,stageEnd-16.2,white);
   // 180635: two high-silled windows, with a solid wall and beam pilaster
   // between them. The old third window occupied the electrical-board wall.
