@@ -382,7 +382,9 @@ export function buildHouse(K) {
    for(const z of [9.905,10.995])b('Clock-side room door dark timber jamb',11.72,F+1.15,z,.1,2.3,.09,'wood');
    b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
    const leaf=b('Clock-side room open door leaf',12.3,F+1.12,10.0,.9,2.22,.05,'wood');leaf.rotation.y=-.35;
-   for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
+   // Kept inside the end walls (their ends ran through them at z 8.6 and 12.4) and carried on wall cleats instead of hanging in the air.
+   for(const [z,y] of [[9.4,1.2],[11.6,1.6]]){b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');
+     for(const dz of [-.45,.45])b('Clock-side room shelf cleat',15.15,F+y-.115,z+dz,.07,.18,.05,'wood');}}
   // 14.44.22: the back veranda wall is pale plaster to the floor, with no red dado.
   skirting=false;
   wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.1,bottom:.8,top:2.1}],rearWash);
