@@ -1875,8 +1875,19 @@ export function buildTemple(K) {
     for(const z of [21.1,23.5,25.9,28.0])innerColumn('Inner perimeter stone column',x,z,1.55,1.93,.77);
     box('Inner perimeter heavy stone lintel',x,3.54,24.5,2.5,.30,8.4,sanctumStone);
   }
-  box('Inner rear raised ledge',39,.79,28.92,14.1,.44,1.05,sanctumStone,true);
-  innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.03);
+  // 15.08.42 / 'temple inner sanctum, left side': the rear ledge is as high as the side ledges and
+  // meets them at the corners; its face is pinkish-red stone, and a two-step stone block stands
+  // against it in each corner under the end bay (shown, not walkable).
+  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
+  innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
+  for(const x of [34.55,43.45]){
+    box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
+    box('Inner rear corner stone step block',x,.88,28.27,.9,.66,.25,sanctumStone,true);}
+  // 15.08.42: a black steel post stands in the west aisle at the mandapa's plinth, up to the
+  // skylight frame.
+  {const steelBlack=mat('#1f2022',.6);
+   box('Inner aisle black steel post',36.0,2.6,23.0,.10,4.1,.10,steelBlack,true);
+   box('Inner aisle black steel post base plate',36.0,.565,23.0,.5,.03,.5,steelBlack);}
   // 15.08.42: the perimeter column ledges have recessed relief panels,
   // narrow dividing ribs and layered projecting copings. Individual figures are
   // unresolved; use subdued foliage relief instead of inventing deity portraits.
@@ -1911,24 +1922,27 @@ export function buildTemple(K) {
   instances('Inner ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),ledgeRecess,recesses);
   instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
   instances('Inner ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),ledgeRelief,foliage);
-  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.03,2.45,.77);
+  // The rear columns, curtains, panels and doors stand on the raised ledge (top 1.55).
+  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.55,1.93,.77);
   for(const x of [36.9,40.5]){
-    box('Inner rear white cloth curtain',x,2.18,29.39,2.25,2.15,.025,whiteTrim);
-    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.18,29.36,.032,2.15,.03,white);
+    box('Inner rear white cloth curtain',x,2.45,29.39,2.25,1.7,.025,whiteTrim);
+    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.45,29.36,.032,1.7,.03,white);
   }
+  K.blocker(39,29.45,14.1,.1,1.5,3.5); // nothing but a thin panel line closes the rear above the ledge
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
-  const innerDarkStone=mat('#6d6a62',.95),innerEastBlue=mat('#3a82ad',.85);
+  const innerDarkStone=mat('#5f4744',.95),innerEastBlue=mat('#3a82ad',.85); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
   for(const x of [31.96,46.04])for(const z of [21.0,23.4,25.8,28.1])
     box('Inner perimeter pale wall panel',x,2.02,z,.025,2.05,2.18,x>40?innerEastBlue:white);
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
-    box('Inner rear pale wall panel',x,2.02,29.445,2.08,2.05,.025,innerDarkStone);
-  box('Inner rear closed blue double door',43.45,2.13,29.40,1.35,2.2,.06,blue);
-  box('Inner rear blue door stile',43.45,2.13,29.34,.05,2.2,.08,vividBlue);
-  // 15.08.42: the west corridor also ends at a blue door beside its last pillar.
-  box('Inner rear west closed blue double door',34.55,2.13,29.40,1.35,2.2,.06,blue);
-  box('Inner rear west blue door stile',34.55,2.13,29.34,.05,2.2,.08,vividBlue);
+    box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
+  box('Inner rear closed blue double door',43.45,2.50,29.40,1.03,1.9,.06,blue);
+  box('Inner rear blue door stile',43.45,2.50,29.34,.05,1.9,.08,vividBlue);
+  // 15.08.42: the west corridor also ends at a blue door beside its last pillar; it stands on the
+  // ledge, about a metre wide and as tall as the columns.
+  box('Inner rear west closed blue double door',34.55,2.50,29.40,1.03,1.9,.06,blue);
+  box('Inner rear west blue door stile',34.55,2.50,29.34,.05,1.9,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
