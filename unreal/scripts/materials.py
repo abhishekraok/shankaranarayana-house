@@ -164,6 +164,12 @@ assert all(math.isfinite(v) for v in FOLIAGE_STYLE.values()), 'Invalid foliage s
 assert FOLIAGE_STYLE['LeafCellCM'] > 0 and FOLIAGE_STYLE['LeafClumpCM'] > 0, 'Foliage cells must be positive'
 assert 0 <= FOLIAGE_STYLE['LeafFineContrast'] <= 1.8 and 0 <= FOLIAGE_STYLE['LeafClumpContrast'] <= 2, 'Invalid foliage contrast'
 
+def glb_material_names(part):
+    import struct
+    blob = open(os.path.join(HERE, '..', '..', 'blender', 'build', 'unreal', part + '.glb'), 'rb').read()
+    size = struct.unpack_from('<I', blob, 12)[0]
+    return {m['name'] for m in json.loads(blob[20:20+size]).get('materials', [])}
+
 def exclusive_materials(object_name, also=()):
     objects = [o for o in meta['objects'] if o['name'] == object_name]
     assert len(objects) == 1, f'Expected one object: {object_name}'
@@ -477,7 +483,11 @@ for part in PARTS:
             continue
         i = lookup(slot)
         if i is None and sm.material_interface: i = lookup(sm.material_interface.get_name())
-        if i is None: missing.add(slot); continue
+        if i is None:
+            # A reimport keeps slots the new mesh no longer uses; unnamed materials are named by index, so such
+            # a slot's name can vanish from the table. It is stale if the fresh GLB has no material of that name.
+            if slot not in glb_material_names(part): continue
+            missing.add(slot); continue
         sm.material_interface = instance(i)
     mesh.set_editor_property('static_materials', slots)
     EAL.save_loaded_asset(mesh)
