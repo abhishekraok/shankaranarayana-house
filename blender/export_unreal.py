@@ -619,7 +619,7 @@ def main(argv):
                                                  if np.any((upper - lower)[:2] > args.cell_size)]}
             manifest.extend(export_bucket(bucket, name, kind, out, vl, audit, override=override))
             audits.append(audit)
-    if sum(record['triangles'] for audit in audits for record in audit['native_material_overrides']) != override['triangles']:
+    if sum(record['triangles'] for audit in audits for record in audit['native_material_overrides']) != (override['triangles'] if override else 0):
         raise RuntimeError('Native fence alias triangle coverage changed')
     with open(os.path.join(out, 'parts.json'), 'w', encoding='utf-8') as handle:
         json.dump(manifest, handle, indent=2)
