@@ -798,7 +798,11 @@ export function buildTemple(K) {
   // not the former solid wall or the unsupported room above the west passage.
   // 15.11.17: the open upper terrace and the open ground bay read at about a third or less of the
   // sunlit wall beside them (23,28,32 and 52,46,47 against 136,155,186); '#73766d' rendered at half.
-  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#4e514b');
+  // The sky occlusion now supplies part of this shade. Painted '#4e514b' as well, the bay's back wall rendered
+  // 34,40,32 from the 15.11.17 pose beside a sunlit wall at 151,166,171, where the photo has 52,46,47 beside
+  // 136,155,186, and it read as an unlit olive slab from the veranda. Plain plaster ('#b4b6ad') rendered
+  // 130,140,124, far too light; this warm mid grey (58,51,43 from that pose) lands on the photo's ratio.
+  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#6b5d59');
   {const x0=24.8,x1=34.7,xm=(x0+x1)/2,w=x1-x0,zf=35.35,y0=3.69,y1=6.55;
    const XJ=28.15; // 15.11.17: the jali and the dome stand over the gate bay (x 26.7..29.6)
    K.box(rearRoof,'Rear upper storey back wall',xm,(y0+y1)/2,37.90,w,y1-y0,.22,shadedRearPlaster,true);
