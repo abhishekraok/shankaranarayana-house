@@ -7,8 +7,10 @@ body:has(#welcome:not([hidden])) .location-card,body:has(#welcome:not([hidden]))
 
 #about a{color:var(--gold);text-underline-offset:4px}#about a:focus-visible{outline:2px solid var(--gold);outline-offset:4px}
 @media(max-width:400px){.identity h1{font-size:18px}.topbar{gap:8px}.top-actions{gap:4px}}
-body[data-mode=tour] .location-card,body[data-mode=tour] #touch-controls{display:none}
-#tour-controls{display:flex;gap:12px}#tour-controls button{border:1px solid #e5dec53c;padding:8px 12px;border-radius:4px}
+body[data-mode=tour] #touch-controls{display:none}
+/* The caption card stays up during the tour and carries Pause / Next view; a soft backing keeps it readable over bright walls and grass. */
+.location-card{padding:10px 14px;margin:0 0 -10px -14px;border-radius:6px;background:#1b30298c;backdrop-filter:blur(8px)}
+#tour-controls{display:flex;gap:8px;margin-left:8px;pointer-events:auto;text-shadow:none}#tour-controls button{border:1px solid #e5dec566;padding:8px 12px;border-radius:4px;background:#20352ecc;font-size:12px;white-space:nowrap}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
@@ -25,7 +27,8 @@ body[data-mode=tour] .location-card,body[data-mode=tour] #touch-controls{display
  .settings{bottom:calc(70px + env(safe-area-inset-bottom));right:12px;left:auto;max-width:calc(100% - 24px);max-height:calc(100dvh - 160px);overflow-y:auto}
  body.controls-expanded .location-card,body.controls-expanded #touch-controls{display:none}
 }
-@media(pointer:coarse) and (max-width:950px){#touch-controls{bottom:calc(76px + env(safe-area-inset-bottom))}.location-card{bottom:calc(190px + env(safe-area-inset-bottom))}}
+@media(pointer:coarse) and (max-width:950px){#touch-controls{bottom:calc(76px + env(safe-area-inset-bottom))}.location-card{bottom:calc(190px + env(safe-area-inset-bottom))}body[data-mode=tour] .location-card{bottom:calc(76px + env(safe-area-inset-bottom))}}
+@media(max-width:740px), (max-width:950px) and (max-height:500px){.location-card{flex-wrap:wrap}.location-card>div:first-of-type{flex:1;min-width:0}#tour-controls{flex-basis:100%;margin:6px 0 0 19px}#tour-controls button{min-height:44px;padding:0 16px}}
 
 /* Optional authoring panel; absent from normal exploration. */
 #align-status{color:#e3cb96}
