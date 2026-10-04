@@ -1912,14 +1912,14 @@ export function buildTemple(K) {
   // against it in each corner under the end bay (shown, not walkable).
   box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
   innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
-  for(const x of [34.55,44.1]){
+  for(const x of [33.85,44.1]){
     box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
     box('Inner rear corner stone step block',x,.88,28.27,.9,.66,.25,sanctumStone,true);}
-  // 15.08.42: a black steel post stands in the west aisle at the mandapa's plinth, up to the
-  // skylight frame.
+  // 15.08.42: a black steel post stands in the west aisle at the mandapa's rear corner, just outside
+  // its eave, up to the skylight frame.
   {const steelBlack=mat('#1f2022',.6);
-   box('Inner aisle black steel post',36.0,2.6,23.0,.10,4.1,.10,steelBlack,true);
-   box('Inner aisle black steel post base plate',36.0,.565,23.0,.5,.03,.5,steelBlack);}
+   box('Inner aisle black steel post',35.93,2.6,26.9,.10,4.1,.10,steelBlack,true);
+   box('Inner aisle black steel post base plate',35.93,.565,26.9,.5,.03,.5,steelBlack);}
   // 15.08.42: the perimeter column ledges have recessed relief panels,
   // narrow dividing ribs and layered projecting copings. Individual figures are
   // unresolved; use subdued foliage relief instead of inventing deity portraits.
@@ -1955,15 +1955,22 @@ export function buildTemple(K) {
   instances('Inner ledge layered coping and panel ribs',new THREE.BoxGeometry(1,1,1),sanctumStone,ribs);
   instances('Inner ledge worn foliage relief',new THREE.SphereGeometry(1,8,6),ledgeRelief,foliage);
   // The rear columns, curtains, panels and doors stand on the raised ledge (top 1.55).
-  for(const x of [35.6,39,42.4])innerColumn('Inner rear stone column',x,29,1.55,1.93,.77);
-  for(const x of [36.9,40.5]){
-    box('Inner rear white cloth curtain',x,2.45,29.39,2.25,1.7,.025,whiteTrim);
-    for(let i=0;i<18;i++)box('Inner rear cloth folds',x-1.07+i*.125,2.45,29.36,.032,1.7,.03,white);
+  // 15.08.42 and 'temple inner sanctum, left side' each show two rear columns within their aisle's
+  // width, about 1.8 m apart, stout and square on red base slabs (there were three slim ones 3.4 m
+  // apart). White cloths hang in the two bays seen from the east aisle; the west bays are bare.
+  {const baseRed=mat('#8c3a30',.9);
+   for(const x of [34.5,36.3,38.1,39.9,41.7,43.5]){innerColumn('Inner rear stone column',x,29,1.55,1.93,1.1);
+     box('Inner rear column red base slab',x,1.62,29,.86,.14,.86,baseRed);}}
+  for(const x of [40.8,42.6]){
+    box('Inner rear white cloth curtain',x,2.45,29.39,1.35,1.7,.025,whiteTrim);
+    for(let i=0;i<11;i++)box('Inner rear cloth folds',x-.625+i*.125,2.45,29.36,.032,1.7,.03,white);
   }
   K.blocker(39,29.45,14.1,.1,1.5,3.5); // nothing but a thin panel line closes the rear above the ledge
   // 15.08.42 / 'temple inner sanctum, left side': over the rear ledge a pent roof of long pale stone
   // slabs in lapped courses slopes down towards the aisle, its eave just above the columns' brackets.
-  {const slab=mat('#a8946f',.95),tilt=-Math.atan2(1.0,1.8),n=4;
+  // Slab colour sampled at 190,172,169 and 188,157,145 beside a floor at 178,146,132 and 205,159,130:
+  // paler and pinker than the floor ('#a8946f' rendered yellow, 143,142,117).
+  {const slab=mat('#b0958a',.95),tilt=-Math.atan2(1.0,1.8),n=4;
    for(let i=0;i<n;i++){const t=(i+.5)/n,c=box('Inner rear pent roof stone slab course',39.5,3.62+1.0*t+.035*i,27.7+1.8*t,10.4,.07,.60,slab);c.rotation.x=tilt;K.roofs.push(c);}
    box('Inner rear pent roof eave beam',39.5,3.53,27.78,10.4,.14,.16,sanctumStone);}
   // Worn pale interior wall panels sit between the red masonry joints.
@@ -1977,8 +1984,10 @@ export function buildTemple(K) {
   // of the blue room wall (built with that wall), not a double door in the rear wall.
   // 15.08.42: the west corridor also ends at a blue door beside its last pillar; it stands on the
   // ledge, about a metre wide and as tall as the columns.
-  box('Inner rear west closed blue double door',34.55,2.50,29.40,1.03,1.9,.06,blue);
-  box('Inner rear west blue door stile',34.55,2.50,29.34,.05,1.9,.08,vividBlue);
+  // (15.08.42, right half: the door stands in the corner, between the last rear column and the line
+  // of the west piers.)
+  box('Inner rear west closed blue double door',33.85,2.50,29.40,.9,1.9,.06,blue);
+  box('Inner rear west blue door stile',33.85,2.50,29.34,.05,1.9,.08,vividBlue);
   // Layered central plinth, projecting stone cornice and dark cross-braced gates.
   for(const [y,w,d,h] of [[.66,5.55,6.55,.22],[.83,5.30,6.30,.10],[.98,5.5,6.5,.14]])
     box('Inner mandapa layered stone plinth',39,y,24,w,h,d,sanctumStone,true);
@@ -2037,7 +2046,24 @@ export function buildTemple(K) {
   instances('Rear corner ten rounded offering stones',new THREE.SphereGeometry(1,10,6),cornerDark,offeringStones);
   innerPaving('Inner mandapa raised paving',39,24,5.2,6.2,1.06);
   for(const x of [36.65,41.35])for(const z of [21.2,24,26.8])innerColumn('Inner mandapa stone column',x,z,1.06,2.50,.85);
-  const mandapaCornice=box('Inner mandapa heavy projecting cornice',39,3.65,24,5.85,.28,6.8,sanctumStone);K.roofs.push(mandapaCornice);
+  // 15.08.42 / 'temple inner sanctum, left side' (both clear): the mandapa is roofed by thick dark
+  // stone slabs sloping down on all sides to an eave just above the column brackets, about 0.65 m
+  // beyond the column lines, not by a flat cornice. Built as one closed shell (sloping skirt and
+  // flat top under the tower) with every face wound outward.
+  {const cx=39,cz=24,ex=3.0,ez=3.4,d=1.6,y0=3.36,t=.12,rise=.53*d,eaveStone=mat('#5d574f',.95);
+   const ring=(hx,hz,y)=>[[cx-hx,y,cz-hz],[cx+hx,y,cz-hz],[cx+hx,y,cz+hz],[cx-hx,y,cz+hz]];
+   const ob=ring(ex,ez,y0),ot=ring(ex,ez,y0+t),ib=ring(ex-d,ez-d,y0+rise),it=ring(ex-d,ez-d,y0+rise+t),pos=[],uvs=[];
+   const A=new THREE.Vector3(),B=new THREE.Vector3(),C=new THREE.Vector3(),N=new THREE.Vector3(),M=new THREE.Vector3();
+   // want 1: the face looks up; -1: down; 0: away from the roof's vertical axis
+   const tri=(a,b,c,want)=>{A.set(...a);B.set(...b);C.set(...c);N.copy(B).sub(A).cross(M.copy(C).sub(A));
+     M.copy(A).add(B).add(C).divideScalar(3);const ok=want?N.y*want>0:N.x*(M.x-cx)+N.z*(M.z-cz)>0;
+     for(const p of ok?[a,b,c]:[a,c,b]){pos.push(...p);uvs.push(p[0]*.4,p[2]*.4);}};
+   const quad=(a,b,c,e,want)=>{tri(a,b,c,want);tri(a,c,e,want);};
+   for(let i=0;i<4;i++){const j=(i+1)%4;
+     quad(ot[i],ot[j],it[j],it[i],1);quad(ob[i],ob[j],ib[j],ib[i],-1);quad(ob[i],ob[j],ot[j],ot[i],0);}
+   quad(it[0],it[1],it[2],it[3],1);quad(ib[0],ib[1],ib[2],ib[3],-1);
+   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));geo.computeVertexNormals();
+   const eave=mesh('Inner mandapa sloping stone slab roof',geo,eaveStone);K.roofs.push(eave);}
   // 15.08.42 shows the X-braced grilles on the west side; 'inner sanctum, left side' shows the
   // east side open between its columns.
   for(const x of [36.6])for(const z of [22.55,25.45]){
