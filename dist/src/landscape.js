@@ -1612,6 +1612,9 @@ export function buildLandscape(K, {mobile=false}={}) {
      for(const s of K.surfaces.slice(a[2],b[2]))s.y+=LAWN;}
    box('Shop raised ground',64.15,lawnTop/2,-25.75,8.3,lawnTop,21.5,K.M.earth);K.surface(64.15,-25.75,8.3,21.5,lawnTop);}
   K.labels.push({text:'Lakeside shop',position:[60.1,3.6+LAWN,-25]});
+  // 15.20.13: a big dark broadleaf tree stands beyond the veranda's north end, its crown over the
+  // far half of the lean-to. Own seed, restored after, so the other planting keeps its placement.
+  {const saved=seed;seed=152013;broadleaf(61.5,-38.5,12,5.5);seed=saved;}
   // 15.13.26 / 15.14.07: a concrete lamp pole stands on the lawn just inside the tank's
   // south-east corner, its lamp arm over the bank, wires running to the shop eave and the
   // stage; a thinner pole stands further along the lawn.
