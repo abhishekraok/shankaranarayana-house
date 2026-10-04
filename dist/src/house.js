@@ -1443,12 +1443,16 @@ export function buildHouse(K) {
   floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
   floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U+.003,'paleStone',.18);
   // Loose corrugated sheet rests against the shrine plinth, below the stair view.
-  const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,48,1),sp=sheetGeometry.attributes.position;
-  for(let i=0;i<sp.count;i++)sp.setZ(i,.034*Math.cos(sp.getX(i)*Math.PI/.092));
+  // 14.52.16: real roofing iron (76 mm pitch, about 2 cm deep), weathered grey (about #565954, 0.46 of the white wall beside it);
+  // at a 184 mm pitch and 7 cm deep it stood in the grass as a brown saw-tooth.
+  const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,162,1),sp=sheetGeometry.attributes.position;
+  for(let i=0;i<sp.count;i++)sp.setZ(i,.010*Math.cos(sp.getX(i)*Math.PI/.038));
   sheetGeometry.computeVertexNormals();
-  const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#66483a',roughness:1,side:THREE.DoubleSide}));
+  const rustySheet=new THREE.Mesh(sheetGeometry,new THREE.MeshStandardMaterial({color:'#666862',roughness:.9,side:THREE.DoubleSide}));
   rustySheet.name='Corrugated sheet leaning against courtyard shrine base';
-  rustySheet.rotation.set(-.65,Math.PI/2,0);rustySheet.position.set(-3.14,.43,8.65);g.add(rustySheet);
+  // Foot on the soil, top edge on the plinth ledge (x -2.61, y 1.02). The old rotation turned it in its own plane instead:
+  // a diamond standing 0.3 m clear of the plinth with one corner 0.6 m under the ground and another 1.46 m up.
+  rustySheet.rotation.order='ZYX';rustySheet.rotation.set(0,-Math.PI/2,-.34);rustySheet.position.set(-2.80,.53,8.65);rustySheet.castShadow=rustySheet.receiveShadow=true;g.add(rustySheet);
   // 14.48.31 / 14.46.10 (west) and 14.44.14 / 14.44.09 (east): rusty corrugated-iron lean-to roofs
   // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
   // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
@@ -1467,8 +1471,8 @@ export function buildHouse(K) {
    }}
   // 14.48.07: a long rust-red corrugated sheet leans on the God room's rear plinth, running past its
   // stair-side corner, with the stone basin at its foot. (Final coordinates: the rear ledge edge is z 12.455.)
-  {const geo=new THREE.PlaneGeometry(2.4,1.04,56,1),gp=geo.attributes.position;
-   for(let i=0;i<gp.count;i++)gp.setZ(i,.034*Math.cos(gp.getX(i)*Math.PI/.092));
+  {const geo=new THREE.PlaneGeometry(2.4,1.04,190,1),gp=geo.attributes.position;
+   for(let i=0;i<gp.count;i++)gp.setZ(i,.010*Math.cos(gp.getX(i)*Math.PI/.038));
    geo.computeVertexNormals();
    const rearSheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:'#8a5b48',roughness:1,side:THREE.DoubleSide}));
    rearSheet.name='Corrugated sheet leaning against shrine rear plinth';rearSheet.rotation.set(-.45,0,0);rearSheet.position.set(-2.0,.47,12.70);
