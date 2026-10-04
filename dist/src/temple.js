@@ -2850,6 +2850,17 @@ export function buildTemple(K) {
    };
    g.traverse(o=>{if(!o.isMesh||o.isInstancedMesh)return;const d=give[o.name];if(!d)return;
      if(typeof d==='function')d(o);else{o.position.x+=d[0];o.position.y+=d[1];o.position.z+=d[2];}});}
+  // Veranda corners (probe-pose straight down at 24.2,48.8 and 23.4,47.3): the side verandas' plinths and
+  // copings ran on under the rear veranda to the back wall, and the rear ones ran across the side verandas,
+  // so white coping strips lay 5 mm proud across the red floors. Each is recut to stop at the inner corner.
+  {const b=new THREE.Box3();g.updateMatrixWorld(true);
+   const recut=(o,axis,lo,hi)=>{b.setFromObject(o);const n0=Math.max(b.min[axis],lo),n1=Math.min(b.max[axis],hi);
+     if(n1-n0<.01||(n0===b.min[axis]&&n1===b.max[axis]))return;
+     const mn=b.min.clone(),mx=b.max.clone();mn[axis]=n0;mx[axis]=n1;g.remove(o);
+     box(o.name,(mn.x+mx.x)/2,(mn.y+mx.y)/2,(mn.z+mx.z)/2,mx.x-mn.x,mx.y-mn.y,mx.z-mn.z,o.material);};
+   for(const o of [...g.children]){if(!o.isMesh||o.isInstancedMesh)continue;
+     if(/^Outer circuit (white red-outlined plinth|plinth white coping|damp plinth foot)$/.test(o.name)){b.setFromObject(o);if(b.max.z>43.2)recut(o,'z',-1e9,42.94);}
+     else if(/^Rear circuit (outlined plinth|white plinth coping)$/.test(o.name))recut(o,'x',24.06,55.19);}}
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
   const ts=K.templeShiftZ||0;g.position.z+=ts;
