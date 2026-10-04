@@ -361,7 +361,7 @@ export function buildTemple(K) {
     box('Entrance rear wall notched pilaster',39+s*1.37,2.125,5.89,.26,2.55,.18,whiteTrim);
     for(const y of [1.55,2.30,3.05])box('Entrance rear wall pilaster block',39+s*1.56,y,5.89,.12,.35,.18,whiteTrim);
     box('Entrance rear wall pilaster marble foot',39+s*1.43,1.0,5.875,.40,.30,.20,doorPlinth);}
-  doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283]);
+  doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283],.2); // the header reads darker than the side panels (27,30,30 against 54,59,63)
   // The painted blue marbling and red drapes of the surround, from the same photograph.
   doorPhoto('Entrance doorway original painted left surround',39.95,1.81,5.745,.58,1.92,[.2975,.27,.395,.70]);
   doorPhoto('Entrance doorway original painted right surround',38.05,1.81,5.745,.58,1.92,[.6175,.27,.705,.70]);
