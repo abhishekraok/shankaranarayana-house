@@ -228,7 +228,7 @@ export function buildHouse(K) {
     floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,edgeStone,.41-EL);
     // house-front.jpg: a low masonry cheek stands out from the plinth either side of the entry slab.
     b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
-    b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,'stone');
+    b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,edgeStone); // house-front.jpg: smooth grey-brown (86,73,80 in shade), no joints
     // The facade and the door frame stand on a stone base where the floor now drops away.
     b('Main door stone base',s*.93,(EL+F)/2,2.0,.66,F-EL,.42,edgeStone);
   }
@@ -240,7 +240,7 @@ export function buildHouse(K) {
   const plinthDamp=mat('plaster').clone();plinthDamp.color.set('#7a6a55');
   for(const [x,w] of [[-4.62,6.35],[5.09,7.30]]){
     b('Front veranda weathered retaining plinth',x,.43,-.98,w,.86,.18,plinthFace,true);
-    b('Front veranda worn stone coping',x,.88,-.98,w+.025,.055,.23,'stone');
+    b('Front veranda worn stone coping',x,.88,-.98,w+.025,.055,.23,edgeStone); // house-front.jpg: a dark grey-brown line (86,71,75) over the buff plinth (128,105,96): darker than the plinth, not paler
     b('Front plinth splash-back damp band',x,.09,-1.074,w,.18,.008,plinthDamp);
   }
   // Broad route around the shrine, with intentional breaks in the blue grilles.
@@ -260,8 +260,8 @@ export function buildHouse(K) {
   b('Entrance pedestal masonry right cheek',-3.86,.24,5.96,.23,.41,.16,nicheOxide,true);
   b('Entrance pedestal niche lintel',-3.40,.362,5.96,.88,.175,.16,nicheOxide);
   b('Entrance pedestal niche dark back',-3.40,.154,5.73,.64,.23,.025,'stone');
-  b('Entrance pedestal niche stone sill',-3.40,.055,5.94,.76,.04,.49,'stone');
-  b('Entrance pedestal worn coping',-3.40,.466,5.90,1.03,.032,.36,'stone');
+  b('Entrance pedestal niche stone sill',-3.40,.055,5.94,.76,.04,.49,edgeStone);
+  b('Entrance pedestal worn coping',-3.40,.466,5.90,1.03,.032,.36,edgeStone);
   for(const [w,d,h,y] of [[.82,.49,.125,.529],[.70,.40,.13,.6565],[.56,.29,.105,.774]])
     b('Entrance three-tier pale pedestal',pedestalX,y,pedestalZ,w,h,d,pedestalPaint,true);
   const nicheStone=new THREE.MeshStandardMaterial({color:'#8b9871',roughness:1});
@@ -278,7 +278,7 @@ export function buildHouse(K) {
   // three descending treads, and the peach round support beside the niche.
   b('Pedestal ledge stair-side return',-3.98,.23,5.96,.29,.43,.16,nicheOxide,true);
   b('Pedestal ledge solid return',-3.00,.23,5.96,.25,.43,.16,nicheOxide,true);
-  b('Pedestal ledge continuous dark coping',-3.50,.466,5.90,1.20,.032,.36,'stone');
+  b('Pedestal ledge continuous dark coping',-3.50,.466,5.90,1.20,.032,.36,edgeStone);
   // User's fixed 175312 pose: shift the complete niche/stepped pedestal
   // east onto the entry ledge. The 2013 reference is pale, unlike 2011 aqua.
   // 175312 / 'house, after entering, turning 135 degrees 2/3': the niche is set into the plinth face
@@ -382,7 +382,9 @@ export function buildHouse(K) {
    for(const z of [9.905,10.995])b('Clock-side room door dark timber jamb',11.72,F+1.15,z,.1,2.3,.09,'wood');
    b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
    const leaf=b('Clock-side room open door leaf',12.3,F+1.12,10.0,.9,2.22,.05,'wood');leaf.rotation.y=-.35;
-   for(const [z,y] of [[9.0,1.2],[11.9,1.6]])b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');}
+   // Kept inside the end walls (their ends ran through them at z 8.6 and 12.4) and carried on wall cleats instead of hanging in the air.
+   for(const [z,y] of [[9.4,1.2],[11.6,1.6]]){b('Clock-side room storage shelf',14.95,F+y,z,.5,.05,1.2,'wood');
+     for(const dz of [-.45,.45])b('Clock-side room shelf cleat',15.15,F+y-.115,z+dz,.07,.18,.05,'wood');}}
   // 14.44.22: the back veranda wall is pale plaster to the floor, with no red dado.
   skirting=false;
   wallX('Rear exterior',-11.88,11.88,17.88,F,3.0,[{c:0,w:1.9,top:2.5},{c:-5.6,w:1.65,bottom:1.0,top:2.4},{c:5.7,w:1.1,bottom:.8,top:2.1}],rearWash);
@@ -608,7 +610,7 @@ export function buildHouse(K) {
   for(const s of [-1,1])b('Inner passage plinth face',s*1.21,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey); // 2.5 cm proud of the red plinth: flush, the two flickered
   // User's notes (game, 2026-10-02): the court pocket and the lowered hall floor are the passage's smooth dark stone.
   for(const o of g.children)if(o.name==='Entrance right lower court pocket'||o.name==='Inner hall ground-level floor')o.material=innerEntryStone;
-  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.19,hallX-3.81,F-EL,.03,riserGrey);
+  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2-.002,2.19,hallX-3.81,F-EL-.004,.03,riserGrey); // top 4 mm under the plinth top: flush, a 3 cm strip of the two flickered at the foot of the facade wall
   floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,edgeStone,.26-EL); // the veranda's smooth dark stone: the jointed green-grey kit stone read as a stack of blocks on the smooth dark floor
   const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
   const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
@@ -721,10 +723,11 @@ export function buildHouse(K) {
     for(let i=0;i<pos.count;i++){
       const y=pos.getY(i),a=Math.atan2(pos.getZ(i),pos.getX(i));
       const pinch=1-.22*Math.max(0,y),fold=1+.06*Math.sin(a*3+y*2+x)+.03*Math.sin(a*7+1);
-      pos.setXYZ(i,pos.getX(i)*pinch*fold,Math.max(-.77,y),pos.getZ(i)*pinch*fold);
+      const sq=v=>Math.sign(v)*Math.pow(Math.abs(v),.62); // a filled sack lying down: squarer in plan and flatter on top than an egg
+      pos.setXYZ(i,sq(pos.getX(i))*pinch*fold,Math.max(-.77,y>0?y*.8:y),sq(pos.getZ(i))*pinch*fold);
     }
     geom.computeVertexNormals();const sack=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1}));
-    sack.name='Veranda stored fabric sack';sack.scale.set(sx,sy,sz);sack.position.set(x,F+sy*.77,z);sack.castShadow=true;sack.receiveShadow=true;g.add(sack);
+    sack.name='Veranda stored fabric sack';sack.scale.set(sx*.82,sy,sz*.82);sack.rotation.y=z*2.3;sack.position.set(x,F+sy*.77,z);sack.castShadow=true;sack.receiveShadow=true;g.add(sack);
   }
 
   // Posts and exposed timber run continuously around the inner verandas.
@@ -1751,16 +1754,16 @@ export function buildHouse(K) {
     // mottled like broken plaster: paler lime skin, darker damp and a few red laterite grains
     const mottle=(base,marks)=>paintedMap(256,(c,s)=>{c.fillStyle=base;c.fillRect(0,0,s,s);
       for(let i=0;i<170;i++){c.fillStyle=`rgba(${marks[i%marks.length]},${.10+rnd()*.22})`;c.beginPath();c.ellipse(rnd()*s,rnd()*s,3+rnd()*18,2+rnd()*9,rnd()*3,0,Math.PI*2);c.fill();}},1);
-    const bare=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#b48f7c',['214,196,178','150,104,84','188,150,120','126,92,78'])});
-    const deep=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#9a5a40',['128,62,44','176,112,78','104,58,46'])});
+    const bare=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#a8958a',['200,188,176','150,124,110','178,152,134','132,112,102'])}); // 14.30.57: under the sill about (138,118,122), 0.65 of the wash beside it: a greyed pink-buff, not tan
+    const deep=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:1,map:mottle('#a07868',['136,96,80','170,130,108','124,92,80'])});
     const ragged=(name,profile,material,dz)=>{ // profile: [x, top edge above F]; the foot stands on the dado top
       const s=new THREE.Shape();s.moveTo(-profile[0][0],F+.45);
       for(let i=0;i<profile.length-1;i++){const [xa,ha]=profile[i],[xb,hb]=profile[i+1],n=Math.max(1,Math.round((xb-xa)/.11));
         for(let k=0;k<n;k++){const t=k/n;s.lineTo(-(xa+(xb-xa)*t+(rnd()-.5)*.05),F+Math.max(.47,ha+(hb-ha)*t+(rnd()-.5)*.07));}} // a ragged edge; at +-8 cm it stood up in peaks like a mountain skyline
       s.lineTo(-profile.at(-1)[0],F+.45);s.closePath();
       const m=new THREE.Mesh(new THREE.ShapeGeometry(s),material);m.name=name;m.rotation.y=Math.PI;m.position.set(0,0,Z-dz);g.add(m);};
-    ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.56],[4.3,.70],[5.0,.82],[6.36,.84],[6.42,1.25],[6.52,1.5],[6.8,1.62],[6.95,2.0],[7.2,2.2],[7.55,2.1],[7.8,1.62],[8.05,1.4],[8.35,1.0],[8.9,.8],[9.6,.62],[11.0,.52],[11.7,.47]],bare,.0095);
-    ragged('Rear veranda deeper bare laterite',[[6.2,.47],[6.35,.7],[6.6,.92],[6.95,1.0],[7.3,.86],[7.6,.62],[7.8,.47]],deep,.0105);}}
+    ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.55],[4.3,.66],[5.0,.74],[5.6,.70],[6.3,.80],[6.9,.86],[7.3,.74],[7.9,.80],[8.35,.70],[8.9,.66],[9.6,.58],[11.0,.52],[11.7,.47]],bare,.0095); // 14.30.57: a low flaked band over the dado, under the sill; the old 2 m wide rise to 2.2 m beside the window read as a heap of sand (a narrow strip up the jamb read as a spire)
+    ragged('Rear veranda deeper bare laterite',[[6.2,.47],[6.4,.58],[6.7,.64],[7.0,.60],[7.3,.54],[7.5,.47]],deep,.0105);}}
   K.beam(eastPassageRoof,'Clock-side ceiling bulb cable',[9.7,3.43,10.15],[9.7,3.03,10.15],.008,'black');
   K.cylinder(eastPassageRoof,'Clock-side ceiling bulb holder',9.7,3.005,10.15,.025,.033,.065,'cream',10);
   const corridorBulb=new THREE.Mesh(new THREE.SphereGeometry(.047,12,9),mat('cream'));
