@@ -1063,7 +1063,7 @@ export function buildTemple(K) {
   floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
   for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,x<SX?courtLaterite:wornRed,true);
   box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
-  const stainedRecess=mat('#5a4a42',.95),eastPanel=courtPanel.clone();eastPanel.color.set('#8f7f77');
+  const stainedRecess=mat('#5a4a42',.95),eastPanel=courtPanel.clone();eastPanel.color.set('#cfc6b8'); // 15.04.51 / temple-old-wall.jpg: the recesses read near-white against the red wall
   for(const side of [-1,1]){
     const x=SX+side*(7.34+SE);
     box('Old inner shrine dark continuous sill',x,.63,24.8,.25,.20,10.1,oldStone);
@@ -2098,7 +2098,7 @@ export function buildTemple(K) {
   // bosses crosses the top of the blue doorway; below it a dark passage between carved
   // guardian figures leads to an inner barred gate, with the lamps and deity behind it.
   // The deity itself is not visible in the photos, so it stays a simple dark-stone form.
-  {const cellaStone=sanctumStone.clone();cellaStone.color.set('#8f8a78');
+  {const cellaStone=sanctumStone.clone();cellaStone.color.set('#5a5952'); // 15.08.42 / 'temple inner sanctum, left side': dark grey stone, not khaki
   const cellaDark=mat('#3a332b',.96),idolStone=mat('#151412',.32),flame=new THREE.MeshStandardMaterial({color:'#ffd27a',emissive:'#ff9a2e',emissiveIntensity:3.2,roughness:.6});
   const cF=1.06,cTop=3.5,cz0=24.2,cz1=27.05,cx0=37.2,cx1=40.8;
   // 'Temple inner sanctum, God room' (both): the doorway is narrower and lower than modelled, the
