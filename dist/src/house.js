@@ -230,7 +230,7 @@ export function buildHouse(K) {
     b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
     b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,'stone');
     // The facade and the door frame stand on a stone base where the floor now drops away.
-    b('Main door stone base',s*.93,(EL+F)/2,2.0,.66,F-EL,.42,'stone');
+    b('Main door stone base',s*.93,(EL+F)/2,2.0,.66,F-EL,.42,edgeStone);
   }
   floor('Front left access step',-3.1,.04,1.9,.7,.19,'paleStone');
   // Reach the low step before the raised veranda walking strip.
@@ -609,7 +609,7 @@ export function buildHouse(K) {
   // User's notes (game, 2026-10-02): the court pocket and the lowered hall floor are the passage's smooth dark stone.
   for(const o of g.children)if(o.name==='Entrance right lower court pocket'||o.name==='Inner hall ground-level floor')o.material=innerEntryStone;
   b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.19,hallX-3.81,F-EL,.03,riserGrey);
-  floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,'stone',.26-EL);
+  floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,edgeStone,.26-EL); // the veranda's smooth dark stone: the jointed green-grey kit stone read as a stack of blocks on the smooth dark floor
   const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
   const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
   for(const side of [-1,1]){
@@ -623,7 +623,7 @@ export function buildHouse(K) {
       b('Inner platform scored oxide face',(a+z)/2,(lo+.79)/2,4.715,z-a,.79-lo,.03,platformOxide);
     for(let x=1.34;x<3.8;x+=.30)if(side>0||x<2.55||x>3.25)b('Inner platform scored joint',side*x,.43,4.7315,.007,.71,.003,platformJoint);
     b('Inner platform scored joint',side*2.5,.47,4.7315,2.6,.007,.003,platformJoint);
-    floor('Inner platform stone step',side*1.03,3.2,.36,.8,.43,'stone',.43-EL);
+    floor('Inner platform stone step',side*1.03,3.2,.36,.8,.43,edgeStone,.43-EL);
     if(side>0){ // the east end of this platform now stands over the lowered hall floor
       b('Inner platform scored oxide face',3.825,(EL+.79)/2,3.40,.03,.79-EL,2.66,platformOxide);
       for(let z=2.38;z<4.7;z+=.30)b('Inner platform scored joint',3.8415,.43,z,.003,.71,.007,platformJoint);
