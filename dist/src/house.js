@@ -346,6 +346,13 @@ export function buildHouse(K) {
     b('Rear veranda mossy plinth face',(a+end)/2,.26,14.485,end-a,.45,.03,plinthDark);
     b('Rear veranda plinth moss foot',(a+end)/2,.075,14.465,end-a,.08,.012,plinthMoss);
    }}
+  // 14.30.57 / 14.31.01: a neat stack of pale round logs, about 1.3 m long and a metre high, stands on the
+  // rear veranda west of the east window, behind the court's stone supports.
+  {const logWood=new THREE.MeshStandardMaterial({color:'#ad9a90',roughness:1});
+   for(let row=0;row<8;row++)for(let k=0;k<4-row%2;k++){
+     const len=1.30+.08*Math.sin(row*2.3+k*1.7),log=K.cylinder(g,'Rear veranda stacked log',3.7+.04*Math.cos(row*1.9+k),F+.075+row*.132,15.02+k*.155+(row%2)*.0775,.07+.006*((row+k)%2),.075,len,logWood,10);
+     log.rotation.z=Math.PI/2;}
+   K.blocker(3.7,15.25,1.45,.66,F,F+1.1);}
   // Court entry steps match every deliberate veranda opening.
   for(const [x,z,w,d] of [[-8.2,10.8,.75,1.55]]) { // the court-front walkway is at ground level now: no step there
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
