@@ -27,6 +27,9 @@ body[data-mode=tour] .hint-tour,body[data-mode=walk] .hint-keys,body[data-mode=f
 body[data-mode=orbit] #touch-controls,body[data-mode=orbit] .location-card small{display:none}
 body[data-mode=orbit] .hint-orbit{display:block}
 @media(pointer:coarse) and (max-width:950px){body[data-mode=orbit] .location-card{bottom:calc(76px + env(safe-area-inset-bottom))}}
+/* Phones: the About pane gets more reading width, and the two top buttons a larger target. */
+@media(max-width:740px){dialog{padding:30px 22px 24px}dialog h2{font-size:27px;margin:12px 0 14px}}
+@media(min-width:360px) and (max-width:740px){.top-actions button{width:38px;height:38px}}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
