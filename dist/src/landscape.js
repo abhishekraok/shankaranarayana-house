@@ -400,7 +400,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
   // User's note (game): the open iron leaf stood out over the water; removed.
-  box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
+  box('Bathing gate approach masonry',15.18,-.38,-9.4,2.45,.63,2.85,materials.basalt);
   box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
   // Long masonry ledges descend lakeward below the house-side water rail.
@@ -442,7 +442,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance west pillar collar',30.15,1.25,-10.38,.38,.16,.38,materials.oldWhite);
   box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
   box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
-  box('Lake entrance east room dark doorway',47.9,1.05,-10.26,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
+  box('Lake entrance east room dark doorway',47.9,1.05,-10.276,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
   box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
   K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
   // 14.59.39 / 15.11.58: the notice hangs on a yellow-and-black banded pole beside the west pedestal.
@@ -534,7 +534,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       box('Opposite bank flight white tread nosing',near+dir*run/2,h-.018,-36.99,run,.036,.02,fenceWhite);
       box('Opposite bank flight white riser line',near,h-flightRise/2,-36.99,.036,flightRise,.02,fenceWhite);}
     const nx=axis==='x'?[17.0,17.5]:[9.0,9.7];
-    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,FAR_TOP/2,-37.97,nx[1]-nx[0],FAR_TOP,.87,materials.path);K.surface((nx[0]+nx[1])/2,-37.97,nx[1]-nx[0],.87,FAR_TOP);
+    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,FAR_TOP/2+.002,-37.97,nx[1]-nx[0],FAR_TOP+.004,.87,materials.path);K.surface((nx[0]+nx[1])/2,-37.97,nx[1]-nx[0],.87,FAR_TOP);
   }
   box('Opposite bank central flight landing',13.25,FAR_LEDGE-.2,flightZ,.72,.4,flightD,materials.basalt);K.surface(13.25,flightZ,.72,flightD,FAR_LEDGE);
   box('Opposite bank central tall pilaster',13.25,.66,-37.515,.30,1.52,.035,fenceWhite);
@@ -551,7 +551,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // down to the footing instead of leaving a bright gap under the road slab.
   box('Bathing ledge rear retaining wall',23,-1.025,-8.58,13.2,2.15,.18,tankWall,true);
   steps('Bathing arcade approach stair',28.55,bathingGateZ,2.1,2.1,'x',-1.55,.065,9);
-  box('Bathing arcade stair top landing',29.80,-.003,bathingGateZ,.55,.14,2.1,materials.basalt);
+  box('Bathing arcade stair top landing',29.7325,-.003,bathingGateZ,.685,.14,2.1,materials.basalt);
   K.surface(29.80,bathingGateZ,.55,2.1,.065);
   steps('east bank steps', 49.16, -22.15, 2.3, 2.45, 'x', -1.55, .055, 9);
   box('east bank stair threshold',50.35,-.005,-22.15,.20,.12,2.45,materials.basalt);K.surface(50.35,-22.15,.20,2.45,.055);
@@ -1474,7 +1474,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // tiles end on a bracket there and the sheet beyond hangs on one thin pole.
   for(const a of [-1.7,2.4,6.7,9.0]){
     sb('white veranda post',a,1.64,.12,.22,2.68,.24,shopWhite,true);
-    sb('black veranda post foot',a,.69,.105,.25,.78,.27,materials.basalt);
+    sb('black veranda post foot',a,.69,.12,.25,.78,.27,materials.basalt);
   }
   // 15.20.13 (good pose) / 14.59.54: the cream end block is one plane from eave to ground,
   // about 0.45 m proud of the shop wall, with a black damp base. The veranda runs on in front
@@ -1500,7 +1500,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(let j=0;j<13;j++)sb('shopfront vertical grille',a-1.12+j*.185,1.64,1.86,.024,2.05,.028,materials.mortar);
     sb('shopfront grille middle rail',a,1.28,1.83,2.3,.04,.03,materials.mortar);
   }
-  sb('small far-left window',7.7,1.86,2.12,.62,1.01,.075,shopWood);
+  sb('small far-left window',7.7,1.86,2.165,.62,1.01,.075,shopWood);
   // Long mossy tiled lean-to with a patched sheet strip along the lower eave.
   const shopAwning=new THREE.Group();shopAwning.name='Shop long weathered awning';group.add(shopAwning);K.roofs.push(shopAwning);
   // 15.20.13: the tiles stop at the cream block (z about -19.5); a corrugated sheet goes on from there.
@@ -1553,8 +1553,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // The ventilator is recessed through the front shell of the cream block. Front plane x 61.75
   // from eave to ground and the end wall one plane at z -15.8 (14.59.54); the jali is a tall
   // narrow one, 0.5 x 1.05 m centred 3.86 m up, just above the sheet (15.20.13 projected).
-  sb('cream end upper block',-7.2125,4.16,4.58,3.975,2.12,3.74,shopCream,true);
-  for(const [a,w] of [[-8.225,1.95],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
+  sb('cream end upper block',-7.2175,4.16,4.58,3.985,2.12,3.74,shopCream,true);
+  for(const [a,w] of [[-8.23,1.96],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
   sb('cream ventilator lower masonry',-7,3.2175,2.23,.5,.235,.96,shopCream,true);
   sb('cream ventilator upper masonry',-7,4.8025,2.23,.5,.835,.96,shopCream,true);
   K.hipRoof(group,'Shop cream end hipped tile roof',64.1,-17.79,5.5,4.75,5.25,1.02,darkTile);
