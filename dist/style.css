@@ -18,6 +18,11 @@ body[data-mode=tour] #touch-controls{display:none}
 .photo-panel{top:116px}.photo-panel>button{margin-right:18px}.photo-panel>#align-photo{float:right;margin-right:0;color:#c3cbb4}
 .toolbar button[aria-pressed=true],.toolbar button[aria-expanded=true]{color:var(--gold);box-shadow:inset 0 -2px var(--gold)}
 .destination select optgroup{background:#1c2f28;color:var(--gold)}.destination select optgroup option{color:#f1eddf}
+/* One line of how-to under the caption for the first seconds in a mode, then it folds away. */
+.hint{display:none;overflow:hidden;max-height:3em;margin-top:7px;font-size:10.5px;letter-spacing:.03em;color:#e6e9da;animation:hint-fold 16s ease-in forwards}
+body[data-mode=tour] .hint-tour,body[data-mode=walk] .hint-keys,body[data-mode=fly] .hint-keys{display:block}
+@media(pointer:coarse){body[data-mode] .hint-keys{display:none}body[data-mode=walk] .hint-touch,body[data-mode=fly] .hint-touch{display:block}}
+@keyframes hint-fold{0%,88%{opacity:1;max-height:3em;margin-top:7px}100%{opacity:0;max-height:0;margin-top:0}}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
