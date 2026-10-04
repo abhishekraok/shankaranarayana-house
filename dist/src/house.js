@@ -345,8 +345,8 @@ export function buildHouse(K) {
   }
 
   for(const [x,top] of [[-3.30,.14],[-3.60,.28],[-3.90,F]]){
-    floor('Pedestal-side red courtyard stair',x,5.2,.30,1.55,top,verandaRed,.14);
-    b('Pedestal-side worn stair nosing',x+.142,top-.016,5.2,.032,.032,1.55,nicheOxide);
+    floor('Pedestal-side red courtyard stair',x,5.2,.30,1.6,top,verandaRed,.14); // full width of the pocket: a 2.5 cm slit beside the plinth let the walker dip
+    b('Pedestal-side worn stair nosing',x+.142,top-.016,5.2,.032,.032,1.6,nicheOxide);
   }
 
   // Ground floor enclosing walls. All rooms have usable openings.
