@@ -144,6 +144,25 @@ committed) still apply.
   six; the second low pavilion looks longer in 15.13.07; the ledge reliefs are still grey-green (photos:
   pinkish friezes); the entrance panels use an emissive map, to be checked in the game. Not done: fixes 5, 6,
   9, 20, 24, 25, 16(d).
+- Landscape sweep (a sub-agent's ten commits, merged): the pavilion's roof top, edge band, floor and island read
+  as weathered concrete, stained whitewash and coursed stone; the lane-end steps and platform are worn
+  concrete; the arcade's east room carries a painted tin sign (abstract strokes, not real lettering); the 34
+  loose grey slabs on the far-bank path and the bright shoulder stones are gone or dulled; worn footpaths are
+  patchy laterite; the bathing-gate landing no longer pokes out under the roadside parapet; seven flicker
+  pairs were separated. `stainMap(seed,base,[[count,'r,g,b',alpha,r0,r1],...])` in landscape.js makes a
+  tileable blotch texture. `K.box` maps UVs at 2 m per tile, so a texture meant to fit a w x h face needs
+  `repeat.set(2/w,2/h); offset.set(.5,.5)`. Left: the terrain slab `ground(24.5,-6,59,6)` overhangs the south
+  0.4 m of the near-bank bathing steps (x 16.7..19.1) as a red shelf (needs a notch in main.js); the lawn's
+  thin utility pole carries no wire.
+- Sky occlusion follow-up: the exposure also adapts when the camera is within 0.9 m of a roofed spot (the
+  temple's entrance passage has an open well above it, so 15.15.51 rendered almost black), and the entrance
+  door panels lost their emissive map: the game turns any emissive material into a plain white glow, which
+  made the doorway a bright blank there. Avoid emissive maps for anything but lamps and flames.
+- Game: rebuilt at 00:24 on 2026-10-04 with all of the above (smoke and cold restart passed). The export and
+  material scripts on the photoreal branch had four hard-wired expectations that this pass broke and that are
+  now relaxed there: the old fence's material family (now optional), the paving material's single user (the
+  hall-awning floor is allowed), stale material slots left by re-import (skipped when the fresh GLB has no
+  such material), and the non-foliage name list.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies

@@ -193,7 +193,7 @@ let skyAdapted=-1,skyMetered=0,skyFrame=0;const skyOutdoor=renderer.toneMappingE
 function adaptExposure(dt){
  if(!skyShade)return;
  const p=camera.position,placed=skyAdapted<0||aligning||p.distanceTo(skyLast)>1.5||camera.quaternion.angleTo(skyTurn)>.5;
- if(placed||!phoneMode||skyFrame++%3===0)skyMetered=skyShade.below(p.x,p.y,p.z)?THREE.MathUtils.smoothstep(skyShade.meter(camera),.5,.9):0;
+ if(placed||!phoneMode||skyFrame++%3===0)skyMetered=[[0,0],[.9,0],[-.9,0],[0,.9],[0,-.9]].some(([dx,dz])=>skyShade.below(p.x+dx,p.y,p.z+dz))?THREE.MathUtils.smoothstep(skyShade.meter(camera),.5,.9):0; // under a roof or within a step of one: the temple's entrance passage has an open well above it (15.15.51)
  skyAdapted=placed?skyMetered:skyMetered+(skyAdapted-skyMetered)*Math.exp(-3*dt/SKY_ADAPT_SECONDS);skyLast.copy(p);skyTurn.copy(camera.quaternion);
  // Mean luminance falls as more of the view is roofed; the exposure is its inverse.
  renderer.toneMappingExposure=skyAdapted<.001?skyOutdoor:skyOutdoor/(1-skyAdapted+skyAdapted/SKY_INDOOR_GAIN);

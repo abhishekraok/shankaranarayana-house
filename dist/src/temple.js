@@ -318,7 +318,7 @@ export function buildTemple(K) {
     for(let i=0;i<uv.count;i++)uv.setXY(i,u0+uv.getX(i)*(u1-u0),1-v1+uv.getY(i)*(v1-v0));
     // The source photograph is underexposed: the painted panels rendered at 24,32,33 beside a white
     // wall at 187,194,186, where 15.15.51 has them at half the wall's value (54,59,63 / 112,111,104).
-    const material=new THREE.MeshStandardMaterial({map:doorTexture,emissiveMap:doorTexture,emissive:'#ffffff',emissiveIntensity:glow,roughness:.9});
+    const material=new THREE.MeshStandardMaterial({map:doorTexture,roughness:.9}); // no self-light: the game turns any emissive material into a plain white glow, and the doorway became a bright blank
     const o=mesh(n,geo,material,x,y,z);o.rotation.y=Math.PI;return o;
   }
   // Rectify the four photographed frames with a projective UV map. Source
