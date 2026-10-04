@@ -214,8 +214,8 @@ export function buildHouse(K) {
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
   // 14.56.30: the walking strip is a neutral grey-brown stone, not green-grey.
   const walkStone=greyCement.clone();walkStone.color.set('#bbadad');walkStone.roughness=.6; // 14.56.30: smooth worn grey cement (about 97,90,89), no flagstone joints
-  floor('Entrance-left lower stone walking strip',5.62,-.425,8.36,.79,.455,walkStone,.05);
-  floor('Entrance-right lower stone walking strip',-4.77,-.425,6.66,.79,.455,walkStone,.05);
+  floor('Entrance-left lower stone walking strip',5.62,-.4075,8.36,.825,.455,walkStone,.05); // reaches the plinth edge: a 3 cm slit there trapped the walker
+  floor('Entrance-right lower stone walking strip',-4.77,-.4075,6.66,.825,.455,walkStone,.05);
   for(const s of [-1,1]){
     // The raised side walk ends in a plain face at the passage, with one worn step up to it.
     b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.445,.06,.43-EL,.75,riserGrey);

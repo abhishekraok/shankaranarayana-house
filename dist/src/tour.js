@@ -20,8 +20,8 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     at([-3.7,1.655,7],[-3.7,1.5,12],'Around the courtyard'),
     photo('courtyard'),
     at([-3.6,1.655,13.65],[0,1.9,11.5],'Behind the God room'),
-    at([3.3,1.655,13.65],[2.05,2,9.1],'Around the far side of the God room'),
-    at([3.3,1.655,7.1],[5.45,1.7,6.0],'Returning beside the God room'),
+    at([3.9,1.655,13.65],[2.05,2,9.1],'Around the far side of the God room'), // 0.9 m clear of the pole supports
+    at([3.9,1.655,7.1],[5.45,1.7,6.0],'Returning beside the God room'),
     at([5.45,1.655,7.0],[5.45,2,5.15],'Back up to the front hall'),
     at([5.45,2.07,5.15],[2.9,2,5.15],'Through the front hall'),
     at([2.9,2.07,5.15],[0,2,4.45],'Towards the house entrance'),
@@ -58,7 +58,7 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     at([39,1.72,13.6],[39,2,8],'The front courtyard'),
     at([40.6,1.72,14.3],[38.8,3.0,11.4],'Around the lamp plinth'),
     at([40.3,1.72,10.3],[39,2,6],'Back towards the entrance'), // clear of the little lamp canopy and its legs
-    at([39,1.72,8.9],[39,2,3],'Returning inside'),
+    at([39,1.72,8.5],[39,2,3],'Returning inside'),
     at([39,1.82,3],[44.6,2,1.2],'Towards the upper gallery'),
     at([44.6,2.47,.8],[46.18,3,.6],'Towards the upper gallery'),
     at([46.18,2.47,.45],[46.18,3.6,3],'The gallery stair'),

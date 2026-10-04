@@ -14,10 +14,11 @@ const {buildLandscape}=await loadModule('../dist/src/landscape.js');
 const K=createKit(),house=buildHouse(K),temple=buildTemple(K),landscape=buildLandscape(K);
 for(const g of [house,temple,landscape])g.updateMatrixWorld(true);
 // node tools/scan-surface-gaps.mjs [maxGap]   Lists pairs of K.surfaces at one height separated by 0 < gap <= maxGap
-// (default 0.06 m) along x or z while overlapping on the other axis, unless a third surface or a ramp bridges the gap.
+// (default 0.06 m) along x or z while overlapping on the other axis, unless a third surface at that level or up to one
+// step (0.38 m) above it, or a ramp, bridges the gap.
 const maxGap=Number(process.argv[2]||.06),S=K.surfaces.map(s=>({x0:s.x-s.w/2,x1:s.x+s.w/2,z0:s.z-s.d/2,z1:s.z+s.d/2,y:s.y}));
 const R=K.ramps.map(r=>({x0:r.x-r.w/2,x1:r.x+r.w/2,z0:r.z-r.d/2,z1:r.z+r.d/2}));
-const covered=(x,z,y,skip)=>S.some(s=>!skip.includes(s)&&Math.abs(s.y-y)<.03&&x>=s.x0&&x<=s.x1&&z>=s.z0&&z<=s.z1)||R.some(r=>x>=r.x0&&x<=r.x1&&z>=r.z0&&z<=r.z1);
+const covered=(x,z,y,skip)=>S.some(s=>!skip.includes(s)&&s.y>y-.03&&s.y<=y+.38&&x>=s.x0&&x<=s.x1&&z>=s.z0&&z<=s.z1)||R.some(r=>x>=r.x0&&x<=r.x1&&z>=r.z0&&z<=r.z1);
 const out=[];
 for(let i=0;i<S.length;i++)for(let j=i+1;j<S.length;j++){const a=S[i],b=S[j];if(Math.abs(a.y-b.y)>.03)continue;
   for(const [u0,u1,v0,v1,ax] of [['x0','x1','z0','z1','x'],['z0','z1','x0','x1','z']]){
