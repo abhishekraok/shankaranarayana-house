@@ -893,10 +893,15 @@ export function buildHouse(K) {
   b('God room iron latch',0,2.26,screenZ-.17,.23,.035,.035,'metal');
   b('God room worn centre door strip',0,2.25,screenZ-.15,.024,2.14,.02,shrineTimber);
   // Photograph-right is -X when looking into the house.
-  K.cylinder(g,'God room grinding bowl',-1.22,1.22,6.52,.23,.17,.22,'paleStone',18); // god-room.jpg: against the dado beside the gate, clear of the slender red post
-  K.cylinder(g,'God room bowl hollow',-1.22,1.335,6.52,.16,.16,.015,'stone',18);
-  const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
-  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.26,1.44,6.54);g.add(grindingStone);
+  // god-room.jpg: against the dado beside the gate, clear of the slender red post: a broad shallow dish of weathered
+  // stone (about #64534a in the porch shade, half the white wall's value) holding a rough dark brown lump (#46332a).
+  const dishStone=new THREE.MeshStandardMaterial({color:'#6e5b4e',roughness:1}),dishLump=new THREE.MeshStandardMaterial({color:'#5a4332',roughness:1});
+  K.cylinder(g,'God room grinding bowl',-1.22,1.14,6.50,.26,.19,.12,dishStone,20);
+  K.cylinder(g,'God room bowl hollow',-1.22,1.2,6.50,.215,.215,.008,dishStone,20);
+  const lumpGeo=new THREE.SphereGeometry(.15,16,12);{const p=lumpGeo.attributes.position;for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i),z=p.getZ(i),k=1+.16*Math.sin(x*23+y*11+2.2)+.10*Math.sin(z*29+x*7);p.setXYZ(i,x*k,Math.max(-.05,y*k*.85),z*k);}lumpGeo.computeVertexNormals();}
+  const grindingStone=new THREE.Mesh(lumpGeo,dishLump); // a rounded lump, not the twelve flat faces of the old stand-in
+  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.27,1.235,6.53);grindingStone.scale.set(1.15,.72,.95);grindingStone.castShadow=true;g.add(grindingStone);
+  {const small=new THREE.Mesh(lumpGeo,dishLump);small.name='God room grinding stone';small.position.set(-1.12,1.225,6.45);small.scale.set(.62,.5,.7);small.rotation.y=1.9;small.castShadow=true;g.add(small);}
   // User's note: no desk beside the God-room approach.
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
