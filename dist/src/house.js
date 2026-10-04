@@ -914,7 +914,7 @@ export function buildHouse(K) {
   // rounded pole follow the God room's east side, along the planted strip toward the east veranda.
   const roughSupport=new THREE.MeshStandardMaterial({map:graniteMap,color:'#a39c9f',roughness:1,flatShading:true}); // 14.44.09 / 14.30.57: pale lichened granite, split not sawn
   const poleGrey=K.M.plaster.clone();poleGrey.color.set('#aaa2a8');poleGrey.roughness=1;
-  for(const [j,z] of [[0,7.35],[1,9.40],[2,10.65]]){
+  for(const [j,z] of [[0,7.35],[1,9.9],[2,12.4]]){ // 14.44.14 / 14.44.09: the supports stand 2.5 m apart, the last beside the camera at the rear
     const geo=new THREE.BoxGeometry(.24,2.44,.25,2,14,2),p=geo.attributes.position,gn=geo.attributes.normal,guv=geo.attributes.uv;
     const jit=(x,y,zz,k)=>{const v=Math.sin(x*127.1+y*311.7+zz*74.7+j*19.3+k*5.1)*43758.5453;return v-Math.floor(v)-.5;};
     for(let i=0;i<p.count;i++){
@@ -926,7 +926,7 @@ export function buildHouse(K) {
     geo.computeVertexNormals();const post=new THREE.Mesh(geo,roughSupport);post.name='Shrine-side rough stone pole support';post.position.set(2.96,1.255,z);post.castShadow=post.receiveShadow=true;g.add(post);
     K.blocker(2.96,z,.26,.27,.035,2.475);
   }
-  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,9.0,.075,.09,4.15,poleGrey,12);pole.rotation.x=Math.PI/2;
+  const pole=K.cylinder(g,'Shrine-side weathered round cross pole',2.96,2.51,10.6,.075,.09,6.9,poleGrey,12);pole.rotation.x=Math.PI/2;
   // 14.30.57: pale pipe lies on the soil beside the shrine-side supports.
   const courtPipe=K.M.plaster.clone();courtPipe.color.set('#d0d2bc');
   const groundPipe=K.cylinder(g,'Courtyard shrine-side pale ground pipe',2.45,1.04,8.53,.034,.034,5.10,courtPipe,8); // lies on the east ledge
@@ -935,7 +935,7 @@ export function buildHouse(K) {
     const joint=K.cylinder(g,'Courtyard ground pipe coupling',2.45,1.04,z,.043,.043,.09,courtPipe,8);joint.rotation.x=Math.PI/2;
   }
   const poleStain=new THREE.MeshStandardMaterial({color:'#696c4c',roughness:1});
-  for(const z of [7.46,8.55,10.02,10.85]){
+  for(const z of [7.46,9.2,11.0,12.9]){
     const collar=K.cylinder(g,'Round courtyard pole weathered band',2.96,2.51,z,.087,.087,.055,poleStain,12);collar.rotation.x=Math.PI/2;
   }
   // Surface fissure, not an opening through the wall: the crack meets the
