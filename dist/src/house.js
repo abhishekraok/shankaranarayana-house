@@ -163,6 +163,7 @@ export function buildHouse(K) {
   floor('Front range south return',(hallX+12)/2,5.2,12-hallX,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
   floor('Entrance right lower court pocket',.78,5.35,6.06,1.3,.075,'stone',.08);
+  floor('Entrance right lower court pocket',0,6.08,4.8,.17,.075,'stone',.08); // up to the God room platform fronts (z 6.155)
   floor('Inner hall ground-level floor',(3.81+hallX)/2,4.085,hallX-3.81,3.83,.075,'stone',.08);
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
@@ -737,25 +738,37 @@ export function buildHouse(K) {
   }
   floor('God room threshold',0,6.84,1.84,.24,shrineFloor,'red',.08);
   // The grey pocket now runs across the God room front at .075: one more step up to the
-  // old stair foot, and the platform masonry and cheeks carried down to it.
+  // old stair foot. (The cheeks and the platform masonry are carried down to it below.)
   b('God room pale stair riser',0,(F+.075-.045)/2,5.5,1.78,F-.075-.045,.36,shrineWhite);
   floor('God room red stair tread',0,5.5,1.82,.36,F,'red',.045);
   for(const side of [-1,1]){
-    b('God room platform masonry foot',side*1.64,(F+.075)/2,5.845,1.40,F-.075,.31,shrineWhite);
-    b('God room stair cheek foot',side*1.06,(F+.075)/2,5.78,.35,F-.075,.44,'red');
-  }
-  for(const side of [-1,1]){
-    // White layered masonry carries the two side bays and heavy posts.
-    b('God room platform masonry',side*1.64,.75,6.38,1.40,.60,1.38,shrineWhite);
+    // White layered masonry carries the two side bays and heavy posts. 14.52.11: the platform fronts
+    // stand back from the stair foot, so the outer side of each cheek shows (as far as the posts allow).
+    b('God room platform masonry foot',side*1.64,(F+.075)/2,6.63,1.40,F-.075,.88,shrineWhite);
+    b('God room platform masonry',side*1.64,.75,6.63,1.40,.60,.88,shrineWhite);
     for(const [y,w,h] of [[.51,1.52,.12],[.68,1.46,.09],[.92,1.48,.11]])
-      b('God room platform moulding',side*1.64,y,6.37,w,h,1.47,shrineWhite);
-    floor('God room side platform',side*1.64,6.38,1.48,1.45,shrineFloor,shrineWhite,.09);
+      b('God room platform moulding',side*1.64,y,6.62,w,h,.97,shrineWhite);
+    floor('God room side platform',side*1.64,6.63,1.48,.95,shrineFloor,shrineWhite,.09);
+    // 14.52.11 / god-room.jpg / 14.32.31: the cheek top is level with the platform, sweeps down to a small
+    // curl over a large scroll on a red pedestal, and its outer side is a white panel inside that red band
+    // over a low red dado. Profile: x runs back from the foot (world z 5.42), y is height.
     const cheek=new THREE.Shape();
-    cheek.moveTo(0,F);cheek.lineTo(1.22,F);cheek.lineTo(1.22,1.28);cheek.lineTo(.96,1.28);
-    cheek.bezierCurveTo(.54,1.28,.49,.81,.12,.76);cheek.lineTo(0,.76);cheek.closePath();
+    cheek.moveTo(.06,EL);cheek.lineTo(1.39,EL);cheek.lineTo(1.39,1.08);cheek.lineTo(.90,1.08);
+    cheek.bezierCurveTo(.72,1.08,.52,.99,.375,.955);cheek.absarc(.32,.86,.11,Math.PI/3,3.9,false);
+    cheek.absarc(.20,.57,.17,Math.PI/3,4.36,false);cheek.lineTo(.06,.41);cheek.closePath();
     const cheekMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(cheek,{depth:.30,bevelEnabled:true,bevelSegments:3,steps:1,bevelSize:.025,bevelThickness:.025,curveSegments:20}),mat('red'));
-    cheekMesh.name='God room curved red stair cheek';cheekMesh.rotation.y=-Math.PI/2;cheekMesh.position.set(side*1.06+.15,0,5.59);g.add(cheekMesh);
-    K.blocker(side*1.06,6.20,.35,1.27,F,1.31);
+    cheekMesh.name='God room curved red stair cheek';cheekMesh.rotation.y=-Math.PI/2;cheekMesh.position.set(side*1.06+.15,0,5.42);g.add(cheekMesh);
+    for(const [sx,sy,r] of [[.20,.57,.175],[.32,.86,.115]]){
+      const scroll=K.cylinder(g,'God room stair cheek scroll',side*1.06,sy,5.42+sx,r,r,.39,'red',28);scroll.rotation.z=Math.PI/2;
+      const eye=K.cylinder(g,'God room stair cheek scroll eye',side*1.06,sy,5.42+sx,r*.3,r*.3,.43,'red',16);eye.rotation.z=Math.PI/2;
+    }
+    const panel=new THREE.Shape(),px=v=>-side*v; // mirrored per side so the face normal points away from the stair
+    panel.moveTo(px(.33),.275);panel.lineTo(px(1.39),.275);panel.lineTo(px(1.39),.91);panel.lineTo(px(.92),.91);
+    panel.quadraticCurveTo(px(.72),.90,px(.58),.82);panel.quadraticCurveTo(px(.48),.76,px(.45),.66);
+    panel.lineTo(px(.43),.50);panel.lineTo(px(.38),.42);panel.lineTo(px(.33),.38);panel.closePath();
+    const panelMesh=new THREE.Mesh(new THREE.ShapeGeometry(panel,12),shrineWhite);
+    panelMesh.name='God room stair cheek white side panel';panelMesh.rotation.y=side*Math.PI/2;panelMesh.position.set(side*1.239,0,5.42);g.add(panelMesh);
+    K.blocker(side*1.06,6.115,.35,1.39,EL,1.12);
     b('God room white half wall',side*1.45,1.805,screenZ,1.36,1.45,.22,shrineWhite,true); // god-room.jpg: wall and dado 1.44 m against the gate
     b('God room red oxide wall base',side*1.45,1.31,screenZ-.015,1.36,.46,.25,'red');
     // Open grilles, with daylight between real slats rather than a painted panel.
@@ -812,10 +825,10 @@ export function buildHouse(K) {
   b('God room iron latch',0,2.26,screenZ-.17,.23,.035,.035,'metal');
   b('God room worn centre door strip',0,2.25,screenZ-.15,.024,2.14,.02,shrineTimber);
   // Photograph-right is -X when looking into the house.
-  K.cylinder(g,'God room grinding bowl',-1.25,1.20,6.05,.23,.17,.22,'paleStone',18); // clear of the slender red post
-  K.cylinder(g,'God room bowl hollow',-1.25,1.315,6.05,.16,.16,.015,'stone',18);
+  K.cylinder(g,'God room grinding bowl',-1.22,1.22,6.52,.23,.17,.22,'paleStone',18); // god-room.jpg: against the dado beside the gate, clear of the slender red post
+  K.cylinder(g,'God room bowl hollow',-1.22,1.335,6.52,.16,.16,.015,'stone',18);
   const grindingStone=new THREE.Mesh(new THREE.DodecahedronGeometry(.15,0),mat('stone'));
-  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.29,1.42,6.07);g.add(grindingStone);
+  grindingStone.name='God room grinding stone';grindingStone.position.set(-1.26,1.44,6.54);g.add(grindingStone);
   // User's note: no desk beside the God-room approach.
   // Low corrugated side coverings frame this view under heavy timber beams.
   const entryRoof=new THREE.Group();entryRoof.name='God room entrance roof framing';g.add(entryRoof);K.roofs.push(entryRoof);
