@@ -237,7 +237,8 @@ left in `docs/photo-review-2026-10-01-fixes.json`: temple 5, 6, 9, 20, 24, 25; l
 - Game, final state: rebuilt from `main` at `3abfe30` and packaged at 02:27 on 2026-10-04; smoke and
   cold-restart checks passed; eight photo poses and 96 tour frames were captured in the editor and looked
   over (`unreal/Shankaranarayana/Saved/Captures/diag-n3` and `tour-sweep-2` in the photoreal worktree). The
-  only commits on `main` after that build are this file's notes. Launch with `unreal/play.cmd`.
+  only commits on `main` after that build are this file's notes and a web-only label change in `index.html`,
+  which is not part of the game's scene source. Launch with `unreal/play.cmd`.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
