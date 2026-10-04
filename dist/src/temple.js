@@ -1453,7 +1453,7 @@ export function buildTemple(K) {
   // of the left range. Their exact spacing is inferred from the walking sequence.
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
   const shrineStepGrey=mat('#9b9a93',.95);
-  const nagaYellow=mat('#d9b03c',.8),nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#76695a',.85),nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
+  const nagaYellow=mat('#d9b03c',.8),nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#5a5a52',.9), /* 15.04.59: the stones are dark grey (85,89,81), not tan */nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
     const z=37.30+i*2.48;
@@ -1814,7 +1814,9 @@ export function buildTemple(K) {
      K.beam(g,'Passage bell rusted chain',[x,3.78,(front+back)/2],[x,3.33,(front+back)/2],.03,dark);
    }}
   // Little lamp canopy projects toward the entrance from the black pole's base.
-  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,brass); // starts at the shaft face, not through it
+  // temple-upper-center.jpg: the little roof is weathered timber (128,104,82), not metal; as brass its
+  // underside filled the view with a dark olive slab when one stood beneath it.
+  const shelterRoof=box('Small lamp shelter roof',lampX,1.88,lampZ-.88,1.30,.07,1.22,mat('#806852',.9)); // starts at the shaft face, not through it
   shelterRoof.rotation.x=-.07; // (a trailing comment had swallowed this tilt)
   for(const dx of [-.63,.63])K.beam(g,'Lamp shelter slender leg',[lampX+dx,.1,lampZ-1.47],[lampX+dx,1.94,lampZ-1.47],.025,metalPole);
   // User's note: no small brass oil lamp here (it stood through the pole's plinth).
@@ -2155,7 +2157,10 @@ export function buildTemple(K) {
     box('Sanctum shelf brass tile',x,shelfY+.16+j*.17,24.62,.2,.16,.03,brass);
     const b2=mesh('Sanctum shelf brass boss',new THREE.SphereGeometry(.07,10,7),brass,x,shelfY+.16+j*.17,24.6);b2.scale.z=.45;}
   box('Sanctum shelf framed image frame',39,shelfY+.26,24.66,.52,.44,.03,shelfWood);
-  box('Sanctum shelf framed image',39,shelfY+.26,24.645,.44,.36,.01,mat('#efe6d2',.6,{emissive:'#fff1d0',emissiveIntensity:.25}));
+  // 'Temple inner sanctum, God room 2': the lamp-lit picture is warm orange-pink (200,131,99; shadows 116,59,45),
+  // where a cream sheet burned out to a blank white square. The shelf lamp is 35 cm away, so the sheet itself
+  // is dark and the colour is carried by its glow.
+  box('Sanctum shelf framed image',39,shelfY+.26,24.645,.44,.36,.01,mat('#3a241c',.9,{emissive:'#c88363',emissiveIntensity:.3}));
   cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
   const shelfLight=new THREE.PointLight('#fff0c8',3,1.0,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
