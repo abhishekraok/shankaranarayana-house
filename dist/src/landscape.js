@@ -146,7 +146,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<90;i++){const g=x.createLinearGradient(0,0,0,128);g.addColorStop(0,`rgba(28,28,26,${.25+r()*.35})`);g.addColorStop(.5+r()*.5,'rgba(28,28,26,0)');x.fillStyle=g;x.fillRect(r()*256,0,1+r()*5,128);}
    for(let i=0;i<1800;i++){x.fillStyle=r()<.5?'rgba(150,146,138,.35)':'rgba(48,50,44,.35)';x.fillRect(r()*256,r()*128,1+r()*2,1+r()*2);}
    x.fillStyle='rgba(60,72,44,.35)';x.fillRect(0,108,256,20);
-   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(5,1);
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(.5,1/.62);m.offset.set(0,.5); // K.box maps 2 m per texture: five 4 m tiles along the 20 m face, the canvas once over its 1.24 m height (streaks from the top, moss at the foot)
    box('Adjacent building stained lower plinth face',59.975,.62,-5,.05,1.24,20,new THREE.MeshStandardMaterial({map:m,roughness:1}));}
   // Family correction, 14.58.48: a narrow unpaved road separates the home
   // and the temple's right edge. It branches off the lake-facing asphalt lane.
@@ -177,7 +177,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   seed=sideRoadSeed;
   for (let i = 0; i < 70; i++) {
     const p=roadSamples[Math.floor(range(3,128))],x=p.x,z=p.z+(random()<.5?-1:1)*range(roadHalfWidth(p)+.1,roadHalfWidth(p)+.65);
-    blockBatch('loose shoulder stones', materials.path, x, roadRise(x)+.042, z, range(.12, .43), .05, range(.1, .3));
+    // Dull grey-brown lumps, not bright tan tiles (the tint is by index so no extra random draw shifts later seeds).
+    blockBatch('loose shoulder stones', materials.path, x, roadRise(x)+.042, z, range(.12, .43), .05, range(.1, .3), new THREE.Color().setScalar(.5+.035*((i*7)%5)));
   }
 
   // Upper footpaths form a complete loop. The southern path connects to lane.
@@ -229,7 +230,8 @@ export function buildLandscape(K, {mobile=false}={}) {
       const zz=z+range(-.72,.72),w=range(.38,1.0),d=range(.32,.63),color=new THREE.Color().setScalar(range(.77,1.15));
       if(x+w/2>-3.5&&x-w/2<-1.1&&zz+6+d/2>-38.4)continue;
       if(x+w/2>32.9&&x-w/2<35.1&&zz+6+d/2>-38.8)continue;
-      blockBatch('path paving variation',materials.mortar,x,.057,zz,w,.012,d,color);
+      // The loose grey slabs this used to scatter on the far-bank path are in no photograph and read as
+      // stray manhole covers on the mud road and the lawn terraces; the draws above stay so later seeds hold.
     }
   }
 
@@ -400,8 +402,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(const y of [.55,.96,1.25])box('Tank gate pale worn pier seam',bathingGateX,y,z,.53,.035,.53,fenceStone);
   }
   // User's note (game): the open iron leaf stood out over the water; removed.
-  box('Bathing gate approach masonry',15.18,-.35,-9.4,2.45,.69,2.85,materials.basalt);
-  box('Bathing gate approach landing',15.18,-.005,-9.4,2.45,.12,2.85,materials.path);
+  // The slab stops under the roadside parapet (z -8.3): it used to show on the lane side as a tan plank along the wall's foot.
+  box('Bathing gate approach masonry',15.18,-.38,-9.5625,2.45,.63,2.525,materials.basalt);
+  box('Bathing gate approach landing',15.18,-.005,-9.5625,2.45,.12,2.525,materials.path);
   K.surface(15.18,-9.4,2.45,2.85,.055);
   // Long masonry ledges descend lakeward below the house-side water rail.
   for(const [z,y,d] of [[-10.4,-.65,.3],[-10.7,-1.2,.3],[-11,-1.75,.3]]){
@@ -437,14 +440,30 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance west pillar collar',30.15,1.25,-7.9,.38,.16,.38,materials.oldWhite);
   box('Lake entrance black plaque',30.15,1.3,-7.585,.5,.32,.02,new THREE.MeshStandardMaterial({color:'#1b1b1a',roughness:.5}));
   // 15.20.29: the lake side has the same pedestal and stepped pillar under the roof's west end.
-  box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.38,.56,1.1,.5,materials.oldWhite,true);
+  box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.375,.56,1.1,.51,materials.oldWhite,true);
   box('Lake entrance west stepped white pillar',30.15,1.85,-10.38,.3,1.5,.3,materials.oldWhite,true);
   box('Lake entrance west pillar collar',30.15,1.25,-10.38,.38,.16,.38,materials.oldWhite);
   box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
   box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
-  box('Lake entrance east room dark doorway',47.9,1.05,-10.26,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
-  box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,new THREE.MeshStandardMaterial({color:'#d77a36',roughness:.8}));
-  K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.73],[48.55,.55,-7.62],.03,'metal');
+  box('Lake entrance east room dark doorway',47.9,1.05,-10.276,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
+  // 14.59.54: the sign is a painted tin sheet, orange at its top and bottom edges and faded pale
+  // in between, with big red-and-yellow letters, black number lines above and a blue line below.
+  {const c=document.createElement('canvas');c.width=256;c.height=168;const x=c.getContext('2d');
+   const g=x.createLinearGradient(0,0,0,168);g.addColorStop(0,'#c9683a');g.addColorStop(.28,'#e6bfa6');g.addColorStop(.74,'#ead0bc');g.addColorStop(1,'#cf7646');x.fillStyle=g;x.fillRect(0,0,256,168);
+   x.fillStyle='#2b2523';for(const [y,x0,k] of [[14,96,9],[30,120,7]])for(let i=0;i<k;i++)x.fillRect(x0+i*15,y,10,9);
+   x.lineCap='round';
+   for(const [w,col] of [[15,'#e3b63a'],[9,'#b3261e']]){x.strokeStyle=col;x.lineWidth=w;
+     const A=(cx,cy,rad,a,b)=>{x.beginPath();x.arc(cx,cy,rad,a,b);x.stroke();},L=(x0,y0,x1,y1)=>{x.beginPath();x.moveTo(x0,y0);x.lineTo(x1,y1);x.stroke();};
+     A(44,92,17,.6,5.4);L(56,74,66,62);A(100,90,15,2.2,7.2);A(106,118,8,3.4,6.6);A(156,82,10,0,5);A(156,104,12,3.6,8.4);A(210,92,16,1.2,6.0);L(232,68,232,116);}
+   x.fillStyle='#2c4f9a';for(let i=0;i<13;i++)x.fillRect(28+i*16,146,10+(i%3)*2,6);
+   x.strokeStyle='rgba(60,40,30,.5)';x.lineWidth=3;x.strokeRect(1.5,1.5,253,165);
+   const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.anisotropy=4;
+   m.repeat.set(2/.95,2/.62);m.offset.set(.5,.5); // K.box maps 2 m of box to one texture: fit the sheet to the sign
+   const signMat=new THREE.MeshStandardMaterial({map:m,roughness:.8});signMat.name='lake entrance painted sign';
+   box('Lake entrance orange painted sign',47.9,1.55,-7.735,.95,.62,.02,signMat);}
+  // 14.59.54: the pipe comes straight out of the wall and turns down to the tap.
+  K.beam(group,'Lake entrance brass tap pipe',[48.55,.95,-7.74],[48.55,.95,-7.56],.03,'metal');
+  K.beam(group,'Lake entrance brass tap pipe drop',[48.55,.965,-7.56],[48.55,.52,-7.56],.03,'metal');
   // 14.59.39 / 15.11.58: the notice hangs on a yellow-and-black banded pole beside the west pedestal.
   box('Lake entrance yellow notice board',29.55,1.93,-7.35,.04,.72,.75,new THREE.MeshStandardMaterial({color:'#d1a53a',roughness:.85}));
   for(let k=0;k<8;k++)K.cylinder(group,'Lake entrance notice banded pole',29.55,.125+k*.25,-7.35,.035,.035,.25,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
@@ -534,7 +553,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       box('Opposite bank flight white tread nosing',near+dir*run/2,h-.018,-36.99,run,.036,.02,fenceWhite);
       box('Opposite bank flight white riser line',near,h-flightRise/2,-36.99,.036,flightRise,.02,fenceWhite);}
     const nx=axis==='x'?[17.0,17.5]:[9.0,9.7];
-    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,FAR_TOP/2,-37.97,nx[1]-nx[0],FAR_TOP,.87,materials.path);K.surface((nx[0]+nx[1])/2,-37.97,nx[1]-nx[0],.87,FAR_TOP);
+    box('Opposite bank flight top parapet notch',(nx[0]+nx[1])/2,FAR_TOP/2+.002,-37.97,nx[1]-nx[0],FAR_TOP+.004,.87,materials.path);K.surface((nx[0]+nx[1])/2,-37.97,nx[1]-nx[0],.87,FAR_TOP);
   }
   box('Opposite bank central flight landing',13.25,FAR_LEDGE-.2,flightZ,.72,.4,flightD,materials.basalt);K.surface(13.25,flightZ,.72,flightD,FAR_LEDGE);
   box('Opposite bank central tall pilaster',13.25,.66,-37.515,.30,1.52,.035,fenceWhite);
@@ -551,7 +570,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // down to the footing instead of leaving a bright gap under the road slab.
   box('Bathing ledge rear retaining wall',23,-1.025,-8.58,13.2,2.15,.18,tankWall,true);
   steps('Bathing arcade approach stair',28.55,bathingGateZ,2.1,2.1,'x',-1.55,.065,9);
-  box('Bathing arcade stair top landing',29.80,-.003,bathingGateZ,.55,.14,2.1,materials.basalt);
+  box('Bathing arcade stair top landing',29.7325,-.003,bathingGateZ,.685,.14,2.1,materials.basalt);
   K.surface(29.80,bathingGateZ,.55,2.1,.065);
   steps('east bank steps', 49.16, -22.15, 2.3, 2.45, 'x', -1.55, .055, 9);
   box('east bank stair threshold',50.35,-.005,-22.15,.20,.12,2.45,materials.basalt);K.surface(50.35,-22.15,.20,2.45,.055);
@@ -582,7 +601,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const pavilionChildren=group.children.length,pavilionColliders=K.colliders.length,pavilionSurfaces=K.surfaces.length,pavilionRamps=K.ramps.length;
   const px = -14.7, pz = -39.55, pw = 5.0, pd = 4.45, floor = -.29;
   // 14.58.26: the pavilion stands on grey-brown dressed stone, clearly lighter than the water.
-  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#5a5852',roughness:1})); // 15.21.56 / 15.30.02: dark wet stone
+  box('pavilion masonry island', px, -1.025, pz, pw, 1.19, pd, new THREE.MeshStandardMaterial({color:'#5a5852',roughness:1})); // 15.21.56 / 15.30.02: dark wet stone
   box('pavilion pale floor', px, floor - .07, pz, pw, .14, pd, materials.oldWhite);
   K.surface(px, pz, pw, pd, floor);
   // The bank entry is rebuilt in final coordinates below, after placement.
@@ -619,7 +638,40 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Photo review: the slab and its lips are stained grey, not white.
   const pavilionGrey=materials.oldWhite.clone();pavilionGrey.color.set('#9a9a94');
   box('pavilion weathered flat slab', px, 2.205, pz, pw + .54, .19, pd + .54, pavilionGrey, false, pavilionRoof);
-  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, new THREE.MeshStandardMaterial({color:'#857668',roughness:1}), false, pavilionRoof);
+  // 15.30.02 / 15.30.06 (from the house's upper floor): the roof top is dark, weathered brown-grey
+  // concrete with paler dusty patches and black stains, not a clean tan slab.
+  const stainMap=(seed,base,spots,rx=1,ry=1)=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=seed;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle=base;x.fillRect(0,0,256,256);
+    for(const [count,rgb,alpha,r0,r1] of spots)for(let i=0;i<count;i++){const bx=r()*256,by=r()*256,rad=r0+r()*(r1-r0),a=(alpha*(.5+r()*.5)).toFixed(3);
+      for(const ox of [-256,0,256])for(const oy of [-256,0,256]){const g=x.createRadialGradient(bx+ox,by+oy,0,bx+ox,by+oy,rad);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(bx+ox-rad,by+oy-rad,rad*2,rad*2);}}
+    for(let i=0;i<2600;i++){x.fillStyle=r()<.5?'rgba(255,250,240,.10)':'rgba(20,18,16,.14)';x.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
+    const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(rx,ry);m.anisotropy=4;return m;};
+  // 15.20.13 / 15.13.26 / 15.22.33: the worn footpaths are trodden laterite, patchy with dust, damp and grass, not one flat salmon.
+  const lateritePath=new THREE.MeshStandardMaterial({map:stainMap(81233,'#8e604b',[[26,'170,124,98',.45,8,30],[26,'104,64,48',.5,6,26],[14,'98,108,60',.35,4,12]]),roughness:1});lateritePath.name='worn laterite footpath';
+  // 15.11.58: the arcade floor and the gate landing are worn concrete, patchy, not one flat tan.
+  {const wornFloor=new THREE.MeshStandardMaterial({map:stainMap(60411,'#978e7f',[[14,'182,174,160',.45,16,50],[16,'112,102,90',.4,10,36],[8,'128,96,78',.3,8,24]]),roughness:1});wornFloor.name='worn concrete floor';
+   for(const o of group.children)if(o.name==='Bathing arcade raised floor slab'||o.name==='Bathing gate approach landing')o.material=wornFloor;}
+  const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#66605e',[[12,'150,144,140',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
+  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
+  // 15.22.33: the roof slab's edge band is whitewash stained grey and black in patches; the floor inside is
+  // pale grey concrete, darker than the white seats.
+  pavilionGrey.map=stainMap(52712,'#8c9092',[[22,'228,229,226',.6,8,30],[26,'50,54,56',.55,6,26]]);pavilionGrey.color.set('#ffffff');pavilionGrey.name='pavilion stained whitewash';
+  {const floorMat=new THREE.MeshStandardMaterial({map:stainMap(52713,'#b2aea6',[[10,'205,202,196',.5,20,60],[12,'120,116,108',.4,10,36]]),roughness:1});floorMat.name='pavilion grey concrete floor';
+   const f=group.children.find(o=>o.name==='pavilion pale floor');if(f)f.material=floorMat;
+   // The stains belong to the weather faces; the ceiling stays plain whitewash.
+   const soffit=materials.oldWhite.clone();soffit.color.set('#c4c4be');soffit.name='pavilion whitewashed soffit';
+   const s=pavilionRoof.children.find(o=>o.name==='pavilion weathered flat slab');if(s)s.material=[pavilionGrey,pavilionGrey,pavilionGrey,soffit,pavilionGrey,pavilionGrey];
+   // 15.22.33 / 14.58.26: the island is coursed dressed stone, blocks and joints showing above the water.
+   const isl=group.children.find(o=>o.name==='pavilion masonry island');
+   if(isl){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=9917;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+     x.fillStyle='#5e5b55';x.fillRect(0,0,256,256);
+     for(let row=0;row<8;row++)for(let col=-1;col<4;col++){const x0=col*64+(row%2?32:0),a=(.04+r()*.13).toFixed(3);
+       x.fillStyle=r()<.5?`rgba(26,25,23,${a})`:`rgba(150,144,134,${a})`;x.fillRect(x0,row*32,64,32);
+       x.fillStyle='rgba(22,21,19,.55)';x.fillRect(x0,row*32,2,32);}
+     x.fillStyle='rgba(22,21,19,.55)';for(let row=0;row<8;row++)x.fillRect(0,row*32,256,2);
+     for(let i=0;i<1800;i++){x.fillStyle=r()<.5?'rgba(170,164,152,.14)':'rgba(18,17,15,.18)';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}
+     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.anisotropy=4;
+     isl.material=new THREE.MeshStandardMaterial({map:m,roughness:1});isl.material.name='pavilion dressed stone plinth';}}
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
     // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
@@ -950,7 +1002,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   seed = tuftSeed;
   // 15.25.49: weeds, not bare laterite, between the hall and the tank path, beside its approach.
-  const weedyGround = new THREE.MeshStandardMaterial({ color: '#6d7443', roughness: 1 });
+  // 15.30.09: the weedy ground is rough and mixed, darker and lighter clumps with dry patches, not one flat olive.
+  const weedyGround = new THREE.MeshStandardMaterial({ map: stainMap(33170,'#6d7443',[[46,'132,146,78',.5,6,22],[46,'54,70,38',.55,5,20],[16,'124,106,68',.4,6,18]]), roughness: 1 });weedyGround.name='weedy ground';K.worldMap(weedyGround,.4);
   for (const [a, b] of [[-21, -19.2], [-16.6, -9.9]])
     box('Opposite bank weedy ground before the hall', (a + b) / 2, .012, -42.45, b - a, .02, 4.7, weedyGround);
   // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
@@ -1062,7 +1115,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const x of [36.5,41.5])ow('tiled house small upper window',x,4.43,-61.01,.51,.84,.04,materials.darkSoil);
   for(const x of [36,40.7])ow('tiled house dark ground opening',x,1.35,-56.65,.9,2.03,.08,materials.darkSoil);
   // Low hedge and a worn footpath separate the buildings from the bank.
-  ow('hall dirt approach',-17.9,.024,-48.0,2.4,.045,12.2,materials.redSoil);
+  ow('hall dirt approach',-17.9,.024,-48.0,2.4,.045,12.2,lateritePath);
   const neighborSeed=seed;
   for(const [x,z,h] of [[-15.5,-48.6,21],[-8.2,-48.4,24],[1.2,-49.0,20],[14.5,-51.8,23],[21,-54,25],[33,-53.0,22],[46,-52,24]])palm(x,z,h);
   for(let i=0;i<24;i++)shrub(17+i*1.22,-53.3-(i%3)*.8,.65+(i%4)*.12);
@@ -1455,9 +1508,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     K.surface((xa+60)/2,(za+zb)/2,60-xa,zb-za,lawnTop);}
   box('east bank lawn step',50.65,.135,-22.15,.4,.27,2.7,materials.basalt);K.surface(50.65,-22.15,.4,2.7,.27);
   // The path starts beside the far end of the veranda and bends toward the lane steps.
-  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
+  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,lateritePath);path.rotation.y=-.165;
     K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
-  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,materials.redSoil);
+  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,lateritePath);
   // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
   // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
@@ -1465,6 +1518,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  // 14.59.54: the steps are weathered concrete, pink-brown with laterite dust on the treads, with
+  // paler worn patches and darker soiled risers; the platform is grey on top with black-stained sides.
+  {const mk=(name,map)=>{const m=new THREE.MeshStandardMaterial({map,roughness:1});m.name=name;return m;};
+   const tread=mk('lane-end concrete tread',stainMap(7741,'#8f7d75',[[10,'196,182,172',.5,20,60],[16,'118,74,54',.4,10,40],[12,'58,54,48',.35,8,30]],3,1));
+   const riser=mk('lane-end concrete riser',stainMap(7742,'#6c594f',[[14,'38,34,30',.5,10,40],[12,'128,78,56',.4,10,36],[6,'150,138,128',.3,10,30]],3,1));
+   const platTop=mk('lane-end platform top',stainMap(7743,'#7e7e7c',[[8,'170,170,168',.45,20,60],[14,'52,50,46',.45,10,36],[6,'70,80,52',.3,10,30]]));
+   const platSide=mk('lane-end platform stained side',stainMap(7744,'#5f5955',[[18,'26,25,23',.6,12,46],[8,'120,116,110',.35,10,30],[8,'62,74,44',.35,10,28]],2,1));
+   for(const o of group.children){if(!o.isMesh||o.material!==laneConcrete||!o.geometry.groups||o.geometry.groups.length!==6)continue;
+     const plat=o.name.includes('platform'),s=plat?platSide:riser,t=plat?platTop:tread;o.material=[s,s,t,s,s,s];}}
   shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
   // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
@@ -1474,7 +1536,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // tiles end on a bracket there and the sheet beyond hangs on one thin pole.
   for(const a of [-1.7,2.4,6.7,9.0]){
     sb('white veranda post',a,1.64,.12,.22,2.68,.24,shopWhite,true);
-    sb('black veranda post foot',a,.69,.105,.25,.78,.27,materials.basalt);
+    sb('black veranda post foot',a,.69,.12,.25,.78,.27,materials.basalt);
   }
   // 15.20.13 (good pose) / 14.59.54: the cream end block is one plane from eave to ground,
   // about 0.45 m proud of the shop wall, with a black damp base. The veranda runs on in front
@@ -1500,7 +1562,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     for(let j=0;j<13;j++)sb('shopfront vertical grille',a-1.12+j*.185,1.64,1.86,.024,2.05,.028,materials.mortar);
     sb('shopfront grille middle rail',a,1.28,1.83,2.3,.04,.03,materials.mortar);
   }
-  sb('small far-left window',7.7,1.86,2.12,.62,1.01,.075,shopWood);
+  sb('small far-left window',7.7,1.86,2.165,.62,1.01,.075,shopWood);
   // Long mossy tiled lean-to with a patched sheet strip along the lower eave.
   const shopAwning=new THREE.Group();shopAwning.name='Shop long weathered awning';group.add(shopAwning);K.roofs.push(shopAwning);
   // 15.20.13: the tiles stop at the cream block (z about -19.5); a corrugated sheet goes on from there.
@@ -1553,8 +1615,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // The ventilator is recessed through the front shell of the cream block. Front plane x 61.75
   // from eave to ground and the end wall one plane at z -15.8 (14.59.54); the jali is a tall
   // narrow one, 0.5 x 1.05 m centred 3.86 m up, just above the sheet (15.20.13 projected).
-  sb('cream end upper block',-7.2125,4.16,4.58,3.975,2.12,3.74,shopCream,true);
-  for(const [a,w] of [[-8.225,1.95],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
+  sb('cream end upper block',-7.2175,4.16,4.58,3.985,2.12,3.74,shopCream,true);
+  for(const [a,w] of [[-8.23,1.96],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
   sb('cream ventilator lower masonry',-7,3.2175,2.23,.5,.235,.96,shopCream,true);
   sb('cream ventilator upper masonry',-7,4.8025,2.23,.5,.835,.96,shopCream,true);
   K.hipRoof(group,'Shop cream end hipped tile roof',64.1,-17.79,5.5,4.75,5.25,1.02,darkTile);
@@ -2052,7 +2114,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<16;i++)for(const side of [-1,1]){const x=side<0?x0-(i+.5)*fall/16:x1+(i+.5)*fall/16,h=lift(x);
      box('Far bank earth slope',x,(h-.3)/2,zc,fall/16+.01,h+.3,d,earth);}
    K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);
-   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,materials.redSoil);}
+   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,lateritePath);}
   // Bring the far bank closer (see farZ): move what lies beyond, stretch what spans.
   {const b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
    group.updateMatrixWorld(true);
