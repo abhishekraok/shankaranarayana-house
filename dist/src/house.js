@@ -827,50 +827,55 @@ export function buildHouse(K) {
     K.beam(entryRoof,'God room side roof timber',[side*2.25,3.52,4.82],[side*2.25,3.52,7.08],.17,shrineTimber,.21);
     for(const z of [5.03,5.65,6.50])K.beam(entryRoof,'God room short exposed crossbeam',[side*2.02,3.56,z],[side*3.18,3.56,z],.14,shrineTimber,.18);
   }
-  wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:.80,top:2.20}],'plaster',.22);
+  wallZ('Shrine left wall',-2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:1.47,top:2.62}],'plaster',.22); // 14.52.16 / 14.46.10: sill about 2.15 m, head just under the long canopy
   wallZ('Shrine right wall',2.05,6.98,10.1,.68,2.9,[{c:8.15,w:1.86,bottom:1.58,top:2.87}],'plaster',.22);
   wallX('Shrine rear wall',-2.05,2.05,10.08,.68,2.9,[],'plaster',.22);
   for(const z of [6.5,9.65]) {
     detail(-2.18,1.28,z,.14,.13,.65,'red');detail(2.18,1.28,z,.14,.13,.65,'red');
   }
-  for(const y of [.83,1.12,2.70,3.38]) {
-    detail(0,y,10.22,4.32,.10,.10,'red');
-    if(y!==2.70)detail(-2.2,y,8.1,.10,.10,4.2,'red');
-    if(y!==2.70&&y!==3.38)detail(2.2,y,8.1,.10,.10,4.2,'red');
-    if(y===3.38)for(const [a,end] of [[6.0,7.16],[9.14,10.2]])detail(2.2,y,(a+end)/2,.10,.10,end-a,'red');
+  // 14.44.14 / 14.44.09 / 14.52.16 / 14.46.10: three broad patterned bands (about 0.25 m, at 1.75, 2.70 and
+  // 3.65 m) run round the tall block; on the west the lower two exist only behind the window.
+  const shrineBandSpans=(side,y)=>side<0?(y===3.65?[[6.0,10.2]]:[[9.14,10.2]]):(y===1.75?[[6.0,10.2]]:[[6.0,7.16],[9.14,10.2]]);
+  for(const y of [1.75,2.70,3.65]) {
+    detail(0,y,10.22,4.32,.25,.10,'red');
+    for(const side of [-1,1])for(const [a,end] of shrineBandSpans(side,y))detail(side*2.2,y,(a+end)/2,.10,.25,end-a,'red');
   }
   // Pale floral/triangle decoration on the red shrine bands (14.44.14).
   const borderCanvas=document.createElement('canvas');borderCanvas.width=512;borderCanvas.height=64;
-  const border=borderCanvas.getContext('2d');border.fillStyle='#915c50';border.fillRect(0,0,512,64);border.strokeStyle='#d2bb9a';border.fillStyle='#d2bb9a';border.lineWidth=3;
+  const border=borderCanvas.getContext('2d');border.fillStyle='#7b4d4c';border.fillRect(0,0,512,64);border.strokeStyle='#c4ad9c';border.fillStyle='#c4ad9c';border.lineWidth=3;
   for(let x=0;x<512;x+=64){border.beginPath();border.moveTo(x,56);border.lineTo(x+32,8);border.lineTo(x+64,56);border.stroke();for(let k=0;k<6;k++){const a=k*Math.PI/3;border.beginPath();border.ellipse(x+32+Math.cos(a)*9,35+Math.sin(a)*9,7,3,a,0,Math.PI*2);border.fill();}}
   const borderMap=new THREE.CanvasTexture(borderCanvas);borderMap.colorSpace=THREE.SRGBColorSpace;borderMap.wrapS=THREE.RepeatWrapping;borderMap.repeat.x=2;
   const bandMat=new THREE.MeshStandardMaterial({map:borderMap,roughness:1});
-  for(const y of [1.12,2.70,3.38])for(const side of [-1,1]){
-    const spans=(y===2.70||(side===1&&y===3.38))?[[6.025,7.16],[9.14,10.175]]:[[6.025,10.175]];
-    for(const [a,end] of spans){
-      const material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2*(end-a)/4.15;map.offset.x=(a-6.025)/4.15*2;material.map=map;
-      const band=new THREE.Mesh(new THREE.PlaneGeometry(end-a,.14),material);band.position.set(side*2.255,y,(a+end)/2);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
+  for(const y of [1.75,2.70,3.65]){
+    for(const side of [-1,1])for(const [a0,e0] of shrineBandSpans(side,y)){
+      const a=a0+.025,end=e0-.025,material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2.6*(end-a)/4.15;map.offset.x=(a-6.025)/4.15*2.6;material.map=map;
+      const band=new THREE.Mesh(new THREE.PlaneGeometry(end-a,.25),material);band.position.set(side*2.255,y,(a+end)/2);band.rotation.y=side*Math.PI/2;band.name='Patterned shrine side band';g.add(band);
     }
+    const material=bandMat.clone(),map=borderMap.clone();map.repeat.x=2.6*4.32/4.15;material.map=map;
+    const rear=new THREE.Mesh(new THREE.PlaneGeometry(4.32,.25),material);rear.position.set(0,y,10.275);rear.name='Patterned shrine rear band';g.add(rear);
   }
   // 14.46.10, from the courtyard stair: open blue double grille rather
   // than an opaque shutter. The unseen opposite wall remains an estimate.
   const wornWindowBlue=K.M.blue.clone();wornWindowBlue.color.setRGB(.85,1.0,1.05);
-  for(const z of [7.22,8.15,9.08])b('Shrine west window blue upright',-2.205,2.18,z,.12,1.48,.085,wornWindowBlue);
-  for(const y of [1.48,2.15,2.88])b('Shrine west window blue cross rail',-2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
-  for(let z=7.33;z<9.04;z+=.108)b('Shrine west window slender wooden grille',-2.205,2.18,z,.055,1.36,.036,wornWindowBlue);
-  K.blocker(-2.205,8.15,.12,1.94,1.48,2.92);
+  for(const z of [7.22,8.15,9.08])b('Shrine west window blue upright',-2.205,2.725,z,.12,1.23,.085,wornWindowBlue);
+  for(const y of [2.17,2.725,3.28])b('Shrine west window blue cross rail',-2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
+  for(let z=7.33;z<9.04;z+=.108)b('Shrine west window slender wooden grille',-2.205,2.725,z,.055,1.11,.036,wornWindowBlue);
+  K.blocker(-2.205,8.15,.12,1.94,2.15,3.30);
   const canopyPlaster=K.M.plaster.clone();canopyPlaster.color.set('#aca38e');
-  b('Shrine west window deep pale canopy',-2.28,3.05,8.15,.61,.18,2.18,canopyPlaster);
+  const canopyWest=K.M.plaster.clone();canopyWest.color.set('#cfc8b8'); // 14.46.10: a long weathered white fascia from the porch to past the window
+  b('Shrine west window deep pale canopy',-2.28,3.45,7.675,.61,.25,3.35,canopyWest);
   for(const z of [7.18,9.12]){
-    b('Shrine west canopy timber corbel',-2.32,2.94,z,.46,.14,.15,verandaTimber);
-    b('Shrine west canopy corbel foot',-2.22,2.84,z,.24,.16,.15,verandaTimber);
+    b('Shrine west canopy timber corbel',-2.32,3.34,z,.46,.14,.15,verandaTimber);
+    b('Shrine west canopy corbel foot',-2.22,3.24,z,.24,.16,.15,verandaTimber);
   }
   // The newly located interior close-up confirms an open grille on this side too.
   for(const z of [7.22,8.15,9.08])b('Shrine east window blue upright',2.205,2.90,z,.12,1.38,.085,wornWindowBlue);
   for(const y of [2.26,2.90,3.55])b('Shrine east window blue cross rail',2.215,y,8.15,.13,.075,1.94,wornWindowBlue);
   for(let z=7.33;z<9.04;z+=.108)b('Shrine east window slender wooden grille',2.205,2.90,z,.055,1.29,.036,wornWindowBlue);
   K.blocker(2.205,8.15,.12,1.94,2.23,3.60);
-  b('Shrine east window deep pale canopy',2.28,3.68,8.15,.61,.18,2.18,canopyPlaster);
+  // 14.44.14 / 14.44.09: a heavy dark timber hood with a red cap over the east window.
+  b('Shrine east window dark timber hood',2.345,3.80,8.15,.37,.42,2.18,verandaTimber);
+  b('Shrine east window hood red cap',2.345,4.07,8.15,.41,.12,2.22,'red');
   // 14.37.41/45/50 look back from inside the God room: the aqua
   // plaster and dark skirting are confined to the reverse of the white screen.
   const shrineSkirting=mat('wood').clone();shrineSkirting.color.set('#393b35');
@@ -940,7 +945,7 @@ export function buildHouse(K) {
   }
   // Surface fissure, not an opening through the wall: the crack meets the
   // upper edge of the west window reveal in the close-up.
-  const crackPoints=[[7.30,3.56],[7.32,3.45],[7.27,3.34],[7.28,3.23],[7.21,3.08],[7.20,2.98]];
+  const crackPoints=[[7.30,3.96],[7.32,3.85],[7.27,3.74],[7.28,3.63],[7.21,3.48],[7.20,3.38]];
   const crackGeometry=new THREE.BufferGeometry().setFromPoints(crackPoints.map(([z,y])=>new THREE.Vector3(-2.167,y,z)));
   const crack=new THREE.Line(crackGeometry,new THREE.LineBasicMaterial({color:'#63584a'}));crack.name='Shrine west plaster hairline crack';g.add(crack);
   // User-labelled 14.38.51: two unequal, tarnished metal discs beside
@@ -1114,12 +1119,20 @@ export function buildHouse(K) {
   // exposed tile backs above a heavy tie beam and a faded painted plaster band.
   // Keep the rear hip and the dark lining seen from inside the God room.
   const shrineRoofTiles=shrineRoof.children.find(o=>o.name==='Small shrine tiled roof tiles');
-  const roofPoints=[[-2.45,0,-2.475],[2.45,0,-2.475],[2.45,0,2.475],[-2.45,0,2.475],[0,1,-2.475],[0,1,.27]];
+  // 14.44.14 / 14.46.10: no tiled skirt runs round the tall walls. The low roof keeps its eaves only over
+  // the porch (in front of local z -1.10); behind that it is the room's ceiling, clipped inside the walls.
   const roofPositions=[],roofUvs=[];
-  for(const face of [[1,4,5],[1,5,2],[2,5,3],[3,5,4],[3,4,0]])for(const i of face){const v=roofPoints[i];roofPositions.push(...v);roofUvs.push(v[0]*.36,v[2]*.36);}
+  for(const s of [1,-1]){
+    const E=[[s*2.45,0,-2.475],[0,1,-2.475],[0,1,-1.10],[s*2.45,0,-1.10]],Q=[[s*1.94,.208,-1.10],[0,1,-1.10],[0,1,.27],[s*1.811,.261,1.90],[s*1.94,.208,1.90]];
+    const tris=[[E[0],E[1],E[2]],[E[0],E[2],E[3]],[Q[0],Q[1],Q[2]],[Q[0],Q[2],Q[3]],[Q[0],Q[3],Q[4]]];
+    for(const t of tris)for(const v of s>0?t:[t[0],t[2],t[1]]){roofPositions.push(...v);roofUvs.push(v[0]*.36,v[2]*.36);}
+  }
+  for(const v of [[1.811,.261,1.90],[0,1,.27],[-1.811,.261,1.90]]){roofPositions.push(...v);roofUvs.push(v[0]*.36,v[2]*.36);}
   const openGable=new THREE.BufferGeometry();openGable.setAttribute('position',new THREE.Float32BufferAttribute(roofPositions,3));openGable.setAttribute('uv',new THREE.Float32BufferAttribute(roofUvs,2));openGable.computeVertexNormals();
   shrineRoofTiles.geometry.dispose();
   shrineRoofTiles.geometry=openGable;
+  for(const f of shrineRoof.children.filter(o=>o.name==='Small shrine tiled roof fascia').slice(1)){shrineRoof.remove(f);f.geometry.dispose();}
+  for(const side of [-1,1])K.beam(shrineRoof,'Small shrine tiled roof fascia',[side*2.45,3.56,5.525],[side*2.45,3.56,6.9],.15,'wood',.12);
   // The original short hip ridge no longer matches the open front gable.
   const oldRidge=shrineRoof.children.find(o=>o.name==='Small shrine tiled roof ridge');
   if(oldRidge){shrineRoof.remove(oldRidge);oldRidge.geometry.dispose();}
@@ -1384,13 +1397,12 @@ export function buildHouse(K) {
   // 14.44.14 / 14.44.48 / 14.48.31: seen from the court this wall is plain white down to a dark damp
   // strip at its foot, with no red band; the red slab edge under it is plastered over.
   skirting=false;
-  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:1.5,bottom:1.05,top:2.32},{c:10.2,w:1.7,top:2.5}],'plaster');
+  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:.86,bottom:1.05,top:2.25},{c:10.2,w:1.7,top:2.5}],'plaster');
   skirting=true;
   detail(0,U+.10,5.99,23.7,.20,.012,facadeDark);
   for(const side of [-1,1])b('Upper floor court edge plaster',side*7.2375,U-.11,6.008,9.275,.22,.012,'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
   doorX(-6.75,5.86,.95,U,2.5,-1);
-  grilleX(3.6,5.69,1.5,U+1.05,1.27);
   // 14.44.14/48: tall narrow courtyard-facing timber window. The upper
   // half is shuttered; six bars cross the dark lower opening, facing +Z.
   const courtWindowWood=verandaTimber.clone();courtWindowWood.color.setRGB(1.25,1.13,1.04);
@@ -1403,6 +1415,15 @@ export function buildHouse(K) {
     b('Upper courtyard closed upper shutter board',x,U+1.855,5.988,.14,.78,.055,courtWindowWood);
     b('Upper courtyard lower window iron bar',x,U+.98,6.035,.020,.76,.030,'metal');
   }
+  // 14.44.14: the same kind of timber window, smaller, shows right of the God room's eave (it was a wide pale grille).
+  {const cx=3.6,y0=U+1.05,y1=U+2.25,ym=(y0+y1)/2,hh=y1-y0;
+   b('Upper courtyard east window dark recessed interior',cx,ym,5.90,.85,hh,.025,'black');
+   for(const x of [cx-.475,cx+.475])b('Upper courtyard east window jamb',x,ym,6.015,.10,hh+.17,.12,courtWindowWood);
+   for(const y of [y0-.045,y1+.045])b('Upper courtyard east window sill and head',cx,y,6.025,1.05,.095,.15,courtWindowWood);
+   b('Upper courtyard east window middle rail',cx,y0+hh*.55,6.04,.90,.075,.095,courtWindowWood);
+   for(let j=0;j<6;j++){const x=cx-.369+j*.146;
+     b('Upper courtyard east window shutter board',x,y0+hh*.775,5.988,.14,hh*.45-.04,.055,courtWindowWood);
+     b('Upper courtyard east window iron bar',x,y0+hh*.275,6.035,.020,hh*.55,.030,'metal');}}
   // Faint rain marks below the sill stay on the plaster surface.
   for(let j=0;j<8;j++)detail(-2.0+j*.112,U+.39+(j%3)*.018,5.988,.009,.22-(j%3)*.025,.005,'stone');
 
@@ -1816,8 +1837,8 @@ export function buildHouse(K) {
   // roof and the room's ceiling. Authored after the deepening pass, in final coordinates.
   {const base=3.56,top=5.3,z0=6.98,z1=11.52,zm=(z0+z1)/2,h=top-base,ym=(base+top)/2;
    const band=new THREE.MeshStandardMaterial({color:'#8a4b45',roughness:1});
-   for(const x of [-2.05,2.05]){b('Shrine tall upper wall',x,ym,zm,.22,h,z1-z0,'plaster');b('Shrine upper maroon band',x+Math.sign(x)*.115,4.18,zm,.012,.17,z1-z0,band);}
-   b('Shrine tall upper wall',0,ym,z1-.11,4.32,h,.22,'plaster');b('Shrine upper maroon band',0,4.18,z1+.005,4.32,.17,.012,band);
+   for(const x of [-2.05,2.05])b('Shrine tall upper wall',x,ym,zm,.22,h,z1-z0,'plaster'); // no fourth band at 4.18: the photos show three in all
+   b('Shrine tall upper wall',0,ym,z1-.11,4.32,h,.22,'plaster');
    b('Shrine tall upper wall',0,ym,z0+.02,4.32,h,.2,'plaster');
    // 14.52.16 / 14.48.31 / 14.48.07: the west side stands on a moulded base about a metre high, a
    // ledge at room-floor level over a dentilled neck, a roll and three laterite courses.
