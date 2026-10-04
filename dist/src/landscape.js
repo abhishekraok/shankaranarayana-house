@@ -218,7 +218,7 @@ export function buildLandscape(K, {mobile=false}={}) {
       }
       continue;
     }
-    box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], i===0||i===3||i===5?verge:materials.path);
+    box(`tank perimeter path ${i}`, p[0], .026+i*.0015, p[1], p[2], .052+i*.003, p[3], i===0||i===3||i===5?verge:materials.path); // each a hair higher, so overlapping corners do not flicker
     K.surface(p[0], p[1], p[2], p[3], .052);
   }
   // A little broken paving, inset into rather than blocking the walking route.
@@ -410,7 +410,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // orange sign and a tap. The first bay beside it is the way down to the water.
   box('Bathing arcade raised floor slab',39,-.015,-9.0,19.2,.16,3.1,materials.path);
   K.surface(39,-9.0,19.2,3.1,.065);
-  box('Bathing arcade slab worn front edge',39,.03,-7.47,19.2,.07,.06,materials.mortar);
+  box('Bathing arcade slab worn front edge',39,.032,-7.47,19.2,.07,.06,materials.mortar);
   const dadoTiles=materials.oldWhite.clone();
   if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
     x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
@@ -543,7 +543,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // down to the footing instead of leaving a bright gap under the road slab.
   box('Bathing ledge rear retaining wall',23,-1.025,-8.58,13.2,2.15,.18,tankWall,true);
   steps('Bathing arcade approach stair',28.55,bathingGateZ,2.1,2.1,'x',-1.55,.065,9);
-  box('Bathing arcade stair top landing',29.80,-.005,bathingGateZ,.55,.14,2.1,materials.basalt);
+  box('Bathing arcade stair top landing',29.80,-.003,bathingGateZ,.55,.14,2.1,materials.basalt);
   K.surface(29.80,bathingGateZ,.55,2.1,.065);
   steps('east bank steps', 49.16, -22.15, 2.3, 2.45, 'x', -1.55, .055, 9);
   box('east bank stair threshold',50.35,-.005,-22.15,.20,.12,2.45,materials.basalt);K.surface(50.35,-22.15,.20,2.45,.055);
@@ -1492,7 +1492,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
   {const salmon=K.M.plaster.clone();salmon.color.set('#e7a08e');
    box('Slope salmon-pink house walls',-36,2.2,-21.5,7.2,6.4,6.4,salmon,true);
-   box('Slope salmon-pink house red parapet band',-36,5.25,-21.5,7.3,.3,6.5,'red');
+   box('Slope salmon-pink house red parapet band',-36,5.26,-21.5,7.3,.32,6.5,'red'); // 2 cm proud of the walls' top: the two tops shared a plane and flickered
    for(const xx of [-38.2,-33.8])for(const y of [1.6,4.2])box('Slope salmon-pink house window',xx,y,-18.28,1.0,1.1,.05,'wood');
    const r=K.hipRoof(group,'Slope salmon-pink house tiled roof',-36,-21.5,8.2,7.4,5.4,1.3,darkTile);K.roofs.push(r);}
   cottageMark[0].push(group.children.length,K.colliders.length,K.surfaces.length);
