@@ -648,8 +648,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(rx,ry);m.anisotropy=4;return m;};
   // 15.20.13 / 15.13.26 / 15.22.33: the worn footpaths are trodden laterite, patchy with dust, damp and grass, not one flat salmon.
   const lateritePath=new THREE.MeshStandardMaterial({map:stainMap(81233,'#8e604b',[[26,'170,124,98',.45,8,30],[26,'104,64,48',.5,6,26],[14,'98,108,60',.35,4,12]]),roughness:1});lateritePath.name='worn laterite footpath';
-  const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#665c57',[[12,'150,140,130',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
+  const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#66605e',[[12,'150,144,140',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
+  // 15.22.33: the roof slab's edge band is whitewash stained grey and black in patches; the floor inside is
+  // pale grey concrete, darker than the white seats.
+  pavilionGrey.map=stainMap(52712,'#8c9092',[[22,'228,229,226',.6,8,30],[26,'50,54,56',.55,6,26]]);pavilionGrey.color.set('#ffffff');pavilionGrey.name='pavilion stained whitewash';
+  {const floorMat=new THREE.MeshStandardMaterial({map:stainMap(52713,'#b2aea6',[[10,'205,202,196',.5,20,60],[12,'120,116,108',.4,10,36]]),roughness:1});floorMat.name='pavilion grey concrete floor';
+   const f=group.children.find(o=>o.name==='pavilion pale floor');if(f)f.material=floorMat;
+   // The stains belong to the weather faces; the ceiling stays plain whitewash.
+   const soffit=materials.oldWhite.clone();soffit.color.set('#c4c4be');soffit.name='pavilion whitewashed soffit';
+   const s=pavilionRoof.children.find(o=>o.name==='pavilion weathered flat slab');if(s)s.material=[pavilionGrey,pavilionGrey,pavilionGrey,soffit,pavilionGrey,pavilionGrey];}
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
     // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
