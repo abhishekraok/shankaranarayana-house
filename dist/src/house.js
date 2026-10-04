@@ -488,33 +488,60 @@ export function buildHouse(K) {
   const cabinetWood=verandaTimber.clone();cabinetWood.color.set('#aa7960');
   const cabinetDark=new THREE.MeshStandardMaterial({color:'#423b2e',roughness:1});
   const cabinetBrass=new THREE.MeshStandardMaterial({color:'#9b8564',roughness:.72,metalness:.35});
+  // 'house above the right front window, from inside, facing out 2.jpg': a squarish two-leaf timber shutter
+  // directly under the hung radio shelf. A dark timber casing wraps the outer window's reveals, which stand
+  // into the room, so no ochre frame or red-brown slab shows inside; the wall opening beside it is lined flush.
   for(const x of [2.68,3.32]){
-    b('Right front window closed timber shutter',x,1.98,2.35,.625,1.62,.07,cabinetWood);
-    for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.98,2.395,.046,1.62,.025,cabinetWood);
-    for(const y of [1.22,1.98,2.74])b('Right front shutter crossrail',x,y,2.395,.60,.053,.025,cabinetWood);
+    b('Right front window closed timber shutter',x,1.90,2.35,.625,1.05,.07,cabinetWood);
+    for(const dx of [-.258,.258])b('Right front shutter raised stile',x+dx,1.90,2.395,.046,1.05,.025,cabinetWood);
+    for(const y of [1.42,1.90,2.38])b('Right front shutter crossrail',x,y,2.395,.60,.053,.025,cabinetWood);
   }
-  b('Right front window interior timber lintel',3,2.82,2.38,1.47,.13,.15,cabinetWood);
+  b('Right front window interior timber lintel',3,2.45,2.38,1.47,.13,.15,cabinetWood);
+  for(const s of [-1,1]){
+    b('Right front window timber casing side',3+s*.815,2.0,2.2575,.03,2.04,.175,cabinetWood);
+    b('Right front window timber casing stile',3+s*.73,1.9225,2.33,.20,1.095,.03,cabinetWood);
+    b('Right front window opening turquoise lining',3+s*.89,2.0,2.164,.12,2.0,.012,verandaAqua);
+  }
+  for(const y of [.995,3.005])b('Right front window timber casing end',3,y,2.2575,1.66,.03,.175,cabinetWood);
+  b('Right front window timber casing upper panel',3,2.745,2.33,1.66,.55,.03,cabinetWood);
+  b('Right front window timber casing apron',3,1.185,2.33,1.66,.38,.03,cabinetWood);
+  // Tour-frame sweep: the other sitting window showed inside as a blank red-brown slab. Give it the same
+  // closed two-leaf timber shutter in a plain frame, flush in the wall.
+  for(const x of [-3.325,-2.675]){
+    b('Left front window closed timber shutter',x,2.0,2.15,.645,1.69,.04,cabinetWood);
+    for(const dx of [-.27,.27])b('Left front shutter raised stile',x+dx,2.0,2.18,.05,1.66,.02,cabinetWood);
+    for(const y of [1.22,2.0,2.78])b('Left front shutter crossrail',x,y,2.18,.59,.055,.02,cabinetWood);
+  }
+  for(const s of [-1,1])b('Left front window timber frame',-3+s*.69,2.0,2.185,.09,1.87,.03,cabinetWood);
+  for(const y of [1.11,2.89])b('Left front window timber frame',-3,y,2.185,1.47,.09,.03,cabinetWood);
   const cabinet=new THREE.Group();cabinet.name='Right front window suspended timber cabinet';g.add(cabinet);
-  K.box(cabinet,'Cabinet dark backing',3,3.18,2.23,1.39,.55,.06,cabinetDark);
-  for(const y of [2.91,3.48])K.box(cabinet,'Cabinet projecting shelf',3,y,2.35,1.55,.065,.36,cabinetWood);
-  for(const x of [2.28,3.72])K.box(cabinet,'Cabinet side upright',x,3.19,2.34,.065,.55,.25,cabinetWood);
-  for(const x of [2.51,3,3.49]){
-    K.box(cabinet,'Cabinet lower drawer face',x,3.026,2.455,.44,.15,.045,cabinetWood);
-    const knob=K.cylinder(cabinet,'Cabinet round brass knob',x,3.025,2.494,.024,.03,.036,cabinetBrass,12);knob.rotation.x=Math.PI/2;
-    for(const dx of [-.223,.223])K.box(cabinet,'Cabinet screened compartment frame',x+dx,3.28,2.46,.034,.28,.04,cabinetWood);
-    for(const y of [3.14,3.42])K.box(cabinet,'Cabinet screened compartment rail',x,y,2.46,.46,.03,.04,cabinetWood);
-  }
-  // Fine dark mesh remains a single inexpensive line mesh.
-  const meshLines=[];for(let x=2.31;x<3.70;x+=.018)meshLines.push(x,3.15,2.465,x,3.41,2.465);
-  for(let y=3.15;y<3.42;y+=.018)meshLines.push(2.31,y,2.465,3.70,y,2.465);
-  const screenGeom=new THREE.BufferGeometry();screenGeom.setAttribute('position',new THREE.Float32BufferAttribute(meshLines,3));
-  const cabinetScreen=new THREE.LineSegments(screenGeom,new THREE.LineBasicMaterial({color:'#6a6253',transparent:true,opacity:.48}));cabinetScreen.name='Cabinet fine wire screens';cabinet.add(cabinetScreen);
-  K.box(cabinet,'Cabinet side book shelf',3.94,2.92,2.34,.43,.055,.33,cabinetWood);
-  for(let j=0;j<7;j++){
+  // Same photo: not a built cabinet but an old radio on a shelf hung from the ceiling by two iron straps,
+  // right above the shutter: a timber box with two dark cloth panels either side of a plain centre and a
+  // rail of three knobs, a small pale wooden hut at the left end, a pile of books at the right, and an
+  // orange print propped against its front. (The family portrait above it stays out.)
+  {const strapIron=new THREE.MeshStandardMaterial({color:'#4a4038',roughness:.9}),hutWood=new THREE.MeshStandardMaterial({color:'#9c8160',roughness:.95}),S=2.52;
+   K.box(cabinet,'Radio hanging shelf',3,S,2.36,1.45,.05,.36,cabinetWood);
+   for(const s of [-1,1])K.box(cabinet,'Radio shelf iron strap',3+s*.66,(S+3.5)/2,2.50,.03,3.5-S,.006,strapIron);
+   K.box(cabinet,'Radio timber body',3.02,S+.225,2.34,.70,.40,.30,cabinetWood);
+   K.box(cabinet,'Radio timber top',3.02,S+.44,2.34,.74,.03,.32,cabinetWood);
+   for(const s of [-1,1])K.box(cabinet,'Radio dark cloth panel',3.02+s*.235,S+.29,2.492,.18,.16,.006,cabinetDark);
+   K.box(cabinet,'Radio drawer rail',3.02,S+.10,2.494,.62,.05,.01,cabinetDark);
+   for(const dx of [-.2,0,.2]){const knob=K.cylinder(cabinet,'Radio round brass knob',3.02+dx,S+.10,2.508,.02,.024,.03,cabinetBrass,12);knob.rotation.x=Math.PI/2;}
+   K.box(cabinet,'Radio shelf pale wooden hut',2.47,S+.125,2.36,.22,.20,.26,hutWood);
+   for(const s of [-1,1]){const roof=K.box(cabinet,'Radio shelf hut roof board',2.47+s*.062,S+.265,2.36,.17,.02,.30,hutWood);roof.rotation.z=-s*.62;}
+   for(let j=0;j<6;j++){
     const bookMat=new THREE.MeshStandardMaterial({color:['#8a7964','#a2987d','#b2a68c'][j%3],roughness:1});
-    K.box(cabinet,'Cabinet stacked book pages',3.94+(j%2)*.018,2.975+j*.047,2.34,.31+(j%3)*.019,.037,.22,bookMat);
-    K.box(cabinet,'Cabinet worn book cover',3.94+(j%2)*.018,2.998+j*.047,2.34,.34+(j%3)*.019,.008,.24,cabinetWood);
-  }
+    K.box(cabinet,'Radio shelf stacked book pages',3.56+(j%2)*.012,S+.045+j*.047,2.35,.20+(j%3)*.012,.037,.26,bookMat);
+    K.box(cabinet,'Radio shelf worn book cover',3.56+(j%2)*.012,S+.068+j*.047,2.35,.22+(j%3)*.012,.008,.28,cabinetWood);
+   }
+   if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=128;c.height=112;const p=c.getContext('2d');
+    const sky=p.createLinearGradient(0,0,0,112);sky.addColorStop(0,'#b5482a');sky.addColorStop(.45,'#e08a34');sky.addColorStop(.62,'#f0c060');sky.addColorStop(.66,'#5a2c22');sky.addColorStop(1,'#2e1a18');
+    p.fillStyle=sky;p.fillRect(0,0,128,112);p.fillStyle='#f6dc8a';p.beginPath();p.arc(64,62,11,0,Math.PI*2);p.fill();p.fillStyle='#3a2019';p.fillRect(0,70,128,6);
+    const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;
+    const print=new THREE.Mesh(new THREE.PlaneGeometry(.30,.26),new THREE.MeshStandardMaterial({map,roughness:.9}));print.name='Radio shelf propped orange print';
+    print.position.set(3.05,S+.16,2.515);print.rotation.x=-.16;cabinet.add(print);
+    const back=K.box(cabinet,'Radio shelf orange print card back',3.05,S+.16,2.509,.30,.26,.006,cabinetDark);back.rotation.x=-.16;}}
+  cabinet.position.z=.19; // the shelf hangs in front of the casing: nothing of it may reach the outer window in the wall's depth
   // Wall calendars are redrawn, with no source photo or personal content embedded.
   function wallCalendar(x,y,w,h){
     const c=document.createElement('canvas');c.width=256;c.height=384;const p=c.getContext('2d');
@@ -528,6 +555,18 @@ export function buildHouse(K) {
     const sheet=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map,roughness:1}));sheet.name='Right front wall 2011 paper calendar';sheet.position.set(x,y,2.205);g.add(sheet);
   }
   wallCalendar(1.93,1.98,.40,.64);wallCalendar(4.14,2.13,.40,.70);
+  {const plaqueRed=new THREE.MeshStandardMaterial({color:'#7c2a26',roughness:.8});
+   b('Right front wall red-framed plaque frame',1.60,2.44,2.18,.34,.40,.02,plaqueRed);
+   const draw=(w,h,paint)=>{const c=document.createElement('canvas');c.width=w;c.height=h;paint(c.getContext('2d'));const map=new THREE.CanvasTexture(c);map.colorSpace=THREE.SRGBColorSpace;return new THREE.MeshStandardMaterial({map,roughness:1});};
+   const plaque=new THREE.Mesh(new THREE.PlaneGeometry(.25,.31),draw(100,124,p=>{p.fillStyle='#d8cdb4';p.fillRect(0,0,100,124);p.strokeStyle='#b89a52';p.lineWidth=3;p.strokeRect(6,6,88,112);
+     p.fillStyle='#c2a046';p.beginPath();p.ellipse(50,66,22,30,0,0,Math.PI*2);p.fill();p.fillStyle='#e6d9b0';p.beginPath();p.ellipse(50,66,13,20,0,0,Math.PI*2);p.fill();p.fillStyle='#b89a52';p.fillRect(30,20,40,6);}));
+   plaque.name='Right front wall red-framed plaque';plaque.position.set(1.60,2.44,2.1915);g.add(plaque);
+   const scenic=new THREE.Mesh(new THREE.PlaneGeometry(.34,.62),draw(136,248,p=>{p.fillStyle='#e4e0d2';p.fillRect(0,0,136,248);
+     const sky=p.createLinearGradient(0,6,0,120);sky.addColorStop(0,'#5d86a8');sky.addColorStop(1,'#b9cdd6');p.fillStyle=sky;p.fillRect(6,6,124,118);
+     p.fillStyle='#e9eef0';p.beginPath();p.moveTo(6,92);p.lineTo(44,40);p.lineTo(70,74);p.lineTo(96,30);p.lineTo(130,88);p.lineTo(130,124);p.lineTo(6,124);p.fill();
+     p.fillStyle='#3f5d4a';p.fillRect(6,104,124,20);p.fillStyle='#8b3f3f';p.fillRect(6,130,124,16);
+     p.fillStyle='#5b6068';for(let r=0;r<5;r++)for(let k=0;k<7;k++)p.fillRect(12+k*17,156+r*17,9,7);}));
+   scenic.name='Right front wall landscape calendar';scenic.position.set(4.62,2.50,2.205);g.add(scenic);}
   // IMG_20130720_175306: the lower entrance strip is dark, worn stone,
   // with broad polished patches rather than the tiled veranda surface.
   const entryCanvas=document.createElement('canvas');entryCanvas.width=entryCanvas.height=256;
@@ -599,7 +638,11 @@ export function buildHouse(K) {
   {const ceilDark=new THREE.MeshStandardMaterial({color:'#2b1f17',roughness:1});
    b('Front room dark timber ceiling',-1.375,3.615,3.1,20.85,.03,1.86,ceilDark);
    for(let x=-11.6;x<9;x+=.45)detail(x,3.56,3.1,.08,.12,1.86,ceilDark);
-   detail(-1.375,3.53,2.26,20.85,.20,.15,ceilDark);}
+   detail(-1.375,3.53,2.26,20.85,.20,.15,ceilDark);
+   // 'house above the right front window, from inside, facing out 2.jpg': above the turquoise plaster the
+   // front wall is dark boarding up to the wall plate (the lowest board stops either side of the door head).
+   for(const y of [3.22,3.365])detail(-1.375,y,2.185,20.85,.142,.03,ceilDark);
+   for(const [a,e] of [[-11.8,-.62],[.62,9.05]])detail((a+e)/2,3.075,2.185,e-a,.142,.03,ceilDark);}
   // Kitchen is the southwest (plan bottom-left) room.
   wallX('Kitchen north partition',-11.8,-8.45,12.1,F,2.9,[{c:-10.05,w:1.55,top:2.45}]);
   doorX(-10.05,12.1,1.55);
