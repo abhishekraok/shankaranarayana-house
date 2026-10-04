@@ -25,7 +25,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     roofConcrete: new THREE.MeshStandardMaterial({ color: '#a39986', roughness: 1 }),
     path: new THREE.MeshStandardMaterial({ color: '#958b73', roughness: 1 }),
     redSoil: new THREE.MeshStandardMaterial({ color: '#8e604b', roughness: 1 }),
-    darkSoil: new THREE.MeshStandardMaterial({ color: '#655c43', roughness: 1 }),
+    darkSoil: new THREE.MeshStandardMaterial({ color: '#25261f', roughness: 1 }), // used for dark window, door and recess openings: it was khaki and they read as painted panels
     turf: new THREE.MeshStandardMaterial({ color: '#536f39', roughness: 1 }),
     moss: new THREE.MeshStandardMaterial({ color: '#4a6638', roughness: 1 }),
     lane: new THREE.MeshStandardMaterial({ color: '#686961', roughness: .98 }),
@@ -706,7 +706,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   patch('laterite rear yard', -1+K.houseShiftX, 23.3, 17, 3.1, materials.redSoil);
   patch('western coconut ground', -33, -24, 9.5, 30, materials.turf);
-  patch('grove leaf litter', -4, 44, 25, 18, materials.darkSoil);
+  patch('grove leaf litter', -4, 44, 25, 18, new THREE.MeshStandardMaterial({ color: '#655c43', roughness: 1 }));
   patch('opposite bank overgrown ground', 0, -56, 34, 9, materials.turf);
   patch('east garden soil', 65, 26, 10, 21, materials.redSoil);
   for (let i = 0; i < 23; i++) {
@@ -826,8 +826,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   if(typeof document!=='undefined'){
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=31337;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     x.fillStyle='#a8a8a8';x.fillRect(0,0,256,256);
-    for(let i=0;i<900;i++){const px=r()*256,py=r()*256,rx=3+r()*7,ry=2+r()*5,a=r()*3,v=r();
-      for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.fillStyle=v<.25?'rgba(50,50,50,.5)':v<.75?'rgba(175,175,175,.6)':'rgba(235,235,235,.55)';x.beginPath();x.ellipse(px+dx,py+dy,rx,ry,a,0,7);x.fill();}}
+    for(let i=0;i<1500;i++){const px=r()*256,py=r()*256,rx=2+r()*4.5,ry=1.5+r()*3,a=r()*3,v=r(); // smaller, softer clumps: the big dark ones read as camouflage
+      for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.fillStyle=v<.25?'rgba(92,92,92,.42)':v<.75?'rgba(175,175,175,.6)':'rgba(228,228,228,.5)';x.beginPath();x.ellipse(px+dx,py+dy,rx,ry,a,0,7);x.fill();}}
     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(3,2);
     materials.foliage.map=m;materials.foliage.color.set('#ffffff');
   }
