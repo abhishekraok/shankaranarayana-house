@@ -2005,8 +2005,13 @@ export function buildTemple(K) {
   {const cellaStone=sanctumStone.clone();cellaStone.color.set('#8f8a78');
   const cellaDark=mat('#3a332b',.96),idolStone=mat('#151412',.32),flame=new THREE.MeshStandardMaterial({color:'#ffd27a',emissive:'#ff9a2e',emissiveIntensity:3.2,roughness:.6});
   const cF=1.06,cTop=3.5,cz0=24.2,cz1=27.05,cx0=37.2,cx1=40.8;
-  for(const [a,b] of [[cx0,38.09],[39.91,cx1]])box('Sanctum cella front wall',(a+b)/2,(cF+cTop)/2,cz0,b-a,cTop-cF,.3,cellaStone,true);
-  box('Sanctum cella wall over the doorway',39,3.41,cz0,1.82,.18,.3,cellaStone);
+  // 'Temple inner sanctum, God room' (both): the doorway is narrower and lower than modelled, the
+  // wall around it is dark stone (it shows black between the open leaves' tubes) and soot-black
+  // above the lintel; the frame stands on two worn carved stone blocks either side of a step.
+  for(const [a,b] of [[cx0,38.3],[39.7,cx1]])box('Sanctum cella front wall',(a+b)/2,(cF+cTop)/2,cz0,b-a,cTop-cF,.3,cellaDark,true);
+  box('Sanctum cella wall over the doorway',39,3.225,cz0,1.4,.55,.3,mat('#2a2723',.96));
+  box('Sanctum doorway stone step',39,1.15,23.95,.9,.18,.40,cellaStone);
+  {const blockStone=mat('#4a4239',.95);for(const x of [38.34,39.66])box('Sanctum doorway carved stone block',x,1.285,23.95,.45,.45,.55,blockStone,true);}
   for(const x of [cx0,cx1])box('Sanctum cella side wall',x,(cF+cTop)/2,(cz0+cz1)/2,.3,cTop-cF,cz1-cz0+.3,cellaStone,true);
   box('Sanctum cella rear wall',39,(cF+cTop)/2,cz1,cx1-cx0,cTop-cF,.3,cellaStone,true);
   box('Sanctum cella stone ceiling',39,cTop-.09,(cz0+cz1)/2,cx1-cx0,.18,cz1-cz0,cellaStone);
@@ -2041,7 +2046,7 @@ export function buildTemple(K) {
   }
   // The lit shelf across the top of the doorway: brass-bossed side panels, a framed
   // image, a small brass pot, and the lamp that makes it glow in the photographs.
-  const shelfY=2.62,shelfWood=mat('#2c2419',.8);
+  const shelfY=2.30,shelfWood=mat('#2c2419',.8);
   box('Sanctum doorway lit shelf board',39,shelfY,24.5,1.56,.06,.55,shelfWood);
   box('Sanctum doorway shelf front beam',39,shelfY-.09,24.28,1.56,.12,.08,shelfWood);
   for(const x of [38.34,39.66])for(let j=0;j<3;j++){
@@ -2050,34 +2055,39 @@ export function buildTemple(K) {
   box('Sanctum shelf framed image frame',39,shelfY+.26,24.66,.52,.44,.03,shelfWood);
   box('Sanctum shelf framed image',39,shelfY+.26,24.645,.44,.36,.01,mat('#efe6d2',.6,{emissive:'#fff1d0',emissiveIntensity:.25}));
   cyl('Sanctum shelf small brass pot',39.4,shelfY+.1,24.5,.06,.04,.14,brass,12);
-  const shelfLight=new THREE.PointLight('#fff0c8',3,1.6,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
+  const shelfLight=new THREE.PointLight('#fff0c8',3,1.0,2);shelfLight.name='Sanctum shelf lamp';shelfLight.position.set(39,shelfY+.55,24.45);g.add(shelfLight);
   // The lamps' warm glow is the only light on the idol.
   const lampGlow=new THREE.PointLight('#ffae55',7,3.4,2);lampGlow.name='Sanctum oil lamp glow';lampGlow.position.set(39,cF+1.25,25.55);g.add(lampGlow);
   }
   // Brass bosses and colored bulbs on the blue sanctum doorway (user-labelled).
-  for(const x of [38.22,39.78])box('Inner sanctum blue doorway jamb',x,2.13,24.16,.27,2.18,.14,vividBlue);
-  box('Inner sanctum blue doorway lintel',39,3.21,24.16,1.84,.27,.14,vividBlue);
-  const bulbColors=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'];
-  for(const x of [38.22,39.78])for(let j=0;j<8;j++){
-    const y=1.19+j*.27;
-    const boss=mesh('Inner doorway round brass boss',new THREE.SphereGeometry(.103,12,8),brass,x,y,24.05);boss.scale.z=.38;
-    mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),x+(x<39?.20:-.20),y,24.02);
-  }
-  // "Temple inner sanctum, God room" photos: nine bosses span the whole lintel with a row of
-  // coloured bulbs below, and two tall blue barred gate leaves stand open at the frame.
-  for(let j=0;j<9;j++){
-    const boss=mesh('Inner doorway lintel brass boss',new THREE.SphereGeometry(.103,12,8),brass,38.0+j*.25,3.36,24.05);boss.scale.z=.38;
-  }
-  for(let j=0;j<8;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.038,8,6),mat(bulbColors[j%5],.35),38.37+j*.18,3.08,24.02);
-  const gateBlue=mat('#1b8fb8',.6);
+  // "Temple inner sanctum, God room" photos: the frame is a continuous band of square polished
+  // brass plates, each with a dome, touching edge to edge (nine across the lintel, nine down each
+  // side counting the corners); inside it runs a narrow blue band carrying the coloured bulbs.
+  // Opening .92 wide, head at 2.71. Brass sampled 150,118,85 where the old bosses rendered 52,37,23.
+  {const P=.155,x0=38.3775,zf=24.05,plateBrass=mat('#c2a04e',.45,{metalness:.3}),plates=[],domes=[];
+   for(const x of [38.42,39.58])box('Inner sanctum blue doorway jamb',x,1.885,24.2,.24,1.65,.3,vividBlue,true);
+   box('Inner sanctum blue doorway lintel',39,2.83,24.2,1.4,.24,.3,vividBlue);
+   for(let j=0;j<9;j++){plates.push([x0+j*P,2.8725,zf-.006,P-.008,P-.008,.012]);domes.push([x0+j*P,2.8725,zf-.012,.065,.065,.028]);}
+   for(const x of [x0,x0+8*P])for(let k=0;k<8;k++){const y=2.7175-k*P;plates.push([x,y,zf-.006,P-.008,P-.008,.012]);domes.push([x,y,zf-.012,.065,.065,.028]);}
+   instances('Inner doorway square brass plate',new THREE.BoxGeometry(1,1,1),plateBrass,plates);
+   instances('Inner doorway round brass boss',new THREE.SphereGeometry(1,12,8),plateBrass,domes);
+   const bulbs=['#ebe5d4','#c66538','#315f97','#bfa64a','#238e8b'].map(c=>mat(c,.35));
+   for(const x of [38.4975,39.5025])for(let j=0;j<8;j++)mesh('Inner doorway colored bulb',new THREE.SphereGeometry(.03,8,6),bulbs[j%5],x,1.63+j*.15,zf-.02);
+   for(let j=0;j<7;j++)mesh('Inner doorway lintel colored bulb',new THREE.SphereGeometry(.03,8,6),bulbs[(j+2)%5],38.61+j*.13,2.7525,zf-.02);
+   box('Sanctum doorway tube light batten',39,3.05,zf-.03,1.2,.06,.08,whiteTrim);
+   box('Sanctum doorway pale control box',38.14,3.0,zf-.04,.18,.30,.08,mat('#b9bcb8'));}
+  // Sampled 40,190,228 on the leaves against 0,142,176 rendered.
+  const gateBlue=mat('#1ba3d8',.6);
   for(const side of [-1,1]){
     const leaf=new THREE.Group();leaf.name='Inner sanctum open blue gate leaf';leaf.position.set(39+side*1.02,0,23.9);leaf.rotation.y=side*(Math.PI-.14);g.add(leaf); // folded back flat beside the frame, as in 'God room 2'
     const part=(n,x,y,w,h,m)=>{const b2=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),m);b2.name=n;b2.position.set(x,y,0);leaf.add(b2);};
     const lw=-side*.9;
     // 'God room 2': the leaves rise to the lintel above the bossed frame (~0.45 m taller).
-    for(const y of [.62,2.1,3.8])part('Inner sanctum gate blue rail',lw/2,y,.9,.12,gateBlue);
-    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.22,.1,3.35,gateBlue);
-    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.22,.045,3.15,whiteTrim);
+    // The leaves are heavy: broad stiles and deep rails, standing on the mandapa floor (1.06) and
+    // ending under its cornice (they used to run from 0.55 to 3.9 with thin members).
+    for(const [y,h] of [[1.155,.15],[1.75,.28],[2.95,.28],[3.405,.15]])part('Inner sanctum gate blue rail',lw/2,y,.9,h,gateBlue);
+    for(const x of [0,lw])part('Inner sanctum gate blue stile',x,2.28,.24,2.4,gateBlue);
+    for(let k=1;k<5;k++)part('Inner sanctum gate white tube bar',lw*k/5,2.28,.045,2.3,whiteTrim);
   }
   // User-labelled right side of inner sanctum: large horizontal drum,
   // pale cloth wrap, central red band, exposed rope lacing and smaller drum.
