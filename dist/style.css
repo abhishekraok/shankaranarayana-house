@@ -23,6 +23,10 @@ body[data-mode=tour] #touch-controls{display:none}
 body[data-mode=tour] .hint-tour,body[data-mode=walk] .hint-keys,body[data-mode=fly] .hint-keys{display:block}
 @media(pointer:coarse){body[data-mode] .hint-keys{display:none}body[data-mode=walk] .hint-touch,body[data-mode=fly] .hint-touch{display:block}}
 @keyframes hint-fold{0%,88%{opacity:1;max-height:3em;margin-top:7px}100%{opacity:0;max-height:0;margin-top:0}}
+/* Aerial view: the walking arrows do nothing there, and the caption names the view rather than the ground under the camera. */
+body[data-mode=orbit] #touch-controls,body[data-mode=orbit] .location-card small{display:none}
+body[data-mode=orbit] .hint-orbit{display:block}
+@media(pointer:coarse) and (max-width:950px){body[data-mode=orbit] .location-card{bottom:calc(76px + env(safe-area-inset-bottom))}}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
