@@ -2590,6 +2590,18 @@ export function buildTemple(K) {
    box('Old inner shrine court doorway dark opening',xw-.02,1.6,zd,.03,1.75,.65,dark);
    for(const s of [-1,1])box('Old inner shrine court doorway red frame',xw-.05,1.6,zd+s*.385,.1,1.75,.12,courtLaterite);
    box('Old inner shrine court doorway red frame',xw-.05,2.535,zd,.1,.12,.89,courtLaterite);
+   // The arched panels are recesses in the red wall, not white infill standing proud of it (they
+   // lay 5 cm in front of the wall face, which a renderer shading by true normals shows as flat
+   // white slabs): a 14 cm red facing with real arched openings stands in front of both side
+   // walls, so every panel lies 9 cm back inside its arch, between piers that stay proud.
+   const facing=(name,side,xFace,z0,z1,centres,m)=>{const sg=side<0?1:-1,a=sg*z0,b=sg*z1,lo=Math.min(a,b),hi=Math.max(a,b),s=new THREE.Shape();
+     s.moveTo(lo,.65);s.lineTo(hi,.65);s.lineTo(hi,3.11);s.lineTo(lo,3.11);s.closePath();
+     for(const zc of centres){const c=sg*zc,h=new THREE.Path();h.moveTo(c-.53,.87);h.lineTo(c+.53,.87);h.lineTo(c+.53,2.18);h.absarc(c,2.18,.53,0,Math.PI,false);h.closePath();s.holes.push(h);}
+     const o=mesh(name,new THREE.ExtrudeGeometry(s,{depth:.14,bevelEnabled:false,curveSegments:10}),m,xFace,0,0);o.rotation.y=side*Math.PI/2;};
+   const bayZ=i=>20.45+i*1.39;
+   facing('Old inner shrine court arched wall facing',-1,31.70,21.145,25.315,[1,2,3].map(bayZ),courtLaterite);
+   facing('Old inner shrine court arched wall facing',-1,31.70,26.705,32.48,[5,6,7,8].map(bayZ),courtLaterite);
+   facing('Old inner shrine east arched wall facing',1,48.22,19.76,32.48,[0,1,2,3,4,5,6,7,8].map(bayZ),wornRed);
    for(const [x0,z0,z1] of [[30.45,19.0,25.5],[30.85,26.5,33.0]]){const xm=(x0+31.66)/2,w=31.66-x0,zm=(z0+z1)/2,d=z1-z0;
      box('Old inner shrine court stone bench',xm,.44,zm,w-.08,.46,d-.08,weathered,true);
      box('Old inner shrine court stone bench base course',xm,.16,zm,w,.12,d,weathered);
