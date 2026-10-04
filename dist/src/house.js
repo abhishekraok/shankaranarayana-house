@@ -372,7 +372,7 @@ export function buildHouse(K) {
    wallZ('Clock-side room outer wall',x1,z0,z1,F,h,[{c:10.5,w:.9,bottom:1.1,top:2.1}],'plaster');
    for(const z of [z0,z1])wallX('Clock-side room end wall',x0-.12,x1+.12,z,F,h,[],'plaster');
    floor('Clock-side room floor',xm,zm,x1-x0,z1-z0,F,'red',.2);
-   b('Clock-side room ceiling boards',xm,F+h-.02,zm,x1-x0,.04,z1-z0,'wood');
+   b('Clock-side room ceiling boards',xm,F+h-.025,zm,x1-x0,.04,z1-z0,'wood');
    K.hipRoof(g,'Clock-side room tiled roof',xm,zm,x1-x0+.9,z1-z0+.9,F+h,.9);
    for(const z of [9.905,10.995])b('Clock-side room door dark timber jamb',11.72,F+1.15,z,.1,2.3,.09,'wood');
    b('Clock-side room door dark timber head',11.72,F+2.34,10.45,.1,.1,1.18,'wood');
@@ -597,10 +597,10 @@ export function buildHouse(K) {
   entryMap.wrapS=entryMap.wrapT=THREE.RepeatWrapping;entryMap.repeat.set(.48,.48);
   const innerEntryStone=new THREE.MeshStandardMaterial({map:entryMap,roughness:.48});
   floor('Inner entrance dark worn walking strip',0,3.38,2.44,2.66,EL+.006,innerEntryStone,.08);
-  for(const s of [-1,1])b('Inner passage plinth face',s*1.235,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey);
+  for(const s of [-1,1])b('Inner passage plinth face',s*1.21,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey); // 2.5 cm proud of the red plinth: flush, the two flickered
   // User's notes (game, 2026-10-02): the court pocket and the lowered hall floor are the passage's smooth dark stone.
   for(const o of g.children)if(o.name==='Entrance right lower court pocket'||o.name==='Inner hall ground-level floor')o.material=innerEntryStone;
-  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.185,hallX-3.81,F-EL,.03,riserGrey);
+  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.19,hallX-3.81,F-EL,.03,riserGrey);
   floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,'stone',.26-EL);
   const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
   const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
@@ -811,7 +811,8 @@ export function buildHouse(K) {
     b('God room platform masonry',side*1.64,.75,6.63,1.40,.60,.88,shrineWhite);
     for(const [y,w,h] of [[.51,1.52,.12],[.68,1.46,.09],[.92,1.48,.11]])
       b('God room platform moulding',side*1.64,y,6.62,w,h,.97,shrineWhite);
-    floor('God room side platform',side*1.64,6.63,1.48,.95,shrineFloor,shrineWhite,.09);
+    floor('God room side platform',side*1.64,6.5925,1.48,.875,shrineFloor,shrineWhite,.09); // stops under the half wall: inside the room it lay flush on the red shrine floor and flickered
+    b('God room side platform',side*2.2275,shrineFloor-.045,7.0675,.305,.09,.075,shrineWhite); // its outer corner, beyond the shrine floor
     // 14.52.11 / god-room.jpg / 14.32.31: the cheek top is level with the platform, sweeps down to a small
     // curl over a large scroll on a red pedestal, and its outer side is a white panel inside that red band
     // over a low red dado. Profile: x runs back from the foot (world z 5.42), y is height.
@@ -833,7 +834,7 @@ export function buildHouse(K) {
     panelMesh.name='God room stair cheek white side panel';panelMesh.rotation.y=side*Math.PI/2;panelMesh.position.set(side*1.239,0,5.42);g.add(panelMesh);
     K.blocker(side*1.06,6.115,.35,1.39,EL,1.12);
     b('God room white half wall',side*1.45,1.805,screenZ,1.36,1.45,.22,shrineWhite,true); // god-room.jpg: wall and dado 1.44 m against the gate
-    b('God room red oxide wall base',side*1.45,1.31,screenZ-.015,1.36,.46,.25,'red');
+    b('God room red oxide wall base',side*1.45,1.31,screenZ-.02,1.35,.46,.24,'red');
     // Open grilles, with daylight between real slats rather than a painted panel.
     for(const y of [2.58,3.07,3.55])b('God room blue grille rail',side*1.45,y,screenZ-.055,1.46,.095,.13,shrineBlue);
     for(let x=.80;x<=2.12;x+=.147)b('God room blue grille slat',side*x,3.065,screenZ-.06,.055,1.03,.08,shrineBlue);
