@@ -2668,14 +2668,16 @@ export function buildTemple(K) {
      cyl('Outer entrance shrine tall pale blue pier red base',55.04,1.325,z,.17,.17,.75,red,16);
      cyl('Outer entrance shrine tall pale blue pier blue shaft',55.04,3.15,z,.16,.165,2.9,paleBlue,16);
      K.blocker(55.04,z,.36,.36,.6,4.6);}
-   sideScallop('Outer entrance shrine wide scalloped arch',55.04,10,2.9,4.6,1.0);
+   sideScallop('Outer entrance shrine wide scalloped arch',55.04,10,2.9,4.6,.86); // lintel .5 m deep at the crown, .86 at the piers
    box('Outer entrance shrine lintel tube light',54.83,4.42,10,.05,.05,1.1,whiteTrim);
    const slab=box('East porch projecting flat roof slab',56.0,4.675,10,3.6,.15,4.2,white);K.roofs.push(slab);
    box('East porch back wall upper',57.86,4.05,10,.28,1.1,4.2,white,true);
    box('East porch north cheek above the veranda roof',56.45,4.15,8.22,2.82,.92,.14,white);
-   box('East porch back wall dark red band',57.7,4.325,10,.04,.55,2.9,mat('#5e2f2b'));
-   box('Outer entrance shrine blue closed shutters',57.66,3.0,10,.06,2.1,2.4,slate);
-   for(const [y,h,z,d] of [[3.0,2.1,10,.06],[3.0,2.16,8.8,.06],[3.0,2.16,11.2,.06],[1.95,.06,10,2.4],[4.05,.06,10,2.4]])box('Outer entrance shrine shutter blue frame',57.62,y,z,.03,h,d,frameBlue);
+   // Shutters measured on 15.02.23 through the back-wall plane: sill .7 m above the porch floor,
+   // 2 m tall, 2.4 m wide, with a dark red-brown band of wall between their head and the lintel.
+   box('East porch back wall dark red band',57.7,4.1,10,.04,.9,2.9,mat('#5e2f2b'));
+   box('Outer entrance shrine blue closed shutters',57.66,2.65,10,.06,2.0,2.4,slate);
+   for(const [y,h,z,d] of [[2.65,2.0,10,.06],[2.65,2.06,8.8,.06],[2.65,2.06,11.2,.06],[1.65,.06,10,2.4],[3.65,.06,10,2.4]])box('Outer entrance shrine shutter blue frame',57.62,y,z,.03,h,d,frameBlue);
    const latticeGreen=mat('#ffffff',.9);latticeGreen.map=canvasMap(128,(c,s)=>{c.fillStyle='#b7c4a0';c.fillRect(0,0,s,s);c.strokeStyle='#8f9c7c';c.lineWidth=3;
      for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.moveTo(i*32+16,j*32+3);c.lineTo(i*32+29,j*32+16);c.lineTo(i*32+16,j*32+29);c.lineTo(i*32+3,j*32+16);c.closePath();c.stroke();}
      c.fillStyle='#5a6450';for(let i=0;i<4;i++)for(let j=0;j<4;j++){c.beginPath();c.arc(i*32+16,j*32+16,4,0,7);c.fill();}});
