@@ -1151,13 +1151,20 @@ export function buildTemple(K) {
   const leanGeo=new THREE.BufferGeometry();leanGeo.setAttribute('position',new THREE.Float32BufferAttribute(leanPos,3));leanGeo.computeVertexNormals();
   const leanRoof=mesh('Right hall low corrugated veranda awning',leanGeo,greySheet);K.roofs.push(leanRoof);
   K.beam(g,'Right hall white gutter',[29.12,3.48,6.2],[29.12,3.48,16.2],.105,whiteTrim);
+  // 15.02.00 / 15.10.43 / 15.10.49 / 15.10.30: the walkway under this awning has no ceiling; the
+  // sheets lie open on dark purlins and a light frame at each round column.
+  {const awningFrame=mat('#3a3a36',.9),sheetY=x=>4.14-(x-24.1)*.128;
+   for(const x of [24.6,25.6,26.6,27.6,28.6])K.beam(g,'Right hall awning purlin',[x,sheetY(x)-.06,6.2],[x,sheetY(x)-.06,16.2],.05,awningFrame,.08);
+   for(const z of [6.6,10.1,16.0]){
+     K.beam(g,'Right hall awning rafter',[24.36,sheetY(24.36)-.14,z],[29.05,sheetY(29.05)-.14,z],.05,awningFrame,.07);
+     K.beam(g,'Right hall awning steel tie',[24.42,3.44,z],[28.45,3.44,z],.04,awningFrame);}}
   // 15.10.49 / 15.11.00: the right-hand covered hall continues behind
   // the round veranda columns. Its interior is open, with square blue piers.
   const hallBlue=mat('#98bbc5'),hallFloor=oxideFloor.clone();hallFloor.roughness=.46;
   // 180635/180653 and 15.10.49: only the enclosed chair hall is raised.
   // The broad grey passage outside its square piers stays at courtyard level.
   floor('Covered hall continuous oxide floor',22.25,11.3,3.90,9.8,.60,hallFloor);
-  floor('Covered hall lower grey walking floor',26.30,11.3,4.20,9.8,.112,stoneFloor);
+  floor('Covered hall lower grey walking floor',26.30,11.3,4.20,9.8,.112,flagstones); // 15.10.43 / 15.02.00: the court's stone paving runs on under the awning
   for(const [a,b] of [[6.4,9.2],[10.4,16.2]]){
     box('Covered hall inner raised plinth',24.2,.30,(a+b)/2,.14,.40,b-a,outlinedPlinth);
     box('Covered hall inner platform coping',24.2,.57,(a+b)/2,.22,.08,b-a,whiteTrim);
@@ -1194,17 +1201,23 @@ export function buildTemple(K) {
   // Continuous wall heads meet the ceiling underside; the original wall
   // pieces stopped six centimetres short and leaked a strip of outdoor light.
   box('Covered hall lane wall ceiling closure',20.30,3.51,(6.4+stageEnd)/2,.22,.14,stageEnd-6.4,hallBlue);
-  box('Covered hall rear wall ceiling closure',24.25,3.51,16.10,8.0,.14,.22,hallBlue);
-  const hallCeiling=box('Covered hall flat white ceiling',24.2,3.60,11.3,7.8,.16,9.8,white);K.roofs.push(hallCeiling);
+  // 15.10.49 / 15.02.00: the white ceiling belongs to the enclosed chair hall only (it used to run
+  // out to x 28.1 under the awning, with three more fans). The hall's front is a deep white beam on
+  // the square piers with a red band along its top, as on the circuit verandas.
+  box('Covered hall rear wall ceiling closure',22.4,3.51,16.10,4.3,.14,.22,hallBlue);
+  const hallCeiling=box('Covered hall flat white ceiling',22.35,3.60,11.3,4.1,.16,9.8,white);K.roofs.push(hallCeiling);
+  box('Covered hall front white beam',24.3,3.24,11.3,.24,.44,9.8,white);
+  box('Covered hall front beam red band',24.42,3.57,11.3,.22,.22,9.8,red);
+  box('Covered hall front wall head',24.22,3.80,11.3,.20,.26,9.8,white);
   for(const z of [9.0,12.7]){
     box('Covered hall square blue pier',24.15,2.08,z,.38,2.96,.38,hallBlue,true);
     box('Covered hall square pier red foot',24.15,.87,z,.40,.54,.40,red);
 
   }
-  const hallBeam=box('Covered hall transverse white ceiling beam',24.2,3.35,11.0,7.8,.35,.30,white);K.roofs.push(hallBeam);
+  const hallBeam=box('Covered hall transverse white ceiling beam',22.35,3.35,11.0,4.1,.35,.30,white);K.roofs.push(hallBeam);
   // Stationary three-bladed ceiling fans and slim fluorescent wall fittings.
   const fanMaterial=mat('#514b3e',.79);
-  for(const [x,z] of [[22.1,8.0],[26.2,9.2],[22.1,11.0],[26.2,11.0],[22.1,14.3],[26.2,14.3]]){
+  for(const [x,z] of [[22.1,8.0],[22.1,11.0],[22.1,14.3]]){
     cyl('Covered hall fan downrod',x,3.15,z,.018,.018,.60,fanMaterial,8);
     const motor=mesh('Covered hall fan motor',new THREE.SphereGeometry(1,12,8),fanMaterial,x,2.84,z);motor.scale.set(.14,.08,.14);
     for(let j=0;j<3;j++){
