@@ -389,14 +389,14 @@ export function buildHouse(K) {
   // IMG_20130720_175306: the doorway is substantially narrower than the
   // lower entry passage. Its leaves must not project across the sitting bays.
   const mainDoorWidth=1.20,mainJambInset=(2.05-mainDoorWidth)/2;
-  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:2.5,w:1.90,bottom:.555,top:2.95}],verandaAqua);
+  wallX('Front room facade',-11.8,9.05,2.05,F,3.1,[{c:-7.9,w:1.7,bottom:.9,top:2.4},{c:-3.0,w:1.30,bottom:.70,top:2.4},{c:0,w:mainDoorWidth,top:2.7},{c:2.5,w:1.90,bottom:.795,top:2.95}],verandaAqua);
   // User's note: no doorway at the facade's right end (x 7); that front room opens only inward.
   // 14.56.56 (plain wall with a poster for over 0.9 m between the frame and the end wall) and
   // veranda-left-passage.jpg (the chair by the end wall has plain wall behind it): the window stands
   // half a metre nearer the door than first modelled, centred x 2.5.
   // 14.56.56 / 14.57.08: only the +x sitting-bay window has this rounded,
   // splayed plaster recess. Cut the facade rather than laying trim over it.
-  {const cx=2.5,front=1.925,back=2.105,bottom=1.005,shoulder=3.13,rise=.23,half=.95;
+  {const cx=2.5,front=1.925,back=2.105,bottom=1.245,shoulder=3.13,rise=.23,half=.95; // 14.56.56 / 14.57.08: the recess and frame stand on the red skirting's top line
     const outer=[],inner=[];
     for(let i=0;i<=24;i++){const a=i/24*Math.PI;outer.push([cx+half*Math.cos(a),shoulder+rise*Math.sin(a)]);inner.push([cx+(half-.08)*Math.cos(a),shoulder-.08+(rise-.015)*Math.sin(a)]);}
     const cap=new THREE.Shape();cap.moveTo(cx-half,3.40);cap.lineTo(cx+half,3.40);
@@ -412,7 +412,7 @@ export function buildHouse(K) {
     const surround=new THREE.Shape();surround.moveTo(cx-half+.08,bottom);surround.lineTo(cx+half-.08,bottom);for(const [x,y] of inner)surround.lineTo(x,y);surround.closePath();
     // The plaster backing stops outside the whole timber frame: cutting only
     // the grille aperture masks the recessed outer mouldings from oblique views.
-    const opening=new THREE.Path();opening.moveTo(cx-.79,1.025);opening.lineTo(cx-.79,2.975);opening.lineTo(cx+.79,2.975);opening.lineTo(cx+.79,1.025);opening.closePath();surround.holes.push(opening);
+    const opening=new THREE.Path();opening.moveTo(cx-.79,1.25);opening.lineTo(cx-.79,3.048);opening.lineTo(cx+.79,3.048);opening.lineTo(cx+.79,1.25);opening.closePath();surround.holes.push(opening);
     const face=new THREE.Mesh(new THREE.ShapeGeometry(surround),plaster);face.name='Sitting window recessed plaster backing';face.position.z=back;face.receiveShadow=true;g.add(face);
     b('Sitting window oxide sill surface',cx,bottom+.003,(front+back)/2,1.90,.012,back-front,verandaRed);
     K.blocker(cx,2.08,1.90,.31,F,3.4);
@@ -438,24 +438,27 @@ export function buildHouse(K) {
   for(const side of [-1,1]) {
     const x=side>0?2.5:-3.0;
     const windowStart=g.children.length;
-    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,2.0,2.025,.13,1.94,.22,side>0?sittingOchre:entranceOchre);
-    for(const y of [1.09,2.91])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
-    b('Veranda window dark interior',x,2.0,2.10,1.29,1.69,.05,verandaShutter); // closed shutters on both windows: a black slab read as a hole from inside
+    // 14.56.56 / 14.57.08: the sitting window's frame is squarer (about 0.88 wide to 1 high), standing on the
+    // skirting's top line (y 1.245) with its head close under the arch.
+    const wy=side>0?2.145:2.0,wh=side>0?1.80:1.94;
+    for(const dx of [-.725,.725])b('Veranda window ochre side reveal',x+dx,wy,2.025,.13,wh,.22,side>0?sittingOchre:entranceOchre);
+    for(const y of [wy-wh/2+.065,wy+wh/2-.065])b('Veranda window ochre horizontal reveal',x,y,2.025,1.58,.13,.22,side>0?sittingOchre:entranceOchre);
+    b('Veranda window dark interior',x,wy,2.10,1.29,wh-.25,.05,verandaShutter); // closed shutters on both windows: a black slab read as a hole from inside
     if(side>0){
       // 14.56.56 / 14.57.08 / 14.57.13: closed red-brown shutters
       // behind a dense grille, with stepped blue mouldings and a grey crossrail.
       for(let layer=0;layer<3;layer++){
-        const w=1.12+layer*.073,h=1.61+layer*.073,z=2.01-layer*.030;
+        const w=1.12+layer*.073,h=wh-.33+layer*.073,z=2.01-layer*.030;
         const ring=new THREE.Shape(),hole=new THREE.Path();
         ring.moveTo(-w/2-.0275,-h/2-.0275);ring.lineTo(w/2+.0275,-h/2-.0275);ring.lineTo(w/2+.0275,h/2+.0275);ring.lineTo(-w/2-.0275,h/2+.0275);ring.closePath();
         hole.moveTo(-w/2+.0275,-h/2+.0275);hole.lineTo(-w/2+.0275,h/2-.0275);hole.lineTo(w/2-.0275,h/2-.0275);hole.lineTo(w/2-.0275,-h/2+.0275);hole.closePath();ring.holes.push(hole);
         const moulding=new THREE.Mesh(new THREE.ExtrudeGeometry(ring,{depth:.035,bevelEnabled:true,bevelThickness:.010,bevelSize:.009,bevelSegments:3,steps:1}),sittingBlue);
-        moulding.name='Veranda window rounded blue moulding';moulding.position.set(x,2,z-.020);moulding.castShadow=moulding.receiveShadow=true;g.add(moulding);
+        moulding.name='Veranda window rounded blue moulding';moulding.position.set(x,wy,z-.020);moulding.castShadow=moulding.receiveShadow=true;g.add(moulding);
       }
-      b('Veranda window grey middle crossrail',x,1.99,1.985,1.13,.065,.045,verandaIron);
-      for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,2,2.023,.014,1.54,.018,windowIron);
+      b('Veranda window grey middle crossrail',x,wy-.01,1.985,1.13,.065,.045,verandaIron);
+      for(let i=0;i<16;i++)b('Veranda window dark iron grille',x-.525+i*.07,wy,2.023,.014,wh-.40,.018,windowIron);
       for(const dx of [-.39,-.195,0,.195,.39])
-        b('Veranda window closed shutter board joint',x+dx,2,2.072,.009,1.54,.009,verandaTimber);
+        b('Veranda window closed shutter board joint',x+dx,wy,2.072,.009,wh-.40,.009,verandaTimber);
     }else{
       for(const dx of [-.595,.595])b('Veranda blue window jamb',x+dx,2.0,2.02,.10,1.69,.10,'blue');
       for(const y of [1.20,1.99,2.80])b('Veranda blue window rail',x,y,2.02,1.25,.09,.10,'blue');
@@ -466,8 +469,7 @@ export function buildHouse(K) {
     b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,.99,.20,2.98,2.12,verandaAqua,true); // veranda.jpg: the end wall reaches the platform edge
     b('Sitting bay end red skirting',side*4.188,1.00,.99,.026,.49,2.12,verandaRed);
     if(side>0){
-      for(const [a,z] of [[1.25,1.55],[3.45,4.24]])b('Sitting bay wall red skirting',(a+z)/2,1.00,1.907,z-a,.49,.024,verandaRed);
-      b('Sitting window red sill return',2.5,.88,1.907,1.9,.25,.024,verandaRed);
+      b('Sitting bay wall red skirting',2.745,1.00,1.907,2.99,.49,.024,verandaRed); // runs on under the window
     }else b('Sitting bay wall red skirting',side*2.745,1.00,1.907,2.99,.49,.024,verandaRed);
     b('Sitting bay back corner timber',side*4.12,2.08,1.91,.13,2.96,.14,verandaTimber);
   }
@@ -510,13 +512,13 @@ export function buildHouse(K) {
   b('Right front shutter meeting stile',2.5,1.90,2.395,.05,1.05,.025,cabinetWood);
   b('Right front window interior timber lintel',2.5,2.45,2.38,1.47,.13,.15,cabinetWood);
   for(const s of [-1,1]){
-    b('Right front window timber casing side',2.5+s*.815,2.0,2.2575,.03,2.04,.175,cabinetWood);
+    b('Right front window timber casing side',2.5+s*.815,2.145,2.2575,.03,1.87,.175,cabinetWood);
     b('Right front window timber casing stile',2.5+s*.73,1.9225,2.33,.20,1.095,.03,cabinetWood);
-    b('Right front window opening turquoise lining',2.5+s*.89,2.0,2.164,.12,2.0,.012,verandaAqua);
+    b('Right front window opening turquoise lining',2.5+s*.89,2.12,2.164,.12,1.76,.012,verandaAqua);
   }
-  for(const y of [.995,3.005])b('Right front window timber casing end',2.5,y,2.2575,1.66,.03,.175,cabinetWood);
-  b('Right front window timber casing upper panel',2.5,2.745,2.33,1.66,.55,.03,cabinetWood);
-  b('Right front window timber casing apron',2.5,1.185,2.33,1.66,.38,.03,cabinetWood);
+  for(const y of [1.225,3.065])b('Right front window timber casing end',2.5,y,2.2575,1.66,.03,.175,cabinetWood);
+  b('Right front window timber casing upper panel',2.5,2.775,2.33,1.66,.61,.03,cabinetWood);
+  b('Right front window timber casing apron',2.5,1.2925,2.33,1.66,.165,.03,cabinetWood);
   // Tour-frame sweep: the other sitting window showed inside as a blank red-brown slab. Give it the same
   // closed two-leaf timber shutter in a plain frame, flush in the wall.
   for(const x of [-3.325,-2.675]){
