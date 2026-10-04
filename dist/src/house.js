@@ -386,6 +386,9 @@ export function buildHouse(K) {
   skirting=true;
   doorX(0,17.86,1.9,F,2.5,-1);
   grilleX(-5.6,17.73,1.65,F+1,1.4);
+  // From behind the house this opening showed the back of the grille's cream reveal, a blank pale square: closed weathered plank shutters instead, like the other rear window (14.30.57).
+  b('Rear wall west window weathered plank shutter',-5.6,F+1.7,17.802,1.65,1.4,.02,verandaTimber);
+  for(const x of [-6.01,-5.6,-5.19])b('Rear wall west window shutter joint',x,F+1.7,17.813,.012,1.4,.004,'black');
   grilleZ(-11.7,8.4);grilleZ(-11.7,15.1,1.4);
   // Two shallow front rooms, either side of the central through-entrance.
   // IMG_20130720_175306: the doorway is substantially narrower than the
