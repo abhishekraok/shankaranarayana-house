@@ -167,7 +167,7 @@ export function buildHouse(K) {
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
   {const worn=K.M.pink.clone();worn.color.setRGB(.21,.21,.2);worn.roughness=.8; /* worn pink oxide: multipliers stay under 1 so the export keeps the colour */floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
-  floor('Rear veranda',-.55,16.25,17.7,3.5,F,greyCement);
+  floor('Rear veranda',-.55,16.25,17.7,3.5,F+.003,greyCement); // 3 mm proud: its ends overlap the side passages' floors and flickered
   const dampCourt=mat('earth').clone();dampCourt.color.set('#b08774');dampCourt.roughness=.80; // 14.44.09 / 14.48.07 / courtyard.jpg: wet red laterite, not grey-green
   floor('Damp courtyard soil',-.55,10.25,15.7,8.5,.035,dampCourt,.08);
   // 14.30.57 / 14.31.01 / 14.44.09: the court is green with weeds; the red soil shows only along the worn
@@ -206,7 +206,7 @@ export function buildHouse(K) {
     b('Veranda dark stone sitting edge',side*2.745,.765,.29,2.99,.045,.22,'stone');
     b('Veranda entrance end riser',side*1.26,(EL+.725)/2,1.15,.07,.725-EL,1.80,riserGrey);
     b('Veranda entrance end stone coping',side*1.375,.768,1.15,.30,.045,1.80,'stone'); // a broad stone edge (14.56.30)
-    floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
+    floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F+.002,verandaRed,.18);
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
   // 14.56.30: the walking strip is a neutral grey-brown stone, not green-grey.
@@ -290,7 +290,7 @@ export function buildHouse(K) {
   const courtBlue=K.M.plaster.clone();courtBlue.color.set('#6a94b5'); // 14.31.14 / 14.31.01 / 14.30.57: weathered blue paint, red about half of blue; the kit blue rendered with no red at all
   const railPlinth=K.M.plaster.clone();railPlinth.color.set('#5e4636');railPlinth.roughness=1;
   function stairSideFence(a,end,x=-8.35){
-    b('Stair-side railing continuous masonry plinth',x,(F+.035)/2,(a+end)/2,.46,F-.035,end-a,railPlinth); // 14.30.57: dark laterite, not white stone
+    b('Stair-side railing continuous masonry plinth',x,(F+.035)/2-.002,(a+end)/2,.46,F-.035-.004,end-a,railPlinth); // 14.30.57: dark laterite, not white stone
     for(const y of [F+.10,F+.63,F+1.16])b('Stair-side blue railing cross rail',x,y,(a+end)/2,.11,.105,end-a,courtBlue);
     for(let z=a+.08;z<end-.03;z+=.085)b('Stair-side close-spaced blue railing board',x,F+.63,z,.068,1.10,.04,courtBlue); // 14.31.14: slim, close pickets
     for(let z=a;z<=end+.01;z+=.87)b('Stair-side railing square upright',x,F+.66,z,.115,1.32,.115,courtBlue);
@@ -1334,7 +1334,7 @@ export function buildHouse(K) {
     K.blocker(courtStairX+.44,z,.14,(courtStairBack-courtStairFront)/24,F,F+(i+.5)*(U-F)/24);
   }
   floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
-  floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U,'paleStone',.18);
+  floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U+.003,'paleStone',.18);
   // Loose corrugated sheet rests against the shrine plinth, below the stair view.
   const sheetGeometry=new THREE.PlaneGeometry(2.05,1.04,48,1),sp=sheetGeometry.attributes.position;
   for(let i=0;i<sp.count;i++)sp.setZ(i,.034*Math.cos(sp.getX(i)*Math.PI/.092));
@@ -1379,12 +1379,12 @@ export function buildHouse(K) {
   floor('Upper storey rear floor',0,2.9,23.75,2.2,U,'red',.22);
   for(const side of [-1,1])floor('Upper storey rear floor',side*7.2375,5.0,9.275,2.0,U,'red',.22);
   b('God room void heavy timber wall beam',0,U-.2,5.86,5.3,.4,.3,verandaTimber);
-  b('God room void edge timber beam',0,U-.17,4.0,5.3,.34,.22,verandaTimber);
-  for(const side of [-1,1])b('God room void side timber beam',side*2.6,U-.17,4.93,.22,.34,1.86,verandaTimber);
+  b('God room void edge timber beam',0,U-.173,4.0,5.3,.334,.22,verandaTimber);
+  for(const side of [-1,1])b('God room void side timber beam',side*2.6,U-.173,4.93,.22,.334,1.86,verandaTimber);
   b('Upstairs void guard rail',0,U+.9,4.06,5.2,.07,.07,verandaTimber);
   for(let x=-2.5;x<=2.51;x+=.625)b('Upstairs void guard rail post',x,U+.45,4.06,.06,.9,.06,verandaTimber);
   floor('Upper balcony floor',1.8625,.9,20.025,1.8,U,'red',.22);
-  floor('Upper stair landing',10.2,6.37,3.5,1.28,U,'paleStone',.18);
+  floor('Upper stair landing',10.2,6.37,3.5,1.28,U+.003,'paleStone',.18);
   const facadeWhite=mat('plaster').clone();facadeWhite.color.setRGB(1.15,1.20,1.21);
   const facadeDark=new THREE.MeshStandardMaterial({color:'#343536',roughness:1});
   wallX('Upper room front wall',-11.85,11.85,1.75,U,2.83,[{c:-7.55,w:1.6,top:2.38},{c:-2.65,w:.95,bottom:.92,top:2.05},{c:2.5,w:.95,bottom:.92,top:2.05},{c:7.15,w:1.6,top:2.38}],facadeWhite);
@@ -1473,7 +1473,7 @@ export function buildHouse(K) {
   K.column(g,'Front stair exposed timber support',-10.55,-.50,F,2.62,.16,verandaTimber);
   b('Front stair low horizontal timber beam',-10.6,3.12,-.50,5.55,.19,.29,verandaTimber);
   K.ramp(-10.55,.95,4.8,1.65,'x',F,U);
-  floor('Front stair upper landing',-7.93,.95,.46,1.65,U,'red');
+  floor('Front stair upper landing',-7.93,.95,.46,1.65,U+.003,'red');
   // Landing edge leaves the back-wall door and stair opening unobstructed.
   fenceX(8.48,9.22,6.96,U,.95);
   fenceX(11.28,11.92,6.96,U,.95);
