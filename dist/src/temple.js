@@ -1029,6 +1029,9 @@ export function buildTemple(K) {
   instances('Maroon pierced transom uprights',new THREE.BoxGeometry(1,1,1),maroon,transom);
   for(const x of [33.78,44.22])box('Inner cyan transom sill',x,3.14,15.25,8.1,.12,.25,paleBlue);
   box('Inner veranda flat cornice',39,3.76,15.88,19.15,.22,1.85,weathered);
+  // The slab's dark stone underside rendered as a black void over the veranda. Like the circuit
+  // verandas (15.05.42) it gets a whitewashed ceiling, from the red fascia back to the wall.
+  box('Inner veranda whitewashed soffit',40.135,3.64,15.735,16.87,.02,1.47,agedWhite);
   box('Inner veranda red fascia',39,3.70,14.94,19.2,.14,.12,red);
   const parapetPosts=[];
   for(let i=0;i<=9;i++)parapetPosts.push([29.55+i*2.1,4.31,15.36,.62,.95,.22]); // 15.13.03: broad red piers, about 0.3 of the 2.1 m pitch
