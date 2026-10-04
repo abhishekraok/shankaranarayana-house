@@ -389,6 +389,13 @@ checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
 checkRoute('East porch mounting block',[[53.75,11.25],[53.75,9.7],[56.2,9.7]],.1,.09);
 assert.ok(Math.abs(routes.at(-1).finalHeight-.95)<.02,'Mounting block leads onto the porch floor');
 checkRoute('East stair bay court steps',[[53.6,12.6],[55.25,12.6]],.1,.09);
+// 15.13.03: the inner building's steps lie inside a cut in its plinth; nothing projects into the court.
+checkRoute('Court into the inner building',[[39,13.6],[39,20.2]],.1,.09);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.55)<.03,'Inner door steps lead up to the aisle floor');
+assert.ok(!K.ramps.some(r=>Math.abs(r.x-39)<.5&&r.z<15.1&&r.z>13.5),'No stair projects into the court in front of the inner door');
+// 15.08.42 / 'temple inner sanctum, left side': both inner aisles are about 3 m wide and walkable.
+checkRoute('Inner west aisle',[[39,20.2],[35.2,20.2],[35.2,27.8]],.55,.5);
+checkRoute('Inner east aisle',[[39,20.2],[42.8,20.2],[42.8,27.8]],.55,.5);
 assert.ok(collision(54.55,8.6,.1)&&collision(54.55,11.2,.1),'The rubble plinth is unbroken either side of the block');
 {const pier=new THREE.Box3();for(const o of temple.children)if(o.name==='Outer entrance shrine tall pale blue pier blue shaft')pier.expandByObject(o);
  const fascia=new THREE.Box3();temple.traverse(o=>{if(o.name==='Outer circuit red roof fascia'&&o.getWorldPosition(new THREE.Vector3()).x>50)fascia.expandByObject(o);});
