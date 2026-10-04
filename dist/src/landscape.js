@@ -1263,16 +1263,33 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of [-5.925,5.925])ab('red balcony coping',a,5.97,.26,7.85,.08,.27,'red');
   ab('projecting balcony red coping',0,5.97,-.90,4.0,.08,.27,'red');
   for(const a of [-2,2])ab('projecting balcony red return coping',a,5.97,-.32,.27,.08,1.16,'red');
-  const adjacentRoof=K.hipRoof(group,'Adjacent building weathered tiled roof',0,0,21.1,7.1,8.35,1.07,darkTile);adjacentRoof.rotation.y=Math.PI/2;adjacentRoof.position.set(62.9,0,-5);
+  // 14.28.15 (level view from the lane) and 15.26.12: the tiled roof stands about 0.4 of the
+  // upper storey high and its ridge is only about half as long as the eave. The helper ties
+  // the hip run to the depth, so the hip is built here, every face wound to look up.
+  const STAGE_ROOF_RISE=2.0,STAGE_HIP_RUN=5.0;
+  {const sub=new THREE.Group();sub.name='Adjacent building weathered tiled roof';group.add(sub);
+   const e=8.35,x0=59.35,x1=66.45,z0=-15.55,z1=5.55,xr=62.9,yr=e+STAGE_ROOF_RISE,za=z0+STAGE_HIP_RUN,zb=z1-STAGE_HIP_RUN;
+   const A=[x0,e,z0],B=[x1,e,z0],C=[x1,e,z1],D=[x0,e,z1],E=[xr,yr,za],F=[xr,yr,zb],pos=[],uv=[];
+   for(const v of [A,D,F,A,F,E,C,B,E,C,E,F,B,A,E,D,C,F]){pos.push(...v);uv.push(v[2]*.36,v[0]*.36);}
+   const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
+   const mat=darkTile.clone();mat.side=THREE.DoubleSide;
+   const tiles=new THREE.Mesh(geom,mat);tiles.name='Adjacent building weathered tiled roof tiles';tiles.castShadow=tiles.receiveShadow=true;sub.add(tiles);
+   for(const [a,b] of [[A,B],[B,C],[C,D],[D,A]])K.beam(sub,'Adjacent building weathered tiled roof fascia',[a[0],e-.08,a[2]],[b[0],e-.08,b[2]],.15,'wood',.12);
+   K.beam(sub,'Adjacent building weathered tiled roof ridge',[xr,yr+.025,za],[xr,yr+.025,zb],.15,darkTile,.17);
+   K.roofs.push(sub);}
+  // Same photographs: the gable is 0.31 of the facade wide, overhanging the two porch pillars,
+  // its apex 1.4-1.5 m above the main eave (level with the ridge as seen from the lane), with
+  // a narrow round-headed niche rather than an opening as wide as the porch.
   const adjacentGable=new THREE.Shape();
-  adjacentGable.moveTo(-2.6,7.99);adjacentGable.lineTo(-2.6,8.48);adjacentGable.lineTo(0,9.61);adjacentGable.lineTo(2.6,8.48);adjacentGable.lineTo(2.6,7.99);adjacentGable.lineTo(1.40,7.99);adjacentGable.lineTo(1.40,8.39);adjacentGable.quadraticCurveTo(0,9.84,-1.40,8.39);adjacentGable.lineTo(-1.40,7.99);adjacentGable.closePath();
+  adjacentGable.moveTo(-3.1,7.99);adjacentGable.lineTo(-3.1,8.70);adjacentGable.lineTo(0,9.85);adjacentGable.lineTo(3.1,8.70);adjacentGable.lineTo(3.1,7.99);adjacentGable.lineTo(.95,7.99);adjacentGable.lineTo(.95,8.50);adjacentGable.quadraticCurveTo(0,10.0,-.95,8.50);adjacentGable.lineTo(-.95,7.99);adjacentGable.closePath();
+  box('Adjacent building gable niche back',59.40,8.72,-5,.06,1.10,2.0,new THREE.MeshStandardMaterial({color:'#b9b8b2',roughness:.95})); // shaded recess (15.19.57)
   const gableMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(adjacentGable,{depth:.22,bevelEnabled:false,curveSegments:16}),adjacentWhite);gableMesh.rotation.y=Math.PI/2;gableMesh.position.set(59.0,0,-5);gableMesh.name='Adjacent building central arched gable';group.add(gableMesh);K.roofs.push(gableMesh);
   box('Stage central porch lintel',59.50,8.07,-5,.43,.20,4.70,adjacentWhite);
-  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[58.96,8.52,-5+side*2.67],[58.96,9.69,-5],.15,'red',.21);
+  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[58.96,8.74,-5+side*3.17],[58.96,9.93,-5],.15,'red',.21);
   // Two roof slopes, open at the ends so the arched white gable is not
   // filled with the helper roof's triangular tile end-cap.
   {const positions=[],uv=[];
-   for(const side of [-1,1]){const corners=[[58.92,8.53,-5+side*2.72],[62.4,8.53,-5+side*2.72],[62.4,9.72,-5],[58.92,9.72,-5]];
+   for(const side of [-1,1]){const corners=[[58.92,8.75,-5+side*3.22],[62.4,8.75,-5+side*3.22],[62.4,9.96,-5],[58.92,9.96,-5]];
     for(const i of [0,1,2,0,2,3]){positions.push(...corners[i]);uv.push(corners[i][0]*.5,corners[i][2]*.5);}}
    const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
    const roofMat=darkTile.clone();roofMat.side=THREE.DoubleSide;
@@ -1325,8 +1342,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Tile relief follows the existing hipped roof, keeping its profile and alignment.
   const roofCourses=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),darkTile,25*65);roofCourses.name='Stage overlapping roof tile courses';
   for(let i=0;i<25;i++)for(let j=0;j<65;j++){
-    const x=-3.42+i*.284,z=-10.35+j*.323,fx=(3.55-Math.abs(x))/3.55,fz=(10.55-Math.abs(z))/3.195;
-    const h=1.07*Math.max(0,Math.min(fx,fz,1));stagePose.position.set(62.9+x,8.39+h,-5+z);stagePose.rotation.set(fz<fx?Math.sign(z)*.32:0,0,fz<fx?0:-Math.sign(x)*.293);stagePose.scale.set(.30,.048,.34);stagePose.updateMatrix();roofCourses.setMatrixAt(i*65+j,stagePose.matrix);
+    const x=-3.42+i*.284,z=-10.35+j*.323,fx=(3.55-Math.abs(x))/3.55,fz=(10.55-Math.abs(z))/STAGE_HIP_RUN;
+    const h=STAGE_ROOF_RISE*Math.max(0,Math.min(fx,fz,1));stagePose.position.set(62.9+x,8.39+h,-5+z);stagePose.rotation.set(fz<fx?Math.sign(z)*Math.atan(STAGE_ROOF_RISE/STAGE_HIP_RUN):0,0,fz<fx?0:-Math.sign(x)*Math.atan(STAGE_ROOF_RISE/3.55));stagePose.scale.set(.35,.048,.36);stagePose.updateMatrix();roofCourses.setMatrixAt(i*65+j,stagePose.matrix);
   }
   roofCourses.instanceMatrix.needsUpdate=true;group.add(roofCourses);K.roofs.push(roofCourses);
   // 14.28.15 / 14.28.19 / 15.28.45: the building stands on a plinth about 2.8 m high, not
