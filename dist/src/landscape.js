@@ -1519,8 +1519,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
   steps('Lane-end concrete steps up to the lawn',52.4,-8.95,5.0,3.3,'-z',0,lawnTop,3,laneConcrete);
   box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
-  box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
-  box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  // 14.59.54: beside the steps lies a low run of grey cover slabs with a square drain opening, about
+  // level with the lawn; behind it stands a taller block, whitewashed and black-stained.
+  box('Lane-end raised concrete platform',57.1,.28,-11.6,1.0,.56,2.4,laneConcrete,true);
+  for(const z of [-11.2,-12.0])box('Platform cover slab joint',57.1,.561,z,1.0,.004,.025,materials.darkSoil);
+  box('Lane-end stained whitewashed block',58.25,.575,-11.6,1.3,1.15,2.4,pavilionGrey,true);
+  box('Platform dark drain opening',56.595,.30,-11.0,.02,.2,.3,materials.darkSoil);
   // 14.59.54: the steps are weathered concrete, pink-brown with laterite dust on the treads, with
   // paler worn patches and darker soiled risers; the platform is grey on top with black-stained sides.
   {const mk=(name,map)=>{const m=new THREE.MeshStandardMaterial({map,roughness:1});m.name=name;return m;};
