@@ -644,6 +644,8 @@ export function buildLandscape(K, {mobile=false}={}) {
       for(const ox of [-256,0,256])for(const oy of [-256,0,256]){const g=x.createRadialGradient(bx+ox,by+oy,0,bx+ox,by+oy,rad);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(bx+ox-rad,by+oy-rad,rad*2,rad*2);}}
     for(let i=0;i<2600;i++){x.fillStyle=r()<.5?'rgba(255,250,240,.10)':'rgba(20,18,16,.14)';x.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(rx,ry);m.anisotropy=4;return m;};
+  // 15.20.13 / 15.13.26 / 15.22.33: the worn footpaths are trodden laterite, patchy with dust, damp and grass, not one flat salmon.
+  const lateritePath=new THREE.MeshStandardMaterial({map:stainMap(81233,'#8e604b',[[26,'170,124,98',.45,8,30],[26,'104,64,48',.5,6,26],[14,'98,108,60',.35,4,12]]),roughness:1});lateritePath.name='worn laterite footpath';
   const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#665c57',[[12,'150,140,130',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
   function scallopedPanel(width, height, count, depth) {
@@ -1089,7 +1091,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const x of [36.5,41.5])ow('tiled house small upper window',x,4.43,-61.01,.51,.84,.04,materials.darkSoil);
   for(const x of [36,40.7])ow('tiled house dark ground opening',x,1.35,-56.65,.9,2.03,.08,materials.darkSoil);
   // Low hedge and a worn footpath separate the buildings from the bank.
-  ow('hall dirt approach',-17.9,.024,-48.0,2.4,.045,12.2,materials.redSoil);
+  ow('hall dirt approach',-17.9,.024,-48.0,2.4,.045,12.2,lateritePath);
   const neighborSeed=seed;
   for(const [x,z,h] of [[-15.5,-48.6,21],[-8.2,-48.4,24],[1.2,-49.0,20],[14.5,-51.8,23],[21,-54,25],[33,-53.0,22],[46,-52,24]])palm(x,z,h);
   for(let i=0;i<24;i++)shrub(17+i*1.22,-53.3-(i%3)*.8,.65+(i%4)*.12);
@@ -1482,9 +1484,9 @@ export function buildLandscape(K, {mobile=false}={}) {
     K.surface((xa+60)/2,(za+zb)/2,60-xa,zb-za,lawnTop);}
   box('east bank lawn step',50.65,.135,-22.15,.4,.27,2.7,materials.basalt);K.surface(50.65,-22.15,.4,2.7,.27);
   // The path starts beside the far end of the veranda and bends toward the lane steps.
-  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
+  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,lateritePath);path.rotation.y=-.165;
     K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
-  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,materials.redSoil);
+  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,lateritePath);
   // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
   // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
@@ -2088,7 +2090,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(let i=0;i<16;i++)for(const side of [-1,1]){const x=side<0?x0-(i+.5)*fall/16:x1+(i+.5)*fall/16,h=lift(x);
      box('Far bank earth slope',x,(h-.3)/2,zc,fall/16+.01,h+.3,d,earth);}
    K.ramp(x0-fall/2,zc,fall,d,'x',0,FAR_TOP);K.ramp(x1+fall/2,zc,fall,d,'-x',0,FAR_TOP);
-   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,materials.redSoil);}
+   for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]])box('Far bank worn footpath along the bank top',(a+b)/2,FAR_TOP+.01,edge-.65,b-a,.02,1.3,lateritePath);}
   // Bring the far bank closer (see farZ): move what lies beyond, stretch what spans.
   {const b3=new THREE.Box3(),m=new THREE.Matrix4(),p=new THREE.Vector3();
    group.updateMatrixWorld(true);
