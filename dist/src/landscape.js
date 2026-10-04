@@ -968,6 +968,8 @@ export function buildLandscape(K, {mobile=false}={}) {
     const scale = [size, size * range(.55, .9), size * range(.7, 1.15)], tint = foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3);
     // Nothing grows inside the temple complex, wherever it is placed (same random draws either way).
     {const m = size * 1.2; if (x > 20.5 - m && x < 58.5 + m && z > (K.templeShiftZ || 0) - m && z < 46.2 + (K.templeShiftZ || 0) + m) return;}
+    // Nor in the house's clock-side room, which stands out east of the east passage.
+    if (x > 7.5 && x < 11.9 + size && z > 8.2 - size && z < 12.8 + size) return;
     // Nor on the straight asphalt of the lane.
     if (x > -40 && x < 20 && Math.abs(z + 5) < 2.1 + size * .5) return;
     instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], scale, q, tint);
@@ -1861,7 +1863,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     if(z>9.4+(K.templeShiftZ||0)&&z<14.4+(K.templeShiftZ||0))continue;
     shrub(x,z,range(.75,1.30));
   }
-  for(let i=2;i<7;i++)broadleaf(i<4?11.3:13.6,2.5+i*3.8+(i<4?0:(K.templeShiftZ||0)),range(4.7,6.5),range(1.9,2.3));
+  for(let i=2;i<7;i++)broadleaf(i<4?12.9:13.6,2.5+i*3.8+(i<4?0:(K.templeShiftZ||0)),range(4.7,6.5),range(1.9,2.3));
   for(const [z,y] of [[3.9,5.5],[9.3,5.0],[16.7,5.5]]){
     const line=new THREE.CatmullRomCurve3([new THREE.Vector3(20.15,y,z),new THREE.Vector3(17,y-.32,z+1.2),new THREE.Vector3(13.3,y+.10,z+2)]);
     const wire=new THREE.Mesh(new THREE.TubeGeometry(line,18,.009,4,false),materials.mortar);wire.name='Thin wires above the temple side road';group.add(wire);
