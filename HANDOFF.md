@@ -185,6 +185,30 @@ committed) still apply.
   line with `[-23.4,6.5,10,4.7]`); the parked car is plain wine red; the bare lawn pole carries lines; a stone
   coping course hides the terrain edge over the bathing recess; the tour looks up the temple's west aisle;
   ceilings keep more sky-bounce light the more open sides they have (pavilion soffit grey, not black).
+- Web interface (a sub-agent's nine commits, merged; `index.html`, `style.css`, UI code in `main.js`): the tour
+  shows its caption with Pause and Next view on screen; Walk takes over where the tour is (it used to jump to
+  a stale spot facing a pillar); Tour resumes where it was left, and pressing it while it runs restarts from
+  the opening flight; Escape and close buttons shut Settings and Photographs; the Go to list is grouped into
+  House, Lake and lane, Temple; a one-line how-to shows for the first seconds in each mode; Aerial view says
+  'Seen from above' and hides the dead walking arrows; phone fixes (About pane, 38 px buttons, landscape
+  caption). `location()` names the front hall, courtyard, rear veranda, upper gallery and the lane in front
+  of the house. Found and not fixed: no pinch zoom in Aerial view on phones; the bare loading spinner; the
+  authoring link 'Align photos' is offered to every visitor; Settings and Photographs overlap when both are open.
+- Exposure: only a camera under a roof, or in a small well with roof on most of eight points 1.2 m around it,
+  adapts (the first version, 'within 0.9 m of a roof', over-exposed the court's edge beside the rear veranda).
+- Second rounds (merged at 02:00 on 2026-10-04). House: every front and entrance coping, step and door base
+  uses `edgeStone`; the rear veranda's bare plaster is a low flaked band (add any further loss as texture, not
+  as a rising profile); the clock-side room's shelves sit inside the walls on cleats; two trees and the
+  shrubs moved out of that room. Landscape: the lane-end platform is a low run of cover slabs with a drain
+  beside a taller stained block; a broad worn laterite patch lies before the shop; tank perimeter paths 1, 2
+  and 4 are stony earth; the forecourt terraces have a fitted side texture. Temple: the inner rear wall and
+  ledge are darker (`innerDarkStone` #47383a; measured against the floor in the same frame); the sanctum's
+  oil lamp glow is confined behind the inner gate (strength 1.6, reach 1.3 m: point lights are not shadowed,
+  so keep their reach inside their room); the gallery stair's flank and risers are white (`steps()` defaults
+  risers to dark `oldStone`); the rear range's shaded plaster is a measured warm grey (#6b5d59).
+- Under the indoor exposure a photo-sampled colour used directly as a material renders about twice too
+  bright: measure the surface against the floor in the same frame and scale the material by that ratio.
+  Shade painted into a material now doubles with the sky occlusion.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
