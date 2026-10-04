@@ -915,7 +915,8 @@ export function buildHouse(K) {
   // 14.52.16 / 14.46.10 / 14.48.07 show plain plaster over the black dado there.)
   // 14.44.14 / 14.44.09 / 14.52.16 / 14.46.10: three broad patterned bands (about 0.25 m, at 1.75, 2.70 and
   // 3.65 m) run round the tall block; on the west the lower two exist only behind the window.
-  const shrineBandSpans=(side,y)=>side<0?(y===3.65?[[6.0,10.2]]:[[9.14,10.2]]):(y===1.75?[[6.0,10.2]]:[[6.0,7.16],[9.14,10.2]]);
+  // The bands start at the tall block's front corner (z 6.96): from z 6.0 their ends hung in the air beside the porch posts as red boxes (god-room.jpg shows none).
+  const shrineBandSpans=(side,y)=>side<0?(y===3.65?[[6.96,10.2]]:[[9.14,10.2]]):(y===1.75?[[6.96,10.2]]:[[6.96,7.16],[9.14,10.2]]);
   for(const y of [1.75,2.70,3.65]) {
     detail(0,y,10.22,4.32,.25,.10,'red');
     for(const side of [-1,1])for(const [a,end] of shrineBandSpans(side,y))detail(side*2.2,y,(a+end)/2,.10,.25,end-a,'red');
