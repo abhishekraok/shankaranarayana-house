@@ -42,7 +42,7 @@ VEG = re.compile(r'frond|leaf|leaves|crown|palm|areca|coconut|tree|foliage|bush|
 NON_FOLIAGE_OBJECTS = {
     'continuous mottled green and leaf-litter forest floor',
     'Shop coconut pile', 'coconuts under crowns',
-    'Shrine west window deep pale canopy', 'Shrine east window deep pale canopy',
+    'Shrine west window deep pale canopy',  # the east one became 'Shrine east window dark timber hood' on main
     'Entrance doorway open timber leaf', 'Entrance door leaf metal studs',
     'Inner ledge worn foliage relief',
     'Outer shrine small suspended bell crown', 'Courtyard smaller hanging bell crown',
