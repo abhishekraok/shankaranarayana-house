@@ -574,8 +574,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('pavilion column foot', x, -.07, z, .39, .43, .39, materials.oldWhite);
   }
   // Low seat-height parapets; west entrance stays open at the centre.
-  box('pavilion east parapet', px + pw / 2 - .17, -.035, pz, .22, .51, pd - .6, materials.oldWhite, true);
-  box('pavilion rear side parapet', px, -.035, pz - (pd / 2 - .17), pw - .6, .51, .22, materials.oldWhite, true);
+  // 14.58.26: the lane face's seat runs through its middle pier and leaves a slot beside it in the east bay.
+  for(const [a,b] of [[-1.925,-.45],[-.17,1.925]]) box('pavilion east parapet', px + pw / 2 - .17, -.035, pz+(a+b)/2, .22, .51, b-a, materials.oldWhite, true);
+  // 15.22.06: the east face repeats the west one: a seat through the pier, an opening, a short block.
+  for(const [a,b] of [[-2.20,.66],[1.40,2.20]]) box('pavilion rear side parapet', px+(a+b)/2, -.035, pz - (pd / 2 - .17), b-a, .51, .22, materials.oldWhite, true);
+  // 15.22.06 (east face) and 14.58.26 (lane face): three pillars and two bays on these faces
+  // as well; only the bank face, where one walks in, is a single bay.
+  for(const [x,z,w,d] of [[px,pz-(pd/2-.22),.34,.31],[px+pw/2-.22,pz,.31,.34]]) {
+    box('pavilion central square pier',x,.88,z,w,2.34,d,materials.oldWhite,true);
+    box('pavilion central pier foot',x,-.07,z,.39,.43,.39,materials.oldWhite);
+  }
   // 15.28.02/05: the face along the lake bank has two bays, with a
   // low opening in the right bay rather than one uninterrupted seat.
   const pavilionFrontZ=pz+pd/2-.22;
@@ -595,37 +603,47 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, new THREE.MeshStandardMaterial({color:'#857668',roughness:1}), false, pavilionRoof);
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
+    // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
+    const lobe=.08;
     for (let i = count * 12; i >= 0; i--) {
       const t = i / (count * 12);
-      shape.lineTo(width * t, -height + height * .44 * (1 - Math.cos(t * count * Math.PI * 2)));
+      shape.lineTo(width * t, -(height - lobe) - lobe * Math.abs(Math.sin(t * count * Math.PI)));
     }
     shape.closePath();
     return new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 2 });
   }
   function fascia(width, x, y, z, rotation, count, height) {
-    const mesh = new THREE.Mesh(scallopedPanel(width, height, count, .065), materials.oldWhite);
+    // The lobed band is the slab's own edge: stained grey like it, the pillars and arches stay white.
+    const mesh = new THREE.Mesh(scallopedPanel(width, height, count, .065), pavilionGrey);
     mesh.name = 'scalloped pavilion plaster trim'; mesh.position.set(x, y, z); mesh.rotation.y = rotation;
     pavilionRoof.add(mesh);
   }
-  for (const sz of [-1, 1]) {
-    fascia(pw + .54, px - (pw + .54) / 2, 2.15, pz + sz * (pd + .54) / 2, 0, 22, .24);
-    if(sz<0) fascia(pw - .6, px - (pw - .6) / 2, 1.99, pz + sz * (pd / 2 - .23), 0, 5, .43);
-    else for(const offset of [-2.125,.17]) {
-      const width=1.955,shape=new THREE.Shape();
-      shape.moveTo(0,2.11);shape.lineTo(width,2.11);
-      // A raised arch with small cusps, not a straight hanging fringe.
-      for(let i=72;i>=0;i--) {
-        const t=i/72;
-        shape.lineTo(width*t,1.54+.38*Math.sin(Math.PI*t)+.075*Math.abs(Math.sin(6*Math.PI*t)));
-      }
-      shape.closePath();
-      const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),materials.oldWhite);
-      arch.name='pavilion twin scalloped arch';arch.position.set(px+offset,0,pavilionFrontZ-.06);pavilionRoof.add(arch);
+  // A raised arch with small cusps under a plain lintel, not a straight hanging fringe.
+  // 14.58.26 (level view from the lane): the lintel shows as a white band under the fascia;
+  // five clear lobes, the arch crowning about 1.65 m and springing about 1.4 m on the local scale.
+  function cuspedArch(width,x,z,rotation,cusps=5,power=.7) {
+    const shape=new THREE.Shape(),n=cusps*12;
+    shape.moveTo(0,2.11);shape.lineTo(width,2.11);
+    for(let i=n;i>=0;i--) {
+      const t=i/n;
+      shape.lineTo(width*t,1.40+.17*Math.pow(Math.sin(Math.PI*t),power)+.09*Math.abs(Math.sin(cusps*Math.PI*t)));
     }
+    shape.closePath();
+    const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),materials.oldWhite);
+    arch.name='pavilion twin scalloped arch';arch.position.set(x,0,z);arch.rotation.y=rotation;pavilionRoof.add(arch);
+  }
+  for (const sz of [-1, 1]) {
+    fascia(pw + .54, px - (pw + .54) / 2, 2.15, pz + sz * (pd + .54) / 2, 0, 29, .15);
+    // West (15.23.02) and east (15.22.06) faces: an arch in each bay either side of the middle pier.
+    for(const offset of [-2.125,.17]) cuspedArch(1.955,px+offset,pz+sz*(pd/2-.22)-.06,0);
   }
   for (const sx of [-1, 1]) {
-    fascia(pd + .54, px + sx * (pw + .54) / 2, 2.15, pz + (pd + .54) / 2, Math.PI / 2, 20, .24);
-    fascia(pd - .6, px + sx * (pw / 2 - .23), 1.99, pz + (pd - .6) / 2, Math.PI / 2, 5, .43);
+    // 14.58.26: 26 lobes along the lane face.
+    fascia(pd + .54, px + sx * (pw + .54) / 2, 2.15, pz + (pd + .54) / 2, Math.PI / 2, 26, .15);
+    // Lane face (14.58.26): twin arches. Bank face (15.22.06, 15.21.56): one wide arch whose
+    // cusped haunches come down on the corner pillars, clear over the entry.
+    if(sx>0) for(const z1 of [-.17,1.85]) cuspedArch(1.68,px+pw/2-.22-.06,pz+z1,Math.PI/2);
+    else cuspedArch(3.70,px-(pw/2-.22)-.06,pz+1.85,Math.PI/2,11,.35);
   }
   // Low, moss-stained upstand and scattered weathering on the flat roof.
   for (const sz of [-1, 1]) box('pavilion roof lip', px, 2.36, pz + sz * (pd + .39) / 2, pw + .54, .1, .08, pavilionGrey, false, pavilionRoof);
