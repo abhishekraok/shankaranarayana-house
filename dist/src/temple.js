@@ -734,12 +734,17 @@ export function buildTemple(K) {
   floor('Rear circuit raised red veranda',40.25,36.65,35,2.65,.6,oxideFloor);
   box('Rear circuit weathered white wall',40.25,2.05,37.98,35,2.9,.28,agedWhite,true);
   box('Rear circuit red dado',40.25,.90,37.8,35,.60,.08,red);
-  for(const x of [23.8,26.7,29.6,32.5,35.4,38.3,41.2,44.1,47,49.9,52.8,55.7,57.1])blueColumn('Rear circuit blue column',x,35.32);
-  for(const [a,b] of [[22.75,30.4],[31.8,52.9],[54.3,57.75]]){
+  // 15.11.17: the gate bay has a blue pier on its stair side only (x 29.6); the white window wall
+  // starts straight from the gate's other edge, so there is no column at x 26.7.
+  for(const x of [23.8,29.6,32.5,35.4,38.3,41.2,44.1,47,49.9,52.8,55.7,57.1])blueColumn('Rear circuit blue column',x,35.32);
+  for(const [a,b] of [[22.75,52.9],[54.3,57.75]]){
     box('Rear circuit outlined plinth',(a+b)/2,.30,35.3,b-a,.40,.22,outlinedPlinth);
     box('Rear circuit white plinth coping',(a+b)/2,.56,35.3,b-a,.09,.29,whiteTrim);
   }
-  for(const x of [31.1,53.6])steps('Rear circuit access stair',x,34.75,1.4,1.15,.1,.6,'z',3,oxideFloor,red);
+  // 15.11.17 / 15.11.08: the plinth runs unbroken past the open stair bay (no red flight at
+  // x 31.1); a grey stone block lies in front of the closed blue gate instead.
+  steps('Rear circuit access stair',53.6,34.75,1.4,1.15,.1,.6,'z',3,oxideFloor,red);
+  box('Rear west gate grey stone step',28.15,.225,35.0,1.15,.25,.38,mat('#a09a96'));K.surface(28.15,35.0,1.15,.38,.35);
   const rearRoof=new THREE.Group();rearRoof.name='Rear circuit flat roof';g.add(rearRoof);K.roofs.push(rearRoof);
   // A real stairwell interrupts the slab, leaving the front terrace continuous.
   for(const [x,z,w,d] of [[40.25,35.65,35.5,1.22],[26.3,37.21,7.6,1.9],[44.55,37.21,26.9,1.9]]){
@@ -752,15 +757,18 @@ export function buildTemple(K) {
   // 15.05.42 / 15.11.08: an upper room occupies the west part of the rear range,
   // distinct from the east corner pavilion, with open bays and a broad jali screen,
   // not the former solid wall or the unsupported room above the west passage.
+  // 15.11.17: the open upper terrace and the open ground bay read at about a third or less of the
+  // sunlit wall beside them (23,28,32 and 52,46,47 against 136,155,186); '#73766d' rendered at half.
+  const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#4e514b');
   {const x0=24.8,x1=34.7,xm=(x0+x1)/2,w=x1-x0,zf=35.35,y0=3.69,y1=6.55;
-   const shadedRearPlaster=agedWhite.clone();shadedRearPlaster.color.set('#73766d');
+   const XJ=28.15; // 15.11.17: the jali and the dome stand over the gate bay (x 26.7..29.6)
    K.box(rearRoof,'Rear upper storey back wall',xm,(y0+y1)/2,37.90,w,y1-y0,.22,shadedRearPlaster,true);
    for(const x of [x0+.11,x1-.11])K.box(rearRoof,'Rear upper storey side return',x,(y0+y1)/2,36.6,.22,y1-y0,2.6,agedWhite,true);
    K.box(rearRoof,'Rear upper storey red skirting',xm,y0+.25,37.77,w,.5,.03,red);
    K.box(rearRoof,'Rear upper storey flat slab',xm,y1+.08,36.6,w+.6,.16,3.6,agedWhite);
    K.box(rearRoof,'Rear upper storey red slab edge',xm,y1+.08,34.82,w+.6,.18,.12,red);
-   K.box(rearRoof,'Rear upper storey solid west facade',25.355,(y0+y1)/2,zf,1.11,y1-y0,.22,agedWhite,true);
-   for(const x of [24.91,25.8,29.0,34.59])K.box(rearRoof,'Rear upper open veranda pier',x,(y0+y1)/2,zf,.22,y1-y0,.24,agedWhite,true);
+   K.box(rearRoof,'Rear upper storey solid west facade',25.7,(y0+y1)/2,zf,1.8,y1-y0,.22,agedWhite,true);
+   for(const x of [24.91,26.6,29.7,34.59])K.box(rearRoof,'Rear upper open veranda pier',x,(y0+y1)/2,zf,.22,y1-y0,.24,agedWhite,true);
    for(const x of [25.4,32.5]){
      K.box(rearRoof,'Rear upper storey blue window frame',x,5.15,37.77,1.05,1.05,.05,mat('#3d7fa3'));
      K.box(rearRoof,'Rear upper storey dark window glass',x,5.15,37.74,.85,.85,.02,dark);}
@@ -769,15 +777,15 @@ export function buildTemple(K) {
      const x=(col-7)*.19,y=(row-4.5)*.19,hole=new THREE.Path();
      hole.moveTo(x,y+.078);hole.lineTo(x+.078,y);hole.lineTo(x,y-.078);hole.lineTo(x-.078,y);hole.closePath();screen.holes.push(hole);
    }
-   mesh('Rear upper storey pierced jali panel',new THREE.ExtrudeGeometry(screen,{depth:.09,bevelEnabled:false}),whiteTrim,27.4,5.32,zf-.045,rearRoof);
-   K.blocker(27.4,zf,2.98,.09,4.30,6.34);
+   mesh('Rear upper storey pierced jali panel',new THREE.ExtrudeGeometry(screen,{depth:.09,bevelEnabled:false}),whiteTrim,XJ,5.32,zf-.045,rearRoof);
+   K.blocker(XJ,zf,2.98,.09,4.30,6.34);
    // The gallery photograph retains the dome behind this screen, supported by
    // the upper roof. Its exact position remains inferred from the oblique views.
-   K.box(rearRoof,'Rear dome square roof base',27.4,6.80,37.25,2.35,.28,2.1,whiteTrim);
-   mesh('Rear dome white drum',new THREE.CylinderGeometry(.92,1.06,.38,24),whiteTrim,27.4,7.10,37.25,rearRoof);
+   K.box(rearRoof,'Rear dome square roof base',XJ,6.80,37.25,2.35,.28,2.1,whiteTrim);
+   mesh('Rear dome white drum',new THREE.CylinderGeometry(.92,1.06,.38,24),whiteTrim,XJ,7.10,37.25,rearRoof);
    const domeProfile=[[.60,0],[.73,.10],[.87,.29],[.88,.42],[.77,.57],[.55,.73],[.26,.85],[.13,.96]].map(p=>new THREE.Vector2(...p));
-   mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,27.4,7.29,37.25,rearRoof);
-   mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,27.4,8.38,37.25,rearRoof);
+   mesh('Rear pale turquoise dome',new THREE.LatheGeometry(domeProfile,32),paleBlue,XJ,7.29,37.25,rearRoof);
+   mesh('Rear dome finial',new THREE.CylinderGeometry(.025,.09,.30,12),brass,XJ,8.38,37.25,rearRoof);
   }
   // User's note with 15.11.17: no sideways stair across the open bay. The photo's steep
   // flight climbs straight back beside the door pier and vanishes into the floor above;
@@ -786,20 +794,40 @@ export function buildTemple(K) {
   K.blocker(30.6,36.85,1.0,1.9,.6,3.5);
   // 15.11.08 / 15.11.17: enclosed white door/window bay in front of the
   // rear wall, with the stair bay open immediately to its east.
-  for(const [a,b] of [[24.8,25.025],[25.975,27.15],[28.65,30.0]])
+  // 15.11.17 and the owner's note on 15.11.08 (no wall left of the gate): the gate fills the
+  // whole bay from the blue pier at x 29.6 to the window wall, right under the jali. It is a dark
+  // double door between two barred side lights that stand on a solid blue panel over the red
+  // dado. The window beside it has closed blue louvred shutters reaching up to the beam.
+  for(const [a,b] of [[24.8,24.85],[25.95,26.85]])
     box('Rear west enclosed white facade',(a+b)/2,2.025,35.48,b-a,2.85,.20,agedWhite,true);
-  box('Rear west window white sill wall',25.5,1.15,35.48,.95,1.10,.20,agedWhite,true);
-  box('Rear west window white head wall',25.5,3.10,35.48,.95,.70,.20,agedWhite,true);
-  box('Rear west door white header',27.9,3.25,35.48,1.50,.40,.20,agedWhite,true);
-  for(const [a,b] of [[24.8,27.15],[28.65,30.0]])box('Rear west facade red dado',(a+b)/2,.85,35.36,b-a,.50,.045,red);
-  blueWindow('Rear west blue barred window',25.5,35.35,.80,2.25);
-  for(let y=1.74;y<2.82;y+=.13)box('Rear west window horizontal bar',25.5,y,35.30,.80,.026,.035,blue);
-  box('Rear west doorway dark recess',27.9,1.775,35.62,1.45,2.35,.025,dark);
-  for(const x of [27.22,27.90,28.58])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
-  for(const x of [27.56,28.24])box('Rear west gate lower blue panel',x,1.04,35.34,.60,.84,.06,blue);
-  for(let x=27.30;x<28.58;x+=.13)box('Rear west gate slender blue bar',x,2.20,35.34,.026,1.42,.035,blue);
-  K.blocker(27.9,35.34,1.43,.09,.6,3.0);
-  scallop('Rear west doorway scallops',27.9,35.35,2.5,3.36,.20,paleBlue,.47);
+  box('Rear west window white sill wall',25.4,1.075,35.48,1.1,.95,.20,agedWhite,true);
+  box('Rear west window white head wall',25.4,3.35,35.48,1.1,.20,.20,agedWhite,true);
+  box('Rear west door white header',28.15,3.2,35.48,2.6,.50,.20,agedWhite,true);
+  box('Rear west facade red dado',25.825,.85,35.36,2.05,.50,.045,red);
+  {const shutterBlue=mat('#27456a'),shutterSlat=mat('#3f678f'); // 15.11.17: 20,38,52 beside the white wall's 136,155,186
+   box('Rear west blue louvred window frame',25.4,2.4,35.36,1.1,1.7,.06,shutterBlue);
+   box('Rear west blue louvred window meeting stile',25.4,2.4,35.325,.07,1.62,.03,shutterBlue);
+   for(const s of [-1,1])for(let i=0;i<11;i++)box('Rear west blue louvred window slat',25.4+s*.27,1.73+i*.134,35.322,.40,.05,.025,shutterSlat);}
+  // The open stair bay is in deep shade (52,46,47 against the sunlit wall's 136,155,186), and the
+  // gate room's side wall closes it on the gate side.
+  box('Rear open bay shaded back wall',32.5,2.325,37.825,5.8,2.25,.02,shadedRearPlaster);
+  box('Rear west gate room side wall',29.6,2.025,36.71,.2,2.85,2.26,shadedRearPlaster,true);
+  box('Rear west doorway dark recess',28.15,1.775,35.62,2.6,2.35,.025,dark);
+  {const gateNavy=mat('#1b2836'),gatePanel=mat('#5b8ca6'),xl=27.62,xr=28.67;
+   for(const x of [xl,xr])box('Rear west gate blue upright',x,1.78,35.34,.075,2.35,.075,blue);
+   box('Rear west gate dark meeting stile',28.145,1.75,35.34,.06,2.3,.07,gateNavy);
+   for(const x of [27.885,28.41]){
+     box('Rear west gate lower dark panel',x,1.12,35.34,.47,1.0,.05,gateNavy);
+     for(const y of [1.66,2.86])box('Rear west gate dark rail',x,y,35.34,.47,.07,.06,gateNavy);
+     for(let i=0;i<5;i++)box('Rear west gate slender dark bar',x-.18+i*.09,2.26,35.34,.024,1.2,.03,gateNavy);}
+   for(const [a,b] of [[26.85,xl],[xr,29.45]]){const xm=(a+b)/2,w=b-a;
+     box('Rear west gate side light red dado',xm,.85,35.36,w,.50,.08,red);
+     box('Rear west gate side light blue panel',xm,1.36,35.36,w,.52,.08,gatePanel);
+     for(const y of [1.65,2.74])box('Rear west gate side light blue rail',xm,y,35.34,w,.07,.075,blue);
+     for(let i=1;i<7;i++)box('Rear west gate side light pale bar',a+i*w/7,2.195,35.34,.02,1.03,.03,paleBlue);}
+   box('Rear west gate blue upright',26.885,1.78,35.34,.07,2.35,.075,blue);}
+  K.blocker(28.15,35.34,2.6,.09,.6,3.0);
+  scallop('Rear west doorway scallops',28.15,35.35,2.6,3.36,.20,paleBlue,.6);
   const cornerStart=markAssembly(),cornerRoofStart=rearRoof.children.length;
   frontDoor('Rear corner blue barred door',49.6,37.77,.6,1.25,2.35);
   scallop('Rear corner doorway scallops',49.6,35.35,2.9,3.36,.20,paleBlue,.47);
@@ -1381,9 +1409,13 @@ export function buildTemple(K) {
   const markerStone=mesh('Rounded courtyard marker stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,48.9,.10,24.2);
   const markerNav=K.colliders.length;K.blocker(48.9,24.31,.94,.22,.1,1.37);
   // Two unequal upright stones stand outside the rear door/window bay.
-  for(const [x,h] of [[26.05,1.10],[26.90,.88]]){
-    const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),markerGranite,x,.10,42.06);
-    rearStone.scale.set(.70,h/1.27,1);K.blocker(x,42.17,.66,.22,.1,.1+h);
+  // 15.11.17: they are pale weathered stones (96,90,93 beside a white wall at 136,155,186, where
+  // the dark marker granite rendered near black), a tall one at the corner and a broader, shorter
+  // one under the shuttered window, standing against the veranda plinth.
+  const paleStandingStone=mat('#958e86',.95);
+  for(const [x,h,sx] of [[24.9,1.5,.70],[25.75,1.1,.84]]){
+    const rearStone=mesh('Rear west paired upright stone',new THREE.ExtrudeGeometry(stoneShape,{depth:.22,bevelEnabled:false,curveSegments:12}),paleStandingStone,x,.10,42.4);
+    rearStone.scale.set(sx,h/1.27,1);K.blocker(x,42.51,sx*.94,.22,.1,.1+h);
   }
 
   // Deepastambha: layered square foot, dark shaft and a vertical series of lamp dishes.
