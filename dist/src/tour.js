@@ -19,9 +19,9 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     at([-3.12,1.655,7],[-3.7,1.5,11],'Down into the courtyard'),
     at([-3.7,1.655,7],[-3.7,1.5,12],'Around the courtyard'),
     photo('courtyard'),
-    at([-3.6,1.655,13.3],[0,1.9,11.5],'Behind the God room'),
-    at([3.3,1.655,13.3],[2.05,2,9.1],'Around the far side of the God room'),
-    at([3.3,1.655,7.1],[5.45,1.7,6.0],'Returning beside the God room'),
+    at([-3.6,1.655,13.65],[0,1.9,11.5],'Behind the God room'),
+    at([3.9,1.655,13.65],[2.05,2,9.1],'Around the far side of the God room'), // 0.9 m clear of the pole supports
+    at([3.9,1.655,7.1],[5.45,1.7,6.0],'Returning beside the God room'),
     at([5.45,1.655,7.0],[5.45,2,5.15],'Back up to the front hall'),
     at([5.45,2.07,5.15],[2.9,2,5.15],'Through the front hall'),
     at([2.9,2.07,5.15],[0,2,4.45],'Towards the house entrance'),
@@ -43,7 +43,7 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     photo('templeouterrear'),
     at([27.7,1.72,40.5],[25.5,2,39.5],'Around the rear of the temple'),
     at([27.86,1.72,22],[30,2,15],'Returning along the other side'),
-    at([27.86,1.72,14],[34,2,13],'The shaded side hall'),
+    at([27.3,1.72,14],[34,2,13],'The shaded side hall'), // half a metre further from the round column it turns past
     at([33,1.72,13],[35,2,9],'Back to the front courtyard'),
     at([33,1.72,14.2],[39,2,14.2],'Past the lamp pillar'),
     at([39,1.72,14.2],[39,2,20],'Entering the inner sanctum'),
@@ -57,29 +57,30 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     at([39,2.17,20.2],[39,2,13.6],'Leaving the inner sanctum'),
     at([39,1.72,13.6],[39,2,8],'The front courtyard'),
     at([40.6,1.72,14.3],[38.8,3.0,11.4],'Around the lamp plinth'),
-    at([39.7,1.72,10.3],[39,2,6],'Back towards the entrance'),
-    at([39,1.72,9.5],[39,2,3],'Returning inside'),
+    at([40.3,1.72,10.3],[39,2,6],'Back towards the entrance'), // clear of the little lamp canopy and its legs
+    at([39,1.72,8.5],[39,2,3],'Returning inside'),
     at([39,1.82,3],[44.6,2,1.2],'Towards the upper gallery'),
     at([44.6,2.47,.8],[46.18,3,.6],'Towards the upper gallery'),
     at([46.18,2.47,.45],[46.18,3.6,3],'The gallery stair'),
     at([46.18,2.47,1.1],[46.18,5.6,5.72],'Ascending to the gallery'),
-    at([46.18,5.56,5.72],[44.4,5.7,5.4],'The temple upper gallery'),
+    at([46.18,5.56,5.95],[44.4,5.7,5.4],'The temple upper gallery'),
     at([44.4,5.7,7.9],[46,2.6,16.5],'The inner temple building'),
     photo('templeleft'),photo('templecenter'),photo('templeright'),
     at([39,5.7,7.9],[44.4,5.7,6.5],'Returning along the gallery'),
-    at([44.4,5.7,5.72],[46.18,5.56,5.72],'Back to the gallery stair'),
-    at([46.18,5.56,5.72],[46.18,2.43,1.35],'Descending the gallery stair'),
+    at([44.4,5.7,5.95],[46.18,5.56,5.95],'Back to the gallery stair'),
+    at([46.18,5.56,5.95],[46.18,2.43,1.35],'Descending the gallery stair'),
     at([46.18,2.43,1.35],[44.6,2.22,1.35],'The lower landing'),
     at([44.6,2.22,1.35],[44.6,2.22,3],'Towards the entrance'),
     at([44.6,2.22,3],[39,1.82,3],'Through the entrance hall'),
     at([39,1.82,3],[39,1.82,.2],'Leaving the temple'),
     at([39,1.82,.2],[39,1.67,-4.2],'Outside the temple'),
     at([39,1.67,-4.2],[49,2,-6.5],'Walking towards the lake'),
-    at([49,1.671,-6.5],[56,2,-15],'Along the lake bank'),
-    at([56.2,1.671,-6.5],[56.2,2,-20],'Rounding the lake corner'),
-    at([56.2,1.671,-15],[56.2,2,-35],'Past the lakeside shop'),
-    at([56.2,1.671,-33.5],[45,2,-37.4],'Around the far corner'),
-    at([56.2,1.671,-39.4],[42,3,-2],'The opposite bank'),
+    at([49,1.671,-6.5],[53,2,-15],'Along the lake bank'),
+    at([52.6,1.671,-6.9],[53,2.2,-20],'Rounding the lake corner'),
+    at([52.6,2.106,-11.2],[56.2,2.4,-25],'Up the steps to the shop lawn'), // the lawn lies 0.45 m above the lane end
+    at([56.2,2.106,-15],[56.2,2.4,-35],'Past the lakeside shop'),
+    at([56.2,2.106,-33.5],[45,2.4,-37.4],'Around the far corner'),
+    at([56.2,2.106,-39.4],[42,3,-2],'The opposite bank'),
     photo('templeacross'),
     at([37,3.052,-37.4],[39,3,0],'Up the gentle bank'),
     at([31.6,3.0,-37.4],[39,3,0],'Across the lake'),
@@ -114,7 +115,7 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
     const direction=incoming.normalize().add(outgoing.normalize()).multiplyScalar(.5);
     return direction.multiplyScalar(speed*.25);
   });
-  function sample(time){
+  function rawPosition(time){
     const t=((time%duration)+duration)%duration;
     const index=spans.findIndex(s=>t<s.start+s.hold+s.travel),i=index<0?spans.length-1:index,s=spans[i];
     const f=THREE.MathUtils.clamp((t-s.start-s.hold)/s.travel,0,1),f2=f*f,f3=f2*f;
@@ -126,8 +127,20 @@ export function createPhotoTour(photos, supportY = null, houseShiftX = 0, temple
       // Resolve adjoining floor/step surfaces without accumulating frame-rate drift.
       for(let n=0;n<3;n++)position.y=supportY(position.x,position.z,position.y-1.62)+1.62;
     }
+    return {position,s,f,f2,travelTime:t-s.start-s.hold};
+  }
+  function sample(time){
+    const {position,s,f,f2,travelTime}=rawPosition(time),floorEye=position.y;
+    if(supportY){
+      // Glide over steps and platform edges: the eye height is averaged over about a second of travel
+      // (it used to jump up to 1.4 m between two frames), but never sinks more than half a metre. Holds and
+      // the half second either side of a waypoint keep the exact height, so photo compositions stay put.
+      let sum=0,weight=0;for(let k=-3;k<=3;k++){const w=4-Math.abs(k);sum+=w*rawPosition(time+k*.15).position.y;weight+=w;}
+      const g=THREE.MathUtils.clamp(Math.min(travelTime,s.travel-travelTime)/.5,0,1);
+      position.y+=g*(Math.max(sum/weight,position.y-.5)-position.y);
+    }
     const smooth=f2*(3-2*f);
-    return {position,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:s.a.photo||null};
+    return {position,floorEye,quaternion:s.qa.clone().slerp(s.qb,smooth),fov:58,label:f<.45?s.a.label:s.b.label,photo:s.a.photo||null};
   }
   // User's request: the tour opens once with a flight. From the raised far-bank view of
   // 15.26.12 it turns to the house, floats across the lake and lands on the lane before the

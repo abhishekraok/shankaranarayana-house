@@ -29,10 +29,17 @@ const pier=box('Temple road porch white pier'),veranda=box('Front range plinth')
 assert.ok(pier.min.z-veranda.min.z>3,'Porch pillars are set back behind the house front line');
 // The forecourt pond follows the temple and keeps its place in front of the porch.
 const pond=box('Temple small pond recessed water'),porch=box('Temple road corner raised porch');
-assert.ok(Math.abs(porch.min.z-pond.max.z)<1.2,'Pond stays just in front of the corner porch');
+assert.ok(Math.abs(porch.min.z-pond.max.z)<1.8,'Pond stays just in front of the corner porch'); // 15.14.02: about 1.2 m clear
 const pondX=(pond.min.x+pond.max.x)/2,pondZ=(pond.min.z+pond.max.z)/2;
 assert.ok(supportY(pondX,pondZ,0)<-1,'Ground is cut out under the moved pond');
-assert.equal(supportY(pondX,pondZ-TS,0),0,'Old pond site is level ground');
+assert.ok(Math.abs(supportY(pondX,pondZ-TS,0)-.03)<.04,'Unshifted pond site is closed ground (the lane)');
+// The pond is open: nothing covers the water (moved here from entrance-geometry, which runs at the
+// authored placement where the 4 m pond has no room and is not built).
+for(const dx of [0,-1.3,1.3]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(pondX+dx,2,pondZ),new THREE.Vector3(0,-1,0)).intersectObjects([landscape,temple,house],true)[0];
+  assert.equal(hit?.object.name,'Temple small pond recessed water','The pond is open, with no soil or road covering the water');
+  assert.ok(hit.point.y<-.7,'Water lies below ground level');
+}
 assert.ok(collision(pondX,pondZ,0),'Pond water cannot be walked into');
 assert.ok(!collision(pondX,pondZ-TS,0),'Old pond site is open forecourt');
 
@@ -42,17 +49,19 @@ function checkRoute(name,points,feet=.051){for(let j=1;j<points.length;j++){cons
 // Lane, across the deeper forecourt, through the entrance and into the courtyard.
 const inFeet=checkRoute('Lane to temple courtyard',[[39,-6],[39,-1],[39,.2+TS],[39,3+TS],[39,9.5+TS],[45,9.9+TS]]);
 assert.ok(inFeet>0&&inFeet<.6,'Courtyard paving reached at its own level');
-checkRoute('House front to temple forecourt',[[HX,-5],[23,-5],[30,-2],[30,TS-2.2]]);
-checkRoute('Forecourt in front of the corner porch',[[20.6,-4],[27.5,TS-3.6],[32,TS-2.6]]);
+// The pond stands in the middle of the forecourt (x 27.2..31.8): walk round its west end and
+// along the 1.2 m strip between it and the porch.
+checkRoute('House front to temple forecourt',[[HX,-5],[23,-5],[25.5,-2],[25.5,TS-2.2]]);
+checkRoute('Forecourt in front of the corner porch',[[20.6,-4],[25.5,TS-3.6],[26.4,TS-.75],[33,TS-.75]]);
 
 // The whole tour at the shipped placement: no walls, posts or unsupported steps.
 const tour=createPhotoTour(photos,supportY,HX,TS),problems=[];
 for(const span of tour.spans){
   const distance=new THREE.Vector3(...span.a.p).distanceTo(new THREE.Vector3(...span.b.p)),steps=Math.max(1,Math.ceil(distance*1.5/.05));
-  for(let i=0;i<=steps;i++){const t=span.start+span.hold+span.travel*i/steps,p=tour.sample(t).position;
+  for(let i=0;i<=steps;i++){const t=span.start+span.hold+span.travel*i/steps,smp=tour.sample(t),p=smp.position,eye=smp.floorEye;
     const hit=K.colliders.find(c=>p.x+.12>c.minX&&p.x-.12<c.maxX&&p.z+.12>c.minZ&&p.z-.12<c.maxZ&&p.y+.12>c.bottom&&p.y-1.50<c.top);
     if(hit)problems.push({t,position:p.toArray(),hit});
-    else if(Math.abs(p.y-1.62-supportY(p.x,p.z,p.y-1.62))>=.015)problems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,p.y-1.62)});}}
+    else if(Math.abs(eye-1.62-supportY(p.x,p.z,eye-1.62))>=.015||Math.abs(p.y-eye)>.9)problems.push({t,position:p.toArray(),hit:'Unsupported: '+supportY(p.x,p.z,eye-1.62)});}}
 if(problems.length)console.error(JSON.stringify(problems.filter((p,i,a)=>i===0||JSON.stringify(p.hit)!==JSON.stringify(a[i-1].hit)).slice(0,12)));
 assert.equal(problems.length,0,'Tour must not pass through walls or posts at the shipped placement');
 // Photo viewpoints inside the temple stand on walkable floor there.

@@ -25,7 +25,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     roofConcrete: new THREE.MeshStandardMaterial({ color: '#a39986', roughness: 1 }),
     path: new THREE.MeshStandardMaterial({ color: '#958b73', roughness: 1 }),
     redSoil: new THREE.MeshStandardMaterial({ color: '#8e604b', roughness: 1 }),
-    darkSoil: new THREE.MeshStandardMaterial({ color: '#655c43', roughness: 1 }),
+    darkSoil: new THREE.MeshStandardMaterial({ color: '#25261f', roughness: 1 }), // used for dark window, door and recess openings: it was khaki and they read as painted panels
     turf: new THREE.MeshStandardMaterial({ color: '#536f39', roughness: 1 }),
     moss: new THREE.MeshStandardMaterial({ color: '#4a6638', roughness: 1 }),
     lane: new THREE.MeshStandardMaterial({ color: '#686961', roughness: .98 }),
@@ -218,7 +218,8 @@ export function buildLandscape(K, {mobile=false}={}) {
       }
       continue;
     }
-    box(`tank perimeter path ${i}`, p[0], .026, p[1], p[2], .052, p[3], i===0||i===3||i===5?verge:materials.path);
+    if(i===3)continue; // this strip now lies under the raised shop lawn
+    box(`tank perimeter path ${i}`, p[0], .026+i*.0015, p[1], p[2], .052+i*.003, p[3], i===0||i===3||i===5?verge:materials.path); // each a hair higher, so overlapping corners do not flicker
     K.surface(p[0], p[1], p[2], p[3], .052);
   }
   // A little broken paving, inset into rather than blocking the walking route.
@@ -247,7 +248,11 @@ export function buildLandscape(K, {mobile=false}={}) {
     // Leave real notches through every course for the side-bank descents.
     for(const [a,b] of [[lake.z-d/2,-23.5],[-20.8,lake.z+d/2]])
       box(`${name} east`,lake.x+w/2-thickness/2,top-height/2,(a+b)/2,thickness,height,b-a,mat);
-    for(const [a,b] of [[lake.z-d/2,-25.2],[-22.8,lake.z+d/2]])
+    // West bank (15.22.00 frontal, 15.23.38): two narrow flights run along the face toward a
+    // shared landing. The bank-top strip and the first tier stop either side of the flights (their
+    // end faces show in 15.22.00); the two lower tiers open only for the water landing.
+    const westNotch=/^(upper|middle)/.test(name)?[-24.2,-18.8]:[-22.15,-20.85];
+    for(const [a,b] of [[lake.z-d/2,westNotch[0]],[westNotch[1],lake.z+d/2]])
       box(`${name} west`,lake.x-w/2+thickness/2,top-height/2,(a+b)/2,thickness,height,b-a,mat);
     // Leave the paired stairs and low connecting path exposed, rather than
     // burying them inside the old continuous retaining courses.
@@ -283,7 +288,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ringCourse(1.39, .36, -1.70, .90, 'submerged tank course', mossWall, -1.61);
   for(const [a,b] of [[-4.6,16.4],[29.6,48.8]])K.surface((a+b)/2,-9.73,b-a,.40,-.60);
   for(const [a,b] of [[-4.6,-3.5],[-1.1,12.10],[14.40,32.9],[35.1,48.8]])K.surface((a+b)/2,-36.27,b-a,.40,-.35);
-  for(const [a,b] of [[-36.25,-25.2],[-22.8,-9.75]])K.surface(-4.67,(a+b)/2,.40,b-a,-.60);
+  for(const [a,b] of [[-36.25,-25.15],[-17.85,-9.75]])K.surface(-4.67,(a+b)/2,.40,b-a,-.60);
   for(const [a,b] of [[-36.25,-23.5],[-20.8,-9.75]])K.surface(48.67,(a+b)/2,.40,b-a,-.60);
   // Keep later planting stable when the longer shoreline needs more stones.
   const bankDetailSeed=seed;
@@ -346,14 +351,14 @@ export function buildLandscape(K, {mobile=false}={}) {
     K.blocker((a+b)/2,z,b-a,.39,0,.70);
   }
   // 15.30.02: a grass verge about 2.4 m wide lies between the lake wall and the lane.
-  box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,materials.grass);
+  box('House bank grass verge to the water rail',3.65,-.045,-8.65,17.4,.12,2.4,verge);
   K.surface(3.65,-8.65,17.4,2.4,.015);
   // 14.41.43: a laterite water trough stands on the verge just east of the corner pier.
-  box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#7a5a45',roughness:1}),true);
+  box('Verge laterite water trough',-4.2,.25,-8.6,1.8,.5,.6,new THREE.MeshStandardMaterial({color:'#8d897e',roughness:1}),true); // house-front-left.jpg: grey cement, not a brown box
   box('Verge trough dark water',-4.2,.46,-8.6,1.6,.02,.4,new THREE.MeshStandardMaterial({color:'#2c3a2c',roughness:.3}));
-  // 15.30.02: a second yellow notice stands on the verge west of the bathing gate, on a banded pole.
-  for(let k=0;k<5;k++)K.cylinder(group,'Lake gate notice banded pole',9.7,.13+k*.26,-9.3,.025,.025,.26,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
-  box('Lake gate yellow notice board',9.7,1.62,-9.3,.04,.65,.55,new THREE.MeshStandardMaterial({color:'#d9b545',roughness:.85}));
+  // 15.30.02 / 14.58.02 / 14.58.05: a small yellow notice on a banded pole beside the bathing gate (it stood 2 m further west, large, in front of two photo viewpoints).
+  for(let k=0;k<5;k++)K.cylinder(group,'Lake gate notice banded pole',11.6,.13+k*.26,-9.65,.025,.025,.26,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
+  box('Lake gate yellow notice board',11.6,1.48,-9.65,.03,.36,.30,new THREE.MeshStandardMaterial({color:'#d9b545',roughness:.85}));
   box('House bank masonry below the verge',3.65,-1.35,-9.6,17.4,2.50,1.2,fenceStone);
   for(const [x,z] of [[-4.95,waterRailZ],[-1.49,waterRailZ],[1.97,waterRailZ],[5.43,waterRailZ],[8.89,waterRailZ],[12.35,waterRailZ],[12.35,houseBankZ]]){
     // Stubby dark posts with flat caps, a little taller than the wall.
@@ -410,7 +415,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // orange sign and a tap. The first bay beside it is the way down to the water.
   box('Bathing arcade raised floor slab',39,-.015,-9.0,19.2,.16,3.1,materials.path);
   K.surface(39,-9.0,19.2,3.1,.065);
-  box('Bathing arcade slab worn front edge',39,.03,-7.47,19.2,.07,.06,materials.mortar);
+  box('Bathing arcade slab worn front edge',39,.032,-7.47,19.2,.07,.06,materials.mortar);
   const dadoTiles=materials.oldWhite.clone();
   if(typeof document!=='undefined'){const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');
     x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
@@ -481,19 +486,22 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   for(const [a,b] of [[-4.6,-3.5],[-1.1,12.10],[14.40,32.9],[35.1,48.8]])for(const [top,z] of [[FAR_LEDGE,-36.47],[-.35,-36.04],[-.98,-35.58],[-1.61,-35.23]])
     box('Opposite bank white tier nosing',(a+b)/2,top-.02,z,b-a,.045,.03,fenceWhite);
+  const LAWN=.45; // 15.13.26 / 14.59.54: the shop lawn stands three risers above the lane end
   // 15.14.07 / 15.21.47 / 15.23.25 / 15.23.35 / 15.23.38 / 15.25.52 / 15.25.55 / 14.57.50: both side
   // banks have a solid dark masonry parapet with tall, capped whitewashed square posts
   // about 3.7 m apart, not open crossrails.
-  for(const [x,z1,z2,name] of [[50.08,-8.32,-20.8,'East'],[50.08,-23.5,-37.68,'East'],[-5.08,-10.0,-22.8,'West'],[-5.08,-25.2,-37.68,'West']]){
+  // West bank: a gap in the parapet at the head of each flight, a post either side (15.21.56, 15.23.38).
+  // East bank: north of the lane-end steps the parapet stands on the raised shop lawn (base b).
+  for(const [x,z1,z2,name,b=0] of [[50.08,-8.32,-10.6,'East'],[50.08,-10.6,-20.8,'East',LAWN],[50.08,-23.5,-37.68,'East',LAWN],[-5.08,-10.0,-17.85,'West'],[-5.08,-18.95,-24.05,'West'],[-5.08,-25.15,-37.68,'West']]){
     const len=Math.abs(z2-z1),zc=(z1+z2)/2,n=Math.max(1,Math.round(len/3.7));
-    box(name+' bank solid dark parapet',x,.45,zc,.3,.9,len,fenceStone);
-    box(name+' bank parapet coping',x,.93,zc,.38,.07,len,fenceStone);
+    box(name+' bank solid dark parapet',x,(.9+b)/2,zc,.3,.9+b,len,fenceStone);
+    box(name+' bank parapet coping',x,.93+b,zc,.38,.07,len,fenceStone);
     for(let i=0;i<=n;i++){const z=z1+(z2-z1)*i/n;
       // User's 15.28.26 note: the posts are flush with the parapet faces and stand
       // only a little above its coping (as on the east bank in that photo).
-      box(name+' bank whitewashed square post',x,.56,z,.31,1.12,.31,fenceWhite);
-      box(name+' bank post cap',x,1.14,z,.32,.05,.32,fenceWhite);}
-    K.blocker(x,zc,.45,len+.3,0,1.4);
+      box(name+' bank whitewashed square post',x,(1.12+b)/2,z,.31,1.12+b,.31,fenceWhite);
+      box(name+' bank post cap',x,1.14+b,z,.32,.05,.32,fenceWhite);}
+    if(name==='West')K.blocker(x,zc,.31,len,0,1.4);else K.blocker(x,zc,.45,len+.3,0,1.4+b); // the flights pass close under the west wall
   }
   // The ledge behind the top tier, at the foot of the wall, and a low sloped coping
   // standing about 0.4 m above the raised ground behind the wall.
@@ -543,17 +551,28 @@ export function buildLandscape(K, {mobile=false}={}) {
   // down to the footing instead of leaving a bright gap under the road slab.
   box('Bathing ledge rear retaining wall',23,-1.025,-8.58,13.2,2.15,.18,tankWall,true);
   steps('Bathing arcade approach stair',28.55,bathingGateZ,2.1,2.1,'x',-1.55,.065,9);
-  box('Bathing arcade stair top landing',29.80,-.005,bathingGateZ,.55,.14,2.1,materials.basalt);
+  box('Bathing arcade stair top landing',29.80,-.003,bathingGateZ,.55,.14,2.1,materials.basalt);
   K.surface(29.80,bathingGateZ,.55,2.1,.065);
   steps('east bank steps', 49.16, -22.15, 2.3, 2.45, 'x', -1.55, .055, 9);
   box('east bank stair threshold',50.35,-.005,-22.15,.20,.12,2.45,materials.basalt);K.surface(50.35,-22.15,.20,2.45,.055);
   box('east bank lower landing', 47.65, -1.61, -22.15, .78, .12, 2.45, materials.wetStone);
   K.surface(47.65, -22.15, .78, 2.45, -1.55);
-  // 15.23.35 / 15.23.38: straight descent through the west parapet.
-  steps('west bank straight water stair',-4.15,-24,2.3,2.2,'-x',-1.55,.055,9);
-  box('west bank stair threshold',-5.35,-.005,-24,.20,.12,2.2,materials.basalt);K.surface(-5.35,-24,.20,2.2,.055);
-  box('west bank lower landing',-2.70,-1.61,-24,.70,.12,2.2,materials.wetStone);
-  K.surface(-2.70,-24,.70,2.2,-1.55);
+  // 15.22.00 (frontal) / 15.23.38 / 15.21.56: not one flight through the parapet but two narrow
+  // flights of about seven risers along the bank's face, descending toward each other to a
+  // shared landing two tiers down, the bank wall and a white pilaster between them.
+  steps('west bank south flight',-4.55,-23.25,.9,1.9,'-z',-1.15,.055,7,tankWall);
+  steps('west bank north flight',-4.55,-19.75,.9,1.9,'z',-1.15,.055,7,tankWall);
+  box('west bank stair landing',-4.55,-1.875,-21.5,.9,1.45,1.6,tankWall);K.surface(-4.55,-21.5,.9,1.6,-1.15);
+  box('west bank stair landing',-3.65,-1.875,-21.5,.9,1.45,5.4,tankWall);K.surface(-3.65,-21.5,.9,5.4,-1.15); // the broad tier the flights come down to
+  box('west bank lower landing',-2.35,-2.05,-21.5,1.7,1.10,1.3,mossWall);K.surface(-2.35,-21.5,1.7,1.3,-1.50);
+  box('west bank wall behind the flights',-4.99,-.65,-21.5,.04,1.40,5.4,tankWall); // closes the bank behind the treads and the landing
+  box('west bank stair white pilaster',-4.97,-.10,-21.5,.07,2.10,.16,fenceWhite);
+  for(const zc of [-24.675,-18.325]){
+    box('west bank stair head landing',-4.55,-.0125,zc,.9,.135,.95,materials.basalt);K.surface(-4.55,zc,.9,.95,.055);
+    box('west bank stair threshold',-5.18,-.005,zc<-20?-24.6:-18.4,.56,.12,1.1,materials.basalt);K.surface(-5.18,zc<-20?-24.6:-18.4,.56,1.1,.055);
+  }
+  // The old stair's notch in the bank-top ground strip (cut in main.js) is closed again.
+  box('west bank ground behind the parapet',-5.175,-.22,-24,.35,.44,2.4,K.M.earth);K.surface(-5.175,-24,.35,2.4,0);
   steps('far bank corner steps', -2.3, -36.60, 2.25, 3.60, '-z', -1.55, FAR_TOP, 16);
   box('far bank lower landing', -2.3, -1.61, -34.43, 2.25, .12, .76, materials.wetStone);
   K.surface(-2.3, -34.43, 2.25, .76, -1.55);
@@ -574,8 +593,16 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('pavilion column foot', x, -.07, z, .39, .43, .39, materials.oldWhite);
   }
   // Low seat-height parapets; west entrance stays open at the centre.
-  box('pavilion east parapet', px + pw / 2 - .17, -.035, pz, .22, .51, pd - .6, materials.oldWhite, true);
-  box('pavilion rear side parapet', px, -.035, pz - (pd / 2 - .17), pw - .6, .51, .22, materials.oldWhite, true);
+  // 14.58.26: the lane face's seat runs through its middle pier and leaves a slot beside it in the east bay.
+  for(const [a,b] of [[-1.925,-.45],[-.17,1.925]]) box('pavilion east parapet', px + pw / 2 - .17, -.035, pz+(a+b)/2, .22, .51, b-a, materials.oldWhite, true);
+  // 15.22.06: the east face repeats the west one: a seat through the pier, an opening, a short block.
+  for(const [a,b] of [[-2.20,.66],[1.40,2.20]]) box('pavilion rear side parapet', px+(a+b)/2, -.035, pz - (pd / 2 - .17), b-a, .51, .22, materials.oldWhite, true);
+  // 15.22.06 (east face) and 14.58.26 (lane face): three pillars and two bays on these faces
+  // as well; only the bank face, where one walks in, is a single bay.
+  for(const [x,z,w,d] of [[px,pz-(pd/2-.22),.34,.31],[px+pw/2-.22,pz,.31,.34]]) {
+    box('pavilion central square pier',x,.88,z,w,2.34,d,materials.oldWhite,true);
+    box('pavilion central pier foot',x,-.07,z,.39,.43,.39,materials.oldWhite);
+  }
   // 15.28.02/05: the face along the lake bank has two bays, with a
   // low opening in the right bay rather than one uninterrupted seat.
   const pavilionFrontZ=pz+pd/2-.22;
@@ -595,37 +622,47 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, new THREE.MeshStandardMaterial({color:'#857668',roughness:1}), false, pavilionRoof);
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
+    // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
+    const lobe=.08;
     for (let i = count * 12; i >= 0; i--) {
       const t = i / (count * 12);
-      shape.lineTo(width * t, -height + height * .44 * (1 - Math.cos(t * count * Math.PI * 2)));
+      shape.lineTo(width * t, -(height - lobe) - lobe * Math.abs(Math.sin(t * count * Math.PI)));
     }
     shape.closePath();
     return new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 2 });
   }
   function fascia(width, x, y, z, rotation, count, height) {
-    const mesh = new THREE.Mesh(scallopedPanel(width, height, count, .065), materials.oldWhite);
+    // The lobed band is the slab's own edge: stained grey like it, the pillars and arches stay white.
+    const mesh = new THREE.Mesh(scallopedPanel(width, height, count, .065), pavilionGrey);
     mesh.name = 'scalloped pavilion plaster trim'; mesh.position.set(x, y, z); mesh.rotation.y = rotation;
     pavilionRoof.add(mesh);
   }
-  for (const sz of [-1, 1]) {
-    fascia(pw + .54, px - (pw + .54) / 2, 2.15, pz + sz * (pd + .54) / 2, 0, 22, .24);
-    if(sz<0) fascia(pw - .6, px - (pw - .6) / 2, 1.99, pz + sz * (pd / 2 - .23), 0, 5, .43);
-    else for(const offset of [-2.125,.17]) {
-      const width=1.955,shape=new THREE.Shape();
-      shape.moveTo(0,2.11);shape.lineTo(width,2.11);
-      // A raised arch with small cusps, not a straight hanging fringe.
-      for(let i=72;i>=0;i--) {
-        const t=i/72;
-        shape.lineTo(width*t,1.54+.38*Math.sin(Math.PI*t)+.075*Math.abs(Math.sin(6*Math.PI*t)));
-      }
-      shape.closePath();
-      const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),materials.oldWhite);
-      arch.name='pavilion twin scalloped arch';arch.position.set(px+offset,0,pavilionFrontZ-.06);pavilionRoof.add(arch);
+  // A raised arch with small cusps under a plain lintel, not a straight hanging fringe.
+  // 14.58.26 (level view from the lane): the lintel shows as a white band under the fascia;
+  // five clear lobes, the arch crowning about 1.65 m and springing about 1.4 m on the local scale.
+  function cuspedArch(width,x,z,rotation,cusps=5,power=.7) {
+    const shape=new THREE.Shape(),n=cusps*12;
+    shape.moveTo(0,2.11);shape.lineTo(width,2.11);
+    for(let i=n;i>=0;i--) {
+      const t=i/n;
+      shape.lineTo(width*t,1.40+.17*Math.pow(Math.sin(Math.PI*t),power)+.09*Math.abs(Math.sin(cusps*Math.PI*t)));
     }
+    shape.closePath();
+    const arch=new THREE.Mesh(new THREE.ExtrudeGeometry(shape,{depth:.12,bevelEnabled:false}),materials.oldWhite);
+    arch.name='pavilion twin scalloped arch';arch.position.set(x,0,z);arch.rotation.y=rotation;pavilionRoof.add(arch);
+  }
+  for (const sz of [-1, 1]) {
+    fascia(pw + .54, px - (pw + .54) / 2, 2.15, pz + sz * (pd + .54) / 2, 0, 29, .15);
+    // West (15.23.02) and east (15.22.06) faces: an arch in each bay either side of the middle pier.
+    for(const offset of [-2.125,.17]) cuspedArch(1.955,px+offset,pz+sz*(pd/2-.22)-.06,0);
   }
   for (const sx of [-1, 1]) {
-    fascia(pd + .54, px + sx * (pw + .54) / 2, 2.15, pz + (pd + .54) / 2, Math.PI / 2, 20, .24);
-    fascia(pd - .6, px + sx * (pw / 2 - .23), 1.99, pz + (pd - .6) / 2, Math.PI / 2, 5, .43);
+    // 14.58.26: 26 lobes along the lane face.
+    fascia(pd + .54, px + sx * (pw + .54) / 2, 2.15, pz + (pd + .54) / 2, Math.PI / 2, 26, .15);
+    // Lane face (14.58.26): twin arches. Bank face (15.22.06, 15.21.56): one wide arch whose
+    // cusped haunches come down on the corner pillars, clear over the entry.
+    if(sx>0) for(const z1 of [-.17,1.85]) cuspedArch(1.68,px+pw/2-.22-.06,pz+z1,Math.PI/2);
+    else cuspedArch(3.70,px-(pw/2-.22)-.06,pz+1.85,Math.PI/2,11,.35);
   }
   // Low, moss-stained upstand and scattered weathering on the flat roof.
   for (const sz of [-1, 1]) box('pavilion roof lip', px, 2.36, pz + sz * (pd + .39) / 2, pw + .54, .1, .08, pavilionGrey, false, pavilionRoof);
@@ -706,7 +743,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   patch('laterite rear yard', -1+K.houseShiftX, 23.3, 17, 3.1, materials.redSoil);
   patch('western coconut ground', -33, -24, 9.5, 30, materials.turf);
-  patch('grove leaf litter', -4, 44, 25, 18, materials.darkSoil);
+  patch('grove leaf litter', -4, 44, 25, 18, new THREE.MeshStandardMaterial({ color: '#655c43', roughness: 1 }));
   patch('opposite bank overgrown ground', 0, -56, 34, 9, materials.turf);
   patch('east garden soil', 65, 26, 10, 21, materials.redSoil);
   for (let i = 0; i < 23; i++) {
@@ -826,8 +863,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   if(typeof document!=='undefined'){
     const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=31337;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
     x.fillStyle='#a8a8a8';x.fillRect(0,0,256,256);
-    for(let i=0;i<900;i++){const px=r()*256,py=r()*256,rx=3+r()*7,ry=2+r()*5,a=r()*3,v=r();
-      for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.fillStyle=v<.25?'rgba(50,50,50,.5)':v<.75?'rgba(175,175,175,.6)':'rgba(235,235,235,.55)';x.beginPath();x.ellipse(px+dx,py+dy,rx,ry,a,0,7);x.fill();}}
+    for(let i=0;i<1500;i++){const px=r()*256,py=r()*256,rx=2+r()*4.5,ry=1.5+r()*3,a=r()*3,v=r(); // smaller, softer clumps: the big dark ones read as camouflage
+      for(const dx of [-256,0,256])for(const dy of [-256,0,256]){x.fillStyle=v<.25?'rgba(92,92,92,.42)':v<.75?'rgba(175,175,175,.6)':'rgba(228,228,228,.5)';x.beginPath();x.ellipse(px+dx,py+dy,rx,ry,a,0,7);x.fill();}}
     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(3,2);
     materials.foliage.map=m;materials.foliage.color.set('#ffffff');
   }
@@ -872,7 +909,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(range(-.3, .3), range(0, 6.28), range(-.3, .3)));
     const scale = [size, size * range(.55, .9), size * range(.7, 1.15)], tint = foliageColor().multiplyScalar(range(1, 1.13)).lerp(shrubSun,.4).multiplyScalar(1.3);
     // Nothing grows inside the temple complex, wherever it is placed (same random draws either way).
-    if (x > 20.5 && x < 58.5 && z > (K.templeShiftZ || 0) && z < 46.2 + (K.templeShiftZ || 0)) return;
+    {const m = size * 1.2; if (x > 20.5 - m && x < 58.5 + m && z > (K.templeShiftZ || 0) - m && z < 46.2 + (K.templeShiftZ || 0) + m) return;}
     // Nor on the straight asphalt of the lane.
     if (x > -40 && x < 20 && Math.abs(z + 5) < 2.1 + size * .5) return;
     instance('varied understory shrub clusters', crown, materials.foliage, [x, .43 * size, z], scale, q, tint);
@@ -951,12 +988,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Tall white hall, with gabled facade, two barred upper windows and balcony.
   ow('hall foundation',-12,.18,-60.1,9.5,.36,18.4,materials.mortar,true);
   ow('hall white body',-12,4.155,-60.1,9.3,7.55,18,oppositeWhite,true);
-  ow('hall ground dark door',-12,1.55,-51.065,1.45,2.30,.055,materials.darkSoil);
-  for(const x of [-15.1,-9.0])ow('hall ground window',x,1.75,-51.06,1.22,1.20,.06,materials.darkSoil);
+  const hallDark=new THREE.MeshStandardMaterial({color:'#20221f',roughness:.55}); // 15.11.58 / 15.30.09: the hall's door and windows read near-black, not khaki
+  ow('hall ground dark door',-12,1.55,-51.065,1.45,2.30,.055,hallDark);
+  for(const x of [-15.1,-9.0])ow('hall ground window',x,1.75,-51.06,1.22,1.20,.06,hallDark);
   ow('hall ground white canopy',-12,3.18,-50.67,10.0,.17,1.22);
   ow('hall upper balcony slab',-12,3.60,-50.84,10.15,.17,1.38);
   for(const x of [-14.55,-9.45]){
-    ow('hall upper window dark inset',x,5.70,-51.057,1.85,1.65,.055,materials.darkSoil);
+    ow('hall upper window dark inset',x,5.70,-51.057,1.85,1.65,.055,hallDark);
     for(const xx of [x-.99,x+.99])ow('hall upper window pale jamb',xx,5.70,-51.01,.075,1.80,.10);
     for(const y of [4.82,6.58])ow('hall upper window pale sill',x,y,-51.01,2.06,.09,.14);
     for(let j=0;j<13;j++)ow('hall upper iron window bars',x-.86+j*.144,5.70,-50.99,.023,1.59,.025,materials.mortar);
@@ -971,14 +1009,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of hallSpindles)instance('Opposite bank hall balcony balusters',cylinder,oppositeWhite,a.slice(0,3),a.slice(3));
   ow('hall red awning fascia',-12,2.59,-50.17,9.98,.08,.18,'red');
   // Original lettering and emblem, sampled only from the white hall in 15.30.09.
-  function hallPhoto(n,x,y,w,h,rect){
+  function hallPhoto(n,x,y,w,h,rect,z=-50.04){
     const tex=new THREE.TextureLoader().load('./assets/house-upper-ahead.jpg');tex.colorSpace=THREE.SRGBColorSpace;
     // Crop through the UVs, not texture repeat/offset, so exported scenes keep the crop.
     const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(w,h),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
-    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,-50.04);group.add(panel);
+    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map:tex,roughness:1}));panel.name=n;panel.position.set(x,y,z);group.add(panel);
   }
   hallPhoto('Opposite bank hall original sign',-12,2.94,3.50,.79,[408,567,611,641]);
-  hallPhoto('Opposite bank hall original relief emblem',-12,7.4,1.28,1.40,[444,320,545,432]);
+  hallPhoto('Opposite bank hall original relief emblem',-12,7.4,1.28,1.40,[444,320,545,432],-50.94); // on the gable face (it hung 0.9 m in front of it)
   ow('hall left balcony side parapet',-16.76,3.83,-54.15,.17,.62,7.35);
   // 15.11.58 / 15.30.09 (photo review): the hall is as tall as it is wide and runs far back under one
   // grey sheet roof; its east flank is a grey concrete frame, each upper bay a window under red brick lattice.
@@ -1016,7 +1054,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   ow('pink house low white rooms',29,1.42,-60.8,11.0,2.72,5.5,oppositeWhite,true);
   K.hipRoof(group,'Opposite bank pink house low tiled roof',29,-60.8,12.1,6.5,2.84,.96,darkTile);
   ow('pink house veranda dark recess',28,1.20,-57.99,6.9,2.15,.06,materials.darkSoil);
-  for(const x of [24.55,28,31.45])ow('pink house veranda post',x,1.38,-57.3,.17,2.6,.17,oppositeWhite,true);
+  for(const x of [24.55,28,31.45])ow('pink house veranda post',x,1.38,-57.55,.17,2.6,.17,oppositeWhite,true);
   ow('tiled house tall rear block',39,3.65,-63.6,7.5,3.0,5.1,oppositeWhite,true);
   K.hipRoof(group,'Opposite bank tall tiled house roof',39,-63.6,8.4,6.1,5.25,1.10,darkTile);
   ow('tiled house lower rooms',39,1.37,-59.7,10.8,2.60,6.0,oppositeWhite,true);
@@ -1072,7 +1110,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   ab('projecting porch upper slab',0,4.95,-.45,4.8,.20,1.10,adjacentWhite);
   K.surface(59.55,-5,1.10,4.8,5.05);
-  for(const y of [.19,.49,.80,1.17])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone');
+  for(const y of [1.82,2.10,2.38,2.62])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone'); // world heights: the terraces hide the wall below 1.7 m
   for(let i=0;i<10;i++){
     const x=56.9+(i+.5)*.31,y=(i+1)*.162;
     box('Adjacent building central stair riser',x,y/2,-5,.31,y,3.8,'paleStone');
@@ -1088,12 +1126,18 @@ export function buildLandscape(K, {mobile=false}={}) {
     const riser=new THREE.Mesh(new THREE.PlaneGeometry(3.77,.162),stageTileMat);riser.name='Stage blue-white diamond stair riser';riser.rotation.y=-Math.PI/2;riser.position.set(56.897+i*.31,(i+.5)*.162,-5);group.add(riser);
   }
   // 15.12.15 / 15.13.30: whitewashed pedestals carrying black stone elephants flank the stair.
-  const elephantStone=new THREE.MeshStandardMaterial({color:'#1c1c1b',roughness:.45});
+  // 15.13.30 (measured): matt dark grey stone, about 0.2 of the whitewash beside it, not glossy black.
+  const elephantStone=new THREE.MeshStandardMaterial({color:'#343536',roughness:.88});
   // 15.13.30: both elephants stand on the same (south) side, one above the other on stepped
   // pedestals beside the plain lower flight; the north side is clear.
-  for(const [z,x0,top] of [[-7.35,58.2,1.25],[-7.35,55.2,.5]]){
-    box('Stage stair elephant pedestal',x0,top/2,z,1.3,top,.6,adjacentWhite,true);
-    const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);group.add(el);
+  // 15.19.57: an elephant stands 0.68 of a door-guardian's height (about 1.2 m), so 1.25x the first
+  // model; 15.13.30: each stands on a dark slab with a calf under its trunk.
+  for(const [z,x0,top] of [[-7.35,58.0,1.7],[-7.35,55.2,.75]]){ // 15.13.30: the upper one stands at terrace height
+    box('Stage stair elephant pedestal',x0,top/2,z,1.7,top,.7,adjacentWhite,true);
+    const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);el.scale.setScalar(1.25);group.add(el);
+    K.box(el,'Elephant base slab',-.06,.03,0,1.3,.06,.44,elephantStone);
+    {const calf=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),elephantStone);calf.scale.set(.19,.13,.12);calf.position.set(-.60,.19,0);calf.name='Elephant calf body';el.add(calf);
+     const calfHead=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),elephantStone);calfHead.position.set(-.78,.25,0);calfHead.name='Elephant calf head';el.add(calfHead);}
     const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);
     const head=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),elephantStone);head.position.set(-.5,.72,0);head.name='Elephant head';el.add(head);
     for(const s of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),elephantStone);ear.scale.set(.05,.2,.16);ear.position.set(-.42,.72,s*.2);ear.name='Elephant ear';el.add(ear);}
@@ -1245,31 +1289,37 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of [-5.925,5.925])ab('red balcony coping',a,5.97,.26,7.85,.08,.27,'red');
   ab('projecting balcony red coping',0,5.97,-.90,4.0,.08,.27,'red');
   for(const a of [-2,2])ab('projecting balcony red return coping',a,5.97,-.32,.27,.08,1.16,'red');
-  const adjacentRoof=K.hipRoof(group,'Adjacent building weathered tiled roof',0,0,21.1,7.1,8.35,1.07,darkTile);adjacentRoof.rotation.y=Math.PI/2;adjacentRoof.position.set(62.9,0,-5);
+  // 14.28.15 (level view from the lane) and 15.26.12: the tiled roof stands about 0.4 of the
+  // upper storey high and its ridge is only about half as long as the eave. The helper ties
+  // the hip run to the depth, so the hip is built here, every face wound to look up.
+  const STAGE_ROOF_RISE=2.0,STAGE_HIP_RUN=5.0;
+  {const sub=new THREE.Group();sub.name='Adjacent building weathered tiled roof';group.add(sub);
+   const e=8.35,x0=59.35,x1=66.45,z0=-15.55,z1=5.55,xr=62.9,yr=e+STAGE_ROOF_RISE,za=z0+STAGE_HIP_RUN,zb=z1-STAGE_HIP_RUN;
+   const A=[x0,e,z0],B=[x1,e,z0],C=[x1,e,z1],D=[x0,e,z1],E=[xr,yr,za],F=[xr,yr,zb],pos=[],uv=[];
+   for(const v of [A,D,F,A,F,E,C,B,E,C,E,F,B,A,E,D,C,F]){pos.push(...v);uv.push(v[2]*.36,v[0]*.36);}
+   const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
+   const mat=darkTile.clone();mat.side=THREE.DoubleSide;
+   const tiles=new THREE.Mesh(geom,mat);tiles.name='Adjacent building weathered tiled roof tiles';tiles.castShadow=tiles.receiveShadow=true;sub.add(tiles);
+   for(const [a,b] of [[A,B],[B,C],[C,D],[D,A]])K.beam(sub,'Adjacent building weathered tiled roof fascia',[a[0],e-.08,a[2]],[b[0],e-.08,b[2]],.15,'wood',.12);
+   K.beam(sub,'Adjacent building weathered tiled roof ridge',[xr,yr+.025,za],[xr,yr+.025,zb],.15,darkTile,.17);
+   K.roofs.push(sub);}
+  // Same photographs: the gable is 0.31 of the facade wide, overhanging the two porch pillars,
+  // its apex 1.4-1.5 m above the main eave (level with the ridge as seen from the lane), with
+  // a narrow round-headed niche rather than an opening as wide as the porch.
   const adjacentGable=new THREE.Shape();
-  adjacentGable.moveTo(-2.6,7.99);adjacentGable.lineTo(-2.6,8.48);adjacentGable.lineTo(0,9.61);adjacentGable.lineTo(2.6,8.48);adjacentGable.lineTo(2.6,7.99);adjacentGable.lineTo(1.40,7.99);adjacentGable.lineTo(1.40,8.39);adjacentGable.quadraticCurveTo(0,9.84,-1.40,8.39);adjacentGable.lineTo(-1.40,7.99);adjacentGable.closePath();
+  adjacentGable.moveTo(-3.1,7.99);adjacentGable.lineTo(-3.1,8.70);adjacentGable.lineTo(0,9.85);adjacentGable.lineTo(3.1,8.70);adjacentGable.lineTo(3.1,7.99);adjacentGable.lineTo(.95,7.99);adjacentGable.lineTo(.95,8.50);adjacentGable.quadraticCurveTo(0,10.0,-.95,8.50);adjacentGable.lineTo(-.95,7.99);adjacentGable.closePath();
+  box('Adjacent building gable niche back',59.40,8.72,-5,.06,1.10,2.0,new THREE.MeshStandardMaterial({color:'#b9b8b2',roughness:.95})); // shaded recess (15.19.57)
   const gableMesh=new THREE.Mesh(new THREE.ExtrudeGeometry(adjacentGable,{depth:.22,bevelEnabled:false,curveSegments:16}),adjacentWhite);gableMesh.rotation.y=Math.PI/2;gableMesh.position.set(59.0,0,-5);gableMesh.name='Adjacent building central arched gable';group.add(gableMesh);K.roofs.push(gableMesh);
   box('Stage central porch lintel',59.50,8.07,-5,.43,.20,4.70,adjacentWhite);
-  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[58.96,8.52,-5+side*2.67],[58.96,9.69,-5],.15,'red',.21);
+  for(const side of [-1,1])K.beam(group,'Adjacent building red gable edge',[58.96,8.74,-5+side*3.17],[58.96,9.93,-5],.15,'red',.21);
   // Two roof slopes, open at the ends so the arched white gable is not
   // filled with the helper roof's triangular tile end-cap.
   {const positions=[],uv=[];
-   for(const side of [-1,1]){const corners=[[58.92,8.53,-5+side*2.72],[62.4,8.53,-5+side*2.72],[62.4,9.72,-5],[58.92,9.72,-5]];
+   for(const side of [-1,1]){const corners=[[58.92,8.75,-5+side*3.22],[62.4,8.75,-5+side*3.22],[62.4,9.96,-5],[58.92,9.96,-5]];
     for(const i of [0,1,2,0,2,3]){positions.push(...corners[i]);uv.push(corners[i][0]*.5,corners[i][2]*.5);}}
    const geom=new THREE.BufferGeometry();geom.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geom.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geom.computeVertexNormals();
    const roofMat=darkTile.clone();roofMat.side=THREE.DoubleSide;
    const roof=new THREE.Mesh(geom,roofMat);roof.name='Stage projecting gable roof slopes';roof.castShadow=roof.receiveShadow=true;group.add(roof);K.roofs.push(roof);}
-  // Four decorative figures are sampled from the already-approved 15.19.57
-  // photograph. Only the architectural figures, not people in its forecourt.
-  function stageFigure(name,a,y,rect){
-    const map=new THREE.TextureLoader().load('./assets/temple.jpg');map.colorSpace=THREE.SRGBColorSpace;
-    const [x0,y0,x1,y1]=rect,geo=new THREE.PlaneGeometry(.76,1.80),U0=x0/1824,U1=x1/1824,V0=1-y1/1368,V1=1-y0/1368;const g=geo.attributes.uv;for(let i=0;i<g.count;i++)g.setXY(i,U0+g.getX(i)*(U1-U0),V0+g.getY(i)*(V1-V0));
-    const panel=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({map,roughness:.96}));panel.name=name;panel.rotation.y=-Math.PI/2;panel.position.set(59.135,y,-5-a);group.add(panel);
-  }
-  stageFigure('Stage upper left photographed figure',2,6.68,[696,303,755,462]);
-  stageFigure('Stage upper right photographed figure',-2,6.68,[1000,303,1070,462]);
-  stageFigure('Stage lower left photographed figure',2,2.68,[680,682,758,859]);
-  stageFigure('Stage lower right photographed figure',-2,2.68,[996,685,1072,862]);
   // 15.13.51 / 15.19.57: curled brackets project beyond the capital collars
   // in both beam directions. Starting at the centre hid the old small profile
   // inside the one-metre collar; anchor these at the shaft face instead.
@@ -1307,8 +1357,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Tile relief follows the existing hipped roof, keeping its profile and alignment.
   const roofCourses=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),darkTile,25*65);roofCourses.name='Stage overlapping roof tile courses';
   for(let i=0;i<25;i++)for(let j=0;j<65;j++){
-    const x=-3.42+i*.284,z=-10.35+j*.323,fx=(3.55-Math.abs(x))/3.55,fz=(10.55-Math.abs(z))/3.195;
-    const h=1.07*Math.max(0,Math.min(fx,fz,1));stagePose.position.set(62.9+x,8.39+h,-5+z);stagePose.rotation.set(fz<fx?Math.sign(z)*.32:0,0,fz<fx?0:-Math.sign(x)*.293);stagePose.scale.set(.30,.048,.34);stagePose.updateMatrix();roofCourses.setMatrixAt(i*65+j,stagePose.matrix);
+    const x=-3.42+i*.284,z=-10.35+j*.323,fx=(3.55-Math.abs(x))/3.55,fz=(10.55-Math.abs(z))/STAGE_HIP_RUN;
+    const h=STAGE_ROOF_RISE*Math.max(0,Math.min(fx,fz,1));stagePose.position.set(62.9+x,8.39+h,-5+z);stagePose.rotation.set(fz<fx?Math.sign(z)*Math.atan(STAGE_ROOF_RISE/STAGE_HIP_RUN):0,0,fz<fx?0:-Math.sign(x)*Math.atan(STAGE_ROOF_RISE/3.55));stagePose.scale.set(.35,.048,.36);stagePose.updateMatrix();roofCourses.setMatrixAt(i*65+j,stagePose.matrix);
   }
   roofCourses.instanceMatrix.needsUpdate=true;group.add(roofCourses);K.roofs.push(roofCourses);
   // 14.28.15 / 14.28.19 / 15.28.45: the building stands on a plinth about 2.8 m high, not
@@ -1324,11 +1374,58 @@ export function buildLandscape(K, {mobile=false}={}) {
    // Replace the original outside stair ramp, preserving raised interior stairs.
    K.ramps.splice(adjacentStart.ramps,1);
    for(const r of K.ramps.slice(adjacentStart.ramps)){r.lowY+=ADY;r.highY+=ADY;}
-   box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,'paleStone');
+   box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,adjacentWhite);
    const n=7,run=.314,x0=56.9-n*run;
+   // 14.28.15 / 15.13.30: the bottom three steps are plain pale concrete and flare wider; the
+   // diamond-tiled risers begin on the fourth and run on to the top.
+   const paleTread=new THREE.MeshStandardMaterial({color:'#c8c9c5',roughness:.7});
    for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;
-     box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,3.8,materials.basalt);}
+     box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,i<3?4.8:3.8,paleTread);
+     if(i>=3){const riser=new THREE.Mesh(new THREE.PlaneGeometry(3.77,ADY/n),stageTileMat);riser.name='Stage blue-white diamond stair riser';riser.rotation.y=-Math.PI/2;riser.position.set(x-run/2-.004,y-ADY/n/2,-5);group.add(riser);}}
    K.ramp(x0+n*run/2,-5,n*run,3.8,'x',0,ADY);K.ramp(58.45,-5,3.1,3.8,'x',ADY,1.62+ADY);}
+  // 15.13.30 / 15.19.57 / 14.28.15: the four door-guardians are free-standing grey granite
+  // figures on lotus bases, clear of the pillars: the lower pair on white pedestals at the stair
+  // head, the upper pair on brackets outside the balcony rail. Modelled in stone (measured in
+  // the photos at 0.4-0.5 of the whitewash, bluish), not photographs on planes. World heights.
+  {const figureStone=new THREE.MeshStandardMaterial({color:'#59646e',roughness:.85});
+   // 15.19.57: a figure is about 0.3 as wide as it is tall, full in the legs, with a tall crown.
+   const profile=[[.18,0],[.20,.22],[.18,.50],[.15,.74],[.21,.86],[.24,1.02],[.22,1.12],[.09,1.19],[.09,1.24],[.13,1.30],[.135,1.40],[.12,1.47],[.08,1.60],[0,1.66]].map(([r,y])=>new THREE.Vector2(r,y));
+   const bodyGeo=new THREE.LatheGeometry(profile,14),baseGeo=new THREE.CylinderGeometry(.23,.28,.16,14),armGeo=new THREE.BoxGeometry(.08,.44,.09),handGeo=new THREE.BoxGeometry(.10,.12,.16),maceGeo=new THREE.CylinderGeometry(.035,.05,1.0,8);
+   const figure=(name,x,y,z,folded,side)=>{
+     const f=new THREE.Group();f.name=name;f.position.set(x,y,z);group.add(f);
+     const add=(n,geo,px,py,pz,rx=0)=>{const m=new THREE.Mesh(geo,figureStone);m.name=n;m.position.set(px,py,pz);m.rotation.x=rx;m.castShadow=m.receiveShadow=true;f.add(m);return m;};
+     add('Stage figure lotus base',baseGeo,0,.08,0);
+     add('Stage figure body',bodyGeo,0,.16,0).scale.set(.62,1,1); // flattened front to back; faces the forecourt
+     if(folded){for(const s of [-1,1])add('Stage figure arm',armGeo,-.08,1.14,s*.14,s*.62);add('Stage figure folded hands',handGeo,-.15,1.02,0);}
+     else{for(const s of [-1,1])add('Stage figure arm',armGeo,-.02,1.02,s*.265,-s*.10);add('Stage figure mace',maceGeo,-.10,.66,side*.31);}
+   };
+   for(const [n,z,side] of [['left',-7.15,-1],['right',-2.85,1]]){
+     box('Stage statue pedestal',58.8,1.485,z,.5,2.97,.5,adjacentWhite,true);
+     figure('Stage lower '+n+' stone figure',58.8,2.97,z,false,side);
+   }
+   for(const [n,z] of [['left',-7],['right',-3]]){
+     box('Stage statue bracket',58.8,6.35,z,.42,.3,.42,adjacentWhite);
+     figure('Stage upper '+n+' stone figure',58.8,6.5,z,true,0);
+   }}
+  // 14.28.15 (frontal) / 15.19.57 / 15.13.30: either side of the stair a stained concrete terrace
+  // stands 1.7 m high (0.6 of the stair height) between white stair cheeks, and the building's
+  // plinth above it is white, stepping back in three courses. A dark side flight with white inlays
+  // climbs from the south terrace to the porch landing. World heights, after the ADY pass.
+  {const terraceMat=agedBoundaryMaterial('#80746b',true); // measured: wet stained concrete at about half the whitewash, brownish
+   // 14.59.54: north of the stair the terrace stops at the low concrete platform (0.8 m, kept);
+   // from there on only the building's own plinth shows behind it.
+   for(const [zc,len] of [[-9.05,2.7],[.8,7.2]]){
+     box('Adjacent building forecourt terrace',58.35,.85,zc,3.3,1.7,len,terraceMat,true);K.surface(58.35,zc,3.3,len,1.7);} // x 56.7..60: clear of the tour's path at x 56.2
+   for(const [zc,d,top] of [[-7.3,.8,1.69],[-2.95,.3,1.7]]){
+     box('Adjacent building stair white cheek',57.85,top/2,zc,2.3,top,d,adjacentWhite,true);K.surface(57.85,zc,2.3,d,top);}
+   for(const [za,zb] of [[-15,-7.5],[-.7,5]])for(const [k,proj] of [.30,.18,.06].entries())
+     box('Adjacent building white moulded plinth',60-proj/2,1.87+k*.34,(za+zb)/2,proj,.34,zb-za,adjacentWhite);
+   box('Adjacent building white moulded plinth',59.97,2.21,-1.6,.06,1.02,1.8,adjacentWhite);
+   for(const z of [-7.05,-2.95])box('Adjacent building porch pier white facing',58.99,2.21,z,.02,1.02,.92,adjacentWhite);
+   steps('Adjacent building terrace side flight',59.55,-1.6,1.1,1.8,'-z',1.7,2.82,6,new THREE.MeshStandardMaterial({color:'#3c3f42',roughness:.6}));
+   // its forecourt side is whitewashed like the plinth courses (14.28.15 shows no dark flank there)
+   for(let i=0;i<6;i++)box('Adjacent building side flight white flank',58.995,1.7+(i+1)*1.12/12,-.85-i*.3,.02,(i+1)*1.12/6,.308,adjacentWhite);
+   for(let i=0;i<6;i++)for(const dx of [-.25,.25])box('Adjacent building side flight white inlay',59.55+dx,1.7+(i+.5)*1.12/6,-.696-i*.3,.12,.05,.008,adjacentWhite);}
   K.labels.push({text:'Adjacent building',position:[60,11.7,-5]});
   // 15.20.13 and 15.28.26: the same shop, beside the adjacent two-storey
   // building, on the lake's eastern edge. The frontage faces -X, like its neighbor.
@@ -1338,6 +1435,8 @@ export function buildLandscape(K, {mobile=false}={}) {
   const shopBlue=K.M.blue.clone();shopBlue.color.set('#849b96');
   const shopWood=K.M.wood.clone();shopWood.color.set('#665046');
   const sb=(n,a,y,depth,w,h,d,m=shopWhite,solid=false)=>box('Shop '+n,60+depth,y,-25-a,d,h,w,m,solid);
+  // The shop is authored on level ground and lifted with its lawn at the end of this block.
+  const shopLift=[[group.children.length,K.colliders.length,K.surfaces.length]];
   sb('long white shopfront body',0,1.79,4.2,18.4,3.08,4.0,shopWhite,true);
   sb('dark damp wall base',0,.46,2.185,18.45,.48,.06,materials.basalt);
   sb('raised veranda slab',0,.19,1.14,18.8,.22,2.65,materials.path);
@@ -1345,42 +1444,57 @@ export function buildLandscape(K, {mobile=false}={}) {
   sb('mossy platform front',0,.15,-.20,18.9,.22,.12,materials.wetStone);
   // 15.20.13 / 14.59.54: a broad mown lawn runs from the tank rail to the shop,
   // crossed lengthwise by a worn red laterite footpath about 3 m from the veranda.
-  box('Shop-front lawn beside the tank',55.35,.018,-27.9,7.9,.036,31.2,verge);
-  K.surface(55.35,-27.9,7.9,31.2,.036);
+  // 15.13.26 / 14.59.54: the lawn lies three risers above the lane end (in 14.59.54 the three
+  // step edges only space evenly, about 0.85 m apart, if each is 0.15 m higher than the last),
+  // so it is a slab LAWN high from the tank parapet to the shop and the stage. It stops short
+  // of the east bank stair's head, where one more step comes up from the stair's threshold.
+  shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
+  const lawnTop=LAWN+.036;
+  for(const [xa,za,zb] of [[50.24,-43.5,-23.5],[50.85,-23.5,-20.8],[50.24,-20.8,-12.3]]){
+    box('Shop-front lawn beside the tank',(xa+60)/2,lawnTop/2,(za+zb)/2,60-xa,lawnTop,zb-za,verge);
+    K.surface((xa+60)/2,(za+zb)/2,60-xa,zb-za,lawnTop);}
+  box('east bank lawn step',50.65,.135,-22.15,.4,.27,2.7,materials.basalt);K.surface(50.65,-22.15,.4,2.7,.27);
   // The path starts beside the far end of the veranda and bends toward the lane steps.
-  {const path=box('Shop-front worn laterite footpath',56.75,.021,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
-    K.surface(56.75,-24.3,2.6,22.4,.041);}
-  box('Footpath widening at the lane steps',55.0,.022,-13.5,2.2,.04,1.4,materials.redSoil);
-  // 14.59.54: broad concrete steps lead down from the lane end to the lawn;
-  // 15.20.13 is taken from their foot. A raised concrete platform with a drain
-  // opening stands to their right.
+  {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,materials.redSoil);path.rotation.y=-.165;
+    K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
+  box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,materials.redSoil);
+  // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
+  // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
-  // 14.59.54 is taken from the top landing and 15.20.13 from the foot: both fit 1.8 m further
-  // west than first placed.
-  box('Lane-end concrete landing',52.4,.225,-8.95,5.0,.45,3.3,laneConcrete,false);K.surface(52.4,-8.95,5.0,3.3,.45);
-  steps('Lane-end concrete steps down to the lawn',52.4,-11.5,5.0,1.8,'z',0,.45,3,laneConcrete);
+  steps('Lane-end concrete steps up to the lawn',52.4,-8.95,5.0,3.3,'-z',0,lawnTop,3,laneConcrete);
+  box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
   // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
   // Broken grassy edges and the narrow concrete threshold step.
   sb('front entry shallow step',-.8,.075,-.42,2.1,.15,.42,materials.mortar);K.surface(59.58,-24.2,.42,2.1,.15);
-  for(const a of [-5.1,-1.7,2.4,6.7,9.0]){
+  // 15.20.13: no masonry post stands in front of the cream block or the first shutter bay; the
+  // tiles end on a bracket there and the sheet beyond hangs on one thin pole.
+  for(const a of [-1.7,2.4,6.7,9.0]){
     sb('white veranda post',a,1.64,.12,.22,2.68,.24,shopWhite,true);
     sb('black veranda post foot',a,.69,.105,.25,.78,.27,materials.basalt);
   }
-  // 14.59.54 / 15.20.13: the cream end block comes down to the ground on the veranda line,
-  // with a black damp base; the near end has only a thin metal pole for the sheet canopy and sign.
-  sb('cream end lower block',-7,1.55,.95,3.4,3.1,2.5,shopCream,true);
-  sb('cream end lower block damp base',-7,.3,-.32,3.42,.6,.04,materials.basalt);
-  sb('cream end lower window dark opening',-7,1.7,-.33,1.0,1.2,.03,materials.darkSoil);
-  sb('near end thin metal pole',-8.8,1.45,.12,.07,2.9,.07,'metal',true);
-  // Weathered wood shutters, a pale-blue surround and barred central bays.
-  for(const [a,w] of [[-4.4,3.5],[.4,3.2],[4.4,2.3]]){
+  // 15.20.13 (good pose) / 14.59.54: the cream end block is one plane from eave to ground,
+  // about 0.45 m proud of the shop wall, with a black damp base. The veranda runs on in front
+  // of it under a corrugated sheet; there is no window in its lower wall.
+  sb('cream end lower block',-7.2125,1.55,1.975,3.975,3.1,.45,shopCream,true);
+  sb('cream end lower block damp base',-7.2125,.33,1.735,3.975,.66,.04,materials.basalt);
+  // Shutter bays. 15.20.13: the bay beside the cream block spans z -23.4..-20.2, pale blue-grey
+  // boards either side of a dark brown barred centre about 1.9 m wide (measured: boards 0.57 of
+  // the lit wall beside them, centre almost black).
+  const shopBoardBlue=K.M.plaster.clone();shopBoardBlue.color.set('#8a9aa2');
+  const shopBrown=K.M.plaster.clone();shopBrown.color.set('#4a332b'); // the wood map renders black here
+  for(const [a,w] of [[-3.2,3.2],[.4,3.2],[4.4,2.3]]){
+    const first=a<-3;
     sb('pale shutter surround',a,1.82,2.14,w+.28,2.37,.12,shopBlue);
     sb('recessed dark shutter bay',a,1.82,2.055,w,2.16,.035,materials.darkSoil);
-    for(let i=0;i<Math.round(w/.32);i++)sb('vertical timber shutter board',a-w/2+.16+i*.32,1.82,2.02,.27,2.09,.04,shopWood);
-    for(const y of [.80,2.74])sb('shutter timber crossbar',a,y,1.98,w,.075,.05,shopWood);
+    for(let i=0;i<Math.round(w/.32);i++){
+      const off=-w/2+.16+i*.32;
+      sb('vertical timber shutter board',a+off,1.82,2.02,.27,2.09,.04,first?(Math.abs(off)<.9?shopBrown:shopBoardBlue):shopWood);
+    }
+    for(const y of [.80,2.74])sb('shutter timber crossbar',a,y,1.98,first?1.92:w,.075,.05,first?shopBrown:shopWood);
   }
   for(const a of [.4,4.4]){
     for(let j=0;j<13;j++)sb('shopfront vertical grille',a-1.12+j*.185,1.64,1.86,.024,2.05,.028,materials.mortar);
@@ -1389,26 +1503,33 @@ export function buildLandscape(K, {mobile=false}={}) {
   sb('small far-left window',7.7,1.86,2.12,.62,1.01,.075,shopWood);
   // Long mossy tiled lean-to with a patched sheet strip along the lower eave.
   const shopAwning=new THREE.Group();shopAwning.name='Shop long weathered awning';group.add(shopAwning);K.roofs.push(shopAwning);
-  const awningPoints=[59.48,2.87,-34.65,59.48,2.87,-15.35,63.65,4.40,-15.35,63.65,4.40,-34.65];
+  // 15.20.13: the tiles stop at the cream block (z about -19.5); a corrugated sheet goes on from there.
+  const awningPoints=[59.48,2.87,-34.65,59.48,2.87,-19.67,63.65,4.40,-19.67,63.65,4.40,-34.65];
   const awningGeo=new THREE.BufferGeometry();awningGeo.setAttribute('position',new THREE.Float32BufferAttribute(awningPoints,3));awningGeo.setIndex([0,2,1,0,3,2]);awningGeo.computeVertexNormals();
   const roofMaterial=darkTile.clone();roofMaterial.side=THREE.DoubleSide;
   const awningBase=new THREE.Mesh(awningGeo,roofMaterial);awningBase.name='Shop sloping awning underside';shopAwning.add(awningBase);
-  const tileGeo=new THREE.BoxGeometry(1,1,1),tileCount=12*66;
+  const tileGeo=new THREE.BoxGeometry(1,1,1),tileCols=52,tileCount=12*tileCols;
   const shopTiles=new THREE.InstancedMesh(tileGeo,roofMaterial,tileCount);shopTiles.name='Shop overlapping weathered tile courses';
   const tilePose=new THREE.Object3D(),slope=Math.atan2(1.53,4.17);
-  for(let row=0;row<12;row++)for(let col=0;col<66;col++){
+  for(let row=0;row<12;row++)for(let col=0;col<tileCols;col++){
     const x=59.57+row*.344,z=-34.5+col*.288;
-    tilePose.position.set(x,2.87+(x-59.48)*1.53/4.17+.025,z);tilePose.rotation.set(0,0,slope);tilePose.scale.set(.40,.055,.278);tilePose.updateMatrix();shopTiles.setMatrixAt(row*66+col,tilePose.matrix);
-    shopTiles.setColorAt(row*66+col,new THREE.Color().setHSL(.07+(col%4)*.008,.12+(row%3)*.055,.20+((row*13+col*7)%11)*.018));
+    tilePose.position.set(x,2.87+(x-59.48)*1.53/4.17+.025,z);tilePose.rotation.set(0,0,slope);tilePose.scale.set(.40,.055,.278);tilePose.updateMatrix();shopTiles.setMatrixAt(row*tileCols+col,tilePose.matrix);
+    shopTiles.setColorAt(row*tileCols+col,new THREE.Color().setHSL(.07+(col%4)*.008,.12+(row%3)*.055,.20+((row*13+col*7)%11)*.018));
   }
   shopTiles.instanceMatrix.needsUpdate=true;shopTiles.instanceColor.needsUpdate=true;shopAwning.add(shopTiles);
-  for(const a of [-8.2,-.6,3.2]){
+  for(const a of [-.6,3.2]){
     const sheet=sb('patched corrugated eave',a,3.02,.15,2.0,.06,1.12,materials.mortar);sheet.rotation.z=slope;group.remove(sheet);shopAwning.add(sheet);
     for(let j=0;j<15;j++){
       const rib=sb('patch sheet narrow ridge',a-.94+j*.134,3.055,.15,.028,.025,1.12,materials.basalt);rib.rotation.z=slope;group.remove(rib);shopAwning.add(rib);
     }
   }
-  for(const a of [-9,-5.1,-1.7,2.4,6.7,9])K.beam(shopAwning,'Shop exposed awning rafter',[59.45,2.80,-25-a],[63.60,4.32,-25-a],.075,shopWood);
+  for(const a of [-5.3,-1.7,2.4,6.7,9])K.beam(shopAwning,'Shop exposed awning rafter',[59.45,2.80,-25-a],[63.60,4.32,-25-a],.075,shopWood);
+  // 15.20.13 (pixels projected through its pose): a dark corrugated sheet over the veranda in
+  // front of the cream block, z -19.6..-15.3, meeting the wall at 3.3 m just under the vent and
+  // falling to 2.6 m at its outer edge. Measured in the photo at 0.45 of the lit wall beside it.
+  {const sheetMat=new THREE.MeshStandardMaterial({color:'#48484b',roughness:.9}),ribMat=new THREE.MeshStandardMaterial({color:'#39393b',roughness:.9}),tilt=Math.atan2(.7,2.15),len=Math.hypot(2.15,.7);
+   const sheet=box('Shop corrugated end awning',60.675,2.95,-17.45,len,.03,4.3,sheetMat,false,shopAwning);sheet.rotation.z=tilt;
+   for(let i=0;i<20;i++){const rib=box('Shop corrugated end awning rib',60.675,2.972,-19.49+i*.215,len,.022,.06,ribMat,false,shopAwning);rib.rotation.z=tilt;}}
   const dryTufts=new THREE.InstancedMesh(new THREE.ConeGeometry(.025,1,3),materials.dryPalm,160);dryTufts.name='Shop dry grass in weathered roof tiles';
   for(let i=0;i<160;i++){
     const centers=[[60.10,-33.1,.55,1.0],[61.75,-23.8,.65,1.25],[62.50,-22.2,.43,.75]];
@@ -1420,38 +1541,52 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Higher rear block to photo-left and the small cream tower beside the neighbor.
   sb('upper white rear block',4.2,4.58,4.65,8.8,2.52,4.5,shopWhite,true);
   const shopUpperRoof=K.hipRoof(group,'Shop rear tiled roof',0,0,9.55,5.05,5.91,1.13,darkTile);shopUpperRoof.rotation.y=Math.PI/2;shopUpperRoof.position.set(64.65,0,-29.2);
-  sb('upper terrace slab',1.65,6.05,4.1,3.25,.16,3.3,shopWhite);
-  sb('upper weathered terrace parapet',1.65,6.44,2.52,3.25,.70,.16,shopWhite);
-  sb('upper terrace side parapet',.10,6.44,4.05,.16,.70,3.20,shopWhite);
-  // The ventilator is recessed through the front shell of the cream block.
-  sb('cream end upper block',-7,4.16,4.58,3.55,2.12,3.74,shopCream,true);
-  for(const a of [-8.105,-5.895])sb('cream ventilator side masonry',a,4.16,2.43,1.34,2.12,.56,shopCream,true);
-  sb('cream ventilator lower masonry',-7,3.40,2.43,.87,.60,.56,shopCream,true);
-  sb('cream ventilator upper masonry',-7,4.985,2.43,.87,.47,.56,shopCream,true);
-  K.hipRoof(group,'Shop cream end hipped tile roof',64.3,-18.0,4.9,4.2,5.25,1.02,darkTile);
-  sb('end block ventilator dark interior',-7,4.225,2.70,.86,1.05,.018,materials.darkSoil);
+  // 15.20.13 / 14.59.54: the weathered concrete terrace box is not on top of the tiled rear
+  // block but beside it, between that block and the cream end block (z -24.8..-19.8, about
+  // 4.45..5.8 m up), with a lilac-washed wall under it behind the lean-to.
+  {const terraceGrey=K.M.plaster.clone();terraceGrey.color.set('#c6c7c3');
+   const lilac=K.M.plaster.clone();lilac.color.set('#9a879e');
+   sb('upper lilac link wall',-2.7125,3.885,4.3,5.025,1.13,3.8,lilac);
+   sb('upper terrace slab',-2.7125,4.53,4.1,5.025,.16,4.2,terraceGrey);
+   sb('upper weathered terrace parapet',-2.7125,5.125,2.1,5.025,1.35,.2,terraceGrey);
+   sb('upper terrace side parapet',-2.7125,5.125,6.1,5.025,1.35,.2,terraceGrey);}
+  // The ventilator is recessed through the front shell of the cream block. Front plane x 61.75
+  // from eave to ground and the end wall one plane at z -15.8 (14.59.54); the jali is a tall
+  // narrow one, 0.5 x 1.05 m centred 3.86 m up, just above the sheet (15.20.13 projected).
+  sb('cream end upper block',-7.2125,4.16,4.58,3.975,2.12,3.74,shopCream,true);
+  for(const [a,w] of [[-8.225,1.95],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
+  sb('cream ventilator lower masonry',-7,3.2175,2.23,.5,.235,.96,shopCream,true);
+  sb('cream ventilator upper masonry',-7,4.8025,2.23,.5,.835,.96,shopCream,true);
+  K.hipRoof(group,'Shop cream end hipped tile roof',64.1,-17.79,5.5,4.75,5.25,1.02,darkTile);
+  sb('end block ventilator dark interior',-7,3.86,2.30,.50,1.05,.018,materials.darkSoil);
+  // 14.59.54: the end wall facing the stage has a small square pierced vent high up and a
+  // dark damp band along its foot.
+  box('Shop end wall pierced ventilator',63.5,3.85,-15.79,.5,.5,.03,materials.darkSoil);
+  for(const o of [-.085,.085]){box('Shop end wall ventilator bar',63.5+o,3.85,-15.775,.035,.5,.03,shopCream);box('Shop end wall ventilator bar',63.5,3.85+o,-15.775,.5,.035,.03,shopCream);}
+  box('Shop end wall damp stain',64.0,.42,-15.785,4.5,.84,.02,new THREE.MeshStandardMaterial({color:'#3f4238',roughness:1}));
   const shopVentShape=new THREE.Shape();
-  shopVentShape.moveTo(-.43,-.525);shopVentShape.lineTo(.43,-.525);shopVentShape.lineTo(.43,.525);shopVentShape.lineTo(-.43,.525);shopVentShape.closePath();
+  shopVentShape.moveTo(-.25,-.525);shopVentShape.lineTo(.25,-.525);shopVentShape.lineTo(.25,.525);shopVentShape.lineTo(-.25,.525);shopVentShape.closePath();
   // Six rows of chamfered openings retain the diagonals visible in 15.20.13.
   for(let row=0;row<6;row++)for(let col=0;col<3;col++){
-    const x=(col-1)*.265,y=(row-2.5)*.166,hole=new THREE.Path();
-    for(const [i,[dx,dy]] of [[-.096,-.047],[-.048,-.069],[.096,-.047],[.096,.047],[.048,.069],[-.096,.047]].entries()) {
+    const x=(col-1)*.155,y=(row-2.5)*.166,hole=new THREE.Path();
+    for(const [i,[dx,dy]] of [[-.056,-.047],[-.028,-.069],[.056,-.047],[.056,.047],[.028,.069],[-.056,.047]].entries()) {
       if(i===0)hole.moveTo(x+dx,y+dy);else hole.lineTo(x+dx,y+dy);
     }
     hole.closePath();shopVentShape.holes.push(hole);
   }
   const shopVent=new THREE.Mesh(new THREE.ExtrudeGeometry(shopVentShape,{depth:.075,bevelEnabled:false}),shopCream);
-  shopVent.name='Shop pierced cream masonry ventilator';shopVent.rotation.y=-Math.PI/2;shopVent.position.set(62.34,4.225,-18);group.add(shopVent);
+  shopVent.name='Shop pierced cream masonry ventilator';shopVent.rotation.y=-Math.PI/2;shopVent.position.set(61.94,3.86,-18);group.add(shopVent);
   // The photo separates a plank bench on laterite blocks from a grey stone seat.
   const benchLaterite=K.M.plaster.clone();benchLaterite.color.set('#99634c');
   const benchStone=K.M.plaster.clone();benchStone.color.set('#777970');
-  for(const a of [-4.35,-2.85])for(const y of [.415,.605])sb('laterite bench support course',a,y,1.03,.45,.18,.63,benchLaterite);
-  sb('short timber shop bench',-3.60,.735,1.03,2.22,.08,.76,shopWood);
-  sb('long grey masonry bench slab',-5.55,.76,1.53,2.28,.14,.62,benchStone);
-  for(const a of [-6.45,-4.70])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
+  // Both benches stand in front of the blue shutter bay (15.20.13), clear of the cream block.
+  for(const a of [-3.15,-1.65])for(const y of [.415,.605])sb('laterite bench support course',a,y,1.03,.45,.18,.63,benchLaterite);
+  sb('short timber shop bench',-2.40,.735,1.03,2.22,.08,.76,shopWood);
+  sb('long grey masonry bench slab',-4.25,.76,1.53,1.9,.14,.62,benchStone);
+  for(const a of [-5.0,-3.5])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
   for(let j=0;j<24;j++){
     const a=2.6+(j%5)*.21,y=.42+Math.floor(j/8)*.15,depth=1.44+(Math.floor(j/5)%3)*.19;
-    instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y,-25-a],[.14,.17,.15]);
+    instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y+LAWN,-25-a],[.14,.17,.15]);
   }
   sb('yellow bottle crate',-8,.52,1.22,.70,.41,.55,new THREE.MeshStandardMaterial({color:'#b4a33d',roughness:.94}));
   for(let i=0;i<6;i++)K.cylinder(group,'Shop green glass bottle',61.1+(i%2)*.15,.84,-17.22+Math.floor(i/2)*.15,.045,.054,.28,materials.wetStone,8);
@@ -1459,16 +1594,38 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of [-7.24,-6.76])for(const depth of [.48,.92])sb('shop stool leg',a,.59,depth,.07,.58,.07,shopWood);
   // Original hanging sign: UV crop of lettering only, preserving the photograph.
   const shopSignMap=new THREE.TextureLoader().load('./assets/shop-temple-side.jpg');shopSignMap.colorSpace=THREE.SRGBColorSpace;
-  const shopSignGeo=new THREE.PlaneGeometry(.78,.51),signUV=shopSignGeo.attributes.uv;
+  const shopSignGeo=new THREE.PlaneGeometry(.47,.31),signUV=shopSignGeo.attributes.uv; // 15.20.13: the board is about a fifth of the pole's height
   const signCorners=[[1460,635],[1534,703],[1422,678],[1500,745]];
   for(let i=0;i<4;i++)signUV.setXY(i,signCorners[i][0]/1824,1-signCorners[i][1]/1368);
   const shopSign=new THREE.Mesh(shopSignGeo,new THREE.MeshStandardMaterial({map:shopSignMap,roughness:1,side:THREE.DoubleSide}));
-  shopSign.name='Shop photographed hanging sign';shopSign.position.set(59.82,1.73,-16.6);shopSign.rotation.y=-Math.PI/2;shopSign.rotateZ(-.34);group.add(shopSign);
-  K.cylinder(group,'Shop slender sign pole',59.87,1.53,-16.6,.024,.027,2.96,materials.mortar,8);
+  shopSign.name='Shop photographed hanging sign';shopSign.position.set(59.82,1.38,-16.6);shopSign.rotation.y=-Math.PI/2;shopSign.rotateZ(-.34);group.add(shopSign);
+  K.cylinder(group,'Shop slender sign pole',59.87,1.37,-16.6,.024,.027,2.64,materials.mortar,8); // carries the sheet's outer edge
   // Rain gutter/drain beside the end block, with an open ditch behind its lip.
   box('Shop side open drain bottom',64.0,.025,-15.24,7.5,.04,.34,materials.wetStone);
   for(const z of [-15.47,-15.02])box('Shop side drain concrete lip',64,.11,z,7.5,.18,.12,materials.mortar);
-  K.labels.push({text:'Lakeside shop',position:[60.1,3.6,-25]});
+  // Lift the shop (everything above except the lawn and the lane-end pieces) onto the lawn,
+  // and raise the ground it stands on.
+  {const end=[group.children.length,K.colliders.length,K.surfaces.length];
+   for(const [a,b] of [[shopLift[0],shopLift[1]],[shopLift[2],end]]){
+     for(const o of group.children.slice(a[0],b[0]))o.position.y+=LAWN;
+     for(const c of K.colliders.slice(a[1],b[1])){c.bottom+=LAWN;c.top+=LAWN;}
+     for(const s of K.surfaces.slice(a[2],b[2]))s.y+=LAWN;}
+   box('Shop raised ground',64.15,lawnTop/2,-25.75,8.3,lawnTop,21.5,K.M.earth);K.surface(64.15,-25.75,8.3,21.5,lawnTop);}
+  K.labels.push({text:'Lakeside shop',position:[60.1,3.6+LAWN,-25]});
+  // 15.20.13: a big dark broadleaf tree stands beyond the veranda's north end, its crown over the
+  // far half of the lean-to. Own seed, restored after, so the other planting keeps its placement.
+  {const saved=seed;seed=152013;broadleaf(61.5,-38.5,12,5.5);seed=saved;}
+  // 15.13.26 / 15.14.07: a concrete lamp pole stands on the lawn just inside the tank's
+  // south-east corner, its lamp arm over the bank, wires running to the shop eave and the
+  // stage; a thinner pole stands further along the lawn.
+  {K.cylinder(group,'Lawn concrete utility pole',50.9,LAWN+3.75,-12.6,.09,.11,7.5,materials.mortar,9,true);
+   box('Lawn utility pole crossarm',50.9,LAWN+6.9,-12.6,.08,.08,1.25,materials.mortar);
+   K.beam(group,'Lawn utility pole lamp arm',[50.9,LAWN+6.6,-12.6],[49.7,LAWN+6.75,-12.6],.04,'metal');
+   box('Lawn utility pole lamp',49.62,LAWN+6.72,-12.6,.34,.07,.14,materials.mortar);
+   K.cylinder(group,'Lawn thin utility pole',52.5,LAWN+3.35,-32.5,.07,.08,6.7,materials.mortar,9,true);
+   for(const [to,sag,dz] of [[[61.5,5.2+LAWN,-17.6],.45,-.5],[[61.5,5.2+LAWN,-16.8],.5,.5],[[59.4,9.4,-9],.6,0]]){
+     const a=new THREE.Vector3(50.9,LAWN+6.9,-12.6+dz),b=new THREE.Vector3(...to),mid=a.clone().lerp(b,.5);mid.y-=sag;
+     const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),18,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}}
   // The roofed tank-side structure is the long bathing arcade above.
   // There is no separate tiny gatehouse on the intervening boundary.
   function laneHouse(name,x,z,w,d,h,front){ // roofs use darkTile, defined with the materials
@@ -1491,7 +1648,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
   {const salmon=K.M.plaster.clone();salmon.color.set('#e7a08e');
    box('Slope salmon-pink house walls',-36,2.2,-21.5,7.2,6.4,6.4,salmon,true);
-   box('Slope salmon-pink house red parapet band',-36,5.25,-21.5,7.3,.3,6.5,'red');
+   box('Slope salmon-pink house red parapet band',-36,5.26,-21.5,7.3,.32,6.5,'red'); // 2 cm proud of the walls' top: the two tops shared a plane and flickered
    for(const xx of [-38.2,-33.8])for(const y of [1.6,4.2])box('Slope salmon-pink house window',xx,y,-18.28,1.0,1.1,.05,'wood');
    const r=K.hipRoof(group,'Slope salmon-pink house tiled roof',-36,-21.5,8.2,7.4,5.4,1.3,darkTile);K.roofs.push(r);}
   cottageMark[0].push(group.children.length,K.colliders.length,K.surfaces.length);
@@ -1690,9 +1847,13 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   // 15.20.01: one recessed stepped-outline pond, right of the temple entrance.
   // main.js cuts out the ground beneath this basin, so the water is below grade.
-  // 14.59.21 / 14.59.36 / 15.00.01: the pond sits about 1.8 m further west than first placed.
-  const PX=23.7,PZ=-1.5+(K.templeShiftZ||0); // the pond belongs to the temple forecourt and follows it
-  const pondOutline=[[-2,-1],[-.3,-1],[.3,-1],[2,-1],[2,-.4],[2.4,-.4],[2.4,.4],[2,.4],[2,1],[.3,1],[-.3,1],[-2,1],[-2,.4],[-2.4,.4],[-2.4,-.4],[-2,-.4]];
+  // 15.27.07 (the pond lies in front of the third and fourth porch piers from the road corner,
+  // x 27.6 and 31.3) and 15.14.02 (from above: a cross with thick dark walls and a grass ring,
+  // well clear of the porch): centre x 29.5, 1.2 m clear of the porch, about 4.6 x 4.0 m. It
+  // needs the forecourt the temple's set-back opened, so it is only built at that placement.
+  if((K.templeShiftZ||0)>=3.4){
+  const PX=29.5,PZ=-3.5+(K.templeShiftZ||0); // the pond belongs to the temple forecourt and follows it
+  const pondOutline=[[-1.4,-2],[1.4,-2],[1.4,-1.3],[2.3,-1.3],[2.3,1.3],[1.4,1.3],[1.4,2],[-1.4,2],[-1.4,1.3],[-2.3,1.3],[-2.3,-1.3],[-1.4,-1.3]];
   // Reusable procedural finish: mineral patches interrupted by long wet streaks.
   const pondCanvas=document.createElement('canvas');pondCanvas.width=256;pondCanvas.height=256;
   const pondContext=pondCanvas.getContext('2d'),pondPixels=pondContext.getImageData(0,0,256,256);
@@ -1719,28 +1880,31 @@ export function buildLandscape(K, {mobile=false}={}) {
   const pondShape=new THREE.Shape(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z)));
   const water=new THREE.Mesh(new THREE.ShapeGeometry(pondShape),new THREE.MeshStandardMaterial({color:'#354d31',roughness:.26,metalness:.16}));
   water.name='Temple small pond recessed water';water.rotation.x=-Math.PI/2;water.position.set(PX,-.94,PZ);group.add(water);
-  const soil=new THREE.Shape([new THREE.Vector2(-2.5,-1.5),new THREE.Vector2(2.5,-1.5),new THREE.Vector2(2.5,1.5),new THREE.Vector2(-2.5,1.5)]);
+  const soil=new THREE.Shape([new THREE.Vector2(-2.5,-2.1),new THREE.Vector2(2.5,-2.1),new THREE.Vector2(2.5,2.1),new THREE.Vector2(-2.5,2.1)]); // the opening main.js leaves in the ground
   soil.holes.push(new THREE.Path(pondOutline.map(([x,z])=>new THREE.Vector2(x,-z))));
   const surround=new THREE.Mesh(new THREE.ShapeGeometry(soil),K.M.earth);surround.name='Temple small pond earth surround';surround.rotation.x=-Math.PI/2;surround.position.set(PX,0,PZ);group.add(surround);
-  box('Temple small pond deep bottom',PX,-1.11,PZ,4.98,.12,2.98,materials.wetStone);
+  box('Temple small pond deep bottom',PX,-1.11,PZ,4.98,.12,4.18,materials.wetStone);
   for(let i=0;i<pondOutline.length;i++){
     const a=pondOutline[i],b=pondOutline[(i+1)%pondOutline.length],x=PX+(a[0]+b[0])/2,z=PZ+(a[1]+b[1])/2;
-    const w=Math.abs(a[0]-b[0])+.15,d=Math.abs(a[1]-b[1])+.15;
-    const notch=Math.abs(x-PX)<.01&&Math.abs(z-PZ)>.95,top=notch?.10:.32;
+    const w=Math.abs(a[0]-b[0])+.28,d=Math.abs(a[1]-b[1])+.28,top=.32; // 15.14.02: walls about 0.3 m thick, one level
     pondWallUV(box('Temple small pond weathered retaining wall',x,(top-1.05)/2,z,w,top+1.05,d,pondStone,true));
-    box('Temple small pond worn pale coping',x,top,z,w+.035,.07,d+.035,pondCoping);
+    box('Temple small pond worn pale coping',x,top,z,w,.05,d,pondCoping);
     box('Temple small pond algae waterline',x,-.94,z,w+.006,.08,d+.006,materials.wetStone);
   }
   // Prevent walking into the open water while retaining the visible depth.
-  K.blocker(PX,PZ,4.2,2.2,-1.1,.35);
+  K.blocker(PX,PZ,4.9,4.3,-1.1,.35);
   // 15.20.01 / 15.15.26 / 14.59.21: grass grows round the pond on its lane and road-corner sides;
   // the porch side stays trodden earth. Own PRNG keeps the other planting where it is.
-  patch('Temple pond grassy verge',PX+.3,PZ-1.75,3.3,.95,materials.turf,.03);
-  patch('Temple pond grassy verge',PX-2.75,PZ-.3,.75,1.5,materials.turf,.031);
+  // 15.14.02: a ring of short turf all round the walls.
+  patch('Temple pond grassy verge',PX,PZ-2.45,3.4,.6,materials.turf,.03);
+  patch('Temple pond grassy verge',PX,PZ+2.5,3.2,.55,materials.turf,.03);
+  patch('Temple pond grassy verge',PX-2.9,PZ,.6,2.2,materials.turf,.031);
+  patch('Temple pond grassy verge',PX+2.9,PZ,.6,2.2,materials.turf,.031);
   {let n=15201;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
-   for(let i=0;i<110;i++){const lane=i%4!==0,x=lane?PX-2.6+r()*5.9:PX-3.3+r()*.9,z=lane?PZ-2.55+r()*1.35:PZ-1.5+r()*2.4,h=.28+r()*.4;
-     if(Math.abs(x-PX)<2.55&&Math.abs(z-PZ)<1.2)continue;
+   for(let i=0;i<110;i++){const lane=i%4!==0,x=lane?PX-3.2+r()*6.4:PX-3.4+r()*.9,z=lane?PZ-3.0+r()*.9:PZ-2.4+r()*4.8,h=.05+r()*.10;
+     if(Math.abs(x-PX)<2.75&&Math.abs(z-PZ)<2.45)continue;
      instance('Temple pond verge grass tufts',grassGeometry,materials.grass,[x,.03,z],[.8+r()*.5,h,.8+r()*.5],new THREE.Quaternion().setFromAxisAngle(up,r()*6.28));}}
+  }
 
   // Overlapping distant belts close the horizon when panning from the house.
   // Planting is inferred, beyond the photographed buildings and walking routes.
@@ -1879,7 +2043,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    for(const r of K.ramps)if(r.z+r.d/2<edge){const l=lift(r.x);r.lowY+=l;r.highY+=l;}
    for(const l of K.labels)if(l.position[2]<edge)l.position=[l.position[0],l.position[1]+lift(l.position[0]),l.position[2]];
    // Weedy ground rather than bare laterite, with a worn footpath along the bank top.
-   const earth=new THREE.MeshStandardMaterial({color:'#6d7443',roughness:1}),zc=(edge+back)/2,d=edge-back;
+   const earth=verge.clone(),zc=(edge+back)/2,d=edge-back;earth.color.set('#d7d9c3'); // the same worn turf as the other banks, a little duller (it was one flat olive)
    for(const [a,b] of [[x0,-3.5],[-1.1,32.9],[35.1,x1]]){
      box('Far bank raised earth terrace',(a+b)/2,(FAR_TOP-.3)/2,zc,b-a,FAR_TOP+.3,d,earth);K.surface((a+b)/2,zc,b-a,d,FAR_TOP);
    }
