@@ -1481,7 +1481,10 @@ export function buildTemple(K) {
     for(const zz of [z-1.24,z+1.24])K.box(vaults,'Outer shrine vault white spring pier',51.0,4.15,zz,.26,.74,.17,white);
   }
   // The far corner has stored boards and a shaded work table, as in 15.05.42.
-  for(let i=0;i<8;i++)box('Rear circuit stacked dark boards',24.25,.73+i*.105,40.1,2.08,.075,1.08,K.M.wood);
+  // The boards lie in a tidy pile on the veranda floor along the west wall, under the roof as in the
+  // photograph. (They used to hover 9 cm above the floor as a striped block that overhung the court by a metre.)
+  for(let i=0;i<6;i++)box('Rear circuit stacked dark boards',23.16+(i%2)*.03,.629+i*.06,40.1+((i*7)%3-1)*.06,.60-(i%3)*.04,.058,2.40-(i%2)*.14,K.M.wood);
+  K.blocker(23.16,40.1,.66,2.54,.6,1.0);
   box('Rear circuit old work table top',24.15,1.40,43.1,1.90,.10,.80,K.M.wood);
   for(const x of [23.37,24.93])for(const z of [42.79,43.41])box('Rear circuit table leg',x,1.0,z,.085,.80,.085,K.M.wood);
   const circuitStones=[[47.55,21.3],[47.55,27.7],[47.55,30.55],[42.6,32.15],[35.8,32.15],[30.5,27.7]];
