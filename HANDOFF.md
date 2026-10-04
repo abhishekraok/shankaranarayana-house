@@ -24,6 +24,19 @@ committed) still apply.
   in a plan rectangle.
 - Game: alignment can be driven from the controller (LB/RB photo, Y saved pose, A save, B back).
 
+## Night of 2026-10-03: the user's two new game notes, Codex's findings
+
+- Game notes of 2026-10-02 22:51 (`F:/Shankaranarayana/unreal-notes.json`, the last two): the court pocket
+  floor is the passage's smooth dark stone (it was green flagstones), and the raised red floor east of
+  the passage starts in line with the court's blue railing (`hallX` = 6.85 in house.js). From the east
+  sitting platform to there the hall floor is at ground level (`Inner hall ground-level floor`); the
+  sitting platform is an island with a scored pink face on its east end, the court post at x 4.1 stands
+  on a stone base, the rusty sheet stands on the ground at the court edge, and the court step there is
+  gone. `tests/entrance-geometry.mjs` walks the route at ground level and steps up at the railing line.
+- The server on port 4173 may be a stale one from another worktree (it was serving the photoreal
+  checkout, without the photo folder). Browser tests then test that checkout, not this one. Check with
+  `curl -s http://127.0.0.1:4173/src/house.js | md5sum` against `dist/src/house.js` before trusting them.
+
 ## Morning of 2026-10-02: light, water, Vipra Bhavan
 
 - Web light (`main.js`): the sun now stands in the south-west (`sun.position 36,63,52`), where it

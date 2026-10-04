@@ -149,13 +149,21 @@ export function buildHouse(K) {
   // User's notes (game, at the entrance and in the court): no raised floor in the centre. The entry
   // passage runs at ground level from the lane to the court pocket; only the side platforms are raised.
   const EL=.075;
-  for(const s of [-1,1])floor('Front range plinth',s*6.61,2.2,10.78,4.4);
+  // User's note (game, court front, 2026-10-02): the raised red floor east of the passage starts in
+  // line with the court's blue railing (hallX). From the sitting platform to there the hall floor is
+  // at ground level with the passage and the court pocket, in the same smooth dark stone.
+  const hallX=6.85;
+  floor('Front range plinth',-6.61,2.2,10.78,4.4);
+  floor('Front range plinth',6.61,1.1,10.78,2.2);
+  floor('Front range plinth',2.515,3.3,2.59,2.2);
+  floor('Front range plinth',(hallX+12)/2,3.3,12-hallX,2.2);
   floor('Front range north return',-8.025,5.2,7.95,1.6);
   // User's note (snake god pit): the grey pocket floor is the right tile and height, and it
   // runs on across the front of the God room; red is only for the raised platforms.
-  floor('Front range south return',7.175,5.2,9.65,1.6);
+  floor('Front range south return',(hallX+12)/2,5.2,12-hallX,1.6);
   floor('Entrance right lower court pocket',-3.15,5.2,1.8,1.6,.075,'stone',.08);
-  floor('Entrance right lower court pocket',.05,5.35,4.6,1.3,.075,'stone',.08);
+  floor('Entrance right lower court pocket',.78,5.35,6.06,1.3,.075,'stone',.08);
+  floor('Inner hall ground-level floor',(3.81+hallX)/2,4.085,hallX-3.81,3.83,.075,'stone',.08);
   floor('West rooms and passage',-10.2,12,3.6,12);
   // 14.31.25: the long side veranda floor is a dull, worn maroon oxide.
   {const worn=K.M.pink.clone();worn.color.setRGB(.21,.21,.2);worn.roughness=.8; /* worn pink oxide: multipliers stay under 1 so the export keeps the colour */floor('East passage and stair base',9.65,12,4.7,12,F,worn);}
@@ -210,7 +218,7 @@ export function buildHouse(K) {
   // 14.44.09 / 14.44.14 / 14.44.43: a rusty corrugated sheet on edge closes this pocket, not a blue grille.
   {const geo=new THREE.PlaneGeometry(2.2,.88,96,1),gp=geo.attributes.position;for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));geo.computeVertexNormals();
    const sheet=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({name:'court sheet barrier',color:'#bd8c86',roughness:1,side:THREE.DoubleSide}));sheet.name='Courtyard pocket rusty sheet barrier';sheet.rotation.z=Math.PI/2;sheet.rotation.y=0;
-   sheet.geometry.rotateZ(0);sheet.rotation.set(0,0,0);sheet.position.set(3.5,F+.44,5.95);g.add(sheet);K.blocker(3.5,5.95,2.2,.1,F,F+.9);}
+   sheet.geometry.rotateZ(0);sheet.rotation.set(0,0,0);sheet.position.set(3.5,EL+.44,6.02);g.add(sheet);K.blocker(3.5,6.02,2.2,.1,EL,EL+.9);}
   // User-labelled 14.39.18 / 14.41.29 / 14.52.45: looking back after
   // entering, a stepped turquoise pedestal sits over a three-stone niche.
   // Place it beside the entrance-side court steps; spacing remains inferred.
@@ -250,7 +258,7 @@ export function buildHouse(K) {
   // edge with the niche cut into it; the stand sits on the platform top at that edge.
   for(const o of g.children.slice(pedestalStart.children)){const stand=o.name==='Entrance three-tier pale pedestal';o.position.x+=.5;o.position.y+=pedLift+(stand?.325:0);o.position.z-=stand?1.36:1.29;}
   for(const c of K.colliders.slice(pedestalStart.colliders)){c.minX+=.5;c.maxX+=.5;c.bottom+=pedLift;c.top+=pedLift+.325;c.minZ-=1.36;c.maxZ-=1.29;}
-  b('Entrance right pocket south riser',2.35,(F+.075)/2,5.2,.035,F-.075,1.6,nicheOxide);
+  b('Entrance right pocket south riser',hallX,(F+.075)/2,4.085,.035,F-.075,3.83,nicheOxide);
   const peachColumn=K.M.plaster.clone();peachColumn.color.set('#d4a787');
   K.cylinder(g,'Entrance court peach round column',-4.6,2.01,4.3,.125,.145,2.78,peachColumn,20,true);
   K.cylinder(g,'Entrance court round column oxide foot',-4.6,.535,4.3,.151,.166,.17,verandaRed,20,true);
@@ -304,7 +312,7 @@ export function buildHouse(K) {
     K.blocker((a+end)/2,14.55,end-a,.12,F,F+1.05);
   }
   // Court entry steps match every deliberate veranda opening.
-  for(const [x,z,w,d] of [[5.45,6.03,1.55,.75],[-8.2,10.8,.75,1.55]]) {
+  for(const [x,z,w,d] of [[-8.2,10.8,.75,1.55]]) { // the court-front walkway is at ground level now: no step there
     floor('Courtyard worn step',x,z,w,d,.21,'paleStone',.16);
   }
 
@@ -503,6 +511,10 @@ export function buildHouse(K) {
   const innerEntryStone=new THREE.MeshStandardMaterial({map:entryMap,roughness:.48});
   floor('Inner entrance dark worn walking strip',0,3.38,2.44,2.66,EL+.006,innerEntryStone,.08);
   for(const s of [-1,1])b('Inner passage plinth face',s*1.235,(EL+F)/2,3.38,.03,F-EL,2.66,riserGrey);
+  // User's notes (game, 2026-10-02): the court pocket and the lowered hall floor are the passage's smooth dark stone.
+  for(const o of g.children)if(o.name==='Entrance right lower court pocket'||o.name==='Inner hall ground-level floor')o.material=innerEntryStone;
+  b('Inner hall wall base',(3.81+hallX)/2,(EL+F)/2,2.185,hallX-3.81,F-EL,.03,riserGrey);
+  floor('Inner hall stone step',hallX-.18,5.2,.36,.9,.26,'stone',.26-EL);
   const platformOxide=K.M.plaster.clone();platformOxide.color.set('#b08a85');platformOxide.roughness=1;
   const platformJoint=new THREE.MeshStandardMaterial({color:'#7a5f5b',roughness:1});
   for(const side of [-1,1]){
@@ -517,6 +529,12 @@ export function buildHouse(K) {
     for(let x=1.34;x<3.8;x+=.30)if(side>0||x<2.55||x>3.25)b('Inner platform scored joint',side*x,.43,4.7315,.007,.71,.003,platformJoint);
     b('Inner platform scored joint',side*2.5,.47,4.7315,2.6,.007,.003,platformJoint);
     floor('Inner platform stone step',side*1.03,3.2,.36,.8,.43,'stone',.43-EL);
+    if(side>0){ // the east end of this platform now stands over the lowered hall floor
+      b('Inner platform scored oxide face',3.825,(EL+.79)/2,3.40,.03,.79-EL,2.66,platformOxide);
+      for(let z=2.38;z<4.7;z+=.30)b('Inner platform scored joint',3.8415,.43,z,.003,.71,.007,platformJoint);
+      b('Inner platform scored joint',3.8415,.47,3.40,.003,.007,2.6,platformJoint);
+      b('Inner entrance platform dark coping',3.72,.808,3.40,.25,.038,2.60,innerEntryStone);
+    }
     // Broad square foot, layered mouldings and a stout octagonal shaft.
     const postX=side*1.40,postZ=3.71;
     for(const [y,w,h] of [[.831,.66,.082],[.902,.59,.060],[.958,.53,.052],[1.006,.47,.044]])
@@ -647,6 +665,7 @@ export function buildHouse(K) {
     const mesh=new THREE.Mesh(bracketGeom,verandaTimber);mesh.name='Veranda carved transverse bracket';mesh.rotation.y=-Math.PI/2;mesh.position.set(x+.095,3.45,.36);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
   }
   for(const x of [-8.2,4.1,7.15])courtyardPost(x,5.7);
+  b('Courtyard post stone base',4.1,(EL+F)/2,5.7,.58,F-EL,.58,riserGrey); // the post now stands over the lowered walkway
   // 'turning 135 degrees 2/3': the dark post behind the peach column is square, with a ribbed neck
   // and stepped corbels, and stands on the raised platform's west end.
   floor('Inner entrance platform west end',-4.38,3.05,1.14,1.90,.79,verandaRed,.34);
