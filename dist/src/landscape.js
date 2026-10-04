@@ -1400,22 +1400,31 @@ export function buildLandscape(K, {mobile=false}={}) {
   // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
   // Broken grassy edges and the narrow concrete threshold step.
   sb('front entry shallow step',-.8,.075,-.42,2.1,.15,.42,materials.mortar);K.surface(59.58,-24.2,.42,2.1,.15);
-  for(const a of [-5.1,-1.7,2.4,6.7,9.0]){
+  // 15.20.13: no masonry post stands in front of the cream block or the first shutter bay; the
+  // tiles end on a bracket there and the sheet beyond hangs on one thin pole.
+  for(const a of [-1.7,2.4,6.7,9.0]){
     sb('white veranda post',a,1.64,.12,.22,2.68,.24,shopWhite,true);
     sb('black veranda post foot',a,.69,.105,.25,.78,.27,materials.basalt);
   }
-  // 14.59.54 / 15.20.13: the cream end block comes down to the ground on the veranda line,
-  // with a black damp base; the near end has only a thin metal pole for the sheet canopy and sign.
-  sb('cream end lower block',-7,1.55,.95,3.4,3.1,2.5,shopCream,true);
-  sb('cream end lower block damp base',-7,.3,-.32,3.42,.6,.04,materials.basalt);
-  sb('cream end lower window dark opening',-7,1.7,-.33,1.0,1.2,.03,materials.darkSoil);
-  sb('near end thin metal pole',-8.8,1.45,.12,.07,2.9,.07,'metal',true);
-  // Weathered wood shutters, a pale-blue surround and barred central bays.
-  for(const [a,w] of [[-4.4,3.5],[.4,3.2],[4.4,2.3]]){
+  // 15.20.13 (good pose) / 14.59.54: the cream end block is one plane from eave to ground,
+  // about 0.45 m proud of the shop wall, with a black damp base. The veranda runs on in front
+  // of it under a corrugated sheet; there is no window in its lower wall.
+  sb('cream end lower block',-7.2125,1.55,1.975,3.975,3.1,.45,shopCream,true);
+  sb('cream end lower block damp base',-7.2125,.33,1.735,3.975,.66,.04,materials.basalt);
+  // Shutter bays. 15.20.13: the bay beside the cream block spans z -23.4..-20.2, pale blue-grey
+  // boards either side of a dark brown barred centre about 1.9 m wide (measured: boards 0.57 of
+  // the lit wall beside them, centre almost black).
+  const shopBoardBlue=K.M.plaster.clone();shopBoardBlue.color.set('#8a9aa2');
+  const shopBrown=K.M.plaster.clone();shopBrown.color.set('#4a332b'); // the wood map renders black here
+  for(const [a,w] of [[-3.2,3.2],[.4,3.2],[4.4,2.3]]){
+    const first=a<-3;
     sb('pale shutter surround',a,1.82,2.14,w+.28,2.37,.12,shopBlue);
     sb('recessed dark shutter bay',a,1.82,2.055,w,2.16,.035,materials.darkSoil);
-    for(let i=0;i<Math.round(w/.32);i++)sb('vertical timber shutter board',a-w/2+.16+i*.32,1.82,2.02,.27,2.09,.04,shopWood);
-    for(const y of [.80,2.74])sb('shutter timber crossbar',a,y,1.98,w,.075,.05,shopWood);
+    for(let i=0;i<Math.round(w/.32);i++){
+      const off=-w/2+.16+i*.32;
+      sb('vertical timber shutter board',a+off,1.82,2.02,.27,2.09,.04,first?(Math.abs(off)<.9?shopBrown:shopBoardBlue):shopWood);
+    }
+    for(const y of [.80,2.74])sb('shutter timber crossbar',a,y,1.98,first?1.92:w,.075,.05,first?shopBrown:shopWood);
   }
   for(const a of [.4,4.4]){
     for(let j=0;j<13;j++)sb('shopfront vertical grille',a-1.12+j*.185,1.64,1.86,.024,2.05,.028,materials.mortar);
@@ -1424,26 +1433,33 @@ export function buildLandscape(K, {mobile=false}={}) {
   sb('small far-left window',7.7,1.86,2.12,.62,1.01,.075,shopWood);
   // Long mossy tiled lean-to with a patched sheet strip along the lower eave.
   const shopAwning=new THREE.Group();shopAwning.name='Shop long weathered awning';group.add(shopAwning);K.roofs.push(shopAwning);
-  const awningPoints=[59.48,2.87,-34.65,59.48,2.87,-15.35,63.65,4.40,-15.35,63.65,4.40,-34.65];
+  // 15.20.13: the tiles stop at the cream block (z about -19.5); a corrugated sheet goes on from there.
+  const awningPoints=[59.48,2.87,-34.65,59.48,2.87,-19.67,63.65,4.40,-19.67,63.65,4.40,-34.65];
   const awningGeo=new THREE.BufferGeometry();awningGeo.setAttribute('position',new THREE.Float32BufferAttribute(awningPoints,3));awningGeo.setIndex([0,2,1,0,3,2]);awningGeo.computeVertexNormals();
   const roofMaterial=darkTile.clone();roofMaterial.side=THREE.DoubleSide;
   const awningBase=new THREE.Mesh(awningGeo,roofMaterial);awningBase.name='Shop sloping awning underside';shopAwning.add(awningBase);
-  const tileGeo=new THREE.BoxGeometry(1,1,1),tileCount=12*66;
+  const tileGeo=new THREE.BoxGeometry(1,1,1),tileCols=52,tileCount=12*tileCols;
   const shopTiles=new THREE.InstancedMesh(tileGeo,roofMaterial,tileCount);shopTiles.name='Shop overlapping weathered tile courses';
   const tilePose=new THREE.Object3D(),slope=Math.atan2(1.53,4.17);
-  for(let row=0;row<12;row++)for(let col=0;col<66;col++){
+  for(let row=0;row<12;row++)for(let col=0;col<tileCols;col++){
     const x=59.57+row*.344,z=-34.5+col*.288;
-    tilePose.position.set(x,2.87+(x-59.48)*1.53/4.17+.025,z);tilePose.rotation.set(0,0,slope);tilePose.scale.set(.40,.055,.278);tilePose.updateMatrix();shopTiles.setMatrixAt(row*66+col,tilePose.matrix);
-    shopTiles.setColorAt(row*66+col,new THREE.Color().setHSL(.07+(col%4)*.008,.12+(row%3)*.055,.20+((row*13+col*7)%11)*.018));
+    tilePose.position.set(x,2.87+(x-59.48)*1.53/4.17+.025,z);tilePose.rotation.set(0,0,slope);tilePose.scale.set(.40,.055,.278);tilePose.updateMatrix();shopTiles.setMatrixAt(row*tileCols+col,tilePose.matrix);
+    shopTiles.setColorAt(row*tileCols+col,new THREE.Color().setHSL(.07+(col%4)*.008,.12+(row%3)*.055,.20+((row*13+col*7)%11)*.018));
   }
   shopTiles.instanceMatrix.needsUpdate=true;shopTiles.instanceColor.needsUpdate=true;shopAwning.add(shopTiles);
-  for(const a of [-8.2,-.6,3.2]){
+  for(const a of [-.6,3.2]){
     const sheet=sb('patched corrugated eave',a,3.02,.15,2.0,.06,1.12,materials.mortar);sheet.rotation.z=slope;group.remove(sheet);shopAwning.add(sheet);
     for(let j=0;j<15;j++){
       const rib=sb('patch sheet narrow ridge',a-.94+j*.134,3.055,.15,.028,.025,1.12,materials.basalt);rib.rotation.z=slope;group.remove(rib);shopAwning.add(rib);
     }
   }
-  for(const a of [-9,-5.1,-1.7,2.4,6.7,9])K.beam(shopAwning,'Shop exposed awning rafter',[59.45,2.80,-25-a],[63.60,4.32,-25-a],.075,shopWood);
+  for(const a of [-5.3,-1.7,2.4,6.7,9])K.beam(shopAwning,'Shop exposed awning rafter',[59.45,2.80,-25-a],[63.60,4.32,-25-a],.075,shopWood);
+  // 15.20.13 (pixels projected through its pose): a dark corrugated sheet over the veranda in
+  // front of the cream block, z -19.6..-15.3, meeting the wall at 3.3 m just under the vent and
+  // falling to 2.6 m at its outer edge. Measured in the photo at 0.45 of the lit wall beside it.
+  {const sheetMat=new THREE.MeshStandardMaterial({color:'#48484b',roughness:.9}),ribMat=new THREE.MeshStandardMaterial({color:'#39393b',roughness:.9}),tilt=Math.atan2(.7,2.15),len=Math.hypot(2.15,.7);
+   const sheet=box('Shop corrugated end awning',60.675,2.95,-17.45,len,.03,4.3,sheetMat,false,shopAwning);sheet.rotation.z=tilt;
+   for(let i=0;i<20;i++){const rib=box('Shop corrugated end awning rib',60.675,2.972,-19.49+i*.215,len,.022,.06,ribMat,false,shopAwning);rib.rotation.z=tilt;}}
   const dryTufts=new THREE.InstancedMesh(new THREE.ConeGeometry(.025,1,3),materials.dryPalm,160);dryTufts.name='Shop dry grass in weathered roof tiles';
   for(let i=0;i<160;i++){
     const centers=[[60.10,-33.1,.55,1.0],[61.75,-23.8,.65,1.25],[62.50,-22.2,.43,.75]];
@@ -1455,35 +1471,49 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Higher rear block to photo-left and the small cream tower beside the neighbor.
   sb('upper white rear block',4.2,4.58,4.65,8.8,2.52,4.5,shopWhite,true);
   const shopUpperRoof=K.hipRoof(group,'Shop rear tiled roof',0,0,9.55,5.05,5.91,1.13,darkTile);shopUpperRoof.rotation.y=Math.PI/2;shopUpperRoof.position.set(64.65,0,-29.2);
-  sb('upper terrace slab',1.65,6.05,4.1,3.25,.16,3.3,shopWhite);
-  sb('upper weathered terrace parapet',1.65,6.44,2.52,3.25,.70,.16,shopWhite);
-  sb('upper terrace side parapet',.10,6.44,4.05,.16,.70,3.20,shopWhite);
-  // The ventilator is recessed through the front shell of the cream block.
-  sb('cream end upper block',-7,4.16,4.58,3.55,2.12,3.74,shopCream,true);
-  for(const a of [-8.105,-5.895])sb('cream ventilator side masonry',a,4.16,2.43,1.34,2.12,.56,shopCream,true);
-  sb('cream ventilator lower masonry',-7,3.40,2.43,.87,.60,.56,shopCream,true);
-  sb('cream ventilator upper masonry',-7,4.985,2.43,.87,.47,.56,shopCream,true);
-  K.hipRoof(group,'Shop cream end hipped tile roof',64.3,-18.0,4.9,4.2,5.25,1.02,darkTile);
-  sb('end block ventilator dark interior',-7,4.225,2.70,.86,1.05,.018,materials.darkSoil);
+  // 15.20.13 / 14.59.54: the weathered concrete terrace box is not on top of the tiled rear
+  // block but beside it, between that block and the cream end block (z -24.8..-19.8, about
+  // 4.45..5.8 m up), with a lilac-washed wall under it behind the lean-to.
+  {const terraceGrey=K.M.plaster.clone();terraceGrey.color.set('#c6c7c3');
+   const lilac=K.M.plaster.clone();lilac.color.set('#9a879e');
+   sb('upper lilac link wall',-2.7125,3.885,4.3,5.025,1.13,3.8,lilac);
+   sb('upper terrace slab',-2.7125,4.53,4.1,5.025,.16,4.2,terraceGrey);
+   sb('upper weathered terrace parapet',-2.7125,5.125,2.1,5.025,1.35,.2,terraceGrey);
+   sb('upper terrace side parapet',-2.7125,5.125,6.1,5.025,1.35,.2,terraceGrey);}
+  // The ventilator is recessed through the front shell of the cream block. Front plane x 61.75
+  // from eave to ground and the end wall one plane at z -15.8 (14.59.54); the jali is a tall
+  // narrow one, 0.5 x 1.05 m centred 3.86 m up, just above the sheet (15.20.13 projected).
+  sb('cream end upper block',-7.2125,4.16,4.58,3.975,2.12,3.74,shopCream,true);
+  for(const [a,w] of [[-8.225,1.95],[-5.9875,1.525]])sb('cream ventilator side masonry',a,4.16,2.23,w,2.12,.96,shopCream,true);
+  sb('cream ventilator lower masonry',-7,3.2175,2.23,.5,.235,.96,shopCream,true);
+  sb('cream ventilator upper masonry',-7,4.8025,2.23,.5,.835,.96,shopCream,true);
+  K.hipRoof(group,'Shop cream end hipped tile roof',64.1,-17.79,5.5,4.75,5.25,1.02,darkTile);
+  sb('end block ventilator dark interior',-7,3.86,2.30,.50,1.05,.018,materials.darkSoil);
+  // 14.59.54: the end wall facing the stage has a small square pierced vent high up and a
+  // dark damp band along its foot.
+  box('Shop end wall pierced ventilator',63.5,3.85,-15.79,.5,.5,.03,materials.darkSoil);
+  for(const o of [-.085,.085]){box('Shop end wall ventilator bar',63.5+o,3.85,-15.775,.035,.5,.03,shopCream);box('Shop end wall ventilator bar',63.5,3.85+o,-15.775,.5,.035,.03,shopCream);}
+  box('Shop end wall damp stain',64.0,.42,-15.785,4.5,.84,.02,new THREE.MeshStandardMaterial({color:'#3f4238',roughness:1}));
   const shopVentShape=new THREE.Shape();
-  shopVentShape.moveTo(-.43,-.525);shopVentShape.lineTo(.43,-.525);shopVentShape.lineTo(.43,.525);shopVentShape.lineTo(-.43,.525);shopVentShape.closePath();
+  shopVentShape.moveTo(-.25,-.525);shopVentShape.lineTo(.25,-.525);shopVentShape.lineTo(.25,.525);shopVentShape.lineTo(-.25,.525);shopVentShape.closePath();
   // Six rows of chamfered openings retain the diagonals visible in 15.20.13.
   for(let row=0;row<6;row++)for(let col=0;col<3;col++){
-    const x=(col-1)*.265,y=(row-2.5)*.166,hole=new THREE.Path();
-    for(const [i,[dx,dy]] of [[-.096,-.047],[-.048,-.069],[.096,-.047],[.096,.047],[.048,.069],[-.096,.047]].entries()) {
+    const x=(col-1)*.155,y=(row-2.5)*.166,hole=new THREE.Path();
+    for(const [i,[dx,dy]] of [[-.056,-.047],[-.028,-.069],[.056,-.047],[.056,.047],[.028,.069],[-.056,.047]].entries()) {
       if(i===0)hole.moveTo(x+dx,y+dy);else hole.lineTo(x+dx,y+dy);
     }
     hole.closePath();shopVentShape.holes.push(hole);
   }
   const shopVent=new THREE.Mesh(new THREE.ExtrudeGeometry(shopVentShape,{depth:.075,bevelEnabled:false}),shopCream);
-  shopVent.name='Shop pierced cream masonry ventilator';shopVent.rotation.y=-Math.PI/2;shopVent.position.set(62.34,4.225,-18);group.add(shopVent);
+  shopVent.name='Shop pierced cream masonry ventilator';shopVent.rotation.y=-Math.PI/2;shopVent.position.set(61.94,3.86,-18);group.add(shopVent);
   // The photo separates a plank bench on laterite blocks from a grey stone seat.
   const benchLaterite=K.M.plaster.clone();benchLaterite.color.set('#99634c');
   const benchStone=K.M.plaster.clone();benchStone.color.set('#777970');
-  for(const a of [-4.35,-2.85])for(const y of [.415,.605])sb('laterite bench support course',a,y,1.03,.45,.18,.63,benchLaterite);
-  sb('short timber shop bench',-3.60,.735,1.03,2.22,.08,.76,shopWood);
-  sb('long grey masonry bench slab',-5.55,.76,1.53,2.28,.14,.62,benchStone);
-  for(const a of [-6.45,-4.70])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
+  // Both benches stand in front of the blue shutter bay (15.20.13), clear of the cream block.
+  for(const a of [-3.15,-1.65])for(const y of [.415,.605])sb('laterite bench support course',a,y,1.03,.45,.18,.63,benchLaterite);
+  sb('short timber shop bench',-2.40,.735,1.03,2.22,.08,.76,shopWood);
+  sb('long grey masonry bench slab',-4.25,.76,1.53,1.9,.14,.62,benchStone);
+  for(const a of [-5.0,-3.5])sb('grey masonry bench leg',a,.505,1.53,.24,.41,.55,benchStone);
   for(let j=0;j<24;j++){
     const a=2.6+(j%5)*.21,y=.42+Math.floor(j/8)*.15,depth=1.44+(Math.floor(j/5)%3)*.19;
     instance('Shop coconut pile',sphere,materials.coconut,[60+depth,y,-25-a],[.14,.17,.15]);
@@ -1494,12 +1524,12 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(const a of [-7.24,-6.76])for(const depth of [.48,.92])sb('shop stool leg',a,.59,depth,.07,.58,.07,shopWood);
   // Original hanging sign: UV crop of lettering only, preserving the photograph.
   const shopSignMap=new THREE.TextureLoader().load('./assets/shop-temple-side.jpg');shopSignMap.colorSpace=THREE.SRGBColorSpace;
-  const shopSignGeo=new THREE.PlaneGeometry(.78,.51),signUV=shopSignGeo.attributes.uv;
+  const shopSignGeo=new THREE.PlaneGeometry(.47,.31),signUV=shopSignGeo.attributes.uv; // 15.20.13: the board is about a fifth of the pole's height
   const signCorners=[[1460,635],[1534,703],[1422,678],[1500,745]];
   for(let i=0;i<4;i++)signUV.setXY(i,signCorners[i][0]/1824,1-signCorners[i][1]/1368);
   const shopSign=new THREE.Mesh(shopSignGeo,new THREE.MeshStandardMaterial({map:shopSignMap,roughness:1,side:THREE.DoubleSide}));
-  shopSign.name='Shop photographed hanging sign';shopSign.position.set(59.82,1.73,-16.6);shopSign.rotation.y=-Math.PI/2;shopSign.rotateZ(-.34);group.add(shopSign);
-  K.cylinder(group,'Shop slender sign pole',59.87,1.53,-16.6,.024,.027,2.96,materials.mortar,8);
+  shopSign.name='Shop photographed hanging sign';shopSign.position.set(59.82,1.38,-16.6);shopSign.rotation.y=-Math.PI/2;shopSign.rotateZ(-.34);group.add(shopSign);
+  K.cylinder(group,'Shop slender sign pole',59.87,1.37,-16.6,.024,.027,2.64,materials.mortar,8); // carries the sheet's outer edge
   // Rain gutter/drain beside the end block, with an open ditch behind its lip.
   box('Shop side open drain bottom',64.0,.025,-15.24,7.5,.04,.34,materials.wetStone);
   for(const z of [-15.47,-15.02])box('Shop side drain concrete lip',64,.11,z,7.5,.18,.12,materials.mortar);
