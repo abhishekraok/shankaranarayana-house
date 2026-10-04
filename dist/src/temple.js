@@ -817,7 +817,9 @@ export function buildTemple(K) {
   // User's note with 15.11.17: no sideways stair across the open bay. The photo's steep
   // flight climbs straight back beside the door pier and vanishes into the floor above;
   // it is shown but not walkable.
-  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12);
+  // 15.11.17: the flight stands in the bay's shade (43,38,39 beside the sunlit wall's 130,144,170);
+  // the default pale treads rendered as bright as that wall.
+  steps('Rear upper storey access stair',30.6,36.85,1.0,1.9,.6,3.45,'z',12,oldStone,oldStone);
   K.blocker(30.6,36.85,1.0,1.9,.6,3.5);
   // 15.11.08 / 15.11.17: enclosed white door/window bay in front of the
   // rear wall, with the stair bay open immediately to its east.
@@ -825,16 +827,17 @@ export function buildTemple(K) {
   // whole bay from the blue pier at x 29.6 to the window wall, right under the jali. It is a dark
   // double door between two barred side lights that stand on a solid blue panel over the red
   // dado. The window beside it has closed blue louvred shutters reaching up to the beam.
-  for(const [a,b] of [[24.8,24.85],[25.95,26.85]])
+  for(const [a,b] of [[24.8,24.925],[25.875,26.85]])
     box('Rear west enclosed white facade',(a+b)/2,2.025,35.48,b-a,2.85,.20,agedWhite,true);
-  box('Rear west window white sill wall',25.4,1.075,35.48,1.1,.95,.20,agedWhite,true);
-  box('Rear west window white head wall',25.4,3.35,35.48,1.1,.20,.20,agedWhite,true);
+  box('Rear west window white sill wall',25.4,1.15,35.48,.95,1.10,.20,agedWhite,true);
+  box('Rear west window white head wall',25.4,3.425,35.48,.95,.05,.20,agedWhite,true);
   box('Rear west door white header',28.15,3.2,35.48,2.6,.50,.20,agedWhite,true);
   box('Rear west facade red dado',25.825,.85,35.36,2.05,.50,.045,red);
   {const shutterBlue=mat('#27456a'),shutterSlat=mat('#3f678f'); // 15.11.17: 20,38,52 beside the white wall's 136,155,186
-   box('Rear west blue louvred window frame',25.4,2.4,35.36,1.1,1.7,.06,shutterBlue);
-   box('Rear west blue louvred window meeting stile',25.4,2.4,35.325,.07,1.62,.03,shutterBlue);
-   for(const s of [-1,1])for(let i=0;i<11;i++)box('Rear west blue louvred window slat',25.4+s*.27,1.73+i*.134,35.322,.40,.05,.025,shutterSlat);}
+   // Measured on 15.11.17 against the 2.9 m gate bay: about .95 wide, from 1.7 m up to the beam.
+   box('Rear west blue louvred window frame',25.4,2.55,35.36,.95,1.7,.06,shutterBlue);
+   box('Rear west blue louvred window meeting stile',25.4,2.55,35.325,.07,1.62,.03,shutterBlue);
+   for(const s of [-1,1])for(let i=0;i<11;i++)box('Rear west blue louvred window slat',25.4+s*.235,1.88+i*.134,35.322,.34,.05,.025,shutterSlat);}
   // The open stair bay is in deep shade (52,46,47 against the sunlit wall's 136,155,186), and the
   // gate room's side wall closes it on the gate side.
   box('Rear open bay shaded back wall',32.5,2.325,37.825,5.8,2.25,.02,shadedRearPlaster);
