@@ -1931,7 +1931,10 @@ export function buildTemple(K) {
   // 15.08.42 / 'temple inner sanctum, left side': the rear ledge is as high as the side ledges and
   // meets them at the corners; its face is pinkish-red stone, and a two-step stone block stands
   // against it in each corner under the end bay (shown, not walkable).
-  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#86635a',.95),true); // 146,110,102 beside a floor at 205,159,130
+  // Measured against the floor in the same frame (15.08.42: ledge 145,107,98 by floor 196,179,163; 'left side':
+  // 122,103,101 by 195,176,163) the render came out 203,190,178 and 223,204,193 by floors of 218 and 225: under
+  // the indoor exposure the old '#86635a' washed out to pale salmon. About a third of its brightness matches.
+  box('Inner rear raised ledge',39,1.05,28.92,14.1,.96,1.05,mat('#4e3835',.95),true);
   innerPaving('Inner rear ledge paving',39,28.92,14.1,1.05,1.55);
   for(const x of [33.85,44.1]){
     box('Inner rear corner stone step block',x,.715,28.02,.9,.33,.25,sanctumStone,true);
@@ -1977,7 +1980,7 @@ export function buildTemple(K) {
   // The rear ledge's carved frieze is the ledge's own dusty rose stone in 15.08.42 (142,106,100; shadows
   // 130,90,88) and 'temple inner sanctum, left side' (128,102,105; lights 146,117,120): grey-green fields
   // and ribs on the pink block read as stuck-on tiles.
-  {const rearRib=mat('#8e6a64',.95),rearRecess=mat('#6e5b58',.98),rearRelief=mat('#927578',.98);
+  {const rearRib=mat('#5a403c',.95),rearRecess=mat('#4f3835',.98),rearRelief=mat('#6e5350',.98); // darkened with the ledge
    recesses.length=ribs.length=foliage.length=0;
    ledgeFace(39,28.395,14.1,Math.PI);
    instances('Inner rear ledge recessed relief fields',new THREE.BoxGeometry(1,1,1),rearRecess,recesses);
@@ -2005,7 +2008,9 @@ export function buildTemple(K) {
   // Worn pale interior wall panels sit between the red masonry joints.
   // 15.08.42 / 'inner sanctum, left side': the rear panels are dark weathered stone and the
   // east side is painted blue; the west (drum) side stays pale ('inner sanctum, right side').
-  const innerDarkStone=mat('#5f4744',.95); // rear panels: dull dark red-brown in 15.08.42 (112,87,95)
+  // Rear wall: 110,87,95 by a floor at 196,179,163 in 15.08.42 and 79,70,79 by 195,176,163 in 'left side'; '#5f4744'
+  // rendered 177,146,138 and 123,93,87 (salmon). Half as bright and greyer brings both poses close.
+  const innerDarkStone=mat('#443942',.95);
   for(const z of [21.0,23.4,25.8,28.1])box('Inner perimeter pale wall panel',31.96,2.02,z,.025,2.05,2.18,white); // west only; the east side is the blue room wall
   for(const x of [33.3,35.7,38.1,40.5,42.9,45.0])
     box('Inner rear pale wall panel',x,2.30,29.445,2.08,1.5,.025,innerDarkStone);
