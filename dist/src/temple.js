@@ -1370,7 +1370,10 @@ export function buildTemple(K) {
   K.beam(g,'Covered hall parasol suspension',[21.45,3.54,stageEnd-1.2],[21.45,3.21,stageEnd-1.2],.014,dark);
 
   // Low, flat-roofed pavilions on the opposite side; the halls are not symmetric.
-  for(const z of [10.0,23.2]){
+  // 15.01.44 / 15.13.07 (both clear): two low scalloped pavilions with red-edged slabs stand in a
+  // row south of the tower, the first right against it over the blue-door shrine (it used to be
+  // built over the porch, where the tall pavilion stands, and was removed there).
+  for(const z of [16.4,23.2]){
     box('Left pavilion upper white back',53.65,4.59,z,.18,1.6,3.65,agedWhite);
     for(const dz of [-1.65,1.65])box('Left pavilion upper white side',52.35,4.59,z+dz,2.7,1.6,.20,agedWhite);
     box('Left pavilion dark roof slab',52.35,5.43,z,3.2,.20,4.02,weathered);
@@ -2618,9 +2621,6 @@ export function buildTemple(K) {
      box('Old inner shrine court stone bench',xm,.44,zm,w-.08,.46,d-.08,weathered,true);
      box('Old inner shrine court stone bench base course',xm,.16,zm,w,.12,d,weathered);
      box('Old inner shrine court stone bench top slab',xm-.02,.71,zm,w+.04,.08,d+.06,weathered);}}
-  // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
-  // inside the upper storey.
-  {const b3=new THREE.Box3();for(const o of [...g.children])if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)g.remove(o);}} // photo review: lifted, this copy floated over the 'East range rooftop pavilion' already standing there
   // 15.04.08 / 15.02.23: the east veranda (blue porch to the blue-door shrine) stands about
   // 0.95 m above the court, not 0.6: raise its floor, plinth, bases and skirting, and rebuild
   // the recessed shrine stair and the corner flight to the new height.
