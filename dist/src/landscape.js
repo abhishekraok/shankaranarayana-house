@@ -619,7 +619,16 @@ export function buildLandscape(K, {mobile=false}={}) {
   // Photo review: the slab and its lips are stained grey, not white.
   const pavilionGrey=materials.oldWhite.clone();pavilionGrey.color.set('#9a9a94');
   box('pavilion weathered flat slab', px, 2.205, pz, pw + .54, .19, pd + .54, pavilionGrey, false, pavilionRoof);
-  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, new THREE.MeshStandardMaterial({color:'#857668',roughness:1}), false, pavilionRoof);
+  // 15.30.02 / 15.30.06 (from the house's upper floor): the roof top is dark, weathered brown-grey
+  // concrete with paler dusty patches and black stains, not a clean tan slab.
+  const stainMap=(seed,base,spots,rx=1,ry=1)=>{const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=seed;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    x.fillStyle=base;x.fillRect(0,0,256,256);
+    for(const [count,rgb,alpha,r0,r1] of spots)for(let i=0;i<count;i++){const bx=r()*256,by=r()*256,rad=r0+r()*(r1-r0),a=(alpha*(.5+r()*.5)).toFixed(3);
+      for(const ox of [-256,0,256])for(const oy of [-256,0,256]){const g=x.createRadialGradient(bx+ox,by+oy,0,bx+ox,by+oy,rad);g.addColorStop(0,`rgba(${rgb},${a})`);g.addColorStop(1,`rgba(${rgb},0)`);x.fillStyle=g;x.fillRect(bx+ox-rad,by+oy-rad,rad*2,rad*2);}}
+    for(let i=0;i<2600;i++){x.fillStyle=r()<.5?'rgba(255,250,240,.10)':'rgba(20,18,16,.14)';x.fillRect(r()*256,r()*256,1+r()*1.5,1+r()*1.5);}
+    const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.repeat.set(rx,ry);m.anisotropy=4;return m;};
+  const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#665c57',[[12,'150,140,130',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
+  box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
     // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
@@ -1465,6 +1474,15 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lane-end top landing',52.7,lawnTop/2,-11.45,5.6,lawnTop,1.7,laneConcrete);K.surface(52.7,-11.45,5.6,1.7,lawnTop);
   box('Lane-end raised concrete platform',57.75,.40,-11.6,2.3,.80,2.4,laneConcrete,true);
   box('Platform dark drain opening',56.59,.12,-12.2,.02,.2,.34,materials.darkSoil);
+  // 14.59.54: the steps are weathered concrete, pink-brown with laterite dust on the treads, with
+  // paler worn patches and darker soiled risers; the platform is grey on top with black-stained sides.
+  {const mk=(name,map)=>{const m=new THREE.MeshStandardMaterial({map,roughness:1});m.name=name;return m;};
+   const tread=mk('lane-end concrete tread',stainMap(7741,'#8f7d75',[[10,'196,182,172',.5,20,60],[16,'118,74,54',.4,10,40],[12,'58,54,48',.35,8,30]],3,1));
+   const riser=mk('lane-end concrete riser',stainMap(7742,'#6c594f',[[14,'38,34,30',.5,10,40],[12,'128,78,56',.4,10,36],[6,'150,138,128',.3,10,30]],3,1));
+   const platTop=mk('lane-end platform top',stainMap(7743,'#7e7e7c',[[8,'170,170,168',.45,20,60],[14,'52,50,46',.45,10,36],[6,'70,80,52',.3,10,30]]));
+   const platSide=mk('lane-end platform stained side',stainMap(7744,'#5f5955',[[18,'26,25,23',.6,12,46],[8,'120,116,110',.35,10,30],[8,'62,74,44',.35,10,28]],2,1));
+   for(const o of group.children){if(!o.isMesh||o.material!==laneConcrete||!o.geometry.groups||o.geometry.groups.length!==6)continue;
+     const plat=o.name.includes('platform'),s=plat?platSide:riser,t=plat?platTop:tread;o.material=[s,s,t,s,s,s];}}
   shopLift.push([group.children.length,K.colliders.length,K.surfaces.length]);
   // User's note: no wooded mound, hill stair, white block or shed beyond the tank's
   // south-east corner (the earlier reading of 15.20.13 / 15.28.26 is withdrawn).
