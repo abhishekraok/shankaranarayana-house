@@ -1455,7 +1455,7 @@ export function buildTemple(K) {
   // Three photographed shrines sit below real half-cylinder vaults at the rear
   // of the left range. Their exact spacing is inferred from the walking sequence.
   const circuitStone=mat('#a69c8b');circuitStone.map=agedWhite.map;
-  const shrineStepGrey=mat('#9b9a93',.95);
+  const shrineStepGrey=mat('#9b9a93',.95);shrineStepGrey.map=agedWhite.map; // 15.04.59: stained, mottled concrete, not a flat grey slab
   const nagaYellow=mat('#d9b03c',.8),nagaBlue=mat('#4d7fb5',.9),nagaStone=mat('#5a5a52',.9), /* 15.04.59: the stones are dark grey (85,89,81), not tan */nagaStoneGeo=new THREE.SphereGeometry(1,12,10,0,Math.PI*2,0,Math.PI*.62);
   const vaults=new THREE.Group();vaults.name='Three red-edged outer shrine vaults';g.add(vaults);K.roofs.push(vaults);
   for(let i=0;i<3;i++){
