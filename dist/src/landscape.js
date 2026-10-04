@@ -1514,6 +1514,14 @@ export function buildLandscape(K, {mobile=false}={}) {
   {const path=box('Shop-front worn laterite footpath',56.75,lawnTop-.015,-24.3,1.35,.04,22.4,lateritePath);path.rotation.y=-.165;
     K.surface(56.75,-24.3,2.6,22.4,lawnTop+.005);}
   box('Footpath widening at the lane steps',55.0,lawnTop-.014,-13.5,2.2,.04,1.4,lateritePath);
+  // 15.20.13: in front of the shop's south half the path spreads into a broad, irregular worn patch
+  // that narrows towards the far end of the veranda. Own seed, so no later planting shifts.
+  {let n=44021;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   for(const [k,[cx,cz,rx,rz]] of [[55.7,-15.4,1.3,2.1],[56.4,-18.8,1.7,3.4],[57.3,-23.2,1.4,3.0],[58.7,-24.2,1.1,1.2],[57.6,-27.6,1.0,2.2]].entries()){
+     const y=lawnTop+.008+k*.002,pos=[cx,y,cz],uv=[cx*.5,cz*.5],idx=[],rad=Array.from({length:20},()=>.68+r()*.32);
+     for(let i=0;i<=20;i++){const a=i/20*Math.PI*2,q=rad[i%20],vx=cx+Math.cos(a)*rx*q,vz=cz+Math.sin(a)*rz*q;pos.push(vx,y,vz);uv.push(vx*.5,vz*.5);if(i)idx.push(0,i+1,i);}
+     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();
+     const m=new THREE.Mesh(g,lateritePath);m.name='Shop-front worn laterite patch';m.receiveShadow=true;group.add(m);}}
   // 14.59.54 / 15.13.26: three broad concrete steps climb from the lane end to the lawn. A raised
   // concrete platform with a drain opening stands to their right.
   const laneConcrete=materials.mortar.clone();laneConcrete.color.set('#8d877c');
