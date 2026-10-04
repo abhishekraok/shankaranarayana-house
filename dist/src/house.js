@@ -202,23 +202,24 @@ export function buildHouse(K) {
   const riserGrey=K.M.plaster.clone();riserGrey.color.set('#85847c');riserGrey.roughness=1;
   const riserOxide=new THREE.MeshStandardMaterial({color:'#7a4a3c',roughness:.9});
   for(const side of [-1,1]) {
-    floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,1.15,2.99,1.80,.75,verandaRed,.30);
-    b('Veranda worn pale platform riser',side*2.745,.59,.255,2.99,.27,.05,riserOxide); // 14.56.30: worn red-brown under the stone edge
-    b('Veranda dark stone sitting edge',side*2.745,.765,.29,2.99,.045,.22,'stone');
-    b('Veranda entrance end riser',side*1.26,(EL+.725)/2,1.15,.07,.725-EL,1.80,riserGrey);
-    b('Veranda entrance end stone coping',side*1.375,.768,1.15,.30,.045,1.80,'stone'); // a broad stone edge (14.56.30)
+    // veranda.jpg: a stone strip about 0.3 m wide runs along the platform edge wholly in front of the posts,
+    // and the red floor starts at the post faces: the bays reach 0.32 m further toward the lane (z -.07).
+    floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,.99,2.99,2.12,.75,verandaRed,.30);
+    b('Veranda worn pale platform riser',side*2.745,.59,-.065,2.99,.27,.05,riserOxide); // 14.56.30: worn red-brown under the stone edge
+    b('Veranda dark stone sitting edge',side*2.745,.765,.045,2.99,.045,.30,'stone');
+    b('Veranda entrance end riser',side*1.26,(EL+.725)/2,.99,.07,.725-EL,2.12,riserGrey);
+    b('Veranda entrance end stone coping',side*1.375,.768,.99,.30,.045,2.12,'stone'); // a broad stone edge (14.56.30)
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F,verandaRed,.18);
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
   // 14.56.30: the walking strip is a neutral grey-brown stone, not green-grey.
   const walkStone=greyCement.clone();walkStone.color.set('#bbadad');walkStone.roughness=.6; // 14.56.30: smooth worn grey cement (about 97,90,89), no flagstone joints
-  floor('Entrance-left lower stone walking strip',5.62,-.31,8.36,1.02,.455,walkStone,.05);
-  floor('Entrance-right lower stone walking strip',-4.77,-.31,6.66,1.02,.455,walkStone,.05);
+  floor('Entrance-left lower stone walking strip',5.62,-.425,8.36,.79,.455,walkStone,.05);
+  floor('Entrance-right lower stone walking strip',-4.77,-.425,6.66,.79,.455,walkStone,.05);
   for(const s of [-1,1]){
     // The raised side walk ends in a plain face at the passage, with one worn step up to it.
-    b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.31,.06,.43-EL,1.02,riserGrey);
-    b('Entrance passage side riser',s*1.33,(EL+F)/2,.11,.22,F-EL,.28,riserGrey);
-    floor('Entrance passage side step',s*1.27,-.31,.34,.9,.265,'stone',.265-EL);
+    b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.445,.06,.43-EL,.75,riserGrey);
+    floor('Entrance passage side step',s*1.27,-.445,.34,.70,.265,'stone',.265-EL);
     floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,'stone',.41-EL);
     // house-front.jpg: a low masonry cheek stands out from the plinth either side of the entry slab.
     b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
@@ -452,8 +453,8 @@ export function buildHouse(K) {
     }
     if(side>0)for(const part of g.children.slice(windowStart))part.position.z+=.18;
     // The sitting bays end at transverse walls; the lower outer strip continues.
-    b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,1.15,.20,2.98,1.80,verandaAqua,true);
-    b('Sitting bay end red skirting',side*4.188,1.00,1.15,.026,.49,1.80,verandaRed);
+    b(side>0?'Left sitting bay turquoise end wall':'Right sitting bay turquoise end wall',side*4.30,2.08,.99,.20,2.98,2.12,verandaAqua,true); // veranda.jpg: the end wall reaches the platform edge
+    b('Sitting bay end red skirting',side*4.188,1.00,.99,.026,.49,2.12,verandaRed);
     if(side>0){
       for(const [a,z] of [[1.25,2.05],[3.95,4.24]])b('Sitting bay wall red skirting',(a+z)/2,1.00,1.907,z-a,.49,.024,verandaRed);
       b('Sitting window red sill return',3,.88,1.907,1.9,.25,.024,verandaRed);
@@ -714,8 +715,9 @@ export function buildHouse(K) {
   // Square bases transition into long octagonal necks and bulbous ring capitals.
   // 14.56.07 / 14.56.22 / 14.56.30: the ringed capital is no wider than the square shaft under it.
   const capitalProfile=[[.15,0],[.165,.05],[.175,.075],[.15,.11],[.165,.15],[.185,.19],[.168,.23],[.195,.28],[.20,.33],[.178,.38],[.20,.43],[.205,.49],[.185,.54],[.205,.60],[.195,.67],[.16,.73],[.18,.78],[.195,.83],[.165,.90]];
+  const postPad=new THREE.MeshStandardMaterial({color:'#a08678',roughness:.95});
   for(const x of [-4.02,-1.65,1.65,4.02]) {
-    b('Entrance seating post stone foot',x,.80,.36,.58,.10,.55,'stone');
+    b('Entrance seating post stone foot',x,.77,.36,.44,.04,.44,postPad); // a thin worn pad on the red floor, behind the stone edge
     b('Entrance seating square timber shaft',x,1.50,.36,.42,1.35,.42,verandaTimber,true);
     b('Entrance seating narrow square neck',x,2.24,.36,.30,.25,.30,verandaTimber);
     const cap=new THREE.Mesh(new THREE.LatheGeometry(capitalProfile.map(([r,y])=>new THREE.Vector2(r,y)),8),verandaTimber);
