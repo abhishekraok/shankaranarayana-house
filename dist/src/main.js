@@ -67,7 +67,7 @@ water.onBeforeRender=function(...args){if(!phoneMode||reflectionFrame++%2===0)re
 // room is dark from outside and readable from inside. SKY_OCCLUSION=false restores the old light.
 // SKY_FLOOR is the share of indirect light left where no sky is seen; SKY_INDOOR_GAIN multiplies the
 // outdoor exposure (set on the renderer above, and never changed in the open) for a wholly roofed view.
-const SKY_OCCLUSION=true,SKY_FLOOR=.2,SKY_INDOOR_GAIN=4,SKY_ADAPT_SECONDS=.5;
+const SKY_OCCLUSION=true,SKY_FLOOR=.15,SKY_INDOOR_GAIN=5.3,SKY_ADAPT_SECONDS=.5;
 const skyShade=SKY_OCCLUSION?(()=>{
  // 10 cm texels over house, temple, lakeside buildings and pavilion (20 cm on phones).
  // Walls look for the roof's edge along TAPS samples, STEP metres apart: fewer and coarser on phones.
