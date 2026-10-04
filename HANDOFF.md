@@ -26,6 +26,27 @@ committed) still apply.
 
 ## Night of 2026-10-03: the user's two new game notes, Codex's findings
 
+**State when this pass ended (2026-10-04, about 02:40 PDT).** The user's goal for the pass: "Keep working to
+make the webapp and the Unreal game beautiful and faithful to the photos. It should be a delight to use. Remove
+things that look odd or unreal." About 150 commits on `main` since `30e9675`, most from sub-agents working one
+builder file each (details in the bullets below). All ten tests pass; the packaged game was rebuilt from the
+final `main` and passed its smoke and cold-restart checks (see the last bullet for the time).
+
+For the owner:
+- 32 saved photo poses no longer fit, because the model moved under them. Re-align with:
+  http://127.0.0.1:4173/?align=14.37.50%7C14.35.26%7Chouse,%20God%20room,%20left%20side%7Chouse%20God%20room,%20right%20top%20corner%7C14.46.10%7C14.46.21%7C14.46.04%7C14.48.07%7C14.48.11%7C14.48.31%7C14.52.16%7C14.30.57%7C14.31.01%7C14.31.43%7Cfacing%20out.jpg%7Cfacing%20out%202%7C15.14.30%7C15.15.11%7C15.15.26%7C15.08.42%7Ctemple%20inner%20sanctum,%20left%20side%7C15.01.56%7C15.02.00%7C15.14.56%7C15.04.08%7C15.04.51%7C15.05.48%7C14.58.02%7C14.58.05%7C15.20.13%7C14.59.54%7C15.25.49
+  (the server must run with the photo folder: `node server.mjs --photos F:/Shankaranarayana`).
+- Decisions wanted: the court stair's 1.1 m shift (an estimate, 0.7-1.7); whether the rear veranda's east
+  stretch had no screen (14.30.57); the gallery's dark back wall in the temple (15.12.42); whether the stored
+  boards and work table on the temple veranda should go; the bathing gate (landscape fix 1); the house's east
+  end and the stage / tank east end (unchanged, still open).
+
+Next work, in order: (1) new notes in `F:/Shankaranarayana/unreal-notes.json` and pose notes; (2) the fixes
+left in `docs/photo-review-2026-10-01-fixes.json`: temple 5, 6, 9, 20, 24, 25; landscape 1, 8, 9, 10, 14B and
+23 step 1; house 9 (arched head), 19 (soffit); (3) the interface leftovers listed below; (4) run
+`tools/scan-floating.mjs`, `scan-zfight.mjs`, `scan-surface-gaps.mjs`, `scan-blocked-poses.mjs` and
+`scan-roof-normals.mjs` after any batch of changes, and sweep the tour frames in both the web view and the game.
+
 - Game notes of 2026-10-02 22:51 (`F:/Shankaranarayana/unreal-notes.json`, the last two): the court pocket
   floor is the passage's smooth dark stone (it was green flagstones), and the raised red floor east of
   the passage starts in line with the court's blue railing (`hallX` = 6.85 in house.js). From the east
@@ -209,6 +230,14 @@ committed) still apply.
 - Under the indoor exposure a photo-sampled colour used directly as a material renders about twice too
   bright: measure the surface against the floor in the same frame and scale the material by that ratio.
   Shade painted into a material now doubles with the sky occlusion.
+- Interface, second round: the loading screen names the place and says what is being built; the Photographs
+  list is grouped like Go to; the dead welcome screen is gone; a photo chosen while the tour is paused stays.
+  Left: dragging, W or the wheel during the tour drop into free flight (`takeFlight()`; `tests/wheel-movement.mjs`
+  asserts the wheel does so), where the gamepad walks; no pinch zoom in Aerial view on phones.
+- Game, final state: rebuilt from `main` at `3abfe30` and packaged at 02:27 on 2026-10-04; smoke and
+  cold-restart checks passed; eight photo poses and 96 tour frames were captured in the editor and looked
+  over (`unreal/Shankaranarayana/Saved/Captures/diag-n3` and `tour-sweep-2` in the photoreal worktree). The
+  only commits on `main` after that build are this file's notes. Launch with `unreal/play.cmd`.
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
