@@ -1592,6 +1592,17 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Shop side open drain bottom',64.0,.025,-15.24,7.5,.04,.34,materials.wetStone);
   for(const z of [-15.47,-15.02])box('Shop side drain concrete lip',64,.11,z,7.5,.18,.12,materials.mortar);
   K.labels.push({text:'Lakeside shop',position:[60.1,3.6,-25]});
+  // 15.13.26 / 15.14.07: a concrete lamp pole stands on the lawn just inside the tank's
+  // south-east corner, its lamp arm over the bank, wires running to the shop eave and the
+  // stage; a thinner pole stands further along the lawn. (Bases at the lawn's present level.)
+  {K.cylinder(group,'Lawn concrete utility pole',50.9,3.75,-12.6,.09,.11,7.5,materials.mortar,9,true);
+   box('Lawn utility pole crossarm',50.9,6.9,-12.6,.08,.08,1.25,materials.mortar);
+   K.beam(group,'Lawn utility pole lamp arm',[50.9,6.6,-12.6],[49.7,6.75,-12.6],.04,'metal');
+   box('Lawn utility pole lamp',49.62,6.72,-12.6,.34,.07,.14,materials.mortar);
+   K.cylinder(group,'Lawn thin utility pole',52.5,3.35,-32.5,.07,.08,6.7,materials.mortar,9,true);
+   for(const [to,sag,dz] of [[[61.5,5.2,-17.6],.45,-.5],[[61.5,5.2,-16.8],.5,.5],[[59.4,9.4,-9],.6,0]]){
+     const a=new THREE.Vector3(50.9,6.9,-12.6+dz),b=new THREE.Vector3(...to),mid=a.clone().lerp(b,.5);mid.y-=sag;
+     const wire=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([a,mid,b]),18,.009,4,false),materials.mortar);wire.name='Lawn utility pole wires';group.add(wire);}}
   // The roofed tank-side structure is the long bathing arcade above.
   // There is no separate tiny gatehouse on the intervening boundary.
   function laneHouse(name,x,z,w,d,h,front){ // roofs use darkTile, defined with the materials
