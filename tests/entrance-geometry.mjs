@@ -97,8 +97,8 @@ assert.equal(temple.getObjectByName('Central white entrance gable'),undefined,'A
 assert.equal(temple.getObjectByName('Left lower guardian'),undefined);
 const doorEye=new THREE.Vector3(...photos.templedoor.p).add(new THREE.Vector3(0,1.62,0));
 for(const [point,prefix] of [
-  [[42.35,1.95,5.82],'Entrance doorway left original painting'],
-  [[35.65,1.95,5.82],'Entrance doorway right original painting'],
+  [[41.6,2.1,5.82],'Entrance doorway left original painting'],
+  [[36.4,2.1,5.82],'Entrance doorway right original painting'],
   [[39,3.18,5.738],'Entrance doorway original inscription'],
 ]){
   const ray=new THREE.Raycaster(doorEye,new THREE.Vector3(...point).sub(doorEye).normalize());

@@ -320,27 +320,40 @@ export function buildTemple(K) {
   }
   // Rectify the four photographed frames with a projective UV map. Source
   // photographs remain unchanged; subdivision preserves the perspective warp.
-  function deityPhoto(name,x,url,corners){
+  // 15.14.30 / 15.15.11 / 15.15.51: the frames hang a hand above the marble dado and end near the
+  // door-head line (about 1.5 m tall, not 2 m); the outer pair (Ganesh, Hanuman) is about 1.3 times
+  // as wide as the inner pair, which starts some 0.4 m beyond a notched white pilaster at the
+  // door surround, with about 0.4 m of wall between frames.
+  function deityPhoto(name,x,url,corners,w,h=1.5){
+    const yc=1.35+h/2;
     const tex=new THREE.TextureLoader().load('./assets/'+url);tex.colorSpace=THREE.SRGBColorSpace;
     const q=corners.map(([u,v])=>[u/1824,v/1368]);
     const [a,b,c,d]=q,dx1=b[0]-c[0],dx2=d[0]-c[0],dx3=a[0]-b[0]+c[0]-d[0];
     const dy1=b[1]-c[1],dy2=d[1]-c[1],dy3=a[1]-b[1]+c[1]-d[1];
     const det=dx1*dy2-dx2*dy1,hg=(dx3*dy2-dx2*dy3)/det,hh=(dx1*dy3-dx3*dy1)/det;
-    const geo=new THREE.PlaneGeometry(1.55,1.92,16,20),uv=geo.attributes.uv;
+    const geo=new THREE.PlaneGeometry(w-.11,h-.11,16,20),uv=geo.attributes.uv;
     for(let i=0;i<uv.count;i++){
       const u=uv.getX(i),v=1-uv.getY(i),den=hg*u+hh*v+1;
       uv.setXY(i,((b[0]-a[0]+hg*b[0])*u+(d[0]-a[0]+hh*d[0])*v+a[0])/den,
         1-((b[1]-a[1]+hg*b[1])*u+(d[1]-a[1]+hh*d[1])*v+a[1])/den);
     }
-    const o=mesh(name,geo,new THREE.MeshStandardMaterial({map:tex,roughness:.92}),x,2.0,5.82);o.rotation.y=Math.PI;
-    box(name+' timber frame',x,2.0,5.86,1.66,2.03,.055,K.M.wood);
+    const o=mesh(name,geo,new THREE.MeshStandardMaterial({map:tex,roughness:.92}),x,yc,5.82);o.rotation.y=Math.PI;
+    box(name+' timber frame',x,yc,5.86,w,h,.055,K.M.wood);
     o.userData.source=url;o.userData.photoCorners=corners;
   }
   // Facing into the temple, +X is the viewer's left: Ganesh, Shiva, Vishnu, Hanuman.
-  deityPhoto('Entrance Ganesh original painting',44.2,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[867,984],[316,991]]);
-  deityPhoto('Entrance doorway left original painting',42.35,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]]);
-  deityPhoto('Entrance doorway right original painting',35.65,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]]);
-  deityPhoto('Entrance Hanuman original painting',33.8,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]]);
+  // Ganesh: the lower corners stop under the caption, above the red pedestal that stood in front
+  // of the frame's corner in the source photograph.
+  deityPhoto('Entrance Ganesh original painting',43.375,'temple-ganesh-shiva.jpg',[[283,421],[838,352],[863,902],[312,917]],1.55);
+  deityPhoto('Entrance doorway left original painting',41.6,'temple-ganesh-shiva.jpg',[[991,306],[1515,269],[1550,966],[1037,985]],1.2);
+  deityPhoto('Entrance doorway right original painting',36.4,'temple-vishnu.jpg',[[333,54],[1085,100],[1104,1061],[365,1113]],1.2);
+  deityPhoto('Entrance Hanuman original painting',34.625,'temple-hanuman.jpg',[[459,3],[1549,179],[1598,1116],[469,1283]],1.55);
+  // 15.16.13 / 15.14.30: white pilaster with projecting blocks between the surround and the first
+  // painting on each side; the marble dado returns round its foot.
+  for(const s of [-1,1]){
+    box('Entrance rear wall notched pilaster',39+s*1.37,2.125,5.89,.26,2.55,.18,whiteTrim);
+    for(const y of [1.55,2.30,3.05])box('Entrance rear wall pilaster block',39+s*1.56,y,5.89,.12,.35,.18,whiteTrim);
+    box('Entrance rear wall pilaster marble foot',39+s*1.43,1.05,5.875,.40,.40,.20,doorPlinth);}
   doorPhoto('Entrance doorway original inscription',39,3.19,5.738,2.40,.70,[.306,.133,.690,.283]);
   // The painted blue marbling and red drapes of the surround, from the same photograph.
   doorPhoto('Entrance doorway original painted left surround',39.95,1.81,5.745,.58,1.92,[.2975,.27,.395,.70]);
