@@ -654,6 +654,9 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 15.11.58: the arcade floor and the gate landing are worn concrete, patchy, not one flat tan.
   {const wornFloor=new THREE.MeshStandardMaterial({map:stainMap(60411,'#978e7f',[[14,'182,174,160',.45,16,50],[16,'112,102,90',.4,10,36],[8,'128,96,78',.3,8,24]]),roughness:1});wornFloor.name='worn concrete floor';
    for(const o of group.children)if(o.name==='Bathing arcade raised floor slab'||o.name==='Bathing gate approach landing')o.material=wornFloor;}
+  // 15.30.09: the paths round the tank are stony earth, grey-brown with laterite showing, not clean tan paving.
+  {const stonyPath=new THREE.MeshStandardMaterial({map:stainMap(71907,'#84786a',[[26,'150,142,128',.45,6,22],[26,'82,70,58',.5,5,20],[16,'132,88,66',.4,6,20],[8,'96,106,60',.3,4,12]]),roughness:1});stonyPath.name='stony earth path';
+   for(const o of group.children)if(/^tank perimeter path [124]$/.test(o.name))o.material=stonyPath;}
   const pavilionRoofTop=new THREE.MeshStandardMaterial({map:stainMap(52711,'#66605e',[[12,'150,144,140',.5,18,55],[20,'36,34,30',.55,10,42],[10,'74,82,52',.35,10,30]]),roughness:1});pavilionRoofTop.name='pavilion weathered roof top';
   box('pavilion exposed concrete roof', px, 2.309, pz, pw + .48, .023, pd + .48, pavilionRoofTop, false, pavilionRoof);
   // 15.22.33: the roof slab's edge band is whitewash stained grey and black in patches; the floor inside is
