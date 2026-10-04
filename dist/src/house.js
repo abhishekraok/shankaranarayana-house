@@ -697,7 +697,8 @@ export function buildHouse(K) {
   rope.name='Courtyard veranda sagging clothesline';g.add(rope);
   function hangingCloth(z,width,length,color){
     const geom=new THREE.PlaneGeometry(width,length,22,20),pos=geom.attributes.position;
-    for(let i=0;i<pos.count;i++)pos.setZ(i,.034*Math.sin(pos.getX(i)*42)+.009*Math.sin(pos.getY(i)*17));
+    // a few soft folds that open towards the hem: the tight even ripple read as corrugated sheet
+    for(let i=0;i<pos.count;i++){const X=pos.getX(i),t=.5-pos.getY(i)/length;pos.setZ(i,(.006+.02*t)*Math.sin(X*17+z*3)+.008*t*Math.sin(X*31+1.3));}
     geom.computeVertexNormals();
     const mesh=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1,side:THREE.DoubleSide}));
     mesh.name='Courtyard veranda hanging cloth';mesh.rotation.y=Math.PI/2;mesh.position.set(-8.56,2.57-length/2,z);mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);
@@ -1927,7 +1928,7 @@ export function buildHouse(K) {
   K.beam(g,'Rear veranda clothesline',[-7.5,2.95,15.1],[5.8,2.90,15.1],.014,'black');
   for(const [x,w,h,color] of [[-5.5,.67,1.35,0xd5d4c5],[-4.55,.60,1.12,0xc2ad88],[.3,.78,1.18,0xe0d9c7],[1.10,.69,.78,0x982d41],[2.0,.43,1.40,0x9a5d85]]) {
     const geom=new THREE.PlaneGeometry(w,h,18,18),pos=geom.attributes.position;
-    for(let i=0;i<pos.count;i++)pos.setZ(i,.025*Math.sin(pos.getX(i)*40)+.012*Math.sin(pos.getY(i)*9));
+    for(let i=0;i<pos.count;i++){const X=pos.getX(i),t=.5-pos.getY(i)/h;pos.setZ(i,(.006+.02*t)*Math.sin(X*17+x*3)+.008*t*Math.sin(X*31+1.3));} // soft folds opening towards the hem, as in the courtyard veranda
     geom.computeVertexNormals();
     const cloth=new THREE.Mesh(geom,new THREE.MeshStandardMaterial({color,roughness:1,side:THREE.DoubleSide}));
     cloth.position.set(x,2.9-h/2,15.1);cloth.castShadow=true;cloth.receiveShadow=true;cloth.name='Cloth drying in rear veranda';g.add(cloth);
