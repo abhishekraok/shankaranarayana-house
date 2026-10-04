@@ -1786,7 +1786,7 @@ export function buildLandscape(K, {mobile=false}={}) {
     const cable=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points),points.length*2,.008,4),new THREE.MeshStandardMaterial({color:'#343c32',roughness:.8}));cable.name='Sagging roadside utility wire';group.add(cable);
   }
   // The photographed canopy encloses the lane instead of sitting far behind it.
-  for(const [x,z,h,r] of [[-17,5,10,4.7],[-27,4,11,5.0],[-37,3.5,12,5.4],[-53,1.5,10,4.5],[-74,-4,12,5],[-41,-19,9,4.3],[-60,-25,10,5]])broadleaf(x,z,h,r);
+  for(const [x,z,h,r] of [[-23.4,6.5,10,4.7],[-29.5,3,11,5.0],[-37,3.5,12,5.4],[-53,1.5,10,4.5],[-74,-4,12,5],[-41,-19,9,4.3],[-60,-25,10,5]])broadleaf(x,z,h,r);
   for(const p of [[-24,-13,15],[-31,-11,16],[-35,-19,17],[-46.5,-13.5,14],[-55,-23,16]])palm(...p);
   for(let i=0;i<230;i++){
     const t=range(0,.59),p=roadCurve.getPoint(t),side=i%2?1:-1,z=p.z+side*range(2.45,4.15);

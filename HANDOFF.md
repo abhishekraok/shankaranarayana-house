@@ -163,6 +163,28 @@ committed) still apply.
   now relaxed there: the old fence's material family (now optional), the paving material's single user (the
   hall-awning floor is allowed), stale material slots left by re-import (skipped when the fresh GLB has no
   such material), and the non-foliage name list.
+- Temple sweep (ten commits, merged): the covered hall's stage bay floor meets the west veranda (the 4 cm slit
+  is gone); the two notice boards stand on the veranda edge and hang from the transom sill, each with a back
+  board; a flicker table `give` near the end of buildTemple moves 20 named parts by a few millimetres (add a
+  name and offset there for future coplanar pairs), followed by a pass that stops the veranda plinths and
+  copings at the inner corners; the stored boards lie in a pile on the west veranda with a blocker; the
+  prabhavali arch stands on brass uprights; a continuous dark wall closes the gaps behind the rear ledge
+  columns; the inner front veranda has a white soffit; the rear ledge frieze is dusty rose; the lamp shelter
+  roof is timber, the naga stones darker, the vaulted shrines' steps stained concrete. For the owner's eye:
+  whether the gallery's dark back wall ('Courtyard gallery shaded upper back') should be white or open
+  (15.12.42), and whether the stored boards and work table should simply go.
+- House sweep (fifteen commits, merged): `edgeStone` is the smooth dark veranda stone on platform edges,
+  copings, steps and door bases (no flagstone joints); the God room's two stand-in prints are dim glazed
+  devotional prints; the front awning stops inside the balcony slab (its tiles and grass came up through
+  the upper floor); the sheet at the God room's west plinth really leans on it (Euler order 'ZYX');
+  `windowDark()` makes the upper court windows' dark a one-sided plane, so the rooms see out; the God room
+  side bands start at the tall block's corner (`shrineBandSpans` from z 6.96); rear wall damp runs, laundry
+  folds and sacks are softer; five flicker pairs fixed. Left: the outer parapet coping and entrance cheek
+  tops are still jointed green-grey 'stone'.
+- Also in this pass: the tree whose crown grew through the house's west upper room moved west (landscape.js
+  line with `[-23.4,6.5,10,4.7]`); the parked car is plain wine red; the bare lawn pole carries lines; a stone
+  coping course hides the terrain edge over the bathing recess; the tour looks up the temple's west aisle;
+  ceilings keep more sky-bounce light the more open sides they have (pavilion soffit grey, not black).
 - Working with sub-agents: each ran in its own git worktree, one builder file each. `tools/capture-fidelity.cjs`
   serves the JS modules of the checkout it is run from, so renders work in a worktree while the server on
   4173 serves main; browser tests do not (they need `PORT=<n> node server.mjs` from the worktree and copies
