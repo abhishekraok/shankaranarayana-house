@@ -601,7 +601,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   const pavilionChildren=group.children.length,pavilionColliders=K.colliders.length,pavilionSurfaces=K.surfaces.length,pavilionRamps=K.ramps.length;
   const px = -14.7, pz = -39.55, pw = 5.0, pd = 4.45, floor = -.29;
   // 14.58.26: the pavilion stands on grey-brown dressed stone, clearly lighter than the water.
-  box('pavilion masonry island', px, -.995, pz, pw, 1.25, pd, new THREE.MeshStandardMaterial({color:'#5a5852',roughness:1})); // 15.21.56 / 15.30.02: dark wet stone
+  box('pavilion masonry island', px, -1.025, pz, pw, 1.19, pd, new THREE.MeshStandardMaterial({color:'#5a5852',roughness:1})); // 15.21.56 / 15.30.02: dark wet stone
   box('pavilion pale floor', px, floor - .07, pz, pw, .14, pd, materials.oldWhite);
   K.surface(px, pz, pw, pd, floor);
   // The bank entry is rebuilt in final coordinates below, after placement.
@@ -657,7 +657,18 @@ export function buildLandscape(K, {mobile=false}={}) {
    const f=group.children.find(o=>o.name==='pavilion pale floor');if(f)f.material=floorMat;
    // The stains belong to the weather faces; the ceiling stays plain whitewash.
    const soffit=materials.oldWhite.clone();soffit.color.set('#c4c4be');soffit.name='pavilion whitewashed soffit';
-   const s=pavilionRoof.children.find(o=>o.name==='pavilion weathered flat slab');if(s)s.material=[pavilionGrey,pavilionGrey,pavilionGrey,soffit,pavilionGrey,pavilionGrey];}
+   const s=pavilionRoof.children.find(o=>o.name==='pavilion weathered flat slab');if(s)s.material=[pavilionGrey,pavilionGrey,pavilionGrey,soffit,pavilionGrey,pavilionGrey];
+   // 15.22.33 / 14.58.26: the island is coursed dressed stone, blocks and joints showing above the water.
+   const isl=group.children.find(o=>o.name==='pavilion masonry island');
+   if(isl){const c=document.createElement('canvas');c.width=c.height=256;const x=c.getContext('2d');let n=9917;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+     x.fillStyle='#5e5b55';x.fillRect(0,0,256,256);
+     for(let row=0;row<8;row++)for(let col=-1;col<4;col++){const x0=col*64+(row%2?32:0),a=(.04+r()*.13).toFixed(3);
+       x.fillStyle=r()<.5?`rgba(26,25,23,${a})`:`rgba(150,144,134,${a})`;x.fillRect(x0,row*32,64,32);
+       x.fillStyle='rgba(22,21,19,.55)';x.fillRect(x0,row*32,2,32);}
+     x.fillStyle='rgba(22,21,19,.55)';for(let row=0;row<8;row++)x.fillRect(0,row*32,256,2);
+     for(let i=0;i<1800;i++){x.fillStyle=r()<.5?'rgba(170,164,152,.14)':'rgba(18,17,15,.18)';x.fillRect(r()*256,r()*256,1+r()*2,1+r()*2);}
+     const m=new THREE.CanvasTexture(c);m.colorSpace=THREE.SRGBColorSpace;m.wrapS=m.wrapT=THREE.RepeatWrapping;m.anisotropy=4;
+     isl.material=new THREE.MeshStandardMaterial({map:m,roughness:1});isl.material.name='pavilion dressed stone plinth';}}
   function scallopedPanel(width, height, count, depth) {
     const shape = new THREE.Shape(); shape.moveTo(0, 0); shape.lineTo(width, 0);
     // 15.21.56 / 15.22.06: a flat band with a row of small half-round lobes along its foot.
