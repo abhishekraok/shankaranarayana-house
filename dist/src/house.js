@@ -1744,7 +1744,7 @@ export function buildHouse(K) {
     const ragged=(name,profile,material,dz)=>{ // profile: [x, top edge above F]; the foot stands on the dado top
       const s=new THREE.Shape();s.moveTo(-profile[0][0],F+.45);
       for(let i=0;i<profile.length-1;i++){const [xa,ha]=profile[i],[xb,hb]=profile[i+1],n=Math.max(1,Math.round((xb-xa)/.11));
-        for(let k=0;k<n;k++){const t=k/n;s.lineTo(-(xa+(xb-xa)*t+(rnd()-.5)*.05),F+Math.max(.47,ha+(hb-ha)*t+(rnd()-.5)*.16));}}
+        for(let k=0;k<n;k++){const t=k/n;s.lineTo(-(xa+(xb-xa)*t+(rnd()-.5)*.05),F+Math.max(.47,ha+(hb-ha)*t+(rnd()-.5)*.07));}} // a ragged edge; at +-8 cm it stood up in peaks like a mountain skyline
       s.lineTo(-profile.at(-1)[0],F+.45);s.closePath();
       const m=new THREE.Mesh(new THREE.ShapeGeometry(s),material);m.name=name;m.rotation.y=Math.PI;m.position.set(0,0,Z-dz);g.add(m);};
     ragged('Rear veranda bare plaster where the wash has fallen',[[2.95,.47],[3.5,.56],[4.3,.70],[5.0,.82],[6.36,.84],[6.42,1.25],[6.52,1.5],[6.8,1.62],[6.95,2.0],[7.2,2.2],[7.55,2.1],[7.8,1.62],[8.05,1.4],[8.35,1.0],[8.9,.8],[9.6,.62],[11.0,.52],[11.7,.47]],bare,.0095);
