@@ -189,9 +189,11 @@ assert.equal(landscape.getObjectByName('Tank lane gatehouse tiled roof'),undefin
 const gatePiers=landscape.children.filter(o=>o.name==='Tank gate square stepped stone pier');
 assert.ok(gatePiers.every(o=>Math.abs(o.position.x-16.4)<.01),'Gate piers run perpendicular to the house-facing rail');
 assert.ok(!collision(50.08,-22.15,.055),'East bathing stair opening remains clear');
-for(const name of ['Stage upper left photographed figure','Stage upper right photographed figure','Stage lower left photographed figure','Stage lower right photographed figure']){
-  const figure=landscape.getObjectByName(name),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),figure.position.clone().sub(new THREE.Vector3(51,4,-5)).normalize());
-  assert.equal(ray.intersectObject(landscape,true)[0]?.object.name,name,'Decorative figure visible from the forecourt');
+// The figures are modelled stone groups (lotus base, body, arms), not photo panels: aim at the chest.
+for(const name of ['Stage upper left stone figure','Stage upper right stone figure','Stage lower left stone figure','Stage lower right stone figure']){
+  const figure=landscape.getObjectByName(name),chest=figure.position.clone().add(new THREE.Vector3(0,.9,0)),ray=new THREE.Raycaster(new THREE.Vector3(51,4,-5),chest.sub(new THREE.Vector3(51,4,-5)).normalize());
+  assert.equal(ray.intersectObject(landscape,true)[0]?.object.parent?.name,name,'Decorative figure visible from the forecourt');
+  figure.traverse(o=>{if(o.isMesh)assert.ok(!o.material.map,'Stage figures carry no photograph');});
 }
 // The shop is beside the adjacent building, not another temple frontage.
 for(const key of ['shop','shoplake']){
@@ -208,7 +210,7 @@ const shopScreen=new THREE.Vector3(61.5,3,-25).project(shopCamera),adjacentScree
 assert.ok(shopScreen.x<adjacentScreen.x,'Shop is left of the adjacent building across the lake');
 assert.ok(Math.abs(shopScreen.x)<1&&Math.abs(adjacentScreen.x)<1,'Both buildings fit in the across-lake composition');
 assert.ok(landscape.getObjectByName('Shop cream end upper block').position.z>landscape.getObjectByName('Shop upper white rear block').position.z,'Cream end block is nearest the adjacent building');
-assert.ok(!collision(58.9,-25,.041),'Shop forecourt remains accessible');
+assert.ok(!collision(58.9,-25,.486),'Shop forecourt remains accessible'); // on the raised lawn
 // The two late-afternoon front photographs are on the near lake bank/front lane.
 for(const key of ['house','houseleft']){
   const p=photos[key].p;
@@ -350,7 +352,8 @@ for(const [x,z,height] of [[62.1,-1,2.82],[64.9,-1,3.42],[64.9,-9,3.42]]){
 }
 checkRoute('Pavilion entry from raised bank',[[34,-37.4],[34,-32]],1.38,-1.28);
 checkRoute('Pavilion return to raised bank',[[34,-32],[34,-37.4]],-1.27,-1.28);
-for(const [name,points,high] of [['West bank',[[-5.4,-24],[-2.7,-24]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
+// West bank: in through the parapet gap, down the north flight along the face, across the landing.
+for(const [name,points,high] of [['West bank',[[-5.7,-18.4],[-4.45,-18.4],[-4.45,-21.5],[-2.4,-21.5]],.055],['East bank',[[50.4,-22.15],[47.65,-22.15]],.055],['Far corner',[[-2.3,-37.4],[-2.3,-32.43]],1.38]]){checkRoute(name+' descent',points,high,-1.56);checkRoute(name+' ascent',[...points].reverse(),-1.55,-1.56);}
 checkRoute('House front to the lake verge',[[0,-5],[0,-7.4]],.051,0);
 // User's note: no opening from the lane to the gate landing; the lower bank is reached from
 // the bathing arcade stair and the gate landing only from below.
