@@ -307,13 +307,13 @@ function setLens(fov=58){if(Math.abs(camera.fov-fov)>.01){camera.fov=fov;camera.
 function updateModeUI(){ $('walk-btn').classList.toggle('active',mode==='walk');$('orbit-btn').classList.toggle('active',mode==='orbit');$('tour-btn').classList.toggle('active',mode==='tour');$('mode-label').textContent={walk:'WALK',orbit:'AERIAL',tour:'TOUR',fly:'FREE FLIGHT'}[mode];$('crosshair').style.display=mode==='walk'||mode==='fly'?'block':'none';$('tour-controls').hidden=mode!=='tour';$('tour-pause').textContent=tourPaused?'Resume':'Pause';document.body.dataset.mode=mode; }
 function release(){keys.clear();wheelTravel=0;if(document.pointerLockElement)document.exitPointerLock();}
 function capture(){if(aligning||!['walk','fly'].includes(mode))return;renderer.domElement.focus();try{const p=renderer.domElement.requestPointerLock?.();p?.catch(()=>{});}catch{/* Drag-to-look remains available without pointer lock. */}}
-function startTour(){release();mode='tour';orbit.enabled=false;entered=true;tourPaused=false;$('welcome').hidden=true;updateModeUI();}
+function startTour(){release();mode='tour';orbit.enabled=false;entered=true;tourPaused=false;updateModeUI();}
 function takeFlight(){if(mode==='tour'){release();mode='fly';orbit.enabled=false;const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();}}
-function setMode(value){if(value===mode&&entered)return;const wasWalking=entered&&mode==='walk';release();entered=true;$('welcome').hidden=true;setLens();
+function setMode(value){if(value===mode&&entered)return;const wasWalking=entered&&mode==='walk';release();entered=true;setLens();
  if(value==='orbit'){if(wasWalking)walkPosition.copy(camera.position);mode='orbit';orbit.enabled=true;camera.position.set(54,62,-68);orbit.target.set(10,0,-8);orbit.update();}
  else{mode='walk';orbit.enabled=false;camera.position.copy(walkPosition);feet=camera.position.y-1.62-lakeCameraLift(camera.position.x,camera.position.z);lookAt([camera.position.x, camera.position.y, camera.position.z+5]);}updateModeUI();
 }
-function teleport(dest,captureMouse=false){release();entered=true;$('welcome').hidden=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
+function teleport(dest,captureMouse=false){release();entered=true;mode='walk';orbit.enabled=false;feet=dest.p[1];camera.position.set(dest.p[0],feet+1.62,dest.p[2]);const h=supportY(camera.position.x,camera.position.z,feet);if(h>-5)feet=h;camera.position.y=feet+1.62+lakeCameraLift(camera.position.x,camera.position.z);setLens(dest.fov);lookAt(dest.target);const photoKey=Object.keys(photos).find(key=>photos[key]===dest);if(photoKey)showPhoto(photoKey);walkPosition.copy(camera.position);lastSafe.copy(camera.position);updateModeUI();if(captureMouse)capture();}
 // Walk carries on from where the tour is (during the opening flight: where it lands), or from a free look taken at standing height, instead of jumping back to the last walked spot.
 function walkOn(){let view=camera;if(mode==='tour'&&introClock!==null){view=tour.intro.sample(tour.intro.duration);introClock=null;tourTime=tourStartTime;}const x=view.position.x,z=view.position.z,f=view.position.y-1.62-lakeCameraLift(x,z),h=supportY(x,z,f);if(mode!=='tour'&&!(h>-4&&Math.abs(f-h)<.6&&!collision(x,z,h))){setMode('walk');return;}const e=new THREE.Euler().setFromQuaternion(view.quaternion,'YXZ');walkPosition.copy(view.position);setMode('walk');yaw=e.y;pitch=THREE.MathUtils.clamp(e.x,-.6,.6);syncLook();}
 // Phone toolbar disclosure: collapsed initially, dismissed after choosing an action.
@@ -336,7 +336,6 @@ exploreControls.addEventListener('change',e=>{if(e.target.id==='destination')set
 addEventListener('keydown',e=>{if(e.key==='Escape'&&controlsToggle.getAttribute('aria-expanded')==='true'){setControlsExpanded(false,true);}});
 compactControls.addEventListener('change',()=>setControlsExpanded(false,exploreControls.contains(document.activeElement)));
 setControlsExpanded(false);
-$('enter').onclick=()=>teleport(destinations.front,true);
 $('walk-btn').onclick=()=>{if(!entered)teleport(destinations.front,true);else{if(mode==='tour'||mode==='fly')walkOn();else setMode('walk');capture();}};
 $('orbit-btn').onclick=()=>setMode('orbit');
 $('tour-btn').onclick=()=>{if(mode==='tour'){tourTime=tourStartTime;introClock=0;}startTour();};// Returning from a walk resumes the tour where it was left; pressing Tour while it runs restarts it.
@@ -364,7 +363,7 @@ const photoAlignment=installPhotoAlignment({camera,photos,release,groundY:(x,z,y
 
 // Local-only model notes (N): hidden unless served by server.mjs on this machine.
 installModelNotes({camera,release,isBusy:()=>aligning,place:()=>location(camera.position.x,camera.position.z,camera.position.y),teleport:c=>{
- release();entered=true;$('welcome').hidden=true;mode='fly';orbit.enabled=false;
+ release();entered=true;mode='fly';orbit.enabled=false;
  camera.position.fromArray(c.position);camera.quaternion.fromArray(c.quaternion);setLens(c.verticalFov);
  const e=new THREE.Euler().setFromQuaternion(camera.quaternion,'YXZ');yaw=e.y;pitch=e.x;updateModeUI();
 }});
