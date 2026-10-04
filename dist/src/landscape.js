@@ -1106,7 +1106,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   }
   ab('projecting porch upper slab',0,4.95,-.45,4.8,.20,1.10,adjacentWhite);
   K.surface(59.55,-5,1.10,4.8,5.05);
-  for(const y of [.19,.49,.80,1.17])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone');
+  for(const y of [1.82,2.10,2.38,2.62])ab('worn foundation course',0,y,-.03,20.3,.075,.14,'paleStone'); // world heights: the terraces hide the wall below 1.7 m
   for(let i=0;i<10;i++){
     const x=56.9+(i+.5)*.31,y=(i+1)*.162;
     box('Adjacent building central stair riser',x,y/2,-5,.31,y,3.8,'paleStone');
@@ -1128,7 +1128,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // pedestals beside the plain lower flight; the north side is clear.
   // 15.19.57: an elephant stands 0.68 of a door-guardian's height (about 1.2 m), so 1.25x the first
   // model; 15.13.30: each stands on a dark slab with a calf under its trunk.
-  for(const [z,x0,top] of [[-7.35,58.0,1.25],[-7.35,55.2,.5]]){
+  for(const [z,x0,top] of [[-7.35,58.0,1.7],[-7.35,55.2,.75]]){ // 15.13.30: the upper one stands at terrace height
     box('Stage stair elephant pedestal',x0,top/2,z,1.7,top,.7,adjacentWhite,true);
     const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);el.scale.setScalar(1.25);group.add(el);
     K.box(el,'Elephant base slab',-.06,.03,0,1.3,.06,.44,elephantStone);
@@ -1370,10 +1370,14 @@ export function buildLandscape(K, {mobile=false}={}) {
    // Replace the original outside stair ramp, preserving raised interior stairs.
    K.ramps.splice(adjacentStart.ramps,1);
    for(const r of K.ramps.slice(adjacentStart.ramps)){r.lowY+=ADY;r.highY+=ADY;}
-   box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,'paleStone');
+   box('Adjacent building stair solid base',58.45,ADY/2,-5,3.1,ADY,3.8,adjacentWhite);
    const n=7,run=.314,x0=56.9-n*run;
+   // 14.28.15 / 15.13.30: the bottom three steps are plain pale concrete and flare wider; the
+   // diamond-tiled risers begin on the fourth and run on to the top.
+   const paleTread=new THREE.MeshStandardMaterial({color:'#c8c9c5',roughness:.7});
    for(let i=0;i<n;i++){const x=x0+(i+.5)*run,y=(i+1)*ADY/n;
-     box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,3.8,materials.basalt);}
+     box('Adjacent building plain lower stair tread',x,y/2,-5,run+.005,y,i<3?4.8:3.8,paleTread);
+     if(i>=3){const riser=new THREE.Mesh(new THREE.PlaneGeometry(3.77,ADY/n),stageTileMat);riser.name='Stage blue-white diamond stair riser';riser.rotation.y=-Math.PI/2;riser.position.set(x-run/2-.004,y-ADY/n/2,-5);group.add(riser);}}
    K.ramp(x0+n*run/2,-5,n*run,3.8,'x',0,ADY);K.ramp(58.45,-5,3.1,3.8,'x',ADY,1.62+ADY);}
   // 15.13.30 / 15.19.57 / 14.28.15: the four door-guardians are free-standing grey granite
   // figures on lotus bases, clear of the pillars: the lower pair on white pedestals at the stair
@@ -1399,6 +1403,25 @@ export function buildLandscape(K, {mobile=false}={}) {
      box('Stage statue bracket',58.8,6.35,z,.42,.3,.42,adjacentWhite);
      figure('Stage upper '+n+' stone figure',58.8,6.5,z,true,0);
    }}
+  // 14.28.15 (frontal) / 15.19.57 / 15.13.30: either side of the stair a stained concrete terrace
+  // stands 1.7 m high (0.6 of the stair height) between white stair cheeks, and the building's
+  // plinth above it is white, stepping back in three courses. A dark side flight with white inlays
+  // climbs from the south terrace to the porch landing. World heights, after the ADY pass.
+  {const terraceMat=agedBoundaryMaterial('#80746b',true); // measured: wet stained concrete at about half the whitewash, brownish
+   // 14.59.54: north of the stair the terrace stops at the low concrete platform (0.8 m, kept);
+   // from there on only the building's own plinth shows behind it.
+   for(const [zc,len] of [[-9.05,2.7],[.8,7.2]]){
+     box('Adjacent building forecourt terrace',58.35,.85,zc,3.3,1.7,len,terraceMat,true);K.surface(58.35,zc,3.3,len,1.7);} // x 56.7..60: clear of the tour's path at x 56.2
+   for(const [zc,d,top] of [[-7.3,.8,1.69],[-2.95,.3,1.7]]){
+     box('Adjacent building stair white cheek',57.85,top/2,zc,2.3,top,d,adjacentWhite,true);K.surface(57.85,zc,2.3,d,top);}
+   for(const [za,zb] of [[-15,-7.5],[-.7,5]])for(const [k,proj] of [.30,.18,.06].entries())
+     box('Adjacent building white moulded plinth',60-proj/2,1.87+k*.34,(za+zb)/2,proj,.34,zb-za,adjacentWhite);
+   box('Adjacent building white moulded plinth',59.97,2.21,-1.6,.06,1.02,1.8,adjacentWhite);
+   for(const z of [-7.05,-2.95])box('Adjacent building porch pier white facing',58.99,2.21,z,.02,1.02,.92,adjacentWhite);
+   steps('Adjacent building terrace side flight',59.55,-1.6,1.1,1.8,'-z',1.7,2.82,6,new THREE.MeshStandardMaterial({color:'#3c3f42',roughness:.6}));
+   // its forecourt side is whitewashed like the plinth courses (14.28.15 shows no dark flank there)
+   for(let i=0;i<6;i++)box('Adjacent building side flight white flank',58.995,1.7+(i+1)*1.12/12,-.85-i*.3,.02,(i+1)*1.12/6,.308,adjacentWhite);
+   for(let i=0;i<6;i++)for(const dx of [-.25,.25])box('Adjacent building side flight white inlay',59.55+dx,1.7+(i+.5)*1.12/6,-.696-i*.3,.12,.05,.008,adjacentWhite);}
   K.labels.push({text:'Adjacent building',position:[60,11.7,-5]});
   // 15.20.13 and 15.28.26: the same shop, beside the adjacent two-storey
   // building, on the lake's eastern edge. The frontage faces -X, like its neighbor.
