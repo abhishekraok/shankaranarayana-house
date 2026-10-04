@@ -17,6 +17,7 @@ body[data-mode=tour] #touch-controls{display:none}
 .settings input[type=checkbox]{accent-color:#decfa5;width:16px;height:16px;margin:0}
 .photo-panel{top:116px}.photo-panel>button{margin-right:18px}.photo-panel>#align-photo{float:right;margin-right:0;color:#c3cbb4}
 .toolbar button[aria-pressed=true],.toolbar button[aria-expanded=true]{color:var(--gold);box-shadow:inset 0 -2px var(--gold)}
+.destination select optgroup{background:#1c2f28;color:var(--gold)}.destination select optgroup option{color:#f1eddf}
 
 /* Keep the scene clear on phones; every exploration control remains one tap away. */
 #controls-toggle{display:none}
