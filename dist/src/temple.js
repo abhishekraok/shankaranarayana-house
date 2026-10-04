@@ -964,11 +964,26 @@ export function buildTemple(K) {
     c.fillStyle='#5e4640';c.fillRect(0,0,s,s); // 15.03.38 / 15.04.55: dark weathered brown, not brick red
     for(let i=0;i<2100;i++){c.fillStyle=i%4===0?'#cfad8e35':'#27352827';c.fillRect(rand()*s,rand()*s,1+rand()*7,2+rand()*16);}
   });wornRed.color.set('#ffffff');
+  // 15.11.08 / 15.11.17: the wall facing the open court is a laterite red-brown, redder than the
+  // east side (sampled 64,35,28 against this model's 69,51,43), and its plastered recesses sit in
+  // the eave's shade (141,136,140 against 190,195,188), stained dark along the foot.
+  const courtLaterite=mat('#6e4236',.95);courtLaterite.map=canvasMap(256,(c,s)=>{let n=733;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#ffffff';c.fillRect(0,0,s,s);
+    for(let i=0;i<520;i++){c.fillStyle=`rgba(34,24,20,${.05+r()*.25})`;c.fillRect(r()*s,r()*s,1+r()*6,3+r()*20);}
+  });
+  const courtPanel=white.clone();courtPanel.color.set('#ada5a8');courtPanel.map=canvasMap(512,(c,s)=>{let n=5081;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#e1e0d6';c.fillRect(0,0,s,s);
+    for(let i=0;i<900;i++){c.fillStyle=`rgba(42,52,37,${.02+r()*.12})`;c.fillRect(r()*s,r()*s,1+r()*5,3+r()*27);}
+    // The panels' shape coordinates are metres; with repeat .5 the canvas spans y 0..2, so the damp
+    // foot of a recess (y 1.1..1.45) is the band from .275s to .45s and the canvas below it is its base.
+    const gr=c.createLinearGradient(0,.275*s,0,.45*s);gr.addColorStop(0,'rgba(40,40,36,0)');gr.addColorStop(1,'rgba(40,40,36,.55)');c.fillStyle=gr;c.fillRect(0,.275*s,s,.175*s);
+    c.fillStyle='rgba(40,40,36,.55)';c.fillRect(0,.45*s,s,.18*s);
+  },1,.5);
   // 15.03.38 / 15.04.55: its red east wall is flush with the white front block (x 48.1), so the
   // shrine is wider on the east than the sanctum's axis; SX/SH are its centre and half-width.
   const SX=39.96,SH=8.14,SE=SH-7.18;
   floor('Old inner shrine black stone platform',SX,24.73,15.7+2*SE,10.6,.54,weathered);
-  for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,wornRed,true);
+  for(const x of [SX-SH,SX+SH])box('Old inner shrine red side wall',x,1.83,24.73,.24,2.57,9.95,x<SX?courtLaterite:wornRed,true);
   box('Old inner shrine red rear wall',SX,1.83,29.58,14.6+2*SE,2.57,.24,wornRed,true);
   const stainedRecess=mat('#5a4a42',.95);
   for(const side of [-1,1]){
@@ -978,11 +993,17 @@ export function buildTemple(K) {
       const z=20.45+i*1.39,shape=new THREE.Shape();
       shape.moveTo(-.53,.87);shape.lineTo(.53,.87);shape.lineTo(.53,2.18);shape.absarc(0,2.18,.53,0,Math.PI,false);shape.closePath();
       // East side (15.03.33, 15.04.55): the arched recesses read dark and stained, not whitewashed.
-      const painted=mesh(side>0?'Old inner shrine dark stained arched recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?stainedRecess:agedWhite,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
-      box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,wornRed);
+      // Court side (15.11.08, 15.11.17): a wide plain panel in the first bay and a doorway in the
+      // fifth replace their arches (both are built after the lengthening pass below); every other
+      // recess has a laterite-red foot band.
+      if(side>0||(i!==0&&i!==4)){
+        const painted=mesh(side>0?'Old inner shrine dark stained arched recess':'Old inner shrine pale arched wall panel',new THREE.ShapeGeometry(shape,16),side>0?stainedRecess:courtPanel,x+side*.012,0,z);painted.rotation.y=side*Math.PI/2;
+        if(side<0)box('Old inner shrine recess red foot band',x-.03,.925,z,.03,.35,1.06,courtLaterite);
+      }
+      box('Old inner shrine red dividing pier',x+side*.08,1.88,z+.63,.18,2.45,.13,side<0?courtLaterite:wornRed);
       K.beam(g,'Old inner shrine projecting eave corbel',[x,2.84,z+.62],[x+side*.65,3.12,z+.62],.17,weathered,.23);
     }
-    for(const z of [22,25.8,28.6]){
+    for(const z of side>0?[22,25.8,28.6]:[]){ // 15.11.08: no lamp racks stand along the court side
       for(const zz of [z-.52,z+.52])K.beam(g,'Old inner shrine metal lamp rack leg',[x+side*.30,.55,zz],[x+side*.30,1.52,zz],.028,K.M.metal);
       for(const y of [.65,1.50])K.beam(g,'Old inner shrine lamp rack rail',[x+side*.30,y,z-.54],[x+side*.30,y,z+.54],.029,K.M.metal);
       for(let i=0;i<7;i++)cyl('Small unlit rack oil dish',x+side*.30,1.53,z-.46+i*.15,.045,.023,.035,oldStone,8);
@@ -2350,8 +2371,21 @@ export function buildTemple(K) {
    for(const list of [K.surfaces,K.ramps])for(let i=list.length-1;i>=0;i--){const r=list[i],lo=r.x-r.w/2,hi=r.x+r.w/2;
      if(lo>=XW-.02||r.z-r.d/2<Z0||r.z+r.d/2>Z1||hi<28.9)continue;
      if(hi<=XW+.12)list.splice(i,1);else{r.w=hi-XW;r.x=(hi+XW)/2;}}
-   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,wornRed,true);
+   box('Old inner shrine red side wall north run',31.76,2.1,(16.62+19.8)/2,.36,3.1,19.8-16.62,courtLaterite,true);
    box('Old inner shrine dark continuous sill north run',31.53,.63,(16.62+19.8)/2,.25,.2,19.8-16.62,stainedRecess);}
+  // 15.11.08 / 15.11.17 (court side of the old shrine, built after its lengthening): a wide plain
+  // plastered panel under the roof's north corner, three arches, a narrow red-framed doorway and
+  // four more arches; a broad dark stone bench runs along the wall foot, broken at the doorway.
+  {const xw=31.648,zd=26.01,rect=(w,y0,y1)=>{const s=new THREE.Shape();s.moveTo(-w/2,y0);s.lineTo(w/2,y0);s.lineTo(w/2,y1);s.lineTo(-w/2,y1);s.closePath();return new THREE.ShapeGeometry(s);};
+   const plain=mesh('Old inner shrine court plain plastered panel',rect(2.0,.78,2.72),courtPanel,31.53,0,20.0);plain.rotation.y=-Math.PI/2;
+   const bay=mesh('Old inner shrine court doorway plastered bay',rect(1.06,.75,2.74),courtPanel,xw,0,zd);bay.rotation.y=-Math.PI/2;
+   box('Old inner shrine court doorway dark opening',xw-.02,1.6,zd,.03,1.75,.65,dark);
+   for(const s of [-1,1])box('Old inner shrine court doorway red frame',xw-.05,1.6,zd+s*.385,.1,1.75,.12,courtLaterite);
+   box('Old inner shrine court doorway red frame',xw-.05,2.535,zd,.1,.12,.89,courtLaterite);
+   for(const [x0,z0,z1] of [[30.45,19.0,25.5],[30.85,26.5,33.0]]){const xm=(x0+31.66)/2,w=31.66-x0,zm=(z0+z1)/2,d=z1-z0;
+     box('Old inner shrine court stone bench',xm,.44,zm,w-.08,.46,d-.08,weathered,true);
+     box('Old inner shrine court stone bench base course',xm,.16,zm,w,.12,d,weathered);
+     box('Old inner shrine court stone bench top slab',xm-.02,.71,zm,w+.04,.08,d+.06,weathered);}}
   // 15.01.44: the scalloped open pavilion stands on the east range's roof over the porch, not
   // inside the upper storey.
   {const b3=new THREE.Box3();for(const o of [...g.children])if(/^Left pavilion/.test(o.name)){b3.setFromObject(o);if(b3.min.y<6&&b3.min.z>7.8&&b3.max.z<12.2)g.remove(o);}} // photo review: lifted, this copy floated over the 'East range rooftop pavilion' already standing there
