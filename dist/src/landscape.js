@@ -1843,7 +1843,7 @@ export function buildLandscape(K, {mobile=false}={}) {
   // 14.59.36: the maroon hatchback is parked off the asphalt beside the house,
   // facing away from the temple. Its rear, not the bonnet, faces this viewpoint.
   const car=new THREE.Group();car.name='Maroon hatchback beside the house';car.position.set(5.8+K.houseShiftX,.03,-2.35);group.add(car);
-  const carPaint=new THREE.MeshStandardMaterial({color:'#75243d',roughness:.40,metalness:.25});
+  const carPaint=new THREE.MeshStandardMaterial({color:'#83384b',roughness:.4,metalness:0}); // house-front.jpg: wine red; the metallic paint rendered near-black magenta in shade
   const carGlass=new THREE.MeshStandardMaterial({color:'#283a43',roughness:.23,metalness:.34});
   const carRubber=new THREE.MeshStandardMaterial({color:'#252726',roughness:.88});
   const silver=new THREE.MeshStandardMaterial({color:'#aeb5b4',metalness:.65,roughness:.37});
