@@ -210,7 +210,7 @@ export function buildHouse(K) {
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
   // 14.56.30: the walking strip is a neutral grey-brown stone, not green-grey.
-  const walkStone=K.M.stone.clone();walkStone.color.setRGB(1.12,.90,.94);
+  const walkStone=greyCement.clone();walkStone.color.set('#bbadad');walkStone.roughness=.6; // 14.56.30: smooth worn grey cement (about 97,90,89), no flagstone joints
   floor('Entrance-left lower stone walking strip',5.62,-.31,8.36,1.02,.455,walkStone,.05);
   floor('Entrance-right lower stone walking strip',-4.77,-.31,6.66,1.02,.455,walkStone,.05);
   for(const s of [-1,1]){
