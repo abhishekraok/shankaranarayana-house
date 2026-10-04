@@ -1291,7 +1291,7 @@ export function buildHouse(K) {
   const courtRandom=()=>{courtSeed=(Math.imul(courtSeed,1664525)+1013904223)>>>0;return courtSeed/4294967296;};
   for(let i=0;i<6200;i++){const x=-7.9+courtRandom()*14.6,z=6.4+courtRandom()*7.7;
     // Leave the observed walking strips and cross-courtyard routes readable.
-    if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+6.5)<.65)continue;
+    if((x>-2.7&&x<2.7&&z<10.7)||Math.abs(x+3.7)<.6||Math.abs(z-10.8)<.6||Math.abs(z-6.9)<.5||Math.abs(x+5.4)<.65)continue;
     weeds.push({x,z,a:i*2.3999});}
   // Six folded triangles retain pointed leaf silhouettes at a fraction of
   // the old tiny spheres' cost. Reuse the existing deterministic placements.
@@ -1348,7 +1348,9 @@ export function buildHouse(K) {
 
   // 14.48.31 and 14.52.16 resolve the stair's direction: it runs along
   // the Tulsi side of the shrine, rising toward the upper front range.
-  const courtStairX=-6.75,courtStairFront=6.55,courtStairBack=12.10;
+  // 14.52.16 / 14.46.10 / 14.48.31: the stair stands only about two metres from the God room's plinth
+  // (the strip was 3.4 m): the whole flight is 1.1 m nearer the shrine.
+  const courtStairX=-5.65,courtStairFront=6.55,courtStairBack=12.10;
   const courtStairStone=mat('plaster').clone();courtStairStone.color.set('#807e70');
   const courtStairWall=mat('plaster').clone();courtStairWall.color.set('#858779');
   // 14.46.21: uneven moss and washed lime patches on the stair cheeks.
@@ -1408,6 +1410,16 @@ export function buildHouse(K) {
     const z=courtStairBack-(i+.5)*(courtStairBack-courtStairFront)/24;
     K.blocker(courtStairX+.44,z,.14,(courtStairBack-courtStairFront)/24,F,F+(i+.5)*(U-F)/24);
   }
+  // 14.52.16 / courtyard.jpg: the white wall under the flight has a two-tier casement in a pale frame,
+  // its upper leaves standing open into the strip (just past the lean-to's eave).
+  {const frame=new THREE.MeshStandardMaterial({color:'#c9c3ae',roughness:.9}),glass=new THREE.MeshStandardMaterial({color:'#2a2f2c',roughness:.5});
+   const wx=courtStairX+.51,z0=7.5,z1=8.2,y0=1.3,y1=2.6,zm=(z0+z1)/2,ym=(y0+y1)/2;
+   b('Under-stair casement dark glazing',wx+.006,ym,zm,.012,y1-y0,z1-z0,glass);
+   for(const y of [y0+.03,ym,y1-.03])b('Under-stair casement pale rail',wx+.02,y,zm,.04,.06,z1-z0,frame);
+   for(const z of [z0+.03,zm,z1-.03])b('Under-stair casement pale stile',wx+.02,ym,z,.04,y1-y0,.06,frame);
+   for(const s of [-1,1]){const pz=s<0?z0+.06:z1-.06,a=.96; // open about 55 degrees
+     const leaf=b('Under-stair casement open upper leaf',wx+.04+.16*Math.sin(a),(ym+y1)/2,pz-s*.16*Math.cos(a),.32,(y1-ym)-.06,.025,frame);leaf.rotation.y=s*(Math.PI/2-a);
+     const pane=b('Under-stair casement open leaf glass',wx+.04+.16*Math.sin(a),(ym+y1)/2,pz-s*.16*Math.cos(a),.22,(y1-ym)-.16,.03,glass);pane.rotation.y=s*(Math.PI/2-a);}}
   floor('Courtyard stair foot step',courtStairX,12.35,.88,.5,.21,'paleStone',.16);
   floor('Courtyard stair upper return landing',courtStairX,6.18,.88,.80,U,'paleStone',.18);
   // Loose corrugated sheet rests against the shrine plinth, below the stair view.
@@ -1421,7 +1433,7 @@ export function buildHouse(K) {
   // cover the court's two front pockets, from under the upper floor down to a low eave, so the front
   // range behind them reads dark. Sizes from the photographs; the framing under them is not visible.
   {const rust=new THREE.MeshStandardMaterial({color:'#74524a',roughness:1,side:THREE.DoubleSide}); // 14.44.09: pale pinkish rust; kept a step darker because it rendered pale in the game
-   for(const [x0,x1,z0,z1,y0,y1] of [[-6.25,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
+   for(const [x0,x1,z0,z1,y0,y1] of [[-5.05,-2.35,5.95,7.45,3.10,2.25],[2.35,7.25,5.95,7.75,3.25,2.60]]){
      const w=x1-x0,run=z1-z0,drop=y0-y1,len=Math.hypot(run,drop);
      const geo=new THREE.PlaneGeometry(w,len,Math.round(w/.0225),1),gp=geo.attributes.position;
      for(let i=0;i<gp.count;i++)gp.setZ(i,.03*Math.cos(gp.getX(i)*Math.PI/.045));
@@ -1480,12 +1492,12 @@ export function buildHouse(K) {
   // 14.44.14 / 14.44.48 / 14.48.31: seen from the court this wall is plain white down to a dark damp
   // strip at its foot, with no red band; the red slab edge under it is plastered over.
   skirting=false;
-  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-6.75,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:.86,bottom:1.05,top:2.25},{c:10.2,w:1.7,top:2.5}],'plaster');
+  wallX('Upper courtyard wall',-11.85,11.85,5.86,U,2.83,[{c:-5.65,w:.95,top:2.5},{c:-1.6,w:.86,bottom:.60,top:2.25},{c:3.6,w:.86,bottom:1.05,top:2.25},{c:10.2,w:1.7,top:2.5}],'plaster');
   skirting=true;
   detail(0,U+.10,5.99,23.7,.20,.012,facadeDark);
   for(const side of [-1,1])b('Upper floor court edge plaster',side*7.2375,U-.11,6.008,9.275,.22,.012,'plaster');
   doorX(10.2,5.86,1.7,U,2.5,-1);
-  doorX(-6.75,5.86,.95,U,2.5,-1);
+  doorX(-5.65,5.86,.95,U,2.5,-1);
   // 14.44.14/48: tall narrow courtyard-facing timber window. The upper
   // half is shuttered; six bars cross the dark lower opening, facing +Z.
   const courtWindowWood=verandaTimber.clone();courtWindowWood.color.setRGB(1.25,1.13,1.04);

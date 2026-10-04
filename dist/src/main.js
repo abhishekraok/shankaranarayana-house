@@ -66,7 +66,7 @@ const keys=new Set();let aligning=false,mode='tour',entered=true,drag=false,last
 const directions={ArrowUp:'KeyW',ArrowDown:'KeyS',ArrowLeft:'KeyA',ArrowRight:'KeyD'};
 const destinations={
 
- front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-10.6,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-2],target:[39,3.7,9.5]},templecourt:{p:[30,.1,18.5],target:[41,2,21.5]}
+ front:{p:[-3.8,0,-2],target:[-3.8,1.6,9]},courtyard:{p:[-9.5,.035,12.6],target:[-8.2,1.3,7.5]},kitchen:{p:[-13.5,.45,15.9],target:[-14.7,1.5,17.1]},upstairs:{p:[-6.45,3.85,1],target:[-6.45,4.9,-18]},lake:{p:[0,0,-7.6],target:[4,-.2,-24]},pavilion:{p:[34,-1.27,-32],target:[34,.02,-28.6]},temple:{p:[39,0,-2],target:[39,3.7,9.5]},templecourt:{p:[30,.1,18.5],target:[41,2,21.5]}
 
 };
 // Family correction: all four veranda views are BEFORE the main door at z=2.05.
@@ -88,7 +88,7 @@ destinations.courtpassage={p:[-13.65,.45,11.8],target:[-13.3,1.8,5.7],fov:68};
 destinations.godroomdesk={p:[-8.8,.45,5.55],target:[-9.9,1.20,5.15],fov:65};
 destinations.godroomshelf={p:[-3.8,1.08,8.65],target:[-3.8,3.77,7.05],fov:48};
 destinations.courtstair={p:[-7.8,.035,12],target:[-8.1,1.8,6.2],fov:72};
-destinations.courtstairtop={p:[-10.55,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
+destinations.courtstairtop={p:[-9.45,3.85,6.5],target:[-7.6,1.5,14.55],fov:72};
 photos.courtyard={url:'courtyard.jpg',caption:'September 2011 · The Tulsi and courtyard',p:[-7.2,.035,6.85],target:[-8.8,1.2,11]};
 photos.godroom={url:'god-room.jpg',caption:'September 2011 · Just inside the house, in front of the God room',p:[-3.8,.081,4.45],target:[-3.8,1.80,6.92],fov:92};
 photos.laneleft={url:'lane-left.jpg',caption:'September 2011 · Front of the house, left towards the adjacent building',p:[4.2,0,-7],target:[60,3.5,-5],fov:54};
