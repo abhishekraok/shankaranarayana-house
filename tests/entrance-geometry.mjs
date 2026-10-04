@@ -97,6 +97,7 @@ assert.equal(temple.getObjectByName('Central white entrance gable'),undefined,'A
 assert.equal(temple.getObjectByName('Left lower guardian'),undefined);
 const doorEye=new THREE.Vector3(...photos.templedoor.p).add(new THREE.Vector3(0,1.62,0));
 for(const [point,prefix] of [
+  // Aim a little off the panels' centre line: a ray along a shared triangle edge can miss both faces.
   [[41.6,2.1,5.82],'Entrance doorway left original painting'],
   [[36.4,2.1,5.82],'Entrance doorway right original painting'],
   [[39,3.18,5.738],'Entrance doorway original inscription'],
@@ -389,6 +390,13 @@ checkRoute('Circuit to blue shrine veranda',[[53,16.2],[56.5,16.2]],.1,.09);
 checkRoute('East porch mounting block',[[53.75,11.25],[53.75,9.7],[56.2,9.7]],.1,.09);
 assert.ok(Math.abs(routes.at(-1).finalHeight-.95)<.02,'Mounting block leads onto the porch floor');
 checkRoute('East stair bay court steps',[[53.6,12.6],[55.25,12.6]],.1,.09);
+// 15.13.03: the inner building's steps lie inside a cut in its plinth; nothing projects into the court.
+checkRoute('Court into the inner building',[[39,13.6],[39,20.2]],.1,.09);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.55)<.03,'Inner door steps lead up to the aisle floor');
+assert.ok(!K.ramps.some(r=>Math.abs(r.x-39)<.5&&r.z<15.1&&r.z>13.5),'No stair projects into the court in front of the inner door');
+// 15.08.42 / 'temple inner sanctum, left side': both inner aisles are about 3 m wide and walkable.
+checkRoute('Inner west aisle',[[39,20.2],[35.2,20.2],[35.2,27.8]],.55,.5);
+checkRoute('Inner east aisle',[[39,20.2],[42.8,20.2],[42.8,27.8]],.55,.5);
 assert.ok(collision(54.55,8.6,.1)&&collision(54.55,11.2,.1),'The rubble plinth is unbroken either side of the block');
 {const pier=new THREE.Box3();for(const o of temple.children)if(o.name==='Outer entrance shrine tall pale blue pier blue shaft')pier.expandByObject(o);
  const fascia=new THREE.Box3();temple.traverse(o=>{if(o.name==='Outer circuit red roof fascia'&&o.getWorldPosition(new THREE.Vector3()).x>50)fascia.expandByObject(o);});
@@ -506,6 +514,14 @@ for(const z of [9.3,12.9]){
 {const hit=new THREE.Raycaster(new THREE.Vector3(23.7,2.5,10.8),new THREE.Vector3(-1,0,0)).intersectObject(temple,true)[0];
  assert.equal(hit?.object.name,'Covered hall lane-side wall pier','The old middle window is solid wall');}
 checkRoute('Lower chair hall passage',[[29.2,11],[25.8,11],[25.8,15.5]],.1,.09);
+// 15.11.00 / 15.10.30 / '-45 degrees': the hall's lane wall has a real doorway with a barred transom,
+// open to look through and closed to walking, and a narrow window beyond it.
+{const through=new THREE.Raycaster(new THREE.Vector3(22.5,1.8,6.725),new THREE.Vector3(-1,0,0),0,3.2).intersectObject(temple,true)[0];
+ assert.ok(!through,'Lane doorway is a real opening, got '+through?.object.name);
+ const wall=new THREE.Raycaster(new THREE.Vector3(22.5,1.8,5.6),new THREE.Vector3(-1,0,0),0,3.2).intersectObject(temple,true)[0];
+ assert.ok(/blue wall face|lane-side wall/.test(wall?.object.name||''),'Wall beside the lane doorway is solid, got '+wall?.object.name);
+ assert.ok(collision(20.3,6.725,.6),'Lane doorway stays closed to walking');
+ assert.ok(temple.getObjectByName('Covered hall lane doorway transom timber bar')&&temple.getObjectByName('Covered hall narrow window pale glazing'),'Transom and narrow window are present');}
 checkRoute('Chair platform access',[[25.8,9.8],[23.7,9.8]],.112,.10);
 checkRoute('Chair platform descent',[[23.7,9.8],[25.8,9.8]],.6,.10);
 checkRoute('Lower hall to service porch',[[26.8,9.1],[26.8,7.1]],.112,.10);
