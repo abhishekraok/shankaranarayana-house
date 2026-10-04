@@ -74,24 +74,28 @@ assert max(abs(a-b) for a,b in zip((timber_color.r,timber_color.g,timber_color.b
                                   (timber_gain,timber_gain,timber_gain,1))) < 1e-6, 'Timber gain was not rebuilt'
 parts = json.loads((root / 'blender/build/unreal/parts.json').read_text())
 fence_parts = validate_fence_manifest(meta, parts)
-fence_mi = unreal.load_asset('/Game/Materials/Web/MI_' + COURTYARD_FENCE_ALIAS)
-assert fence_mi and fence_mi != timber_mi, 'Missing/separate fence instance'
-assert fence_mi.get_editor_property('parent') == timber_mi.get_editor_property('parent'), 'Fence shader changed'
+# main may author the fence in materials of its own (material_targets.py returns no override): then there
+# is no native fence variant to check.
+fence_mi = None
 fence_gain = float(os.environ.get('COURTYARD_FENCE_GAIN', '1.0'))
-fence_color = mel.get_material_instance_vector_parameter_value(fence_mi, 'Color')
-assert max(abs(a-b) for a,b in zip((fence_color.r,fence_color.g,fence_color.b,fence_color.a),
-                                  (fence_gain,fence_gain,fence_gain,1))) < 1e-6, 'Fence gain was not rebuilt'
-for parameter in mel.get_scalar_parameter_names(timber_mi):
-    assert abs(mel.get_material_instance_scalar_parameter_value(fence_mi, parameter) -
-               mel.get_material_instance_scalar_parameter_value(timber_mi, parameter)) < 1e-6, str(parameter)
-for parameter in mel.get_vector_parameter_names(timber_mi):
-    if str(parameter) == 'Color': continue
-    actual = mel.get_material_instance_vector_parameter_value(fence_mi, parameter)
-    expected = mel.get_material_instance_vector_parameter_value(timber_mi, parameter)
-    assert max(abs(getattr(actual,c)-getattr(expected,c)) for c in ('r','g','b','a')) < 1e-6, str(parameter)
-for parameter in mel.get_texture_parameter_names(timber_mi):
-    assert mel.get_material_instance_texture_parameter_value(fence_mi, parameter) == \
-        mel.get_material_instance_texture_parameter_value(timber_mi, parameter), str(parameter)
+if fence_parts:
+    fence_mi = unreal.load_asset('/Game/Materials/Web/MI_' + COURTYARD_FENCE_ALIAS)
+    assert fence_mi and fence_mi != timber_mi, 'Missing/separate fence instance'
+    assert fence_mi.get_editor_property('parent') == timber_mi.get_editor_property('parent'), 'Fence shader changed'
+    fence_color = mel.get_material_instance_vector_parameter_value(fence_mi, 'Color')
+    assert max(abs(a-b) for a,b in zip((fence_color.r,fence_color.g,fence_color.b,fence_color.a),
+                                      (fence_gain,fence_gain,fence_gain,1))) < 1e-6, 'Fence gain was not rebuilt'
+    for parameter in mel.get_scalar_parameter_names(timber_mi):
+        assert abs(mel.get_material_instance_scalar_parameter_value(fence_mi, parameter) -
+                   mel.get_material_instance_scalar_parameter_value(timber_mi, parameter)) < 1e-6, str(parameter)
+    for parameter in mel.get_vector_parameter_names(timber_mi):
+        if str(parameter) == 'Color': continue
+        actual = mel.get_material_instance_vector_parameter_value(fence_mi, parameter)
+        expected = mel.get_material_instance_vector_parameter_value(timber_mi, parameter)
+        assert max(abs(getattr(actual,c)-getattr(expected,c)) for c in ('r','g','b','a')) < 1e-6, str(parameter)
+    for parameter in mel.get_texture_parameter_names(timber_mi):
+        assert mel.get_material_instance_texture_parameter_value(fence_mi, parameter) == \
+            mel.get_material_instance_texture_parameter_value(timber_mi, parameter), str(parameter)
 fence_bindings = []
 for part in parts:
     name = part['name']
@@ -137,6 +141,6 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
 report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
           'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False},
           'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain},
-          'courtyard_fence': {'material': fence_mi.get_path_name(), 'gain': fence_gain, 'bindings': fence_bindings}}
+          'courtyard_fence': {'material': fence_mi.get_path_name() if fence_mi else None, 'gain': fence_gain, 'bindings': fence_bindings}}
 (root / 'unreal/Shankaranarayana/Saved/material-audit.json').write_text(json.dumps(report, indent=2))
 print('Material audit passed:', len(mapped))

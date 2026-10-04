@@ -23,6 +23,10 @@ COURTYARD_FENCE_TARGETS = {
 def courtyard_fence_override(scene):
     """Resolve the complete native-only fence variant; IDs index scene.objects."""
     index = structural_timber_family(scene)
+    # Since 2026-10-03 main authors the fence as a bleached slat screen in materials of its own: the
+    # timber gain no longer reaches it and no native variant is needed. None tells callers to skip it.
+    if not any(o['materials'] == [index] for o in scene['objects'] if o['name'] in COURTYARD_FENCE_TARGETS):
+        return None
     material = scene['materials'][index]
     assert all(m['name'] != COURTYARD_FENCE_ALIAS for m in scene['materials']), 'Native alias collides with source'
     targets, counts, triangles = [], dict.fromkeys(COURTYARD_FENCE_TARGETS, 0), 0
@@ -48,6 +52,9 @@ def courtyard_fence_override(scene):
 def validate_fence_manifest(scene, parts):
     """Require the exported override to cover precisely the current authored fence."""
     expected = courtyard_fence_override(scene)
+    if expected is None:
+        assert not any(part.get('native_material_overrides') for part in parts), 'Stale native fence override'
+        return {}
     targets = {o['source_object_id']: o for o in expected['objects']}
     seen, by_part = set(), {}
     for part in parts:

@@ -116,6 +116,8 @@ def prepare_native_material_override():
     with open(os.path.join(HERE, 'build', 'scene.json'), encoding='utf-8') as handle:
         scene = json.load(handle)
     override = courtyard_fence_override(scene)
+    if override is None:  # the fence has materials of its own on main: nothing to alias
+        return None
     expected = {target['blender_object_name'] for target in override['objects']}
     source_names = {target['source_object_name'] for target in override['objects']}
     actual = {obj.name for obj in bpy.data.objects if obj.type == 'MESH'
