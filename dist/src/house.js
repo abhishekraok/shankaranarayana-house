@@ -203,14 +203,17 @@ export function buildHouse(K) {
   // 14.56.30: the platform faces are dark weathered grey plaster under the stone edge.
   const riserGrey=K.M.plaster.clone();riserGrey.color.set('#85847c');riserGrey.roughness=1;
   const riserOxide=new THREE.MeshStandardMaterial({color:'#7a4a3c',roughness:.9});
+  // veranda.jpg (= 14.56.30): the platform edge, end copings and the steps beside the passage are one smooth, slightly
+  // polished dark grey-brown stone (about 101,95,92 in the veranda shade), not green-grey flagstones with joints.
+  const edgeStone=K.M.plaster.clone();edgeStone.color.set('#807877');edgeStone.roughness=.45;
   for(const side of [-1,1]) {
     // veranda.jpg: a stone strip about 0.3 m wide runs along the platform edge wholly in front of the posts,
     // and the red floor starts at the post faces: the bays reach 0.32 m further toward the lane (z -.07).
     floor(side>0?'Entrance-left red sitting bay':'Entrance-right empty red sitting bay',side*2.745,.99,2.99,2.12,.75,verandaRed,.30);
     b('Veranda worn pale platform riser',side*2.745,.59,-.065,2.99,.27,.05,riserOxide); // 14.56.30: worn red-brown under the stone edge
-    b('Veranda dark stone sitting edge',side*2.745,.765,.045,2.99,.045,.30,'stone');
+    b('Veranda dark stone sitting edge',side*2.745,.765,.045,2.99,.045,.30,edgeStone);
     b('Veranda entrance end riser',side*1.26,(EL+.725)/2,.99,.07,.725-EL,2.12,riserGrey);
-    b('Veranda entrance end stone coping',side*1.375,.768,.99,.30,.045,2.12,'stone'); // a broad stone edge (14.56.30)
+    b('Veranda entrance end stone coping',side*1.375,.768,.99,.30,.045,2.12,edgeStone); // a broad stone edge (14.56.30)
     floor('Veranda lower continuation',side*6.27,.99,4.06,2.05,F+.002,verandaRed,.18);
   }
   floor('Veranda central grey cement walkway',0,.615,2.88,2.87,EL+.004,greyCement,.08);
@@ -221,8 +224,8 @@ export function buildHouse(K) {
   for(const s of [-1,1]){
     // The raised side walk ends in a plain face at the passage, with one worn step up to it.
     b('Entrance passage side riser',s*1.47,(EL+.43)/2,-.445,.06,.43-EL,.75,riserGrey);
-    floor('Entrance passage side step',s*1.27,-.445,.34,.70,.265,'stone',.265-EL);
-    floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,'stone',.41-EL);
+    floor('Entrance passage side step',s*1.27,-.445,.34,.70,.265,edgeStone,.265-EL);
+    floor('Sitting bay stone step',s*1.055,1.15,.34,.9,.41,edgeStone,.41-EL);
     // house-front.jpg: a low masonry cheek stands out from the plinth either side of the entry slab.
     b('Entrance low masonry cheek',s*1.92,.19,-1.345,.92,.38,.55,plinthFace,true);
     b('Entrance cheek worn stone top',s*1.92,.395,-1.345,.96,.03,.59,'stone');
