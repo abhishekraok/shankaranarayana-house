@@ -72,6 +72,9 @@ view/journal/preferences, then restores the original pose before saving.
 The stage check walks the full front flight at its center and beside the elephants,
 plus the terrace side flight, up and back. Native grounding, floor rise, clearance
 and progress retention are checked; `stage_walking_legs` records all six legs.
+The bathing arcade check follows: both aisle edges and the west stair are walked
+out and back without reverse-leg teleporting. `arcade_walking_legs` records all six
+legs, including continuous native support, floor rise and unchanged walk state.
 `-WalkContinueProbeSeed -UserDir=<isolated-folder>`, followed by a fresh process
 with `-WalkContinueProbeResume` and the same folder, tests a dry-bank save that
 ordinary teleport clearance rejects. Reports are `continue-seed.json` and

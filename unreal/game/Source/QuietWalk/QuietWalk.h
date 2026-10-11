@@ -239,7 +239,7 @@ private:
     FRotator SmokeStageSavedLook = FRotator::ZeroRotator;
     FString SmokeStageSupportIssue, SmokeStageSupportMesh;
     UPROPERTY() TObjectPtr<UWalkSave> SmokeStageBaseline;
-    TArray<TSharedPtr<FJsonValue>> SmokeStageReports;
+    TArray<TSharedPtr<FJsonValue>> SmokeStageReports, SmokeArcadeReports;
     void ObserveStageSmoke();
     void SmokeTick();
     // -WalkReviewPhoto=<part of a file name>: open that photograph at its saved pose, capture the

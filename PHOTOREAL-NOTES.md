@@ -6,6 +6,24 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-11 bathing arcade and native walking
+
+Main `7b51f66` is rebuilt. The open west truss, six distinct lane/lake supports
+and white pierced end-room wall pass seven-view photo comparison. Fresh native
+scene/material/lighting audits pass, retaining the gable, bronze, stone and road
+overrides after material renumbering. Windows package, all 18 actual-input walking
+legs / 8,577 support samples, cold restart and focused bank Continue pass with
+exit 0. Reverse legs start from actual reached endpoints; progress/settings remain
+intact. All 172 poses / 29 sheets captured with exit 0 and were independently
+compared with `b4fdb17`; no substantial new regression found. The longer runtime
+profile is pending.
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-7b51f66/unreal-20261011-061755/index.html),
+[arcade before/after and checks](D:/repos/shankaranarayana-photoreal/unreal/reviews/bathing-arcade-2026-10-11.md).
+Support spacing/details remain estimates; arcade length/tank east-end layout are
+unresolved. Lumen setup saved its audit, then hit the known intermittent editor
+teardown access violation; subsequent native audits and packaged checks exit 0.
+
 ## 2026-10-11 stage sculptures and inner gables
 
 Main `b4fdb17` is rebuilt. Elephants/calves and four guardians now have separate
