@@ -1194,17 +1194,73 @@ export function buildLandscape(K, {mobile=false}={}) {
   // pedestals beside the plain lower flight; the north side is clear.
   // 15.19.57: an elephant stands 0.68 of a door-guardian's height (about 1.2 m), so 1.25x the first
   // model; 15.13.30: each stands on a dark slab with a calf under its trunk.
+  // Closed procedural stone forms. The photographed silhouettes guide anatomy,
+  // not identity or engraving; dimensions stay inside the existing sculpture envelopes.
+  function stoneMesh(parent,name,geo,m,position=[0,0,0],scale=[1,1,1]){
+    const o=new THREE.Mesh(geo,m);o.name=name;o.position.set(...position);o.scale.set(...scale);o.castShadow=o.receiveShadow=true;parent.add(o);return o;
+  }
+  function stoneEllipsoid(parent,name,p,r,m){return stoneMesh(parent,name,new THREE.SphereGeometry(1,24,16),m,p,r);}
+  function closedStoneRings(parent,name,centers,rings,m){
+    const pos=rings.flatMap(r=>r.flatMap(p=>p.toArray())),idx=[],n=rings[0].length;
+    const face=(a,b,c,outward)=>{const pa=new THREE.Vector3(...pos.slice(a*3,a*3+3)),pb=new THREE.Vector3(...pos.slice(b*3,b*3+3)),pc=new THREE.Vector3(...pos.slice(c*3,c*3+3));if(pb.clone().sub(pa).cross(pc.clone().sub(pa)).dot(outward)<0)idx.push(a,c,b);else idx.push(a,b,c);};
+    // One consistent side winding avoids isolated reversed triangles on tight bends.
+    const p0=rings[0][0],p1=rings[1][0],p2=rings[1][1],radial=p0.clone().add(p2).sub(centers[0]).sub(centers[1]);
+    const reverse=p1.clone().sub(p0).cross(p2.clone().sub(p0)).dot(radial)<0;
+    for(let j=0;j<rings.length-1;j++)for(let k=0;k<n;k++){
+      const a=j*n+k,b=(j+1)*n+k,c=(j+1)*n+(k+1)%n,d=j*n+(k+1)%n;
+      if(reverse)idx.push(a,c,b,a,d,c);else idx.push(a,b,c,a,c,d);
+    }
+    for(const j of [0,rings.length-1]){
+      const cap=pos.length/3;pos.push(...centers[j].toArray());const outward=centers[j].clone().sub(centers[j===0?1:j-1]);
+      for(let k=0;k<n;k++)face(cap,j*n+k,j*n+(k+1)%n,outward);
+    }
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setIndex(idx);geo.computeVertexNormals();return stoneMesh(parent,name,geo,m);
+  }
+  function stoneTube(parent,name,points,radii,m,steps=20){
+    const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),frames=curve.computeFrenetFrames(steps,false),centers=Array.from({length:steps+1},(_,j)=>curve.getPoint(j/steps)),rings=[];
+    // Keep the inside of every bend open: a ring must be narrower than its local
+    // centreline curvature radius, otherwise tight trunks/elbows fold through themselves.
+    const bendRadius=centers.map((p,j)=>{if(j===0||j===steps)return Infinity;const a=centers[j-1].clone().sub(p),b=centers[j+1].clone().sub(p),cross=a.clone().cross(b).length();return cross<1e-10?Infinity:a.length()*b.length()*centers[j-1].distanceTo(centers[j+1])/(2*cross);});
+    for(let j=0;j<=steps;j++){
+      const t=j/steps,v=t*(radii.length-1),a=Math.min(radii.length-2,Math.floor(v)),requested=THREE.MathUtils.lerp(radii[a],radii[a+1],v-a),r=Math.min(requested,.6*Math.min(...bendRadius.slice(Math.max(0,j-1),Math.min(steps+1,j+2)))),center=centers[j];
+      rings.push(Array.from({length:12},(_,k)=>center.clone().addScaledVector(frames.normals[j],r*Math.cos(k*Math.PI/6)).addScaledVector(frames.binormals[j],r*Math.sin(k*Math.PI/6))));
+    }
+    return closedStoneRings(parent,name,centers,rings,m);
+  }
+  function stoneLoft(parent,name,sections,axis,m){
+    const centers=[],rings=[];for(const [h,a,b,r1,r2] of sections){const center=axis==='y'?new THREE.Vector3(a,h,b):new THREE.Vector3(h,a,b);centers.push(center);
+      rings.push(Array.from({length:24},(_,k)=>{const c=Math.cos(k*Math.PI/12),s=Math.sin(k*Math.PI/12);return axis==='y'?new THREE.Vector3(a+r1*c,h,b+r2*s):new THREE.Vector3(h,a+r1*c,b+r2*s);}));}
+    return closedStoneRings(parent,name,centers,rings,m);
+  }
+  function stoneBentArm(parent,name,points,radii,m){
+    stoneTube(parent,name,points.slice(0,2),radii.slice(0,2),m,8);
+    stoneTube(parent,name+' forearm',points.slice(1),radii.slice(1),m,8);
+    stoneEllipsoid(parent,name+' elbow',points[1],[radii[1],radii[1],radii[1]],m);
+  }
   for(const [z,x0,top] of [[-7.35,58.0,1.7],[-7.35,55.2,.75]]){ // 15.13.30: the upper one stands at terrace height
     box('Stage stair elephant pedestal',x0,top/2,z,1.7,top,.7,adjacentWhite,true);
     const el=new THREE.Group();el.name='Stage stair black stone elephant';el.position.set(x0,top,z);el.scale.setScalar(1.25);group.add(el);
     K.box(el,'Elephant base slab',-.06,.03,0,1.3,.06,.44,elephantStone);
-    {const calf=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),elephantStone);calf.scale.set(.19,.13,.12);calf.position.set(-.60,.19,0);calf.name='Elephant calf body';el.add(calf);
-     const calfHead=new THREE.Mesh(new THREE.SphereGeometry(.085,10,8),elephantStone);calfHead.position.set(-.78,.25,0);calfHead.name='Elephant calf head';el.add(calfHead);}
-    const body=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),elephantStone);body.scale.set(.5,.33,.24);body.position.y=.55;body.name='Elephant body';el.add(body);
-    const head=new THREE.Mesh(new THREE.SphereGeometry(.22,12,9),elephantStone);head.position.set(-.5,.72,0);head.name='Elephant head';el.add(head);
-    for(const s of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(1,10,6),elephantStone);ear.scale.set(.05,.2,.16);ear.position.set(-.42,.72,s*.2);ear.name='Elephant ear';el.add(ear);}
-    const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.05,.08,.55,8),elephantStone);trunk.position.set(-.66,.42,0);trunk.rotation.z=-.25;trunk.name='Elephant trunk';el.add(trunk);
-    for(const dx of [-.3,.3])for(const dz of [-.12,.12]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.4,8),elephantStone);leg.position.set(dx,.2,dz);leg.name='Elephant leg';el.add(leg);}
+    // 15.13.30 / 15.13.26: arched back, fan ear and a curved trunk enclosing
+    // negative space above the standing calf; not a straight hanging cylinder.
+    stoneLoft(el,'Elephant arched body',[[-.44,.54,0,.19,.16],[-.31,.54,0,.28,.22],[-.10,.55,0,.31,.24],[.15,.55,0,.30,.225],[.36,.54,0,.23,.19],[.48,.54,0,.04,.045]],'x',elephantStone);
+    stoneEllipsoid(el,'Elephant rounded forehead',[-.50,.76,0],[.195,.18,.19],elephantStone);
+    stoneEllipsoid(el,'Elephant lower cheek',[-.50,.65,0],[.15,.14,.17],elephantStone);
+    stoneTube(el,'Elephant curled trunk',[[-.63,.76,0],[-.76,.66,0],[-.80,.47,0],[-.78,.32,0],[-.66,.30,0],[-.58,.43,0]],[.080,.065,.042,.030,.025,.021],elephantStone,30);
+    const earShape=new THREE.Shape();earShape.moveTo(-.54,.80);earShape.bezierCurveTo(-.48,.94,-.29,.91,-.25,.74);earShape.bezierCurveTo(-.22,.62,-.34,.54,-.48,.58);earShape.bezierCurveTo(-.58,.61,-.59,.71,-.54,.80);
+    const earGeo=new THREE.ExtrudeGeometry(earShape,{depth:.025,bevelEnabled:true,bevelSize:.008,bevelThickness:.007,bevelSegments:2,curveSegments:16});
+    for(const s of [-1,1])stoneMesh(el,'Elephant broad fan ear',earGeo,elephantStone,[0,0,s*.20-.0125]);
+    for(const dx of [-.30,.30])for(const dz of [-.12,.12]){
+      const footX=dx<0?dx-.025:dx+.015;
+      stoneMesh(el,'Elephant ground-bearing foot',new THREE.CylinderGeometry(.078,.083,.13,16),elephantStone,[footX,.125,dz]);
+      stoneTube(el,'Elephant tapered leg',[[footX,.15,dz],[dx,.30,dz*.94],[dx,.55,dz*.90]],[.077,.065,.095],elephantStone,12);
+    }
+    stoneTube(el,'Elephant short curled tail',[[.39,.64,.04],[.47,.55,.04],[.46,.39,.04]],[.032,.024,.018],elephantStone,12);
+    stoneEllipsoid(el,'Elephant calf standing body',[-.52,.22,0],[.17,.115,.105],elephantStone);
+    stoneEllipsoid(el,'Elephant calf raised head',[-.65,.30,0],[.10,.09,.09],elephantStone);
+    for(const s of [-1,1])stoneEllipsoid(el,'Elephant calf broad ear',[-.59,.30,s*.085],[.045,.075,.028],elephantStone);
+    stoneTube(el,'Elephant calf small trunk',[[-.72,.29,0],[-.76,.23,0],[-.73,.17,0]],[.024,.015,.010],elephantStone,12);
+    for(const dx of [-.62,-.43])for(const dz of [-.06,.06])stoneMesh(el,'Elephant calf ground-bearing leg',new THREE.CylinderGeometry(.030,.035,.14,12),elephantStone,[dx,.13,dz]);
   }
   // 15.13.51 / 15.19.57: the lower hall has two rows of square columns;
   // the upper gallery keeps its lighter front row. Depth 4 puts the inner row
@@ -1450,16 +1506,33 @@ export function buildLandscape(K, {mobile=false}={}) {
   // head, the upper pair on brackets outside the balcony rail. Modelled in stone (measured in
   // the photos at 0.4-0.5 of the whitewash, bluish), not photographs on planes. World heights.
   {const figureStone=new THREE.MeshStandardMaterial({color:'#59646e',roughness:.85});
-   // 15.19.57: a figure is about 0.3 as wide as it is tall, full in the legs, with a tall crown.
-   const profile=[[.18,0],[.20,.22],[.18,.50],[.15,.74],[.21,.86],[.24,1.02],[.22,1.12],[.09,1.19],[.09,1.24],[.13,1.30],[.135,1.40],[.12,1.47],[.08,1.60],[0,1.66]].map(([r,y])=>new THREE.Vector2(r,y));
-   const bodyGeo=new THREE.LatheGeometry(profile,14),baseGeo=new THREE.CylinderGeometry(.23,.28,.16,14),armGeo=new THREE.BoxGeometry(.08,.44,.09),handGeo=new THREE.BoxGeometry(.10,.12,.16),maceGeo=new THREE.CylinderGeometry(.035,.05,1.0,8);
-   const figure=(name,x,y,z,folded,side)=>{
+   // 15.12.15 / 15.19.57 / 15.13.30: separated legs and bent arms, a waist
+   // and skirt outline, crowned heads; the upper left has a projecting animal
+   // muzzle. Anatomy/robes are estimates, without identifying or engraving figures.
+   const baseGeo=new THREE.CylinderGeometry(.23,.28,.16,14),maceGeo=new THREE.CylinderGeometry(.035,.05,1.0,8);
+   const figure=(name,x,y,z,folded,side,animalHead=false)=>{
      const f=new THREE.Group();f.name=name;f.position.set(x,y,z);group.add(f);
-     const add=(n,geo,px,py,pz,rx=0)=>{const m=new THREE.Mesh(geo,figureStone);m.name=n;m.position.set(px,py,pz);m.rotation.x=rx;m.castShadow=m.receiveShadow=true;f.add(m);return m;};
-     add('Stage figure lotus base',baseGeo,0,.08,0);
-     add('Stage figure body',bodyGeo,0,.16,0).scale.set(.62,1,1); // flattened front to back; faces the forecourt
-     if(folded){for(const s of [-1,1])add('Stage figure arm',armGeo,-.08,1.14,s*.14,s*.62);add('Stage figure folded hands',handGeo,-.15,1.02,0);}
-     else{for(const s of [-1,1])add('Stage figure arm',armGeo,-.02,1.02,s*.265,-s*.10);add('Stage figure mace',maceGeo,-.10,.66,side*.31);}
+     stoneMesh(f,'Stage figure lotus base',baseGeo,figureStone,[0,.08,0]);
+     for(const s of [-1,1]){
+       stoneLoft(f,'Stage figure bearing foot',[[.16,-.045,s*.105,.09,.06],[.19,-.045,s*.105,.105,.065],[.22,-.045,s*.105,.08,.05]],'y',figureStone);
+       const knee=folded?s*.10:s*(s===side?.17:.09);
+       stoneTube(f,'Stage figure distinct leg',[[-.02,.215,s*.105],[.012,.47,knee],[0,.75,s*.12]],[.050,.063,.079],figureStone,14);
+     }
+     stoneLoft(f,'Stage figure skirt outline',[[.47,0,0,.095,.155],[.55,0,0,.125,.18],[.70,0,0,.13,.195],[.79,0,0,.115,.145],[.84,0,0,.10,.13]],'y',figureStone);
+     stoneLoft(f,'Stage figure shaped torso',[[.78,0,0,.10,.135],[.88,0,0,.12,.16],[1.04,0,0,.15,.205],[1.15,0,0,.145,.21],[1.23,0,0,.085,.12]],'y',figureStone);
+     stoneEllipsoid(f,'Stage figure neck',[0,1.285,0],[.06,.095,.07],figureStone);
+     stoneEllipsoid(f,'Stage figure head',[0,1.435,0],[.10,.13,.11],figureStone);
+     if(animalHead){
+       stoneEllipsoid(f,'Stage upper animal muzzle',[-.10,1.435,0],[.095,.055,.062],figureStone);
+       for(const s of [-1,1])stoneLoft(f,'Stage upper animal pointed ear',[[1.49,.015,s*.09,.038,.038],[1.56,.02,s*.125,.030,.020],[1.63,.03,s*.13,.007,.007]],'y',figureStone);
+     }else stoneEllipsoid(f,'Stage figure plain facial profile',[-.092,1.425,0],[.045,.064,.066],figureStone);
+     stoneLoft(f,'Stage figure broad tiered crown',[[1.54,.018,0,.105,.145],[1.59,.018,0,.105,.145],[1.61,.018,0,.095,.12],[1.70,.018,0,.090,.115],[1.72,.018,0,.078,.093],[1.80,.018,0,.025,.032],[1.82,.018,0,.009,.011]],'y',figureStone);
+     for(const s of [-1,1]){
+       if(folded){stoneBentArm(f,'Stage figure bent prayer arm',[[0,1.12,s*.18],[-.045,.99,s*.22],[-.155,1.105,s*.027]],[.063,.049,.036],figureStone);stoneEllipsoid(f,'Stage figure joined prayer hand',[-.17,1.125,s*.019],[.031,.071,.020],figureStone);}
+       else if(s===side){stoneBentArm(f,'Stage figure lowered staff arm',[[0,1.12,s*.18],[-.04,.94,s*.255],[-.095,.76,s*.29]],[.063,.050,.036],figureStone);stoneEllipsoid(f,'Stage figure staff hand',[-.10,.75,s*.30],[.042,.06,.045],figureStone);}
+       else{stoneBentArm(f,'Stage figure raised bent arm',[[0,1.12,s*.18],[-.045,1.015,s*.25],[-.115,1.255,s*.28]],[.063,.033,.032],figureStone);stoneEllipsoid(f,'Stage figure raised open hand',[-.12,1.29,s*.282],[.034,.071,.046],figureStone);}
+     }
+     if(!folded)stoneMesh(f,'Stage figure mace',maceGeo,figureStone,[-.10,.66,side*.31]);
    };
    for(const [n,z,side] of [['left',-7.15,-1],['right',-2.85,1]]){
      box('Stage statue pedestal',58.8,1.485,z,.5,2.97,.5,adjacentWhite,true);
@@ -1467,7 +1540,7 @@ export function buildLandscape(K, {mobile=false}={}) {
    }
    for(const [n,z] of [['left',-7],['right',-3]]){
      box('Stage statue bracket',58.8,6.35,z,.42,.3,.42,adjacentWhite);
-     figure('Stage upper '+n+' stone figure',58.8,6.5,z,true,0);
+     figure('Stage upper '+n+' stone figure',58.8,6.5,z,true,0,n==='left');
    }}
   // 14.28.15 (frontal) / 15.19.57 / 15.13.30: either side of the stair a stained concrete terrace
   // stands 1.7 m high (0.6 of the stair height) between white stair cheeks, and the building's

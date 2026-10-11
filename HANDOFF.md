@@ -4,6 +4,18 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: stage sculpture silhouettes
+
+- 15.13.30 / 15.13.26 and 15.12.15 / 15.19.57: replace ball/straight-trunk elephants
+  and peg guardians with curved adult/calf silhouettes, separate bearing legs, bent arms,
+  crowns and the observed upper-left animal muzzle. Anatomy/tiers are estimates; no identity,
+  engraving or photo textures. Six transforms, heights/envelopes, bases, pedestals, brackets,
+  staff geometry, stone finish and the owner's same-side elephant arrangement stay fixed.
+- Navigation, stairs and all 172 poses stay unchanged. Closed outward geometry, actual
+  base contact, trunk/leg gaps, stair capsule clearance and exact conservation checks pass.
+  [Before/after source review](docs/review-2026-10-11-stage-sculptures.md); native views follow
+  integration. Stage depth (14B) and uncertain architecture remain deferred.
+
 ## 2026-10-11: inner entrance hanging textiles
 
 - 175312 and turning 135 degrees 2/3 show large cloths across the Naga bay. Four softly folded
