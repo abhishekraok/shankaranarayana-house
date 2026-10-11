@@ -111,9 +111,29 @@ assert.equal(passageRay.intersectObject(temple,true).length,0,'The entrance door
 const entranceEye=new THREE.Vector3(...photos.temple.p).add(new THREE.Vector3(0,1.62,0));
 const archRay=new THREE.Raycaster(entranceEye,new THREE.Vector3(39.95,6.22,-1.8).sub(entranceEye).normalize());
 assert.equal(archRay.intersectObject(temple,true)[0]?.object.name,'Entrance upper blue scalloped arch');
-// The lowered entry stays between raised side platforms, with four real photo textures.
+// 15.16.09: only the rear ledges are high; the front side floors are one riser above the passage.
 assert.equal(supportY(39,4,.20),.20);
-assert.ok(supportY(43,4,.602)-supportY(39,4,.20)>.39,'The side platforms stand above the middle passage');
+for(const x of [35.6,43]){
+  for(const z of [0,3]){
+    assert.equal(supportY(x,z,.39),.39,'Front side floor stays below the rear ledge');
+    const hit=new THREE.Raycaster(new THREE.Vector3(x,.65,z),new THREE.Vector3(0,-1,0)).intersectObject(temple,true)[0];
+    assert.equal(hit?.object.name,'Entrance low side floor','Visible front floor matches the low walking surface');
+    assert.ok(Math.abs(hit.point.y-.39)<.001);
+  }
+  assert.equal(supportY(x,4.4,.85),.85,'The high marble ledge is limited to the rear doorway');
+  const hit=new THREE.Raycaster(new THREE.Vector3(x,1.1,4.4),new THREE.Vector3(0,-1,0)).intersectObject(temple,true)[0];
+  assert.equal(hit?.object.name,'Entrance raised side marble platform');
+  assert.ok(Math.abs(hit.point.y-.85)<.001);
+}
+assert.ok(supportY(33,0,.39)<.23,'The west side floor does not project through the road frontage');
+assert.equal(supportY(33,3,.39),.39,'The west floor remains behind the frontage');
+assert.equal(supportY(37.65,3,.20),.20,'The front passage widens beside the low floor');
+assert.equal(supportY(38.6,4.4,.20),.20,'The rear passage stays open beside the marble ledge');
+temple.traverse(o=>{if(o.name==='Entrance pier stone foot')assert.ok(Math.abs(new THREE.Box3().setFromObject(o).min.y-.39)<.001,'Front pier feet reach the lower floor');});
+temple.traverse(o=>{
+  if(!/^(Entrance low side floor front kerb|Entrance side platform laterite riser|Entrance side platform white moulding)$/.test(o.name))return;
+  assert.ok(new THREE.Box3().setFromObject(o).min.x>=35-.001,'Lane-facing floor trims stop where the road frontage starts');
+});
 const deityNames=['Entrance Ganesh original painting','Entrance doorway left original painting','Entrance doorway right original painting','Entrance Hanuman original painting'];
 const deityXs=deityNames.map(n=>temple.getObjectByName(n).position.x);
 assert.ok(deityXs.every((x,i)=>i===0||deityXs[i-1]>x),'Ganesh, Shiva, Vishnu, Hanuman are ordered left to right when entering');
@@ -138,7 +158,25 @@ for(const key of ['templepond','templeacross']){
   assert.ok(Math.abs(supportY(p[0],p[2],p[1])-p[1])<.06,key+' viewpoint is supported');
 }
 assert.ok(temple.getObjectByName('Entrance weathered flat canopy').position.y<temple.getObjectByName('Temple road corner flat roof').position.y,'The entry canopy is below the right wing roof');
-assert.equal(temple.children.filter(o=>o.name==='Temple road blue window frame'&&o.position.y>4&&o.position.x<35).length,4); // 15.22.36: one upper window per four-metre bay along the frontage
+// 15.20.01 / 15.19.36: one upper window per roughly 2.9 m bay, with a narrow plain shutter below.
+const roadPiers=temple.children.filter(o=>o.name==='Temple road porch white pier').sort((a,b)=>a.position.x-b.position.x);
+const roadWindows=temple.children.filter(o=>o.name==='Temple road blue window frame'&&o.position.y>4&&o.position.x<35).sort((a,b)=>a.position.x-b.position.x);
+assert.equal(roadPiers.length,6,'Five frontage bays have six boundary piers');
+assert.equal(roadWindows.length,5,'Every frontage bay has its own upper window');
+for(let i=0;i<roadWindows.length;i++){
+  const pitch=roadPiers[i+1].position.x-roadPiers[i].position.x;
+  assert.ok(pitch>2.8&&pitch<3.0,'Frontage bays stay close to the photographed 2.9 m pitch');
+  assert.ok(Math.abs(roadWindows[i].position.x-(roadPiers[i].position.x+roadPiers[i+1].position.x)/2)<.02,'Upper window is centred over its bay');
+}
+const roadShutter=temple.getObjectByName('Temple road blue rolling shutter'),shutterBounds=new THREE.Box3().setFromObject(roadShutter);
+assert.ok(Math.abs(shutterBounds.getSize(new THREE.Vector3()).x-1.9)<.001,'Rolling shutter is narrower than a frontage bay');
+assert.equal(roadShutter.position.x,roadWindows[0].position.x,'Shutter and first upper window align');
+assert.equal(temple.getObjectByName('Temple road shutter dark frame'),undefined,'The shutter has no wide invented dark surround');
+assert.equal(temple.getObjectByName('Covered hall road shutter inner face').position.x,roadShutter.position.x,'Inner and outer shutter faces share the same bay');
+const frontageWalls=temple.children.filter(o=>o.name==='Temple road corner lower frontage');
+for(const o of frontageWalls)assert.ok(Math.abs(new THREE.Box3().setFromObject(o).min.z-1.45)<.001,'Lower frontage faces meet in one plane');
+assert.ok(Math.abs(new THREE.Box3().setFromObject(temple.getObjectByName('Temple road upper front wall')).min.z-1.45)<.001,'Upper frontage extension matches the main face');
+temple.traverse(o=>{if(o.name==='Entrance low side floor'){const b=new THREE.Box3().setFromObject(o);if(b.min.x<35-.001)assert.ok(b.min.z>=1.75-.001,'West low floor stops behind the flush frontage');}});
 assert.ok(temple.getObjectByName('Temple road white front balcony balusters').count>=38);
 // The three lake photographs are a stationary left-to-right pan opposite the mud road.
 const panoramaKeys=['lakeleft','lakemiddle','lakehouse'];
@@ -341,6 +379,13 @@ checkRoute('Temple exterior stair back to side road',[...outsideStairRoute].reve
 const galleryRoute=[[39,3],[44.6,3],[44.6,1.35],[46.18,1.35],[46.18,5.72],[44.8,5.72],[39,5.4]];
 checkRoute('Temple entrance to upper gallery',galleryRoute,.20,.19);
 checkRoute('Temple gallery return to entrance',[...galleryRoute].reverse(),4.08,.19);
+for(const x of [33.4,44.6]){
+  const route=[[39,3],[x,3],[x,4.4]];
+  checkRoute('Entrance rear marble ledge ascent '+x,route,.20,.19);
+  assert.equal(routes.at(-1).finalHeight,.85,'Two risers reach the rear marble ledge');
+  checkRoute('Entrance rear marble ledge descent '+x,[...route].reverse(),.85,.19);
+  assert.equal(routes.at(-1).finalHeight,.20,'Both rear ledges return to the entrance passage');
+}
 checkRoute('Lane to adjacent building stair',[[8,-5],[59.9,-5],[62.5,-5]],.051,0);
 checkRoute('Adjacent hall rear dais ascent',[[62.1,-5],[64.9,-5],[64.9,-1]],2.82,2.81);
 checkRoute('Adjacent hall rear dais descent',[[64.9,-1],[64.9,-5],[62.1,-5]],3.42,2.81);
@@ -714,7 +759,7 @@ checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]
 checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
-const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sidePlatformHeight:.602,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
+const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};
@@ -727,7 +772,7 @@ for(let i=1;i<frontTreads.length;i++)assert.ok(frontTreads[i].min.y<frontTreads[
 const shrineRidgeBounds=new THREE.Box3().setFromObject(house.getObjectByName('Small shrine tiled roof ridge'));
 assert.ok(shrineRidgeBounds.min.z<=5.526&&shrineRidgeBounds.max.z>=8.269,'Ridge cap covers the full revised God-room roof ridge');
 
-for(const [prefix,base] of [['Front central stair',0],['Courtyard descending stair',.1],['Temple gallery access stair',.6],['Temple exterior side stair',.04]]){
+for(const [prefix,base] of [['Front central stair',0],['Courtyard descending stair',.1],['Temple gallery access stair',.39],['Temple exterior side stair',.04]]){
  temple.traverse(o=>{
   if(!o.isMesh||!o.name.startsWith(prefix+' '))return;
   const box=new THREE.Box3().setFromObject(o);
