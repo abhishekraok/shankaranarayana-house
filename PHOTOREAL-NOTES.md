@@ -15,11 +15,14 @@ overrides after material renumbering. Windows package, all 18 actual-input walki
 legs / 8,577 support samples, cold restart and focused bank Continue pass with
 exit 0. Reverse legs start from actual reached endpoints; progress/settings remain
 intact. All 172 poses / 29 sheets captured with exit 0 and were independently
-compared with `b4fdb17`; no substantial new regression found. The longer runtime
-profile is pending.
+compared with `b4fdb17`; no substantial new regression found. The final 14,400-frame
+profile exits 0: median 16.667 ms, p99 16.673 ms at 1600x900/100%/quality 2/60 fps.
+Four frames exceed 33.333 ms in the first 600-frame window; none in the remaining
+13,800. Startup transients remain; no uncapped or complete-route claim.
 
 [Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-7b51f66/unreal-20261011-061755/index.html),
 [arcade before/after and checks](D:/repos/shankaranarayana-photoreal/unreal/reviews/bathing-arcade-2026-10-11.md).
+[Final runtime check](D:/repos/shankaranarayana-photoreal/unreal/reviews/runtime-2026-10-11.md).
 Support spacing/details remain estimates; arcade length/tank east-end layout are
 unresolved. Lumen setup saved its audit, then hit the known intermittent editor
 teardown access violation; subsequent native audits and packaged checks exit 0.
