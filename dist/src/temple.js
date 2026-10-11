@@ -90,7 +90,6 @@ export function buildTemple(K) {
     }
   }, 8, 3);
   const relief = mat('#f1eee7'); // 15.10.34 / 15.02.27: whitewashed stone with shallow carving, not a tan plaque
-  const darkRelief = mat('#6f6152');
   relief.map = canvasMap(256, (c,s) => {
     c.fillStyle='#e9e6dd';c.fillRect(0,0,s,s);
     c.strokeStyle='#aea899';c.lineWidth=2.4;
@@ -1637,22 +1636,55 @@ export function buildTemple(K) {
   // central entry. West of the entry (to the right on entering) the carved
   // frieze platform is the narrow great-bell hall; beyond it come the white
   // stair wall and the blue service bay. The east hall has two smaller bells.
-  darkRelief.map=relief.map;
-  for(const [x,w,n] of [[36.525,2.65,3],[44.0,7.5,10]]){
-    floor('Courtyard portico raised marble platform',x,7.02,w,1.62,.602,stoneFloor);
-    box('Courtyard portico dark carved plinth',x,.32,7.80,w,.45,.14,oldStone,true);
-    for(let i=0;i<n;i++)panel('Courtyard portico inset relief panel',x-(n-1)*.37+i*.74,.33,7.88,.60,.31,darkRelief); // 15.02.27: dark brown carved stone
-    box('Courtyard portico marble lip',x,.59,7.87,w+.1,.10,.18,whiteTrim);
-    steps('Courtyard portico side access',x<39?35.75:46.8,8.19,.90,.85,.1,.602,'-z',3);
+  const porticoTop=.85,porticoLift=porticoTop-.602;
+  const porticoMarble=mat('#ffffff',.42),porticoStone=mat('#6b4034',.9),porticoTread=mat('#8e2f22',.85);
+  // 15.14.44 / 15.14.56: polished grey veining, shared by the slab and wall dado.
+  porticoMarble.map=canvasMap(512,(c,s)=>{let n=5821;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+    c.fillStyle='#9c9d92';c.fillRect(0,0,s,s);
+    for(let i=0;i<26;i++){c.fillStyle=`rgba(${r()<.5?'180,180,174':'104,105,98'},${.18+r()*.25})`;c.fillRect(0,r()*s,s,4+r()*26);}
+    c.lineWidth=1;for(let i=0;i<70;i++){c.strokeStyle=`rgba(${r()<.6?'231,232,225':'61,62,57'},${.2+r()*.35})`;let x=0,y=r()*s;c.beginPath();c.moveTo(x,y);while(x<s){x+=8+r()*20;y+=r()*10-5;c.lineTo(x,y);}c.stroke();}
+    for(let x=0;x<=s;x+=s/2){c.fillStyle='rgba(44,45,41,.5)';c.fillRect(x-1,0,2,s);}
+  });K.worldMap(porticoMarble,.3);
+  const porticoRelief=mat('#6b4034',.9);porticoRelief.map=relief.map;
+  for(const [x,w] of [[36.525,2.65],[44.0,7.5]]){
+    // Filled bases meet a .15 m marble slab; the centre passage remains at court level.
+    box('Courtyard portico masonry core',x,.40,7.015,w,.60,1.63,porticoStone);
+    box('Courtyard portico raised marble platform',x,.775,7.015,w,.15,1.63,porticoMarble);
+    K.surface(x,7.015,w,1.63,porticoTop);
+    box('Courtyard portico dark carved plinth',x,.40,7.80,w,.60,.14,porticoStone);
+    const n=Math.round(w/.4),pitch=(w-.30)/(n-1);
+    for(let i=0;i<n;i++)panel('Courtyard portico inset relief panel',x-(n-1)*pitch/2+i*pitch,.40,7.88,.30,.32,porticoRelief);
+    for(const y of [.17,.64])box('Courtyard portico frieze moulding',x,y,7.88,w,.06,.05,porticoStone);
+    box('Courtyard portico marble lip',x,.775,7.87,w+.1,.15,.18,porticoMarble);
+    // Two red tread blocks (.35/.60) then the marble platform (.85): three .25 rises,
+    // inside the native .36 m step limit. The last helper tread is part of the marble slab.
+    const start=g.children.length;
+    steps('Courtyard portico side access',x<39?36.15:46.55,8.19,.75,.85,.1,porticoTop,'-z',3,porticoTread,whiteTrim);
+    const treads=g.children.slice(start).filter(o=>/Courtyard portico side access tread /.test(o.name));
+    for(const o of treads)K.surface(o.position.x,o.position.z,.75,.85/3,o.position.y+.06);
+    const last=treads[2];last.material=porticoMarble;
+    // The marble lip already covers the back of the final tread. Trim that overlap so
+    // two coplanar cap faces cannot flicker, retaining the full walkable top rectangle.
+    const front=last.position.z+.85/6,back=7.96;
+    last.scale.z=(front-back)/(.85/3);last.position.z=(front+back)/2;
   }
+  // 15.16.09: the same carved course wraps onto both sides of the low passage.
+  // These faces use the final court-front position, so the later extension pass leaves them fixed.
+  for(const [x,out] of [[37.85,1],[40.25,-1]]){
+    box('Courtyard portico passage frieze',x+out*.02,.40,7.545,.04,.60,2.65,porticoStone);
+    for(let i=0;i<7;i++)panel('Courtyard portico passage relief panel',x+out*.045,.40,6.37+i*.39,.30,.32,porticoRelief,true);
+    box('Courtyard portico passage marble lip',x+out*.025,.775,7.545,.05,.15,2.65,porticoMarble);
+  }
+  for(const [x,w] of [[36.33,1.95],[44.28,7.15]])box('Bell hall grey marble dado',x,1.075,6.24,w,.45,.04,porticoMarble);
+  box('Bell hall west grey marble dado',35.36,1.075,7.285,.04,.45,2.53,porticoMarble);
   for(const x of [35.45,47.3]){
-    box('Courtyard portico square white pier',x,2.14,7.58,.46,3.02,.46,white,true);
-    box('Courtyard portico pier red foot',x,.91,7.58,.61,.62,.61,red);
+    box('Courtyard portico square white pier',x,(porticoTop+3.65)/2,7.58,.46,3.65-porticoTop,.46,white,true);
+    box('Courtyard portico pier red foot',x,porticoTop+.31,7.58,.61,.62,.61,red);
   }
   for(const x of [37.55,40.65,43.2,45.5]){
-    carvedColumn('Courtyard bell bay carved column',x,7.57,.602,3.04,.86);
-    box('Courtyard bell column red plinth',x,.93,7.57,.74,.66,.74,red);
-    panel('Courtyard bell column outward carving',x,1.63,7.87,.40,.62,relief);
+    carvedColumn('Courtyard bell bay carved column',x,7.57,porticoTop,3.04-porticoLift,.86);
+    box('Courtyard bell column red plinth',x,porticoTop+.33,7.57,.74,.66,.74,red);
+    panel('Courtyard bell column outward carving',x,1.63+porticoLift,7.87,.40,.62,relief);
   }
   for(const [x,w] of [[36.5,1.72],[41.93,2.10],[44.35,1.86],[46.4,1.34]])scallop('Courtyard portico scalloped arch',x,7.58,w,3.82,.26,whiteTrim,.43);
   box('Courtyard portico ceiling slab',44.0,3.94,7.05,7.6,.22,1.85,white);
@@ -1660,7 +1692,7 @@ export function buildTemple(K) {
   // White wall between the service bay and the bell hall: red dado over the
   // red-outlined tiled plinth, and a blue-framed door with the gallery stair
   // rising inside it.
-  {const wallZ=7.45,x0=30.95,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=.62,head=3.07;
+  {const wallZ=7.45,x0=30.95,x1=35.25,d0=34.0,d1=34.95,dc=(d0+d1)/2,sill=porticoTop,head=3.07;
     for(const [a,b] of [[x0,d0],[d1,x1]]){
       box('Stair door white wall',(a+b)/2,2.0,wallZ,b-a,3.92,.3,white,true);
       box('Stair door wall red dado',(a+b)/2,.87,wallZ+.155,b-a,.5,.02,red);
@@ -1678,8 +1710,11 @@ export function buildTemple(K) {
     box('Stair enclosure white east wall',d0-.02,2.28,wallZ-.95,.06,3.36,1.3,white);
     for(let i=0;i<5;i++)box('Gallery stair tread seen through the door',dc,sill+.1+i*.19,wallZ-.35-i*.24,d1-d0-.04,.19,.26,oldStone);
     K.blocker(dc,wallZ-.4,d1-d0,.9,sill,head);
-    floor('Stair door threshold',dc,wallZ+.1,d1-d0,.5,sill,oldStone);
+    floor('Stair door threshold',dc,wallZ+.1,d1-d0,.5,sill,porticoMarble);
+    const accessStart=g.children.length;
     steps('Stair door front steps',dc,wallZ+.75,1.1,.9,.02,sill,'-z',3);
+    const topTread=g.children.slice(accessStart).find(o=>o.name==='Stair door front steps tread 3');
+    topTread.scale.z=.25/.30;topTread.position.z=wallZ+.475; // flush with threshold, no overlapping top faces
   }
   // Blue scalloped service bay underneath the left-hand upper windows.
   const serviceStart={children:g.children.length,colliders:K.colliders.length,surfaces:K.surfaces.length,ramps:K.ramps.length};
@@ -1787,27 +1822,30 @@ export function buildTemple(K) {
   box('Great bell heavy timber suspension beam',bellX,3.39,7.25,.31,.25,1.6,K.M.wood);
   // User's note: no pier on the court side of the bell; the beam is carried by the rear pier.
   for(const z of [6.8]){
-    box('Great bell white suspension pier',bellX,1.98,z,.5,2.75,.42,white,true);
-    box('Great bell white pier stepped base',bellX,.95,z,.72,.7,.56,white);
-    box('Great bell white pier middle step',bellX,1.55,z,.6,.5,.48,white);
-    box('Great bell pier red foot',bellX,.64,z,.78,.08,.62,red);
+    const pierTop=3.355;
+    box('Great bell white suspension pier',bellX,(porticoTop+pierTop)/2,z,.5,pierTop-porticoTop,.42,white,true);
+    box('Great bell white pier stepped base',bellX,porticoTop+.35,z,.72,.7,.56,white);
+    box('Great bell white pier middle step',bellX,1.55+porticoLift,z,.6,.5,.48,white);
+    box('Great bell pier red foot',bellX,porticoTop+.04,z,.78,.08,.62,red);
   }
-  bell('Great bronze temple bell',bellX,1.19,bellZ,1.10);
+  // Preserve the owner's full-size bell and lone rear pier. Only the bell hardware and
+  // lower rope ends rise with the floor; the timber beam and upper anchors stay fixed.
+  bell('Great bronze temple bell',bellX,1.19+porticoLift,bellZ,1.10);
   for(const dx of [-.14,.14]){
-    const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58,bellZ);handle.rotation.y=dx<0?-.3:.3;
+    const handle=mesh('Great bell bronze suspension handle',new THREE.TorusGeometry(.16,.038,10,20),bronze,bellX+dx,2.58+porticoLift,bellZ);handle.rotation.y=dx<0?-.3:.3;
   }
   const rope=mat('#b7934c');
   for(let i=0;i<7;i++){
     const dx=(i-3)*.041;
-    K.beam(g,'Great bell thick rope bundle',[bellX+dx,3.53,bellZ-.18],[bellX+dx+.04,2.65,bellZ+.03],.033,rope);
-    K.beam(g,'Great bell rope return',[bellX+dx,3.53,bellZ+.18],[bellX+dx+.04,2.65,bellZ+.03],.027,rope);
+    K.beam(g,'Great bell thick rope bundle',[bellX+dx,3.53,bellZ-.18],[bellX+dx+.04,2.65+porticoLift,bellZ+.03],.033,rope);
+    K.beam(g,'Great bell rope return',[bellX+dx,3.53,bellZ+.18],[bellX+dx+.04,2.65+porticoLift,bellZ+.03],.027,rope);
   }
   for(const y of [2.69,2.76,2.83]){
-    const knot=mesh('Great bell rope binding',new THREE.TorusGeometry(.19,.026,7,20),rope,bellX,y,bellZ);knot.rotation.x=Math.PI/2;
+    const knot=mesh('Great bell rope binding',new THREE.TorusGeometry(.19,.026,7,20),rope,bellX,y+porticoLift,bellZ);knot.rotation.x=Math.PI/2;
   }
-  const pull=new THREE.CatmullRomCurve3([new THREE.Vector3(bellX,1.15,bellZ),new THREE.Vector3(bellX-.12,.85,bellZ+.02),new THREE.Vector3(bellX-.04,.69,bellZ+.05),new THREE.Vector3(bellX+.17,.85,bellZ+.05)]);
+  const pull=new THREE.CatmullRomCurve3([new THREE.Vector3(bellX,1.15+porticoLift,bellZ),new THREE.Vector3(bellX-.12,.85+porticoLift,bellZ+.02),new THREE.Vector3(bellX-.04,.69+porticoLift,bellZ+.05),new THREE.Vector3(bellX+.17,.85+porticoLift,bellZ+.05)]);
   mesh('Great bell looped clapper rope',new THREE.TubeGeometry(pull,20,.017,6,false),rope);
-  K.blocker(bellX,bellZ,1.24,1.24,1.1,2.65);
+  K.blocker(bellX,bellZ,1.24,1.24,1.1+porticoLift,2.65+porticoLift);
   // The suspended drum is beside the large bell, as in the close-up 15.14.44.
   const drumX=bellX+.8,drumZ=6.6;
   const drum=new THREE.Group();drum.name='Suspended temple drum';drum.position.set(drumX,1.5,drumZ);drum.rotation.x=.62;drum.rotation.z=-.32;drum.scale.setScalar(.72);g.add(drum); // 15.14.44: about 0.75 m across
@@ -1832,13 +1870,13 @@ export function buildTemple(K) {
   {const greyStone=mat('#a3a299',.95),dullBrass=mat('#8a7650',.55,{metalness:.55}),front=8.57;
    const profile=[[.205,0],[.205,.62],[.235,.66],[.235,.76],[.195,.80],[.195,.98],[.27,1.08],[.30,1.20],[.27,1.32],[.205,1.40],[.205,1.46],[.33,1.56],[.34,1.66],[.26,1.74]];
    for(const x of [37.55,40.65]){const back=front-(x<39?1.3:1.6); // west: clear of the drum
-     box('Passage round column carved base block',x,1.03,back,.50,.86,.50,greyStone);
-     for(const y of [.66,1.44])box('Passage round column base moulding',x,y,back,.58,.09,.58,greyStone);
-     panel('Passage round column base relief',x,1.04,back+.255,.34,.56,relief);
+     box('Passage round column carved base block',x,(porticoTop+1.46)/2,back,.50,1.46-porticoTop,.50,greyStone);
+     for(const y of [porticoTop+.06,1.44])box('Passage round column base moulding',x,y,back,.58,.09,.58,greyStone);
+     panel('Passage round column base relief',x,1.11,back+.255,.34,.48,relief);
      const shaft=mesh('Passage round turned stone column',new THREE.LatheGeometry(profile.map(([r,y])=>new THREE.Vector2(r,y)),24),greyStone,x,1.48,back);shaft.castShadow=shaft.receiveShadow=true;
      box('Passage round column square capital',x,3.40,back,.66,.30,.66,greyStone);
      box('Passage round column capital cap',x,3.65,back,.78,.20,.78,white);
-     K.blocker(x,back,.5,.5,.6,3.75);
+     K.blocker(x,back,.5,.5,porticoTop,3.75);
      {const beam=scallop('Passage bell scalloped beam',x,0,1.14,3.82,.24,whiteTrim,.36);beam.rotation.y=Math.PI/2;beam.position.set(x-.12,0,(front+back)/2);}
      bell('Passage hanging bronze bell',x,2.78,(front+back)/2,.46,dullBrass);
      K.beam(g,'Passage bell rusted chain',[x,3.78,(front+back)/2],[x,3.33,(front+back)/2],.03,dark);
@@ -2666,7 +2704,7 @@ export function buildTemple(K) {
    for(const o of g.children){if(o.isInstancedMesh)continue;b3.setFromObject(o);if(b3.isEmpty()||!inBay())continue;
      if(/^(Stair door|Courtyard exit|Great bell|Great bronze|Temple drum|Suspended|Passage )/.test(o.name)||b3.min.y>3.9)continue; // ground storey only
      if(b3.min.z>=7.15&&b3.max.z<=8.7){o.position.z+=DZ;continue;}
-     if(/^(Courtyard portico raised marble platform|Courtyard portico ceiling slab|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
+     if(/^(Courtyard portico masonry core|Courtyard portico raised marble platform|Courtyard portico ceiling slab|Bell hall ceiling slab|Bell hall white west wall)$/.test(o.name)&&b3.min.z>5.8&&b3.min.z<6.3&&b3.max.z>7.5&&b3.max.z<8){
        const lo=b3.min.z,f=(b3.max.z-lo+DZ)/(b3.max.z-lo);o.scale.z*=f;o.updateMatrixWorld(true);b3.setFromObject(o);o.position.z+=lo-b3.min.z;}}
    for(const c of K.colliders){if((c.minX<35.0||c.maxX>38.1)&&(c.minX<40.1||c.maxX>47.95))continue;
      if(c.bottom>3.9)continue;
