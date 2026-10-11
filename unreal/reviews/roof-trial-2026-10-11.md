@@ -12,3 +12,6 @@ underside `SheetFill=.12`, material colours and global lighting stayed fixed.
 Both gables remained pale; representative averages changed only 1–3 RGB levels. No substantial
 visual improvement justified persistence. Brightness and weathering remain deferred. The unused
 roof diagnostic/resolver draft was removed; verified bell and lotus corrections remain intact.
+
+A later [exclusive Color trial](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-inner-gables.md)
+recovers a substantial gable/white contrast difference without changing sheet fill.

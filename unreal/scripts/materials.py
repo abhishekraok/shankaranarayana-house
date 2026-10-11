@@ -13,7 +13,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from material_targets import (structural_timber_family, COURTYARD_FENCE_ALIAS, courtyard_fence_override,
                               validate_fence_manifest, inner_hall_bell_family, rear_plinth_lotus_families,
-                              west_bank_road_family, WEST_BANK_ROAD_COLOR_GAIN)
+                              west_bank_road_family, WEST_BANK_ROAD_COLOR_GAIN,
+                              inner_corrugated_roof_family, INNER_CORRUGATED_ROOF_COLOR_GAIN)
 WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
@@ -21,6 +22,7 @@ structural_timber = structural_timber_family(meta)
 inner_hall_bronze = inner_hall_bell_family(meta)
 rear_plinth_lotus = set(rear_plinth_lotus_families(meta))
 west_bank_road = west_bank_road_family(meta)
+inner_corrugated_roof = inner_corrugated_roof_family(meta)
 fence_override = courtyard_fence_override(meta)
 M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
@@ -409,7 +411,10 @@ def instance(i, variant=None):
     name = ('MI_' + variant) if variant else 'MI_' + re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_') + f'_{i}'
     path = f'{DIR}/Web/{name}'
     # Update in place: other meshes may already reference this instance.
-    mi = unreal.load_asset(path) if EAL.does_asset_exist(path) else         AT.create_asset(name, f'{DIR}/Web', unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    exists = EAL.does_asset_exist(path)
+    mi = unreal.load_asset(path) if exists else AT.create_asset(name, f'{DIR}/Web', unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+    if i == inner_corrugated_roof:
+        assert kind == 'both' and variant is None, 'Review inner corrugated roof shader/variant'
     MEL.set_material_instance_parent(mi, masters[kind])
     if kind.endswith('leaf'):
         for key, value in FOLIAGE_STYLE.items():
@@ -459,13 +464,28 @@ def instance(i, variant=None):
         assert kind == 'mapped' and (c.r, c.g, c.b, c.a) == (1, 1, 1, 1), 'Review west-bank road shader/tint'
         c = unreal.LinearColor(c.r * WEST_BANK_ROAD_COLOR_GAIN, c.g * WEST_BANK_ROAD_COLOR_GAIN,
                                c.b * WEST_BANK_ROAD_COLOR_GAIN, c.a)
+    if i == inner_corrugated_roof:
+        # 15.13.03/.07: these two sheets washed out nearly white. Keep their
+        # source hue and sheet-fill response; attenuate only this instance.
+        base = colour(web)
+        assert max(abs(a-b) for a,b in zip((c.r,c.g,c.b,c.a), (base.r,base.g,base.b,base.a))) < 1e-6, \
+            'Review stacked inner corrugated roof tint'
+        c = unreal.LinearColor(c.r * INNER_CORRUGATED_ROOF_COLOR_GAIN, c.g * INNER_CORRUGATED_ROOF_COLOR_GAIN,
+                               c.b * INNER_CORRUGATED_ROOF_COLOR_GAIN, c.a)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
-    if i == west_bank_road:
+    if i in (west_bank_road, inner_corrugated_roof):
         actual = MEL.get_material_instance_vector_parameter_value(mi, 'Color')
         assert all(math.isfinite(getattr(actual, channel)) and abs(getattr(actual, channel) - value) < 1e-6
-                   for channel, value in zip('rgba', (c.r, c.g, c.b, c.a))), 'West-bank road gain readback failed'
+                   for channel, value in zip('rgba', (c.r, c.g, c.b, c.a))), 'Scoped colour gain readback failed'
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
+    if i == inner_corrugated_roof:
+        # Source indices can move into an existing instance's name. Rebuild
+        # its reviewed sheet response as well as its parent and source tint.
+        for parameter, expected in {'SheetFill': .12, 'SheetFillFront': 1}.items():
+            MEL.set_material_instance_scalar_parameter_value(mi, parameter, expected)
+            actual = MEL.get_material_instance_scalar_parameter_value(mi, parameter)
+            assert math.isfinite(actual) and abs(actual-expected) < 1e-6, 'Inner corrugated roof fill readback failed'
     if i == inner_hall_bronze:
         # 15.08.10: the shared sheet fill turned non-emissive bronze into pale
         # silhouettes. Keep the hollow bells two-sided, with their own fill off.

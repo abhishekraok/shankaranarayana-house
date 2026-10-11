@@ -6,6 +6,24 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-11 stage sculptures and inner gables
+
+Main `b4fdb17` is rebuilt. Elephants/calves and four guardians now have separate
+legs, curved trunks and bent arms within their retained placement/envelopes. The
+exclusive inner corrugated-sheet material retains `.25` source-color gain; fresh
+native slot/level/readback audits pass without changing shared lighting or masters.
+Windows package, six stage legs, six bank-road legs, ordinary cold restart and
+focused bank Continue pass with exit 0. All 172 poses / 29 sheets captured with
+exit 0. All 29 sheets were independently compared with `a0546ae`; no substantial
+new regression found. Entrance textiles, bank path, bells and stone remain intact.
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-b4fdb17/unreal-20261011-053301/index.html),
+[stage review](D:/repos/shankaranarayana-photoreal/unreal/reviews/stage-sculptures-2026-10-11.md),
+[gable review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-inner-gables.md).
+The bathing arcade has a reviewed source commit awaiting separate native integration.
+The intermittent editor teardown access violation remains unexplained; this capture
+and all packaged tests exit cleanly. Anatomy and sheet weathering remain approximate.
+
 ## 2026-10-11 entrance textiles, road shade and stage walking
 
 Main `a0546ae` is rebuilt. Four folded entrance cloths fill the bare inner bay,
@@ -58,7 +76,7 @@ in [Continue review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-
 | Photo | Remaining substantial work | Render |
 |---|---|---|
 | 2011-09-21 15.25.49 / 15.26.49 | Road geometry/walking pass; pale native material corrected in a0546ae. Ruts and weathering remain approximate. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-a0546ae/unreal-20261011-043115/090-2011-09-21 15.25.49.png>) |
-| 2011-09-21 15.13.03 / 15.13.07 | Inner shelter's grey-blue gables remain pale. Rejected front-fill trial had negligible benefit; brightness/weathering remain unresolved. Floral parapet uses a shared masked material. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/071-2011-09-21 15.13.03.png>) |
+| 2011-09-21 15.13.03 / 15.13.07 | Grey-blue gable brightness corrected in b4fdb17; weathering remains approximate. Floral parapet uses a shared masked material. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b4fdb17/unreal-20261011-053301/071-2011-09-21 15.13.03.png>) |
 
 ## 2026-10-11 earlier roof and water pass
 

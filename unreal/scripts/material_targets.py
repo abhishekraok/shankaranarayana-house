@@ -2,6 +2,38 @@
 
 import math
 
+INNER_CORRUGATED_ROOF_NAMES = {'Inner corrugated shelter roof', 'Inner blue-gray corrugated gable'}
+INNER_CORRUGATED_ROOF_COLOR_GAIN = .25
+
+
+def inner_corrugated_roof_family(scene):
+    """Resolve the two exclusive blue-gray sheets before their native gain."""
+    objects = [o for o in scene['objects'] if o['name'] in INNER_CORRUGATED_ROOF_NAMES]
+    assert len(objects) == 2 and {o['name'] for o in objects} == INNER_CORRUGATED_ROOF_NAMES, \
+        'Review changed inner corrugated roof users'
+    assert all(len(o['materials']) == 1 for o in objects), 'Review split inner corrugated roof slots'
+    indices = {o['materials'][0] for o in objects}
+    assert len(indices) == 1, 'Review split inner corrugated roof family'
+    index = indices.pop()
+    assert type(index) is int and 0 <= index < len(scene['materials']), 'Invalid inner corrugated roof family'
+    assert [o for o in scene['objects'] if index in o['materials']] == objects, \
+        'Inner corrugated roof material shared elsewhere'
+    signature = {'type': 'MeshStandardMaterial', 'color': '#929ea2', 'roughness': .91,
+                 'metalness': 0, 'opacity': 1, 'transparent': False, 'doubleSided': True,
+                 'hasMap': False, 'alphaTest': 0, 'vertexColors': False, 'mapIsPhoto': False}
+    material = scene['materials'][index]
+    assert all(material.get(k) == v for k, v in signature.items()), 'Recalibrate changed inner corrugated roof'
+    assert all(type(material.get(k)) in (int, float) and math.isfinite(material[k])
+               for k in ('roughness', 'metalness', 'opacity', 'alphaTest')), 'Invalid inner corrugated roof scalars'
+    assert not any(material.get(k) for k in
+                   ('emissive', 'emissiveIntensity', 'proceduralMap', 'photoMap', 'bumpMap', 'roughnessMap', 'mapBase')), \
+        'Review mapped/emissive inner corrugated roof'
+    assert all(not o.get('instances') and not o.get('instanceColors') and
+               not scene['geometries'][o['geometry']].get('color') for o in objects), \
+        'Review changed inner corrugated roof tint/instances'
+    return index
+
+
 WEST_BANK_ROAD_NAME = 'West bank vehicle-width brown mud road'
 WEST_BANK_ROAD_MAP = '9186890a1a093d571d9ed55ffae50db9131e8a0515de4bcd23e3fee48466cc24'
 WEST_BANK_ROAD_COLOR_GAIN = .5

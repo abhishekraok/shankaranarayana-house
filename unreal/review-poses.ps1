@@ -34,13 +34,14 @@ try {
     $pythonCommand = $pythonCommand.Replace('\', '/')
     $captureArgs = @("`"$PSScriptRoot/Shankaranarayana/Shankaranarayana.uproject`"", "-ExecutePythonScript=`"$pythonCommand`"", '-windowed', '-ResX=1280', '-ResY=720', '-unattended', '-nosplash', "-abslog=`"$reviewOut/editor.log`"")
     $captureProcess = Start-Process "$Engine/Engine/Binaries/Win64/UnrealEditor.exe" -ArgumentList $captureArgs -WindowStyle Hidden -PassThru
+    $null = $captureProcess.Handle
     while (-not $captureProcess.WaitForExit(10000)) {
         if (Test-Path "$reviewOut/capture.json") {
             $progress = Get-Content "$reviewOut/capture.json" -Raw | ConvertFrom-Json
             Write-Output "Captured $($progress.captured)/$($progress.expected) poses"
         }
     }
-    $captureProcess.Refresh()
+    $captureProcess.WaitForExit()
     $captureExit = $captureProcess.ExitCode
     @{exit_code=$captureExit; clean_exit=($null -ne $captureExit -and $captureExit -eq 0);
       finished_utc=[DateTime]::UtcNow.ToString('o'); log="$reviewOut/editor.log"} |
