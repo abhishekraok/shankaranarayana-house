@@ -13,6 +13,9 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "HAL/IConsoleManager.h"
 #include "HAL/FileManager.h"
+#include "HAL/PlatformApplicationMisc.h"
+#include "HAL/PlatformProcess.h"
+#include "GenericPlatform/GenericWindow.h"
 #include "Engine/GameViewportClient.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
@@ -22,6 +25,7 @@
 #include "UnrealClient.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Widgets/SCompoundWidget.h"
+#include "Widgets/SWindow.h"
 #include "Widgets/SOverlay.h"
 #include "Widgets/SBoxPanel.h"
 #include "Widgets/Layout/SBox.h"
@@ -42,6 +46,9 @@
 #include "Serialization/JsonWriter.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonReader.h"
+#if PLATFORM_WINDOWS
+#include "Windows/WindowsHWrapper.h"
+#endif
 
 IMPLEMENT_PRIMARY_GAME_MODULE(FDefaultGameModuleImpl, QuietWalk, "QuietWalk");
 
@@ -54,6 +61,127 @@ TSharedRef<STextBlock> Label(const FString& S, int Size=16, FLinearColor Color=C
 // Saves from before LookVersion 1 used push-up-looks-up as the default. The default is now
 // flipped; reset InvertY once so the new default is what the player gets.
 void UpgradeSave(UWalkSave* S) { if(S->LookVersion<1){S->InvertY=false;S->LookVersion=1;} }
+float AppliedRenderScale() {
+    float Normalized, Value, Minimum, Maximum;
+    UGameUserSettings::GetGameUserSettings()->GetResolutionScaleInformationEx(Normalized,Value,Minimum,Maximum);
+    return Value;
+}
+int32 GameMonitorIndex() {
+    const auto* G=UGameUserSettings::GetGameUserSettings();int32 Index=G->GetClosestMonitorIndex();
+    if(!FSlateApplication::IsInitialized()||!GEngine||!GEngine->GameViewport)return Index;
+    const auto Window=GEngine->GameViewport->GetWindow();if(!Window)return Index;
+    const auto& Metrics=FSlateApplication::Get().GetCachedDisplayMetricsByRef();
+    const FSlateRect Bounds=Window->GetRectInScreen();double BestArea=0;
+    for(int32 I=0;I<Metrics.MonitorInfo.Num();I++) {
+        const auto& R=Metrics.MonitorInfo[I].DisplayRect;
+        const double Width=FMath::Max(0.0,FMath::Min((double)Bounds.Right,(double)R.Right)-FMath::Max((double)Bounds.Left,(double)R.Left));
+        const double Height=FMath::Max(0.0,FMath::Min((double)Bounds.Bottom,(double)R.Bottom)-FMath::Max((double)Bounds.Top,(double)R.Top));
+        if(Width*Height>BestArea){BestArea=Width*Height;Index=I;}
+    }
+    return Index;
+}
+void SelectGameMonitor() {
+    if(!FSlateApplication::IsInitialized())return;
+    const auto& Metrics=FSlateApplication::Get().GetCachedDisplayMetricsByRef();const int32 Index=GameMonitorIndex();
+    if(Metrics.MonitorInfo.IsValidIndex(Index))UGameUserSettings::GetGameUserSettings()->SetDisplayProperties(Metrics.MonitorInfo[Index].ID,Index);
+}
+FIntPoint WindowLimit() {
+    FIntPoint Desktop=UGameUserSettings::GetGameUserSettings()->GetDesktopResolution();
+    if(Desktop.X<=0||Desktop.Y<=0)Desktop=FIntPoint(1920,1080);
+    // Leave room for the taskbar and window frame on the monitor containing
+    // the game window; moving it to another monitor changes the available modes.
+    FIntPoint Limit(Desktop.X-64,Desktop.Y-96);
+    if(FSlateApplication::IsInitialized()) {
+        const auto& Metrics=FSlateApplication::Get().GetCachedDisplayMetricsByRef();const int32 Index=GameMonitorIndex();
+        if(Metrics.MonitorInfo.IsValidIndex(Index)) {
+            const auto& Work=Metrics.MonitorInfo[Index].WorkArea;
+            if(Work.Right>Work.Left&&Work.Bottom>Work.Top)Limit=FIntPoint(Work.Right-Work.Left-64,Work.Bottom-Work.Top-56);
+        }
+    }
+    return FIntPoint(FMath::Max(320,Limit.X),FMath::Max(240,Limit.Y));
+}
+TArray<FIntPoint> WindowChoices() {
+    const FIntPoint Limit=WindowLimit();TArray<FIntPoint> Choices;
+    for(const FIntPoint P:{FIntPoint(960,540),FIntPoint(1280,720),FIntPoint(1600,900),FIntPoint(1920,1080),FIntPoint(2560,1440),FIntPoint(3840,2160)})
+        if(P.X<=Limit.X&&P.Y<=Limit.Y)Choices.Add(P);
+    if(Choices.IsEmpty())Choices.Add(Limit);
+    return Choices;
+}
+FIntPoint FitWindow(FIntPoint Requested) {
+    const FIntPoint Limit=WindowLimit();
+    if(Requested.X>=320&&Requested.Y>=240&&Requested.X<=Limit.X&&Requested.Y<=Limit.Y)return Requested;
+    const auto Choices=WindowChoices();FIntPoint Best=Choices[0];
+    for(const auto P:Choices)if(P.X<=Requested.X&&P.Y<=Requested.Y)Best=P;
+    return Best;
+}
+void UpgradeDisplaySave(UWalkSave* S,bool Existing) {
+    if(S->DisplayVersion<1) {
+        if(Existing) {
+            S->WindowResolution=UGameUserSettings::GetGameUserSettings()->GetScreenResolution();
+            S->RenderScale=AppliedRenderScale();
+        }
+        S->DisplayVersion=1;
+    }
+    S->WindowResolution=FitWindow(S->WindowResolution);
+    S->RenderScale=FMath::IsFinite(S->RenderScale)?FMath::Clamp(S->RenderScale,50.f,100.f):100.f;
+}
+FIntPoint ViewportResolution() {
+    FVector2D Size=FVector2D::ZeroVector;
+    if(GEngine&&GEngine->GameViewport)GEngine->GameViewport->GetViewportSize(Size);
+    return FIntPoint(FMath::RoundToInt(Size.X),FMath::RoundToInt(Size.Y));
+}
+float ScreenPercentage() {
+    const auto* CVar=IConsoleManager::Get().FindConsoleVariable(TEXT("r.ScreenPercentage"));
+    return CVar?CVar->GetFloat():-1.f;
+}
+bool ConfiguredHighDpiEnabled() {
+    return FPlatformApplicationMisc::IsHighDPIAwarenessEnabled();
+}
+struct FNativeDpiAwareness {
+    int32 Process=-1,Thread=-1,Window=-1;
+    uint32 WindowDpi=0;
+    bool PerMonitor() const {return Process==2&&Thread==2&&Window==2&&WindowDpi>0;}
+};
+FNativeDpiAwareness NativeDpiAwareness() {
+    FNativeDpiAwareness State;
+#if PLATFORM_WINDOWS
+    // The engine's generic flag is configuration, not proof that Windows set
+    // awareness (notably with -unattended). Unknown API results stay unknown.
+    static void* Shcore=FPlatformProcess::GetDllHandle(TEXT("shcore.dll"));
+    static void* User32=FPlatformProcess::GetDllHandle(TEXT("user32.dll"));
+    using FProcess=HRESULT(WINAPI*)(HANDLE,int*);
+    using FThread=HANDLE(WINAPI*)();
+    using FWindow=HANDLE(WINAPI*)(HWND);
+    using FAwareness=int(WINAPI*)(HANDLE);
+    using FWindowDpi=UINT(WINAPI*)(HWND);
+    static auto Process=Shcore?reinterpret_cast<FProcess>(FPlatformProcess::GetDllExport(Shcore,TEXT("GetProcessDpiAwareness"))):nullptr;
+    static auto Thread=User32?reinterpret_cast<FThread>(FPlatformProcess::GetDllExport(User32,TEXT("GetThreadDpiAwarenessContext"))):nullptr;
+    static auto Window=User32?reinterpret_cast<FWindow>(FPlatformProcess::GetDllExport(User32,TEXT("GetWindowDpiAwarenessContext"))):nullptr;
+    static auto Awareness=User32?reinterpret_cast<FAwareness>(FPlatformProcess::GetDllExport(User32,TEXT("GetAwarenessFromDpiAwarenessContext"))):nullptr;
+    static auto Dpi=User32?reinterpret_cast<FWindowDpi>(FPlatformProcess::GetDllExport(User32,TEXT("GetDpiForWindow"))):nullptr;
+    if(Process&&!SUCCEEDED(Process(nullptr,&State.Process)))State.Process=-1;
+    if(Thread&&Awareness)State.Thread=Awareness(Thread());
+    const auto SlateWindow=GEngine&&GEngine->GameViewport?GEngine->GameViewport->GetWindow():TSharedPtr<SWindow>();
+    if(SlateWindow&&SlateWindow->GetNativeWindow()) {
+        const auto Handle=static_cast<HWND>(SlateWindow->GetNativeWindow()->GetOSWindowHandle());
+        if(Handle){if(Window&&Awareness)State.Window=Awareness(Window(Handle));if(Dpi)State.WindowDpi=Dpi(Handle);}
+    }
+#endif
+    return State;
+}
+float WindowDpiScale() {
+    const auto Window=GEngine&&GEngine->GameViewport?GEngine->GameViewport->GetWindow():TSharedPtr<SWindow>();
+    return Window?Window->GetDPIScaleFactor():0.f;
+}
+bool DisplayMatches(const UWalkSave* S) {
+    const auto* G=UGameUserSettings::GetGameUserSettings();
+    const FIntPoint Wanted=S->Fullscreen?G->GetDesktopResolution():S->WindowResolution;
+    return ViewportResolution()==Wanted&&G->GetScreenResolution()==Wanted
+        &&G->GetFullscreenMode()==(S->Fullscreen?EWindowMode::WindowedFullscreen:EWindowMode::Windowed)
+        &&FMath::IsNearlyEqual(AppliedRenderScale(),S->RenderScale,.01f)
+        &&FMath::IsNearlyEqual(ScreenPercentage(),S->RenderScale,.01f)
+        &&G->GetFrameRateLimit()==60&&G->IsVSyncEnabled()&&!G->IsDynamicResolutionEnabled();
+}
 }
 
 class SQuietMenu : public SCompoundWidget {
@@ -62,6 +190,7 @@ public:
     TWeakObjectPtr<AWalkController> Owner;
     TArray<TSharedPtr<SButton>> Buttons;
     TSharedPtr<SVerticalBox> Rows;
+    TSharedPtr<SScrollBox> Scroll;
     TSharedPtr<SMultiLineEditableTextBox> NoteBox;
     void Construct(const FArguments& Args) {
         Owner=Args._Owner;
@@ -69,7 +198,8 @@ public:
             [ SNew(SScaleBox).Stretch(EStretch::ScaleToFit).HAlign(HAlign_Left).VAlign(VAlign_Center)
               [ SNew(SBox).WidthOverride(660).HeightOverride(850)
                 [ SNew(SBorder).BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush")).BorderBackgroundColor(FLinearColor(.012f,.025f,.022f,.96f)).Padding(FMargin(65,40))
-                  [ SAssignNew(Rows,SVerticalBox) ] ] ] ] ];
+                  [ SAssignNew(Scroll,SScrollBox).ScrollWhenFocusChanges(EScrollWhenFocusChanges::InstantScroll)
+                    + SScrollBox::Slot()[ SAssignNew(Rows,SVerticalBox) ] ] ] ] ] ];
         Build();
     }
     virtual bool SupportsKeyboardFocus() const override { return true; }
@@ -123,8 +253,12 @@ public:
             const TCHAR* Quality[]={TEXT("Low"),TEXT("Medium"),TEXT("High"),TEXT("Epic")};
             Add(FString::Printf(TEXT("Graphics                   %s"),Quality[S->Quality]),"quality");
             Add(S->Fullscreen?TEXT("Display                      Borderless"):TEXT("Display                      Windowed"),"display");
+            Add(FString::Printf(TEXT("Window resolution   %d × %d"),S->WindowResolution.X,S->WindowResolution.Y),"resolution");
+            Add(FString::Printf(TEXT("Render scale             %.0f%%"),S->RenderScale),"render-scale");
             Add(TEXT("Restore default settings"),"defaults"); Add(TEXT("Back"),"back");
-            Rows->AddSlot().AutoHeight().Padding(0,10)[Label(TEXT("Select a setting to cycle its choices."),13,Muted)];
+            Rows->AddSlot().AutoHeight().Padding(0,10)
+                [SNew(STextBlock).Text_Lambda([Weak=Owner](){return Txt(Weak.IsValid()?Weak->DisplayStatus():FString());})
+                 .Font(FCoreStyle::GetDefaultFontStyle("Regular",13)).ColorAndOpacity(Muted).AutoWrapText(true)];
         } else if(O->Page=="controls") {
             Heading(TEXT("How to walk"),TEXT("Mouse & keyboard, or a controller."));
             Rows->AddSlot().AutoHeight().Padding(0,0,0,24)[Label(TEXT("W A S D / left stick     Walk\nMouse / right stick      Look around\nShift / right trigger      Walk a little faster\nE / A                            Notice a place\nJ / Y                             Places journal\nEsc / Menu                  Pause & resume\n\nPhoto alignment (in the menus) flies a free camera beside a photograph; its keys and controller buttons are shown on screen.\n\nThe guided tour plays on launch. Walk or move a stick to leave it and walk on from there.\n\nIn menus: arrows or D-pad, Enter / A to select, Esc / B to go back.\n\nStairs are walked, not jumped. If you lose your way, use Return to the house entrance from Pause.\n\nProgress saves while walking, when you notice a place, and when you leave."),18)];
@@ -220,14 +354,22 @@ void AWalkCharacter::StickY(float V) { if(auto* A=Aligner(Controller))A->AlignTu
 void AWalkCharacter::Brisk(){GetCharacterMovement()->MaxWalkSpeed=300;}
 void AWalkCharacter::Slow(){GetCharacterMovement()->MaxWalkSpeed=180;}
 
-FString AWalkController::Slot() const { return Smoke?TEXT("QuietWalkSmoke"):TEXT("QuietWalk"); }
+FString AWalkController::Slot() const { return WaterProbe?TEXT("QuietWalkWaterProbe"):Smoke?TEXT("QuietWalkSmoke"):TEXT("QuietWalk"); }
 void AWalkController::BeginPlay() {
     Super::BeginPlay(); bShouldPerformFullTickWhenPaused=true; PrimaryActorTick.bTickEvenWhenPaused=true; BeginTime=FPlatformTime::Seconds();
-    ResumeSmoke=FParse::Param(FCommandLine::Get(),TEXT("WalkSmokeResume"));
-    Smoke=ResumeSmoke||FParse::Param(FCommandLine::Get(),TEXT("WalkSmoke"));
-    Save=(Smoke&&!ResumeSmoke)?nullptr:Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
-    if(!Save||Save->Version!=1) Save=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));
+    WaterProbe=FParse::Param(FCommandLine::Get(),TEXT("WalkWaterProbe"));
+    ResumeSmoke=!WaterProbe&&FParse::Param(FCommandLine::Get(),TEXT("WalkSmokeResume"));
+    Smoke=!WaterProbe&&(ResumeSmoke||FParse::Param(FCommandLine::Get(),TEXT("WalkSmoke")));
+    Save=(WaterProbe||(Smoke&&!ResumeSmoke))?nullptr:Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
+    const bool ExistingSave=Save&&Save->Version==1;
+    if(!ExistingSave) Save=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));
     UpgradeSave(Save);
+    UpgradeDisplaySave(Save,ExistingSave);
+    if(WaterProbe){FString Isolation;if(!FParse::Value(FCommandLine::Get(),TEXT("UserDir="),Isolation)||Isolation.IsEmpty()){
+        WaterProbeFinished=true;
+        UE_LOG(LogTemp,Error,TEXT("WATERPROBE requires an isolated -UserDir=<folder>; no probe report or game settings will be written."));
+        UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);return;
+    }}
     Save->Sensitivity=FMath::Clamp(Save->Sensitivity,.5f,2.f); Save->Fov=FMath::Clamp(Save->Fov,70.f,100.f); Save->Volume=FMath::Clamp(Save->Volume,0.f,1.f); Save->Quality=FMath::Clamp(Save->Quality,0,3);
     // Feet positions come from the authored web viewpoints, in centimetres (x,z,y).
     // The temple complex stands 4.5 m back from the lane (K.templeShiftZ in the web model), so its
@@ -259,7 +401,7 @@ void AWalkController::BeginPlay() {
           [SNew(STextBlock).Text_Lambda([this](){return Txt(Prompt());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",18)).ColorAndOpacity(Cream).ShadowOffset(FVector2D(1,1)).ShadowColorAndOpacity(FLinearColor::Black)];
     GEngine->GameViewport->AddViewportWidgetContent(Hud.ToSharedRef(),1); Hud->SetVisibility(EVisibility::HitTestInvisible);
     // The private photographs stay outside the package: -WalkPhotos=<folder>, else the usual folder.
-    if(!FParse::Value(FCommandLine::Get(),TEXT("WalkPhotos="),PhotoDir)) PhotoDir=TEXT("F:/Shankaranarayana");
+    if(!WaterProbe&&!FParse::Value(FCommandLine::Get(),TEXT("WalkPhotos="),PhotoDir)) PhotoDir=TEXT("F:/Shankaranarayana");
     if(Smoke){
         // The smoke run aligns generated pictures (one landscape, one portrait) in its own folder, never the real poses.
         PhotoDir=FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()/TEXT("WalkReview/align-smoke"));IFileManager::Get().DeleteDirectory(*PhotoDir,false,true);IFileManager::Get().MakeDirectory(*PhotoDir,true);
@@ -268,8 +410,8 @@ void AWalkController::BeginPlay() {
         Png.Reset();FImageUtils::PNGCompressImageArray(48,64,TArrayView64<const FColor>(Pixels.GetData(),Pixels.Num()),Png);
         FFileHelper::SaveArrayToFile(Png,*(PhotoDir/TEXT("smoke second.png")));
     }
-    if(!IFileManager::Get().DirectoryExists(*PhotoDir)) PhotoDir.Empty();
-    if(!Smoke)FParse::Value(FCommandLine::Get(),TEXT("WalkReviewPhoto="),ReviewPhoto);
+    if(!PhotoDir.IsEmpty()&&!IFileManager::Get().DirectoryExists(*PhotoDir)) PhotoDir.Empty();
+    if(!Smoke&&!WaterProbe)FParse::Value(FCommandLine::Get(),TEXT("WalkReviewPhoto="),ReviewPhoto);
     PhotoBrush=MakeShared<FSlateBrush>();
     AlignHud=SNew(SOverlay)
         + SOverlay::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Fill)
@@ -288,7 +430,7 @@ void AWalkController::BeginPlay() {
     UE_LOG(LogTemp,Display,TEXT("QUIETWALK ready: guided tour, native menus, walking, journal and saves"));
 }
 void AWalkController::EndPlay(const EEndPlayReason::Type R) {
-    if(Save&&Walking&&!Smoke) Persist(true);
+    if(Save&&Walking&&!Smoke&&!WaterProbe) Persist(true);
     if(GEngine&&GEngine->GameViewport) {if(Menu)GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); if(Hud)GEngine->GameViewport->RemoveViewportWidgetContent(Hud.ToSharedRef()); if(AlignHud)GEngine->GameViewport->RemoveViewportWidgetContent(AlignHud.ToSharedRef());}
     Super::EndPlay(R);
 }
@@ -345,6 +487,7 @@ void AWalkController::StartWalk(bool Continue) {
     Walking=true;Save->HasWalk=true;Show("");Persist(true);Notify(TEXT("WASD / left stick to walk · Look around · Esc / Menu to pause"));
 }
 bool AWalkController::Persist(bool Capture) {
+    if(WaterProbe)return true;
     auto* C=Cast<AWalkCharacter>(GetPawn());
     if(Capture&&C&&Walking&&C->GetCharacterMovement()->IsMovingOnGround()){Save->Position=C->GetActorLocation();Save->Look=GetControlRotation();}
     bool Ok=UGameplayStatics::SaveGameToSlot(Save,Slot(),0);if(!Ok)Notify(TEXT("Could not save your walk. Check available disk space."));return Ok;
@@ -352,9 +495,35 @@ bool AWalkController::Persist(bool Capture) {
 void AWalkController::ApplySettings() {
     if(auto* C=Cast<AWalkCharacter>(GetPawn())) C->Camera->SetFieldOfView(Save->Fov);
     auto* G=UGameUserSettings::GetGameUserSettings();G->SetOverallScalabilityLevel(Save->Quality);G->SetFrameRateLimit(60);G->SetVSyncEnabled(true);
-    G->SetFullscreenMode(Save->Fullscreen?EWindowMode::WindowedFullscreen:EWindowMode::Windowed);G->ApplySettings(false);
+    SelectGameMonitor();Save->WindowResolution=FitWindow(Save->WindowResolution);
+    G->SetFullscreenMode(Save->Fullscreen?EWindowMode::WindowedFullscreen:EWindowMode::Windowed);
+    G->SetScreenResolution(Save->Fullscreen?G->GetDesktopResolution():Save->WindowResolution);
+    // Scalability replaces its resolution quality, so set our independent scale last.
+    G->SetResolutionScaleValueEx(Save->RenderScale);G->SetDynamicResolutionEnabled(false);
+    G->ConfirmVideoMode();G->ApplySettings(false);
+    DisplayLogAt=FPlatformTime::Seconds()+.5;
     if(auto* V=IConsoleManager::Get().FindConsoleVariable(TEXT("r.MotionBlurQuality")))V->Set(0,ECVF_SetByGameSetting);
     if(Ambience)Ambience->SetVolumeMultiplier(Save->Volume);
+}
+FString AWalkController::DisplayStatus() const {
+    const FIntPoint Actual=ViewportResolution(),Native=UGameUserSettings::GetGameUserSettings()->GetDesktopResolution();
+    return FString::Printf(TEXT("Select a setting to cycle its choices.\nBorderless uses the monitor's %d × %d desktop.\nCurrent view: %d × %d · render scale %.0f%% · 60 fps cap"),Native.X,Native.Y,Actual.X,Actual.Y,AppliedRenderScale());
+}
+TSharedRef<FJsonObject> AWalkController::DisplayReport() const {
+    const auto* G=UGameUserSettings::GetGameUserSettings();const FIntPoint Actual=ViewportResolution(),Configured=G->GetScreenResolution(),Native=G->GetDesktopResolution();
+    auto Report=MakeShared<FJsonObject>();
+    auto Pair=[&](const TCHAR* Key,FIntPoint P){Report->SetArrayField(Key,{MakeShared<FJsonValueNumber>(P.X),MakeShared<FJsonValueNumber>(P.Y)});};
+    Pair(TEXT("viewport_resolution"),Actual);Pair(TEXT("configured_resolution"),Configured);Pair(TEXT("native_resolution"),Native);Pair(TEXT("saved_window_resolution"),Save->WindowResolution);
+    Report->SetBoolField(TEXT("borderless"),Save->Fullscreen);Report->SetNumberField(TEXT("window_mode"),G->GetFullscreenMode());
+    Report->SetNumberField(TEXT("monitor_index"),G->GetClosestMonitorIndex());Report->SetStringField(TEXT("monitor_id"),G->GetDisplayID());
+    Report->SetNumberField(TEXT("requested_render_scale"),Save->RenderScale);Report->SetNumberField(TEXT("applied_render_scale"),AppliedRenderScale());Report->SetNumberField(TEXT("screen_percentage_cvar"),ScreenPercentage());
+    Report->SetNumberField(TEXT("quality"),Save->Quality);Report->SetNumberField(TEXT("frame_rate_cap"),G->GetFrameRateLimit());Report->SetBoolField(TEXT("vsync"),G->IsVSyncEnabled());Report->SetBoolField(TEXT("dynamic_resolution"),G->IsDynamicResolutionEnabled());
+    const auto Dpi=NativeDpiAwareness();
+    Report->SetBoolField(TEXT("configured_high_dpi_enabled"),ConfiguredHighDpiEnabled());Report->SetBoolField(TEXT("high_dpi_enabled"),Dpi.PerMonitor());
+    Report->SetNumberField(TEXT("windows_process_dpi_awareness"),Dpi.Process);Report->SetNumberField(TEXT("windows_thread_dpi_awareness"),Dpi.Thread);Report->SetNumberField(TEXT("windows_window_dpi_awareness"),Dpi.Window);
+    Report->SetNumberField(TEXT("native_window_dpi"),Dpi.WindowDpi);Report->SetNumberField(TEXT("window_dpi_scale"),WindowDpiScale());
+    Report->SetNumberField(TEXT("application_scale"),FSlateApplication::IsInitialized()?FSlateApplication::Get().GetApplicationScale():0.f);
+    return Report;
 }
 void AWalkController::Observe() {
     if(Aligning||!Walking||!Page.IsEmpty()||!Places.IsValidIndex(Nearby))return;
@@ -405,7 +574,9 @@ void AWalkController::Action(const FString& Id) {
         else if(Id=="guidance") Save->Guidance=!Save->Guidance;
         else if(Id=="quality") Save->Quality=(Save->Quality+1)%4;
         else if(Id=="display") Save->Fullscreen=!Save->Fullscreen;
-        else if(Id=="defaults"){Save->Sensitivity=1;Save->Fov=85;Save->Volume=.5;Save->InvertY=false;Save->Guidance=true;Save->Quality=2;Save->Fullscreen=false;}
+        else if(Id=="resolution") {const auto Choices=WindowChoices();int32 Next=0;for(int32 I=0;I<Choices.Num();I++)if(Choices[I].X>Save->WindowResolution.X){Next=I;break;}Save->WindowResolution=Choices[Next];}
+        else if(Id=="render-scale") Save->RenderScale=Save->RenderScale<67?67:Save->RenderScale<83?83:Save->RenderScale<100?100:67;
+        else if(Id=="defaults"){Save->Sensitivity=1;Save->Fov=85;Save->Volume=.5;Save->InvertY=false;Save->Guidance=true;Save->Quality=2;Save->Fullscreen=false;Save->WindowResolution=FitWindow(FIntPoint(1600,900));Save->RenderScale=100;}
         else return;
         ApplySettings();Persist(false);Show("settings");
     }
@@ -436,19 +607,37 @@ FString AWalkController::Prompt() const {
 }
 void AWalkController::PlayerTick(float D) {
     Super::PlayerTick(D);
+    if(WaterProbe&&WaterProbeFinished)return;
     if(!InitialViewReady&&GetPawn()){InitialViewReady=Travel(0);ApplySettings();}
+    if(DisplayLogAt>0&&FPlatformTime::Seconds()>=DisplayLogAt) {
+        const FIntPoint Actual=ViewportResolution();const auto Dpi=NativeDpiAwareness();
+        UE_LOG(LogTemp,Display,TEXT("QUIETWALK display actual: %dx%d, borderless %d, render scale %.1f%%, screen percentage %.1f%%, configured DPI %d, Windows awareness process/thread/window %d/%d/%d, native DPI %u, window DPI scale %.2f, cap 60, VSync 1"),Actual.X,Actual.Y,Save->Fullscreen,AppliedRenderScale(),ScreenPercentage(),ConfiguredHighDpiEnabled(),Dpi.Process,Dpi.Thread,Dpi.Window,Dpi.WindowDpi,WindowDpiScale());
+        DisplayLogAt=0;
+    }
     if(Menu&&FocusAt>0&&FPlatformTime::Seconds()>=FocusAt){Menu->Focus(PendingFocus);FocusAt=0;}
     if(Smoke)SmokeTick();
+    if(WaterProbe)WaterProbeTick();
     if(!ReviewPhoto.IsEmpty())ReviewTick();
     if(Aligning){if(Page.IsEmpty())TickAlign(D);return;}
     if(!Walking){if(Page.IsEmpty())TickTour(D);return;}
     if(!Page.IsEmpty())return;
-    if(!Smoke&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
+    if(!Smoke&&!WaterProbe&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
     auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
+    if(Smoke&&SmokeMoving&&SmokeTempleStairStep>=3&&SmokeTempleStairStep<=6) {
+        // Short portico routes stop at their authored endpoints, before the
+        // hanging bell/columns. Movement still crosses every physical tread.
+        const bool Up=(SmokeTempleStairStep-3)%2==0;const float Y=C->GetActorLocation().Y;
+        if((Up&&Y<=1328)||(!Up&&Y>=1440)){SmokeMoving=false;C->GetCharacterMovement()->StopMovementImmediately();}
+    }
     if(Smoke&&SmokeMoving)C->Forward(1);
+    if(WaterProbe&&WaterProbeMoving)C->Forward(1);
     Nearby=INDEX_NONE;float Best=280*280;
     for(int32 I=0;I<Places.Num();I++){FVector Delta=Places[I].Feet+FVector(0,0,88)-C->GetActorLocation();if(FMath::Abs(Delta.Z)<120&&Delta.SizeSquared2D()<Best){FHitResult Hit;FCollisionQueryParams P;P.AddIgnoredActor(C);if(!GetWorld()->LineTraceSingleByChannel(Hit,C->Camera->GetComponentLocation(),Places[I].Feet+FVector(0,0,150),ECC_Visibility,P)){Nearby=I;Best=Delta.SizeSquared2D();}}}
-    if(C->GetActorLocation().Z<-850||C->GetActorLocation().Size2D()>16000){Travel(0);Notify(TEXT("Back on the path. Your journal is safe."));}
+    if(C->GetActorLocation().Z<-850||C->GetActorLocation().Size2D()>16000){
+        if(WaterProbe)WaterProbeSample(TEXT("automatic_rescue_before"));
+        Travel(0);Notify(TEXT("Back on the path. Your journal is safe."));
+        if(WaterProbe)WaterProbeSample(TEXT("automatic_rescue_after"));
+    }
     SaveTimer+=D;if(SaveTimer>20){Persist(true);SaveTimer=0;}
     if(C->GetCharacterMovement()->IsMovingOnGround()&&C->GetVelocity().Size2D()>40){FootstepTimer+=D;if(FootstepTimer> (C->GetVelocity().Size2D()>210?.43f:.65f)){FootstepTimer=0; if(auto* Sound=LoadObject<USoundWave>(nullptr,TEXT("/Game/WalkAudio/Footstep.Footstep")))UGameplayStatics::PlaySound2D(this,Sound,Save->Volume*.3f,FMath::FRandRange(.92f,1.08f));}}else FootstepTimer=.3f;
 }
@@ -750,6 +939,82 @@ FString AWalkController::TourLabel() const {
     return L;
 }
 
+void AWalkController::WaterProbeSample(const FString& Phase) {
+    auto* C=Cast<AWalkCharacter>(GetPawn());if(!C||!WaterProbeRoute)return;
+    const FVector Position=C->GetActorLocation(),Feet=Position-FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()),Velocity=C->GetVelocity();
+    auto Sample=MakeShared<FJsonObject>();
+    auto Vec=[&](const TCHAR* Key,const FVector& V){Sample->SetArrayField(Key,{MakeShared<FJsonValueNumber>(V.X),MakeShared<FJsonValueNumber>(V.Y),MakeShared<FJsonValueNumber>(V.Z)});};
+    Sample->SetStringField(TEXT("phase"),Phase);Vec(TEXT("position_cm"),Position);Vec(TEXT("feet_cm"),Feet);Vec(TEXT("velocity_cm_s"),Velocity);
+    Sample->SetNumberField(TEXT("world_seconds"),GetWorld()->GetTimeSeconds());Sample->SetNumberField(TEXT("simulated_since_start_s"),GetWorld()->GetTimeSeconds()-WaterProbeStart);
+    Sample->SetNumberField(TEXT("wall_since_boot_s"),FPlatformTime::Seconds()-BeginTime);
+    Sample->SetNumberField(TEXT("movement_mode"),C->GetCharacterMovement()->MovementMode);
+    Sample->SetBoolField(TEXT("moving_on_ground"),C->GetCharacterMovement()->IsMovingOnGround());Sample->SetBoolField(TEXT("commanded_forward"),WaterProbeMoving);
+    Sample->SetBoolField(TEXT("walking"),Walking);Sample->SetBoolField(TEXT("paused"),IsPaused());
+    const auto Box=WaterProbeRoute->GetObjectField(TEXT("authored_water_box_cm"));
+    Sample->SetBoolField(TEXT("inside_box_horizontal_bounds"),Feet.X>Box->GetNumberField(TEXT("min_x"))&&Feet.X<Box->GetNumberField(TEXT("max_x"))&&Feet.Y>Box->GetNumberField(TEXT("min_y"))&&Feet.Y<Box->GetNumberField(TEXT("max_y")));
+    Sample->SetBoolField(TEXT("feet_below_box_top"),Feet.Z<Box->GetNumberField(TEXT("top_z")));
+    auto Samples=WaterProbeRoute->GetArrayField(TEXT("samples"));Samples.Add(MakeShared<FJsonValueObject>(Sample));WaterProbeRoute->SetArrayField(TEXT("samples"),Samples);
+    UE_LOG(LogTemp,Display,TEXT("WATERPROBE %s %s sim %.2f position %s feet %.2f ground %d mode %d"),*WaterProbeRoute->GetStringField(TEXT("name")),*Phase,GetWorld()->GetTimeSeconds()-WaterProbeStart,*Position.ToString(),Feet.Z,C->GetCharacterMovement()->IsMovingOnGround(),(int32)C->GetCharacterMovement()->MovementMode);
+}
+void AWalkController::FinishWaterProbe(const FString& Error) {
+    if(WaterProbeFinished)return;
+    WaterProbeFinished=true;WaterProbeMoving=false;
+    if(auto* C=Cast<AWalkCharacter>(GetPawn()))C->GetCharacterMovement()->StopMovementImmediately();
+    if(!WaterProbeReport)WaterProbeReport=MakeShared<FJsonObject>();
+    WaterProbeReport->SetBoolField(TEXT("completed"),Error.IsEmpty());WaterProbeReport->SetStringField(TEXT("error"),Error);
+    WaterProbeReport->SetNumberField(TEXT("wall_elapsed_s"),FPlatformTime::Seconds()-BeginTime);
+    WaterProbeReport->SetObjectField(TEXT("display"),DisplayReport());
+    const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
+    FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);FJsonSerializer::Serialize(WaterProbeReport.ToSharedRef(),Writer);
+    const FString Path=Dir/TEXT("water-probe.json");const bool Written=FFileHelper::SaveStringToFile(Json,*Path);
+    UE_LOG(LogTemp,Display,TEXT("WATERPROBE done completed %d report_written %d path %s error %s"),Error.IsEmpty(),Written,*Path,*Error);
+    UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);
+}
+void AWalkController::WaterProbeTick() {
+    if(WaterProbeFinished)return;
+    const double Now=FPlatformTime::Seconds(),Sim=GetWorld()->GetTimeSeconds();
+    if(!WaterProbeReport){
+        WaterProbeReport=MakeShared<FJsonObject>();WaterProbeReport->SetStringField(TEXT("schema"),TEXT("quietwalk-water-probe-v1"));
+        WaterProbeReport->SetStringField(TEXT("purpose"),TEXT("Characterize current walking collision; no water fix or expected-outcome assertion."));
+        WaterProbeReport->SetBoolField(TEXT("walk_save_writes_disabled"),true);WaterProbeReport->SetArrayField(TEXT("routes"),{});
+    }
+    if(Now>BeginTime+90){FinishWaterProbe(TEXT("Probe exceeded its 90 second wall deadline."));return;}
+    auto BeginRoute=[&](bool Lake){
+        Walking=true;Show("");
+        // Current authored world positions, with the temple +4.5 m offset and
+        // far-bank remap already applied. Placement happens once, before samples.
+        const FVector Start=Lake?FVector(2344,-965,-65):FVector(2950,-200,90);
+        const bool Placed=RestorePosition(Start,FRotator(0,Lake?-90:90,0));
+        WaterProbeRoute=MakeShared<FJsonObject>();WaterProbeRoute->SetStringField(TEXT("name"),Lake?TEXT("near_bathing_ledge_to_lake"):TEXT("temple_forecourt_to_pond"));
+        WaterProbeRoute->SetBoolField(TEXT("initial_placement_ok"),Placed);WaterProbeRoute->SetNumberField(TEXT("forward_hold_simulated_s"),1.8);WaterProbeRoute->SetNumberField(TEXT("settle_simulated_s"),1.0);
+        WaterProbeRoute->SetArrayField(TEXT("samples"),{});
+        auto Box=MakeShared<FJsonObject>();
+        Box->SetNumberField(TEXT("min_x"),Lake?-325:2705);Box->SetNumberField(TEXT("max_x"),Lake?4765:3195);
+        Box->SetNumberField(TEXT("min_y"),Lake?-3325:-115);Box->SetNumberField(TEXT("max_y"),Lake?-1075:315);
+        Box->SetNumberField(TEXT("bottom_z"),Lake?-800:-110);Box->SetNumberField(TEXT("top_z"),Lake?-195:35);
+        WaterProbeRoute->SetObjectField(TEXT("authored_water_box_cm"),Box);
+        auto Routes=WaterProbeReport->GetArrayField(TEXT("routes"));Routes.Add(MakeShared<FJsonValueObject>(WaterProbeRoute));WaterProbeReport->SetArrayField(TEXT("routes"),Routes);
+        WaterProbeStart=Sim;WaterProbeSampleAt=Sim+.1;WaterProbeSample(TEXT("initial_placement"));
+        if(!Placed){FinishWaterProbe(TEXT("Could not place the walking capsule safely at the route start."));return false;}
+        WaterProbeMoving=true;return true;
+    };
+    if(WaterProbeStage==0){if(Now<BeginTime+8||!InitialViewReady)return;if(BeginRoute(true))WaterProbeStage=1;return;}
+    const double Elapsed=Sim-WaterProbeStart;
+    if(Sim>=WaterProbeSampleAt){WaterProbeSample(WaterProbeMoving?TEXT("walking"):TEXT("settling"));WaterProbeSampleAt=Sim+.1;}
+    if((WaterProbeStage==1||WaterProbeStage==3)&&Elapsed>=1.8){
+        WaterProbeSample(TEXT("forward_hold_end"));WaterProbeMoving=false;
+        // Stop horizontal input and braking only; gravity must keep acting if
+        // this measurement occurs during a fall.
+        if(auto* C=Cast<AWalkCharacter>(GetPawn())){auto* M=C->GetCharacterMovement();M->Velocity.X=0;M->Velocity.Y=0;}
+        WaterProbeStage++;return;
+    }
+    if((WaterProbeStage==2||WaterProbeStage==4)&&Elapsed>=2.8){
+        WaterProbeSample(TEXT("settled_endpoint"));
+        if(WaterProbeStage==2){if(BeginRoute(false))WaterProbeStage=3;return;}
+        FinishWaterProbe();
+    }
+}
+
 void AWalkController::ReviewTick() {
     const double Now=FPlatformTime::Seconds();if(Now<BeginTime+10||Now<NextReview)return;
     const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
@@ -778,10 +1043,22 @@ void AWalkController::SmokeTick() {
     auto Press=[](const FKey& K,bool Down=true,bool Up=true){
         if(Down)FSlateApplication::Get().ProcessKeyDownEvent(FKeyEvent(K,FModifierKeysState(),0,false,0,0));
         if(Up)FSlateApplication::Get().ProcessKeyUpEvent(FKeyEvent(K,FModifierKeysState(),0,false,0,0));};
+    auto VisibleButton=[this](int32 I){
+        if(!Menu||!Menu->Scroll||!Menu->Buttons.IsValidIndex(I))return false;
+        const auto& B=Menu->Buttons[I]->GetCachedGeometry();const auto& A=Menu->Scroll->GetCachedGeometry();
+        const auto P=B.GetAbsolutePosition(),Size=B.GetAbsoluteSize(),Area=A.GetAbsolutePosition(),AreaSize=A.GetAbsoluteSize();
+        return Menu->Buttons[I]->GetVisibility().IsVisible()&&Size.X>0&&Size.Y>0&&P.Y>=Area.Y-1&&P.Y+Size.Y<=Area.Y+AreaSize.Y+1;
+    };
     if(ResumeSmoke){
         if(SmokeStep++==0){Check(Save->HasWalk&&Save->Visited.Num()==Places.Num(),TEXT("cold restart loads the completed journal"));SmokePosition=Save->Position;StartWalk(true);return;}
         Check(Walking&&Page.IsEmpty()&&FVector::Dist(GetPawn()->GetActorLocation(),SmokePosition)<5,TEXT("cold restart restores saved position"));
-        FFileHelper::SaveStringToFile(SmokeFailures.IsEmpty()?TEXT("{\"passed\":true}"):TEXT("{\"passed\":false}"),*(Dir/TEXT("resume-smoke.json")));
+        Check(Save->DisplayVersion==1&&!Save->Fullscreen&&Save->WindowResolution==FitWindow(FIntPoint(1600,900))&&Save->RenderScale==100,TEXT("cold restart loads restored safe display settings"));
+        Check(DisplayMatches(Save),TEXT("cold restart applies saved resolution and independent render scale"));
+        const auto Dpi=NativeDpiAwareness();
+        Check(ConfiguredHighDpiEnabled()&&Dpi.PerMonitor(),TEXT("cold restart retains actual Windows per-monitor DPI awareness"));
+        Check(Dpi.WindowDpi>0&&FMath::IsFinite(WindowDpiScale())&&FMath::IsNearlyEqual(WindowDpiScale(),Dpi.WindowDpi/96.f,.01f),TEXT("cold restart Slate scale matches native Windows DPI"));
+        auto Report=MakeShared<FJsonObject>();Report->SetBoolField(TEXT("passed"),SmokeFailures.IsEmpty());Report->SetObjectField(TEXT("display"),DisplayReport());
+        FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);FJsonSerializer::Serialize(Report,Writer);FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("resume-smoke.json")));
         NextSmoke=TNumericLimits<double>::Max();UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);return;
     }
     switch(SmokeStep++) {
@@ -796,6 +1073,9 @@ void AWalkController::SmokeTick() {
             }
         }
         Check(ActiveSkies==1&&MappedSkies==1,TEXT("one active skylight retains the overcast HDR after runtime load"));
+        const auto Dpi=NativeDpiAwareness();
+        Check(ConfiguredHighDpiEnabled()&&Dpi.PerMonitor(),TEXT("Windows confirms per-monitor DPI awareness for the game process, thread and window"));
+        Check(Dpi.WindowDpi>0&&FMath::IsFinite(WindowDpiScale())&&FMath::IsNearlyEqual(WindowDpiScale(),Dpi.WindowDpi/96.f,.01f),TEXT("Slate window scale matches the native Windows DPI"));
         Check(IConsoleManager::Get().FindConsoleVariable(TEXT("r.RayTracing.ResidentGeometryMemoryPoolSizeInMB"))->GetInt()==1024,TEXT("ray-tracing geometry pool configured for this scene"));
         Check(TourPosition.Num()>1000&&TourPeriod>1000&&TourLoopStart>0,TEXT("guided tour loaded: opening flight, then a loop"));
         Check(!Walking&&Page.IsEmpty()&&!Menu.IsValid()&&!bShowMouseCursor&&!IsPaused()&&GetViewTarget()==TitleCamera,TEXT("tour starts on launch without a menu"));
@@ -829,8 +1109,65 @@ void AWalkController::SmokeTick() {
     case 5:Check(Walking&&Page.IsEmpty()&&!IsPaused()&&!bShowMouseCursor,TEXT("begin captures mouse and starts walk"));Check(GetPawn()&&GetPawn()->GetActorLocation().Z>-100,TEXT("player on ground"));Observe();break;
     case 6:Check(Save->Visited.Contains("house"),TEXT("notice entrance adds journal entry"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("02-place.png"),true,false);Show("");break;
     case 7:PauseWalk();Check(Page=="pause"&&IsPaused(),TEXT("pause stops world"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("03-pause.png"),true,false);break;
-    case 8:Action("settings");Action("fov");Action("invert");Check(Save->Fov==90&&Save->InvertY,TEXT("comfort settings change"));FScreenshotRequest::RequestScreenshot(Dir/TEXT("04-settings.png"),true,false);break;
-    case 9:{auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));Check(Reload&&Reload->Fov==90&&Reload->Visited.Contains("house"),TEXT("settings and journal persist"));Action("defaults");Action("back");Action("title");Action("new");Check(Page=="new-confirm",TEXT("new walk protects existing save"));Action("back");Action("continue");break;}
+    case 8:{
+        if(SmokeSettingsStep==0) {
+            Action("settings");Action("fov");Action("invert");Check(Save->Fov==90&&Save->InvertY,TEXT("comfort settings change"));
+            Save->Fullscreen=false;Save->WindowResolution=WindowChoices()[0];Save->RenderScale=100;ApplySettings();
+            SmokeSettingsStep++;SmokeStep--;return;
+        }
+        if(SmokeSettingsStep==1) {
+            Check(ViewportResolution()==WindowChoices()[0],TEXT("settings navigation runs at the smallest offered window"));
+            Check(Menu&&Menu->Buttons[0]->HasKeyboardFocus(),TEXT("settings first row has keyboard focus"));
+            if(Menu)for(int32 I=1;I<Menu->Buttons.Num();I++)Press(I%2?EKeys::Down:EKeys::Gamepad_DPad_Down);
+            SmokeSettingsStep++;SmokeStep--;return;
+        }
+        if(SmokeSettingsStep==2) {
+            Check(Menu&&Menu->Buttons.Last()->HasKeyboardFocus()&&VisibleButton(Menu->Buttons.Num()-1),TEXT("arrows and D-pad bring Settings Back into view at the smallest window"));
+            FScreenshotRequest::RequestScreenshot(Dir/TEXT("04-settings-bottom.png"),true,false);
+            SmokeSettingsStep++;SmokeStep--;return;
+        }
+        if(SmokeSettingsStep==3) {
+            Press(EKeys::Gamepad_DPad_Up);Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-2]->HasKeyboardFocus(),TEXT("D-pad reaches Restore defaults"));
+            Press(EKeys::Up);Press(EKeys::Enter);
+            Check(Save->RenderScale==67,TEXT("Enter activates the render-scale setting after scrolling"));
+            SmokeSettingsStep++;SmokeStep--;return;
+        }
+        if(SmokeSettingsStep==4) {
+            Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-3]->HasKeyboardFocus()&&VisibleButton(Menu->Buttons.Num()-3),TEXT("changed setting retains focus and stays visible after the menu rebuild"));
+            Press(EKeys::Up);Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-4]->HasKeyboardFocus(),TEXT("resolution row has focus before Enter"));
+            const auto Choices=WindowChoices();SmokeWindowResolution=Choices[Choices.Num()>1?1:0];
+            Press(EKeys::Enter);Check(Save->WindowResolution==SmokeWindowResolution,TEXT("Enter advances to the next offered resolution"));
+            SmokeSettingsStep++;SmokeStep--;return;
+        }
+        if(SmokeSettingsStep==5) {
+            Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-4]->HasKeyboardFocus()&&Save->WindowResolution==SmokeWindowResolution,TEXT("resolution row retains focus after its menu rebuild"));
+            Check(DisplayMatches(Save),TEXT("selected resolution and render scale reach the viewport before changing graphics quality"));
+            Press(EKeys::Up);Press(EKeys::Gamepad_DPad_Up);
+            Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-6]->HasKeyboardFocus(),TEXT("graphics row has focus before controller A"));
+            Press(EKeys::Gamepad_FaceButton_Bottom);SmokeSettingsStep++;SmokeStep--;return;
+        }
+        Check(Menu&&Menu->Buttons[Menu->Buttons.Num()-6]->HasKeyboardFocus(),TEXT("graphics row retains focus after its menu rebuild"));
+        Check(Save->RenderScale==67&&Save->Quality==3,TEXT("graphics quality preserves the selected independent render scale"));
+        FScreenshotRequest::RequestScreenshot(Dir/TEXT("04-settings.png"),true,false);break;
+    }
+    case 9:{
+        if(SmokeDisplayStep==0) {
+            Check(DisplayMatches(Save)&&Save->WindowResolution==SmokeWindowResolution,TEXT("window resolution and 67 percent render scale reach the viewport"));
+            auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
+            Check(Reload&&Reload->Fov==90&&Reload->Visited.Contains("house")&&Reload->DisplayVersion==1&&Reload->WindowResolution==SmokeWindowResolution&&Reload->RenderScale==67&&Reload->Quality==3&&!Reload->Fullscreen,TEXT("comfort, display settings and journal persist"));
+            SmokeDisplayReport=MakeShared<FJsonObject>();SmokeDisplayReport->SetObjectField(TEXT("windowed"),DisplayReport());
+            Action("display");SmokeDisplayStep++;SmokeStep--;return;
+        }
+        if(SmokeDisplayStep==1) {
+            Check(Save->Fullscreen&&DisplayMatches(Save)&&Save->WindowResolution==SmokeWindowResolution,TEXT("borderless uses native monitor resolution without changing window preference or scale"));
+            SmokeDisplayReport->SetObjectField(TEXT("borderless"),DisplayReport());Action("display");SmokeDisplayStep++;SmokeStep--;return;
+        }
+        Check(!Save->Fullscreen&&DisplayMatches(Save)&&Save->WindowResolution==SmokeWindowResolution,TEXT("leaving borderless restores window resolution and render scale"));
+        SmokeDisplayReport->SetObjectField(TEXT("windowed_restored"),DisplayReport());
+        // The smoke run has an isolated UserDir/save slot. Restore modest windowed
+        // settings before the rest of its checks and the separate cold restart.
+        Action("defaults");Action("back");Action("title");Action("new");Check(Page=="new-confirm",TEXT("new walk protects existing save"));Action("back");Action("continue");break;
+    }
     case 10:Check(Walking&&Save->Visited.Contains("house"),TEXT("continue restores progress"));OpenJournal();FScreenshotRequest::RequestScreenshot(Dir/TEXT("05-journal.png"),true,false);break;
     default:{
         int32 I=SmokeStep-12;
@@ -842,7 +1179,44 @@ void AWalkController::SmokeTick() {
         if(I==Places.Num()){Check(RestorePosition(FVector(-650,515,97),FRotator(0,180,0)),TEXT("stairs test start"));Show("");SmokeMoving=true;NextSmoke=Now+1.6;return;}
         if(I==Places.Num()+1){SmokeMoving=false;FVector P=GetPawn()->GetActorLocation();Check(P.X<-810&&P.Z>120,TEXT("walk up north-south entry stairs: ")+P.ToString());SetControlRotation(FRotator(0,0,0));SmokeMoving=true;NextSmoke=Now+1.6;return;}
         if(I==Places.Num()+2){SmokeMoving=false;FVector P=GetPawn()->GetActorLocation();Check(P.X>-725&&P.Z<115,TEXT("walk down entry stairs: ")+P.ToString());Show("pause");SmokePosition=GetPawn()->GetActorLocation();return;}
-        if(I==Places.Num()+3){Check(FVector::Dist(SmokePosition,GetPawn()->GetActorLocation())<.5,TEXT("pause keeps physical position fixed"));Action("rescue");Check(FVector::Dist2D(GetPawn()->GetActorLocation(),Places[0].Feet)<100,TEXT("return to entrance recovery"));return;}
+        if(I==Places.Num()+3){
+            auto BeginPortico=[&](int32 Step){
+                const float X=Step<5?3615.f:4655.f;
+                const bool Placed=RestorePosition(FVector(X,1440,100),FRotator(0,-90,0));
+                Check(Placed,TEXT("portico stairs start on the court: ")+FString::SanitizeFloat(X));
+                Show("");SmokeMoving=Placed;SmokeTempleStairStep=Step;SmokeTempleDeadline=Now+8;NextSmoke=Now+.8;SmokeStep--;
+            };
+            if(SmokeTempleStairStep==0) {
+                Check(FVector::Dist(SmokePosition,GetPawn()->GetActorLocation())<.5,TEXT("pause keeps physical position fixed"));Action("rescue");Check(FVector::Dist2D(GetPawn()->GetActorLocation(),Places[0].Feet)<100,TEXT("return to entrance recovery"));
+                // Main a4c5efc: east rear-ledge stair x44.6, local z3.50..3.95,
+                // floor .39 -> .85 m. Temple shift +4.5 maps it to UE y800..845.
+                const bool Placed=RestorePosition(FVector(4460,745,129),FRotator(0,90,0));
+                Check(Placed,TEXT("rear ledge stairs start on the lower entrance floor"));Show("");SmokeMoving=Placed;
+                SmokeTempleStairStep=1;SmokeTempleWalkAt=GetWorld()->GetTimeSeconds();SmokeTempleDeadline=Now+8;NextSmoke=Now+1.3;SmokeStep--;return;
+            }
+            if(SmokeTempleStairStep>=3) {
+                if(SmokeMoving&&Now<SmokeTempleDeadline){NextSmoke=Now+.1;SmokeStep--;return;}
+                const bool Arrived=!SmokeMoving;SmokeMoving=false;auto* C=Cast<AWalkCharacter>(GetPawn());C->GetCharacterMovement()->StopMovementImmediately();const FVector P=C->GetActorLocation();
+                const bool Up=(SmokeTempleStairStep-3)%2==0;const float X=SmokeTempleStairStep<5?3615.f:4655.f;
+                // Pass 20 source routes x36.15/46.55, local z9.90 -> 8.78,
+                // court .10 -> platform .85 m through three .25 m risers.
+                const bool Endpoint=Up?P.Y>=1305&&P.Y<=1335&&P.Z>165&&P.Z<185:P.Y>=1435&&P.Y<=1460&&P.Z>95&&P.Z<115;
+                Check(Arrived&&FMath::Abs(P.X-X)<30&&Endpoint&&C->GetCharacterMovement()->IsMovingOnGround(),FString::Printf(TEXT("walk %s the %s portico steps: %s"),Up?TEXT("up"):TEXT("down"),X<4000?TEXT("west"):TEXT("east"),*P.ToString()));
+                if(Up){SetControlRotation(FRotator(0,90,0));SmokeMoving=true;SmokeTempleStairStep++;SmokeTempleDeadline=Now+8;NextSmoke=Now+.8;SmokeStep--;return;}
+                if(SmokeTempleStairStep==4){BeginPortico(5);return;}
+                Check(Travel(0),TEXT("all temple stair routes restore the entrance safely"));Show("");return;
+            }
+            const double Walked=GetWorld()->GetTimeSeconds()-SmokeTempleWalkAt;
+            if(Walked<1.2&&Now<SmokeTempleDeadline){NextSmoke=Now+.1;SmokeStep--;return;}
+            SmokeMoving=false;auto* C=Cast<AWalkCharacter>(GetPawn());C->GetCharacterMovement()->StopMovementImmediately();const FVector P=C->GetActorLocation();
+            if(SmokeTempleStairStep==1) {
+                Check(Walked>=1.2&&FMath::Abs(P.X-4460)<30&&P.Y>880&&P.Y<1040&&P.Z>165&&P.Z<185&&C->GetCharacterMovement()->IsMovingOnGround(),TEXT("walk up the entrance rear ledge steps: ")+P.ToString());
+                SetControlRotation(FRotator(0,-90,0));SmokeMoving=true;SmokeTempleStairStep=2;
+                SmokeTempleWalkAt=GetWorld()->GetTimeSeconds();SmokeTempleDeadline=Now+8;NextSmoke=Now+1.3;SmokeStep--;return;
+            }
+            Check(Walked>=1.2&&FMath::Abs(P.X-4460)<30&&P.Y<790&&P.Y>650&&P.Z>118&&P.Z<140&&C->GetCharacterMovement()->IsMovingOnGround(),TEXT("walk down the entrance rear ledge steps: ")+P.ToString());
+            BeginPortico(3);return;
+        }
         if(I==Places.Num()+4){
             auto* C=Cast<AWalkCharacter>(GetPawn());
             auto Pitch=[&](bool Invert,bool Stick){SetControlRotation(FRotator::ZeroRotator);RotationInput=FRotator::ZeroRotator;Save->InvertY=Invert;
@@ -853,7 +1227,13 @@ void AWalkController::SmokeTick() {
             Save->InvertY=false;SetControlRotation(FRotator::ZeroRotator);
             UWalkSave* Old=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));Old->InvertY=true;Old->LookVersion=0;UpgradeSave(Old);
             UWalkSave* Current=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));UpgradeSave(Current);Current->InvertY=true;UpgradeSave(Current);
-            Check(!Old->InvertY&&Old->LookVersion==1&&Current->InvertY,TEXT("older saves get the new look default once; later choices stay"));return;
+            Check(!Old->InvertY&&Old->LookVersion==1&&Current->InvertY,TEXT("older saves get the new look default once; later choices stay"));
+            Old->Fullscreen=true;Old->Quality=1;Old->Fov=95;Old->Sensitivity=1.5f;Old->HasWalk=true;Old->Visited.Add(TEXT("house"));
+            UpgradeDisplaySave(Old,true);
+            Check(Old->DisplayVersion==1&&Old->WindowResolution==FitWindow(UGameUserSettings::GetGameUserSettings()->GetScreenResolution())&&Old->RenderScale==AppliedRenderScale()
+                &&Old->Fullscreen&&Old->Quality==1&&Old->Fov==95&&Old->Sensitivity==1.5f&&Old->HasWalk&&Old->Visited.Contains(TEXT("house")),TEXT("legacy display migration preserves engine preferences, comfort and progress"));
+            Old->WindowResolution=WindowChoices()[0];Old->RenderScale=67;UpgradeDisplaySave(Old,true);
+            Check(Old->WindowResolution==WindowChoices()[0]&&Old->RenderScale==67,TEXT("display migration runs once and preserves later choices"));return;
         }
         if(I==Places.Num()+5){
             Show("pause");Action("tour");
@@ -955,6 +1335,7 @@ void AWalkController::SmokeTick() {
         }
         Check(Persist(true),TEXT("final save succeeds"));
         TSharedRef<FJsonObject> Report=MakeShared<FJsonObject>();Report->SetBoolField(TEXT("passed"),SmokeFailures.IsEmpty());TArray<TSharedPtr<FJsonValue>> Errors;for(auto& E:SmokeFailures)Errors.Add(MakeShared<FJsonValueString>(E));Report->SetArrayField(TEXT("failures"),Errors);
+        Report->SetObjectField(TEXT("display"),DisplayReport());if(SmokeDisplayReport)Report->SetObjectField(TEXT("tested_display_modes"),SmokeDisplayReport);
         FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);FJsonSerializer::Serialize(Report,Writer);FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("smoke.json")));
         NextSmoke=TNumericLimits<double>::Max();
         UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);break;

@@ -21,6 +21,12 @@ existing progress. Keep this folder when replacing a generated project or packag
   can be revisited. Guidance can be disabled. There is no timer or required order.
 - Escape / Menu pauses. Return to the entrance is available if you get stuck.
 - Sensitivity, FOV, invert look, guidance, volume, graphics and display settings persist.
+  New walks use a 1600×900 window at 100% render scale, reduced to fit smaller monitors.
+  Settings offer window resolution, 67/83/100% render scale and borderless at the current
+  monitor's native size. Game DPI awareness prevents Windows from substituting a smaller
+  virtual desktop; interface elements still follow the monitor's DPI scale.
+  Graphics quality keeps the chosen render scale. Existing walks
+  import their engine display preferences once; progress and comfort choices are retained.
   By default pushing the mouse or right stick up looks down; Invert makes up look up.
   Saves from before this default (no `LookVersion`) have Invert reset once.
 - No jump, camera bob or motion blur. Position saves every 20 seconds on safe ground,
@@ -30,6 +36,8 @@ existing progress. Keep this folder when replacing a generated project or packag
 
 The authored runtime is `game/Source`; `scripts/install_game.py` copies it into the
 ignored project. Do not edit the generated copy. Requires Unreal 5.8 and MSVC 14.38+.
+Changed source files receive fresh timestamps, including when copied from another
+worktree; unchanged files retain theirs for incremental builds.
 
 ```powershell
 python unreal/scripts/create_project.py
@@ -46,6 +54,10 @@ game mode, adaptive exposure and audio. Re-run it after every level rebuild.
 It requires fresh passing reports and exit code 0, with a five-minute limit per stage
 (`-SmokeTimeoutSeconds` changes it). Each run uses its own ignored
 `unreal/smoke-runs/<id>/Saved/WalkReview`; player saves and the real pose folder are isolated.
+Display checks query Windows process, thread and window DPI awareness, then verify
+the actual viewport and interface scale. Unattended checks also enable native DPI mode.
+`-WalkWaterProbe -UserDir=<isolated-folder>` separately records real forward walking
+from the bathing ledge and pond approach, without writing a player save.
 
 All imported assets, screenshots, synthesized audio and binaries remain ignored.
 Only text source and build scripts belong in Git. Audio is generated locally from
@@ -63,7 +75,7 @@ ignored `unreal/profile-runs/<id>` directory. It requires a current package, sta
 CSV profiling after engine initialization, and requires a complete CSV and clean
 process exit. Reports include actual resolution/cap/VSync and the final 1,000 frame
 timings. `-Frames` and `-TimeoutSeconds` change the bounds. Player progress is untouched.
-Default settings apply 1280×720 even if launch arguments request another size.
+Saved display preferences take precedence over launch resolution arguments.
 Boot CSV profiling reproduced a shutdown failure; later-start captures exit cleanly.
 This samples one tour segment, not every walking route or uncapped performance.
 
@@ -79,12 +91,13 @@ cover-cropped alignments. No level or pose changes are saved during capture.
 
 When model source changes, refresh export, Blender scene, Unreal imports and level
 before capture; the review script deliberately rejects a stale model export.
-Record model mismatches in `PHOTOREAL-NOTES.md`; model fixes belong to Claude on main.
+Record remaining model mismatches in `PHOTOREAL-NOTES.md`. Model changes belong on main;
+bring them into photoreal by merging main before regenerating.
 
 `blender/export_unreal.py` groups original building objects by surface role and
-8 m horizontal cells, then limits each resource to 48 material sections. The current
-model produces 223 parts: 72 house, 145 temple and six other parts. Import, materials
-and level construction consume `blender/build/unreal/parts.json`.
+8 m horizontal cells, then limits each resource to 48 material sections. Import,
+materials and level construction consume the current part inventory in
+`blender/build/unreal/parts.json`.
 
 Building exports preserve original triangle connectivity, world placements, UVs,
 colors and corner normals. Export checks every source triangle once and writes

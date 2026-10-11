@@ -52,7 +52,18 @@ def main():
     modules = [m for m in data.get('Modules', []) if m['Name'] != 'QuietWalk']
     data['Modules'] = modules + [{'Name': 'QuietWalk', 'Type': 'Runtime', 'LoadingPhase': 'Default'}]
     project_file.write_text(json.dumps(data, indent=2) + '\n')
-    shutil.copytree(ROOT / 'game/Source', PROJECT / 'Source', dirs_exist_ok=True)
+    # A different worktree can supply changed code older than UBT's last build.
+    # Preserving that timestamp can silently skip compilation/header generation.
+    source_root = ROOT / 'game/Source'
+    if not source_root.is_dir():
+        raise SystemExit(f'Missing {source_root}')
+    for source in source_root.rglob('*'):
+        if not source.is_file():
+            continue
+        target = PROJECT / 'Source' / source.relative_to(source_root)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists() or source.read_bytes() != target.read_bytes():
+            shutil.copyfile(source, target)
     # The guided tour the game plays on launch; staged into the package as a raw file.
     tour = ROOT.parent / 'blender/build/unreal/tour.json'
     if not tour.exists():
@@ -68,6 +79,8 @@ bUseSplitscreen=False
 
 [/Script/Engine.UserInterfaceSettings]
 ApplicationScale=1.0
+bAllowHighDPIInGameMode=True
+bAllowHighDpiWhenUnattended=True
 
 [SystemSettings]
 r.RayTracing.ResidentGeometryMemoryPoolSizeInMB=1024

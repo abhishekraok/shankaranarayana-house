@@ -34,6 +34,11 @@ public:
     UPROPERTY() bool Guidance = true;
     UPROPERTY() int32 Quality = 2;
     UPROPERTY() bool Fullscreen = false;
+    // Legacy walks import their existing engine display preferences once. Quality
+    // and render scale are independent; changing one must not reset the other.
+    UPROPERTY() int32 DisplayVersion = 0;
+    UPROPERTY() FIntPoint WindowResolution = FIntPoint(1600, 900);
+    UPROPERTY() float RenderScale = 100;
 };
 
 UCLASS()
@@ -102,6 +107,8 @@ public:
     bool RestorePosition(FVector Position, FRotator Look);
     bool Persist(bool CapturePosition);
     void ApplySettings();
+    FString DisplayStatus() const;
+    TSharedRef<FJsonObject> DisplayReport() const;
     FString Status() const;
     FString Prompt() const;
     void Action(const FString& Id);
@@ -153,11 +160,27 @@ private:
     double NextSmoke = 0;
     TArray<FString> SmokeFailures;
     bool InitialViewReady = false;
+    // Read-only collision characterization on two short water-edge routes. Use
+    // -WalkWaterProbe with an isolated -UserDir; it never writes a walk save.
+    bool WaterProbe = false, WaterProbeMoving = false, WaterProbeFinished = false;
+    int32 WaterProbeStage = 0;
+    double WaterProbeStart = 0, WaterProbeSampleAt = 0;
+    TSharedPtr<FJsonObject> WaterProbeReport, WaterProbeRoute;
+    void WaterProbeTick();
+    void WaterProbeSample(const FString& Phase);
+    void FinishWaterProbe(const FString& Error = FString());
     double FocusAt = 0;
     int32 PendingFocus = 0;
     bool SmokeMoving = false;
     FVector SmokePosition;
     double SmokeTourTime = 0;
+    double DisplayLogAt = 0;
+    int32 SmokeSettingsStep = 0;
+    int32 SmokeDisplayStep = 0;
+    FIntPoint SmokeWindowResolution = FIntPoint::ZeroValue;
+    TSharedPtr<FJsonObject> SmokeDisplayReport;
+    int32 SmokeTempleStairStep = 0;
+    double SmokeTempleWalkAt = 0, SmokeTempleDeadline = 0;
     void SmokeTick();
     // -WalkReviewPhoto=<part of a file name>: open that photograph at its saved pose, capture the
     // photo page, the side-by-side view and the overlay into Saved/WalkReview, then quit. Saves nothing.
