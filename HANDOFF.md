@@ -4,6 +4,22 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: inner front roof and platform-hall ceiling
+
+- Fix 24(a,c), 15.13.03 / 15.13.07 / 15.08.10: the sheet shelter narrows from 16.8 to 13 m,
+  moves back 2.35 m and splits around a real 2.5 m central slot showing the stone tower.
+  Eave stays 4.16 m; nominal rise is 1.60 m. The platform hall gains a white flat ceiling at
+  3.99 m with .30 m beams bearing on the existing 3.69 m carved caps. This height is an estimate;
+  the old recipe's rough-pose 4.55 m ceiling is not a measured constraint.
+- Wall heads and bell-cord anchors meet the ceiling; window openings, carved columns,
+  bell bodies, platforms, navigation surfaces and saved poses stay fixed. A hidden 1.15 m roof
+  junction replaces the low overlapping hip eave and meets its actual triangles without a crack.
+  Rear-platform standing spaces have at least 2.14 m physical clearance; the existing low bell row
+  remains outside those standing spaces. Skylight geometry and transforms are unchanged.
+- [Before/after review](docs/review-2026-10-11-inner-front-roof.md). Fix 24(b,d,e,f), rust slot roof,
+  dark parapets, stepped central canopy and tower finish, remain deferred. Native regeneration
+  and all-pose sheets follow source integration on photoreal.
+
 ## 2026-10-10: court-facing portico platforms
 
 - Fix 20, 15.10.34 / 15.02.27 / 15.03.51: paired platforms rise from .602 to .85 m,
@@ -68,7 +84,7 @@ For the owner:
   end and the stage / tank east end (unchanged, still open).
 
 Next work, in order: (1) new notes in `F:/Shankaranarayana/unreal-notes.json` and pose notes; (2) the fixes
-left in `docs/photo-review-2026-10-01-fixes.json`: temple 9, 24, 25; landscape 1, 8, 9, 10, 14B and
+left in `docs/photo-review-2026-10-01-fixes.json`: temple 9, 24(b,d,e,f), 25; landscape 1, 8, 9, 10, 14B and
 23 step 1; house 9 (arched head), 19 (soffit); (3) the interface leftovers listed below; (4) run
 `tools/scan-floating.mjs`, `scan-zfight.mjs`, `scan-surface-gaps.mjs`, `scan-blocked-poses.mjs` and
 `scan-roof-normals.mjs` after any batch of changes, and sweep the tour frames in both the web view and the game.
