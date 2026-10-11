@@ -4,6 +4,20 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-10: temple entrance floors and road frontage
+
+- Fix 5, owner's 15.16.09 note and 15.15.51: the .85 m marble platforms now occupy only the
+  rear 2.25 m beside the doorway. In front, .39 m red-oxide floors with grey kerbs replace the
+  full-depth high platforms. Each ledge has two .23 m risers. The front aisle is 3.1 m wide;
+  the rear passage is 1.34 m, matching the existing doorway approach. Front pier feet reach the
+  low floor, and the gallery stair, three painting viewpoints and tour approach follow it.
+- Fix 6, 15.20.01 / 15.19.36 / 14.59.21: five 2.88-2.90 m frontage bays replace four irregular
+  broad bays, with one upper window per bay. The shutter is 1.9 m wide (was 2.72), without the
+  invented dark frame; its inner face moves with it. Lower windows, donor sign and pilasters
+  follow the bays. Extension walls are flush; floors stop behind them. Building extent unchanged.
+- Saved photo poses and private media unchanged. The wheel/geometry checks and shipped temple
+  setback tour check pass. Unreal regeneration and full pose sheets are handled on photoreal.
+
 ## Evening of 2026-10-01: the user's game and web notes
 
 - House entrance (game notes at the entrance and in the court; house-front.jpg): the centre
@@ -42,7 +56,7 @@ For the owner:
   end and the stage / tank east end (unchanged, still open).
 
 Next work, in order: (1) new notes in `F:/Shankaranarayana/unreal-notes.json` and pose notes; (2) the fixes
-left in `docs/photo-review-2026-10-01-fixes.json`: temple 5, 6, 9, 20, 24, 25; landscape 1, 8, 9, 10, 14B and
+left in `docs/photo-review-2026-10-01-fixes.json`: temple 9, 20, 24, 25; landscape 1, 8, 9, 10, 14B and
 23 step 1; house 9 (arched head), 19 (soffit); (3) the interface leftovers listed below; (4) run
 `tools/scan-floating.mjs`, `scan-zfight.mjs`, `scan-surface-gaps.mjs`, `scan-blocked-poses.mjs` and
 `scan-roof-normals.mjs` after any batch of changes, and sweep the tour frames in both the web view and the game.
