@@ -4,6 +4,19 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: west-bank mud road and taller greenery
+
+- Owner's Oct 4 15.25.49 note, corroborated by 15.26.49: replace the 1.35 m red gap through
+  flat turf with an explicit brown/gravel road, estimated 2.6 +/- .2 m wide. Lake-side edge
+  stays x -7.25; only the west side widens. It bears on existing terrain and stops just before
+  the retained north connecting path. The newer vehicle-size note supersedes the older
+  15.30.09 "slimmer" inference; no measured width or saved-pose fit is claimed.
+- Seven small broadleaf trees and varied understory form an estimated 5..8 m green belt
+  outside the road. A private PRNG preserves other planting; 260 existing weed instances move
+  outward to keep the road clear. Existing palms, banks, stairs, terrain heights, navigation,
+  routes and all 172 saved poses remain unchanged. Hall lift (23 step 1) and stage depth (14B)
+  remain deferred. [Before/after source review](docs/review-2026-10-11-west-bank-road.md).
+
 ## 2026-10-11: western lane roof forms
 
 - Landscape fix 9, roof forms only: 14.46.51 resolves a continuous low corrugated awning
