@@ -404,6 +404,88 @@ for(const name of ['Stage upper left stone figure','Stage upper right stone figu
   assert.equal(ray.intersectObject(landscape,true)[0]?.object.parent?.name,name,'Decorative figure visible from the forecourt');
   figure.traverse(o=>{if(o.isMesh)assert.ok(!o.material.map,'Stage figures carry no photograph');});
 }
+// 15.13.30 / 15.13.26 / 15.12.15 / 15.19.57: retain the six sculpture placements,
+// but give the stone silhouettes curved trunks/calves, separate legs and bent arms.
+const stageSculptures=landscape.children.filter(o=>o.name==='Stage stair black stone elephant'||/^Stage (lower|upper) (left|right) stone figure$/.test(o.name));
+assert.equal(stageSculptures.length,6);
+const stageSculptureReview={closedMeshes:0,adultBearingFeet:0,calfBearingFeet:0,guardianBearingFeet:0,stairCapsuleSamples:0};
+function closedOutwardStone(mesh){
+  const p=mesh.geometry.attributes.position,n=mesh.geometry.attributes.normal,index=mesh.geometry.index;
+  const welded=new Map(),ids=[],edges=new Map();let volume=0;
+  for(let i=0;i<p.count;i++){
+    const v=new THREE.Vector3().fromBufferAttribute(p,i),normal=new THREE.Vector3().fromBufferAttribute(n,i);
+    assert.ok(v.toArray().every(Number.isFinite)&&normal.toArray().every(Number.isFinite),mesh.name+' finite geometry');
+    assert.ok(Math.abs(normal.length()-1)<.0001,mesh.name+' unit normals');
+    const key=v.toArray().map(x=>Math.round(x*1e5)).join(',');if(!welded.has(key))welded.set(key,welded.size);ids.push(welded.get(key));
+  }
+  const count=index?.count??p.count;
+  for(let i=0;i<count;i+=3){
+    const t=[0,1,2].map(j=>index?index.getX(i+j):i+j),v=t.map(k=>new THREE.Vector3().fromBufferAttribute(p,k));
+    if(v[1].clone().sub(v[0]).cross(v[2].clone().sub(v[0])).lengthSq()<1e-20)continue;
+    volume+=v[0].dot(v[1].clone().cross(v[2]))/6;
+    for(let j=0;j<3;j++){const a=ids[t[j]],b=ids[t[(j+1)%3]];assert.notEqual(a,b,mesh.name+' nondegenerate welded edge');const key=a<b?a+':'+b:b+':'+a,edge=edges.get(key)||[0,0];edge[0]++;edge[1]+=a<b?1:-1;edges.set(key,edge);}
+  }
+  for(const [key,[count,balance]] of edges)assert.ok(count===2&&balance===0,mesh.name+' closed consistently wound edge '+key);
+  if(mesh.geometry.type==='BufferGeometry'){
+    const ringSize=(p.count-2)%24===0?24:12,ringCount=(p.count-2)/ringSize,centers=[];
+    for(let j=0;j<ringCount;j++){const center=new THREE.Vector3();for(let k=0;k<ringSize;k++)center.add(new THREE.Vector3().fromBufferAttribute(p,j*ringSize+k));centers.push(center.divideScalar(ringSize));}
+    for(let i=0;i<(ringCount-1)*ringSize*6;i+=3){
+      const t=[0,1,2].map(j=>index.getX(i+j)),v=t.map(k=>new THREE.Vector3().fromBufferAttribute(p,k));
+      const radial=new THREE.Vector3();for(let j=0;j<3;j++)radial.add(v[j].clone().sub(centers[Math.floor(t[j]/ringSize)]));
+      const dot=v[1].clone().sub(v[0]).cross(v[2].clone().sub(v[0])).normalize().dot(radial.normalize());
+      assert.ok(dot>=-.0001,mesh.name+' no folded inward side face: '+dot);
+    }
+  }
+  assert.ok(volume>1e-8,mesh.name+' outward signed volume');stageSculptureReview.closedMeshes++;
+}
+const childMeshes=(g,name)=>g.children.filter(o=>o.isMesh&&o.name===name);
+for(const g of stageSculptures){
+  g.traverse(o=>{if(o.isMesh&&!['Elephant base slab','Stage figure lotus base'].includes(o.name))closedOutwardStone(o);});
+  const elephant=g.name==='Stage stair black stone elephant',base=g.getObjectByName(elephant?'Elephant base slab':'Stage figure lotus base'),baseBounds=new THREE.Box3().setFromObject(base);
+  const footNames=elephant?['Elephant ground-bearing foot','Elephant calf ground-bearing leg']:['Stage figure bearing foot'];
+  for(const name of footNames){
+    const feet=childMeshes(g,name);assert.equal(feet.length,elephant?4:2,'Each sculpture has its photographed standing leg count');
+    for(const foot of feet){
+      const b=new THREE.Box3().setFromObject(foot),center=b.getCenter(new THREE.Vector3());
+      const contact=new THREE.Raycaster(new THREE.Vector3(center.x,b.min.y+.02,center.z),new THREE.Vector3(0,-1,0),0,.04).intersectObject(base,false)[0];
+      assert.ok(contact&&Math.abs(b.min.y-contact.point.y)<.00001,'Foot meets its retained actual stone base');
+      assert.ok(b.min.x>=baseBounds.min.x-.00001&&b.max.x<=baseBounds.max.x+.00001&&b.min.z>=baseBounds.min.z-.00001&&b.max.z<=baseBounds.max.z+.00001,'Every foot bears within the base footprint');
+      if(elephant)stageSculptureReview[name.includes('calf')?'calfBearingFeet':'adultBearingFeet']++;else{
+        const p=foot.geometry.attributes.position;
+        for(let i=0;i<p.count;i++)if(Math.abs(p.getY(i)-.16)<.00001)assert.ok(Math.hypot(p.getX(i),p.getZ(i))<=.23001,'Guardian foot bears inside the circular lotus top');
+        stageSculptureReview.guardianBearingFeet++;
+      }
+    }
+  }
+  if(elephant){
+    const trunk=g.getObjectByName('Elephant curled trunk'),body=g.getObjectByName('Elephant arched body');assert.ok(trunk&&body);
+    assert.equal(childMeshes(g,'Elephant tapered leg').length,4);
+    assert.equal(new THREE.Raycaster(g.localToWorld(new THREE.Vector3(-.69,.50,-1)),new THREE.Vector3(0,0,1),0,2.5).intersectObject(g,true).length,0,'Curved trunk leaves photographed negative space above the standing calf');
+    for(const leg of childMeshes(g,'Elephant tapered leg')){
+      const b=new THREE.Box3().setFromObject(leg),foot=childMeshes(g,'Elephant ground-bearing foot').find(f=>new THREE.Box3().setFromObject(f).intersectsBox(b));assert.ok(foot,'Adult leg meets its bearing foot');
+      assert.ok(new THREE.Box3().setFromObject(body).intersectsBox(b),'Adult leg joins its arched body');
+    }
+  }else{
+    assert.equal(childMeshes(g,'Stage figure distinct leg').length,2);
+    assert.equal(new THREE.Raycaster(g.localToWorld(new THREE.Vector3(-1,.30,0)),new THREE.Vector3(1,0,0),0,2).intersectObject(g,true).length,0,'Distinct standing legs leave a real gap below the skirt');
+    const top=new THREE.Box3().setFromObject(g).max.y;assert.ok(Math.abs(top-g.position.y-1.82)<.00001,'Guardian retains existing sculpture height');
+  }
+}
+assert.ok(landscape.getObjectByName('Stage upper left stone figure').getObjectByName('Stage upper animal muzzle'),'Upper-left head has the directly observed projecting muzzle');
+for(const side of ['left','right'])assert.equal(childMeshes(landscape.getObjectByName('Stage upper '+side+' stone figure'),'Stage figure bent prayer arm').length,2,'Upper pair retain joined-hand poses');
+// Sweep the native capsule radius through actual sculpture triangles on the retained
+// plain/tiled stair flights, in both directions and across three usable tracks.
+for(const z of [-6.5,-5,-3.5])for(const reverse of [false,true]){
+  let feet=reverse?2.82:0;
+  for(let i=0;i<=110;i++){
+    const x=reverse?59.8-i*.05:54.3+i*.05;feet=supportY(x,z,feet);
+    for(let j=0;j<9;j++){
+      const a=j*Math.PI/4,r=j===8?0:.22,ray=new THREE.Raycaster(new THREE.Vector3(x+r*Math.cos(a),feet+.025,z+r*Math.sin(a)),new THREE.Vector3(0,1,0),0,2.10);
+      assert.equal(ray.intersectObjects(stageSculptures,true).length,0,'Stone sculptures clear the supported walking capsule on the stair tracks');
+      stageSculptureReview.stairCapsuleSamples++;
+    }
+  }
+}
 // The shop is beside the adjacent building, not another temple frontage.
 for(const key of ['shop','shoplake']){
   const p=photos[key].p;assert.ok(!collision(p[0],p[2],p[1]),key+' camera clear');
@@ -1001,7 +1083,7 @@ checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]
 checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
-const report={innerRoofReview,laneRoofReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
+const report={innerRoofReview,laneRoofReview,stageSculptureReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};
