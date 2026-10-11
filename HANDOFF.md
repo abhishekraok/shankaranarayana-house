@@ -4,6 +4,18 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-10: court-facing portico platforms
+
+- Fix 20, 15.10.34 / 15.02.27 / 15.03.51: paired platforms rise from .602 to .85 m,
+  with filled bases, .15 m grey veined marble caps and dense red-brown relief bands on
+  court and passage faces. The central passage stays low. Two red tread blocks at .35/.60
+  lead to the marble top, giving three .25 m rises; access blocks clear the existing piers.
+- Door threshold and column feet follow the marble height; ceiling supports stay fixed.
+  The full-size great bell rises .248 m, with shorter suspension ropes and unchanged beam
+  and single rear pier. Hardware clears the beam by at least .16 m; pull rope clears the floor.
+- [Before/after review](docs/review-2026-10-10-portico-platforms.md). Saved poses and private
+  media unchanged. Native regeneration and full pose sheets remain a photoreal step.
+
 ## 2026-10-10: temple entrance floors and road frontage
 
 - Fix 5, owner's 15.16.09 note and 15.15.51: the .85 m marble platforms now occupy only the
@@ -56,7 +68,7 @@ For the owner:
   end and the stage / tank east end (unchanged, still open).
 
 Next work, in order: (1) new notes in `F:/Shankaranarayana/unreal-notes.json` and pose notes; (2) the fixes
-left in `docs/photo-review-2026-10-01-fixes.json`: temple 9, 20, 24, 25; landscape 1, 8, 9, 10, 14B and
+left in `docs/photo-review-2026-10-01-fixes.json`: temple 9, 24, 25; landscape 1, 8, 9, 10, 14B and
 23 step 1; house 9 (arched head), 19 (soffit); (3) the interface leftovers listed below; (4) run
 `tools/scan-floating.mjs`, `scan-zfight.mjs`, `scan-surface-gaps.mjs`, `scan-blocked-poses.mjs` and
 `scan-roof-normals.mjs` after any batch of changes, and sweep the tour frames in both the web view and the game.

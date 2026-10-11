@@ -601,6 +601,53 @@ assert.ok(temple.getObjectByName('Side bay raised rolling shutter'),'Service ope
 const largeBell=temple.getObjectByName('Great bronze temple bell');
 const bellBounds=new THREE.Box3().setFromObject(largeBell),bellSize=bellBounds.getSize(new THREE.Vector3());
 assert.ok(bellSize.y>1.2&&bellSize.x>1.1,'The great bell has its full-size flared body');
+// 15.10.34 / 15.02.27 / 15.03.51: two red tread blocks lead to a thick marble
+// platform, with a dense carved course and a genuinely lower central passage.
+const porticoPlatforms=temple.children.filter(o=>o.name==='Courtyard portico raised marble platform');
+assert.equal(porticoPlatforms.length,2);
+for(const o of porticoPlatforms){
+  const b=new THREE.Box3().setFromObject(o),x=o.position.x;
+  assert.ok(Math.abs(b.min.y-.70)<1e-6&&Math.abs(b.max.y-.85)<1e-6,'Portico has a .15 m marble slab');
+  assert.ok(Math.abs(b.max.z-8.83)<1e-5,'Marble slab follows the owner-confirmed deeper bell bay');
+  const core=temple.children.find(q=>q.name==='Courtyard portico masonry core'&&Math.abs(q.position.x-x)<.01),cb=new THREE.Box3().setFromObject(core);
+  assert.ok(Math.abs(cb.min.y-.1)<1e-6&&Math.abs(cb.max.y-b.min.y)<1e-6,'Filled platform stands on the court and meets its slab');
+  assert.ok(Math.abs(cb.max.z-b.max.z)<1e-6,'Platform core stretches with its slab');
+  for(const z of [6.198,6.202])assert.ok(Math.abs(supportY(x,z,.85)-.85)<1e-6,'Marble slabs meet the entrance ledge without a floor seam');
+  assert.ok(Math.abs(supportY(x,8.75,.85)-.85)<1e-6,'Raised portico has matching walking support');
+  const panels=temple.children.filter(q=>q.name==='Courtyard portico inset relief panel'&&Math.abs(q.position.x-x)<(b.max.x-b.min.x)/2+.01).sort((a,b)=>a.position.x-b.position.x);
+  assert.equal(panels.length,x<39?7:19,'Dense frieze replaces sparse large panels');
+  for(let i=1;i<panels.length;i++)assert.ok(panels[i].position.x-panels[i-1].position.x<=.401,'Frieze panels have at most .4 m pitch');
+}
+for(const x of [36.15,46.55]){
+  for(const [z,top] of [[9.47,.35],[9.19,.60],[9.0,.85]]){
+    const hit=new THREE.Raycaster(new THREE.Vector3(x,1.9,z),new THREE.Vector3(0,-1,0)).intersectObject(temple,true)[0];
+    assert.ok(hit?.object.name.startsWith('Courtyard portico side access tread'),'Two red treads and final marble tread are exposed');
+    assert.ok(Math.abs(hit.point.y-top)<1e-6,'Physical portico rises are .25 m, below the native .36 m limit');
+    assert.ok(Math.abs(supportY(x,z,top)-top)<1e-6,'Every tread has matching navigation support');
+  }
+  checkRoute('Court onto portico '+x,[[x,9.9],[x,8.78]],.1,.09);
+  assert.ok(Math.abs(routes.at(-1).finalHeight-.85)<1e-6,'Portico steps reach the marble platform');
+  checkRoute('Portico down to court '+x,[[x,8.78],[x,9.9]],.85,.09);
+}
+checkRoute('Court to stair-door threshold',[[34.475,9.0],[34.475,7.78]],.1,.01);
+assert.ok(Math.abs(routes.at(-1).finalHeight-.85)<1e-6,'Blue door threshold is level with the marble platform');
+checkRoute('Stair-door threshold to court',[[34.475,7.78],[34.475,9.0]],.85,.01);
+checkRoute('Low central portico passage',[[39,5.5],[39,9.9]],.2,.09);
+assert.ok(supportY(39,8.5,.2)<.21,'Centre passage stays lower than both marble platforms');
+assert.ok(blockedRise(36.2,8.1,.1),'Platform cannot be climbed away from its steps');
+for(const n of ['Courtyard portico square white pier','Courtyard portico pier red foot','Great bell white suspension pier','Great bell white pier stepped base','Great bell pier red foot','Passage round column carved base block']){
+  const objects=temple.children.filter(o=>o.name===n);assert.ok(objects.length>0,n+' is present');
+  for(const o of objects)assert.ok(Math.abs(new THREE.Box3().setFromObject(o).min.y-.85)<1e-5,n+' stands on the marble floor');
+}
+assert.equal(temple.children.filter(o=>o.name==='Great bell white suspension pier').length,1,'Owner-confirmed single rear bell pier is preserved');
+const bellBeamBounds=new THREE.Box3().setFromObject(temple.getObjectByName('Great bell heavy timber suspension beam'));
+assert.ok(Math.abs(bellBeamBounds.min.y-3.265)<1e-5,'Large bell suspension beam stays fixed');
+for(const n of ['Great bronze temple bell crown','Great bell bronze suspension handle','Great bell rope binding'])for(const o of temple.children.filter(o=>o.name===n)){
+  assert.ok(bellBeamBounds.min.y-new THREE.Box3().setFromObject(o).max.y>.15,'Lifted bell hardware clears the suspension beam');
+}
+const pullBounds=new THREE.Box3().setFromObject(temple.getObjectByName('Great bell looped clapper rope'));
+assert.ok(pullBounds.min.y>.91&&pullBounds.min.y<.94,'Bell pull rope clears the raised floor without shortening its hanging loop');
+for(const o of temple.children.filter(o=>o.name==='Passage round column capital cap'))assert.ok(Math.abs(new THREE.Box3().setFromObject(o).max.y-3.75)<1e-5,'Shortened round-column bases preserve the ceiling support');
 const bellTarget=bellBounds.getCenter(new THREE.Vector3());
 for(const key of ['templebellreturn','templebellwide','templepoles','templebell']){
   const view=authored(new Function('return ('+main.match(new RegExp('destinations\\.'+key+'=(\\{.*\\});'))[1]+')')());
