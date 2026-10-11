@@ -80,6 +80,38 @@ const roofTank=landscape.getObjectByName('Slope salmon-pink house black roof tan
 assert.ok(Math.abs(tankBounds.min.y-salmonSlabBounds.max.y)<.001&&tankBounds.min.x>salmonWallBounds.min.x&&tankBounds.max.x<salmonWallBounds.max.x&&tankBounds.min.z>salmonWallBounds.min.z&&tankBounds.max.z<salmonWallBounds.max.z,'Roof tank bears within the existing footprint');
 assert.ok(tankBounds.max.y>new THREE.Box3().setFromObject(parapets[0]).max.y+.3,'Black tank appears above the low parapet');
 assert.ok(K.roofs.includes(laneAwning)&&K.roofs.includes(salmonSlab)&&K.roofs.includes(roofTank),'Roof visibility includes sheet, flat roof and tank');
+// Oct 4 owner note supersedes the older inferred 1.5 m footpath: keep the bank side
+// fixed while providing a bare vehicle corridor and taller foliage outside its west edge.
+const westRoad=landscape.getObjectByName('West bank vehicle-width brown mud road'),westRoadBounds=new THREE.Box3().setFromObject(westRoad);
+assert.ok(Math.abs(westRoadBounds.max.x+7.25)<.001&&Math.abs(westRoadBounds.min.z+35.8)<.001&&Math.abs(westRoadBounds.max.z+11.25)<.001,'Road retains lake edge and stops before the north connecting path');
+assert.ok(Math.abs(westRoadBounds.min.y)<.001&&westRoadBounds.max.y<.03,'Decorative road bears on existing ground without changing its height');
+const rp=westRoad.geometry.attributes.position,rn=westRoad.geometry.attributes.normal;
+for(let i=0;i<rp.count;i+=3){
+  if([0,1,2].every(j=>rp.getY(i+j)>.025))for(let j=0;j<3;j++)assert.ok(rn.getY(i+j)>.99,'Mud-road top triangles face upward');
+  if([0,1,2].every(j=>rp.getY(i+j)<.001))for(let j=0;j<3;j++)assert.ok(rn.getY(i+j)<-.99,'Mud-road underside closes against the ground');
+}
+const westBelt=landscape.getObjectByName('West bank tall roadside green belt'),beltBounds=new THREE.Box3().setFromObject(westBelt);
+assert.ok(beltBounds.max.x<westRoadBounds.min.x-.65,'High greenery stays outside the widest bare road edge');
+assert.ok(beltBounds.max.y>=5&&beltBounds.max.y<=8&&beltBounds.min.z>=-35.8&&beltBounds.max.z<=-11,'Estimated green belt has the bounded photographed height and bank extent');
+let roots=0;
+const trunkBatch=westBelt.getObjectByName('West bank roadside tree limbs'),rootMatrix=new THREE.Matrix4(),rootBounds=new THREE.Box3();trunkBatch.geometry.computeBoundingBox();
+for(let i=0;i<trunkBatch.count;i++){
+  trunkBatch.getMatrixAt(i,rootMatrix);rootBounds.copy(trunkBatch.geometry.boundingBox).applyMatrix4(rootMatrix);
+  if(rootBounds.min.y<.01){assert.ok(rootBounds.min.y>-.012,'Tree root meets ground without a floating trunk');roots++;}
+}assert.equal(roots,7,'Every tall roadside tree has a ground-bearing trunk');
+// Actual foliage/grass geometry must clear the vehicle corridor and its capsule margin.
+const westVisuals=[westBelt,landscape.getObjectByName('grass and weeds along wild banks')];
+for(let z=-35.6;z<=-11.6;z+=.4){
+  const width=2.6+.2*Math.sin((z+11.25)*.48),west=-7.25-width;
+  assert.ok(width>=2.4&&width<=2.8&&Math.abs(supportY(-8,z,0))<.001,'Road remains on existing supported ground');
+  for(const x of [west+.24,(west-7.25)/2,-7.49]){
+    assert.ok(!collision(x,z,0)&&!blockedRise(x,z,0),'Vehicle-width route is walkable without new collision/support data');
+    for(let j=0;j<8;j++){
+      const a=j*Math.PI/4,ray=new THREE.Raycaster(new THREE.Vector3(x+.22*Math.cos(a),.06,z+.22*Math.sin(a)),new THREE.Vector3(0,1,0),0,2.10);
+      assert.equal(ray.intersectObjects(westVisuals,true).length,0,'Foliage and weeds clear the physical walking capsule');
+    }
+  }
+}
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
 // 15.13.03 / .07 and 15.08.10: the split sheet shelter reveals the tower above a supported
@@ -286,6 +318,10 @@ for(const m of main.matchAll(/ground\(([-.\d]+),([-.\d]+),([-.\d]+),([-.\d]+)\)/
   const [x,z,w,d]=m.slice(1).map(Number);K.box(soilGroup,'Actual terrain',x,-.22,z,w,.44,d,'earth');
 }
 soilGroup.updateMatrixWorld(true);
+for(const x of [-9.5,-8.5,-7.5])for(const z of [-35.6,-28,-20,-11.5]){
+  const ground=new THREE.Raycaster(new THREE.Vector3(x,.01,z),new THREE.Vector3(0,-1,0),0,.025).intersectObject(soilGroup,true)[0];
+  assert.ok(ground&&Math.abs(ground.point.y-westRoadBounds.min.y)<.001,'Mud-road underside bears on actual authored terrain');
+}
 // The forecourt pond needs the set-back forecourt, so it is not built at this authored placement;
 // tests/temple-setback.mjs checks that it is open at the shipped one.
 assert.equal(landscape.getObjectByName('Temple small pond recessed water'),undefined,'No pond without the set-back');

@@ -1016,14 +1016,15 @@ export function buildLandscape(K, {mobile=false}={}) {
     box('Opposite bank weedy ground before the hall', (a + b) / 2, .012, -42.45, b - a, .02, 4.7, weedyGround);
   // 15.25.49 / 15.30.09: west of the tank a dirt path follows the bank wall; weeds and
   // shrubs fill the ground beyond it.
-  box('West bank weedy ground beyond the path', -13.8, .012, -24.4, 10.4, .02, 26.8, weedyGround);
-  // User's 15.30.09 note: the mud road is slimmer, about 1.5 m, with a weedy verge along the wall.
+  // The newer 15.25.49 owner note calls for a vehicle-sized mud road. Keep its lake
+  // edge fixed; clear the grass westward for the explicit 2.6 +/- .2 m ribbon below.
+  box('West bank weedy ground beyond the path', -14.55, .012, -24.4, 8.9, .02, 26.8, weedyGround);
   box('West bank weedy verge beside the wall', -6.2, .012, -24.4, 2.1, .02, 26.8, weedyGround);
   const westSeed = seed;
   for (let i = 0; i < 60; i++) shrub(range(-18.6, -12.8), range(-37, -12), range(.5, 1.25)); // off the track beside the west bank (15.26.49)
   for (let i = 0; i < 260; i++) {
     const s = range(.6, 1.25);
-    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [range(-18.8, -8.9), .025, range(-37.5, -11.5)], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
+    instance('grass and weeds along wild banks', grassGeometry, materials.grass, [range(-18.8, -10.7), .025, range(-37.5, -11.5)], [s, s * range(.9, 1.3), s], new THREE.Quaternion().setFromAxisAngle(up, range(0, 6.28)));
   }
   seed = westSeed;
 
@@ -2232,5 +2233,62 @@ export function buildLandscape(K, {mobile=false}={}) {
   {const treadTop=tankWall.clone();treadTop.name='tank tread top';treadTop.color.setRGB(.5,.52,.5);K.worldMap(treadTop,.275);
    for(const o of group.children)if(o.isMesh&&!o.isInstancedMesh&&(o.material===tankWall||o.material===mossWall)&&o.geometry.groups&&o.geometry.groups.length===6)
      o.material=[o.material,o.material,treadTop,o.material,o.material,o.material];}
+  // 15.25.49 (owner note, Oct 4) / 15.26.49: a brown/gravel vehicle corridor,
+  // then high irregular greenery, not a neat red footpath across mown grass.
+  // Add at final world coordinates so the older far-bank warp cannot distort this belt.
+  // Width (2.6 +/- .2 m) and 5..8 m foliage height are estimates; lake edge, terrain,
+  // wall/stairs, existing palms, navigation and saved alignment poses stay fixed.
+  // Stop 5 cm before the retained north connecting path's raised edge (z -11.2).
+  {const north=-11.25,south=-35.8,lakeEdge=-7.25,steps=31,p=[],uv=[];
+   const west=z=>lakeEdge-(2.6+.2*Math.sin((z-north)*.48));
+   const add=v=>{p.push(...v);uv.push(v[0]*.5,v[2]*.5);};
+   const quad=(a,b,c,d)=>{for(const v of [a,b,c,a,c,d])add(v);};
+   for(let i=0;i<steps;i++){
+     const a=north+(south-north)*i/steps,b=north+(south-north)*(i+1)/steps;
+     const an=[west(a),.026,a],al=[lakeEdge,.026,a],bn=[west(b),.026,b],bl=[lakeEdge,.026,b];
+     const low=v=>[v[0],0,v[2]],an0=low(an),al0=low(al),bn0=low(bn),bl0=low(bl);
+     quad(an,al,bl,bn);quad(an0,bn0,bl0,al0);quad(an,bn,bn0,an0);quad(al,al0,bl0,bl);
+     if(i===0)quad(an,an0,al0,al);if(i===steps-1)quad(bn,bl,bl0,bn0);
+   }
+   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.computeVertexNormals();
+   const mud=new THREE.MeshStandardMaterial({map:stainMap(152549,'#866e58',[[34,'164,142,113',.6,5,22],[25,'98,71,52',.4,4,20],[9,'111,117,73',.2,3,9]]),roughness:1});mud.name='west bank brown gravel road';
+   const road=new THREE.Mesh(g,mud);road.name='West bank vehicle-width brown mud road';road.receiveShadow=true;group.add(road);
+   let n=152649;const r=()=>{n=(Math.imul(n,1664525)+1013904223)>>>0;return n/4294967296;};
+   const belt=new THREE.Group();belt.name='West bank tall roadside green belt';group.add(belt);
+   const detail=new Map(),localTransform=new THREE.Object3D();
+   const tint=()=>new THREE.Color(leafPalette[Math.floor(r()*leafPalette.length)]).multiplyScalar(.98+r()*.25);
+   const place=(name,geometry,material,pos,scale,q,color)=>{
+     localTransform.position.set(...pos);localTransform.scale.set(...scale);localTransform.quaternion.copy(q||new THREE.Quaternion());localTransform.updateMatrix();
+     if(!detail.has(name))detail.set(name,{geometry,material,items:[]});detail.get(name).items.push({matrix:localTransform.matrix.clone(),color});
+   };
+   const limb=(a,b,radius)=>{const av=new THREE.Vector3(...a),bv=new THREE.Vector3(...b),delta=bv.clone().sub(av);place('West bank roadside tree limbs',cylinder,materials.trunkRings,av.clone().add(bv).multiplyScalar(.5).toArray(),[radius*2,delta.length(),radius*2],new THREE.Quaternion().setFromUnitVectors(up,delta.normalize()));};
+   for(let i=0;i<7;i++){
+     const x=-12.9-r()*.6,z=-13.45-i*3.35,h=5.05+r()*1.05;
+     limb([x,0,z],[x+.18,h*.86,z+.12],.11+r()*.035);
+     for(let j=0;j<7;j++){
+       const a=j*2.4+r()*.4,cx=x+Math.cos(a)*(.4+r()*.3),cy=h-.4+r()*.85,cz=z+Math.sin(a)*(.4+r()*.4);
+       const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(r()*.25,a,r()*.2));
+       const sx=.75+r()*.30,sy=.85+r()*.4,sz=.8+r()*.35;
+       place('West bank irregular tall foliage',farCrown,materials.foliage,[cx,cy,cz],[sx,sy,sz],q,tint());
+       if(j<4)limb([x+.10,h*.53,z],[cx,cy-.25,cz],.035);
+       for(let k=0;k<(mobile?3:10);k++){
+         const turn=new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.28,r()-.5));
+         place('West bank roadside leafy sprays',spray,sprayMaterial,[Math.min(-10.95,cx+(r()-.5)*1.7),cy+(r()-.5)*1.4,cz+(r()-.5)*1.7],[.55+r()*.35,.65+r()*.5,.55+r()*.35],turn,tint());
+       }
+     }
+   }
+   // A continuous, varied understory closes the gap under those small trees; all of it
+   // remains west of the widest road edge, leaving the existing lake-side verge clear.
+   farCrown.computeBoundingBox();
+   for(let i=0;i<(mobile?22:44);i++){
+     const x=-12.1-r()*1.6,z=-11.5-r()*23.4,sx=.65+r()*.30,sy=.9+r()*.75,sz=.65+r()*.35;
+     const q=new THREE.Quaternion().setFromAxisAngle(up,r()*6.28);
+     const y=-farCrown.boundingBox.min.y*sy+.03;
+     place('West bank varied tall understory',farCrown,materials.foliage,[x,y,z],[sx,sy,sz],q,tint());
+     for(let k=0;k<(mobile?2:5);k++)place('West bank roadside leafy sprays',spray,sprayMaterial,[x+(r()-.5),y+(r()-.5)*1.2,z+(r()-.5)],[.6,.9,.6],new THREE.Quaternion().setFromEuler(new THREE.Euler(r()-.5,r()*6.28,r()-.5)),tint());
+   }
+   for(const [name,b] of detail){const m=new THREE.InstancedMesh(b.geometry,b.material,b.items.length);m.name=name;
+     b.items.forEach((e,i)=>{m.setMatrixAt(i,e.matrix);if(e.color)m.setColorAt(i,e.color);});m.castShadow=m.receiveShadow=true;m.computeBoundingBox();m.computeBoundingSphere();belt.add(m);}
+  }
   return group;
 }
