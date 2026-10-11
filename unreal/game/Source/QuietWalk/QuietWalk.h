@@ -13,6 +13,7 @@ class SQuietMenu;
 class ACameraActor;
 class UTexture2D;
 class FJsonObject;
+class FJsonValue;
 struct FSlateBrush;
 
 UCLASS()
@@ -64,6 +65,11 @@ struct FWalkPlace {
     float Yaw;
 };
 
+struct FWalkWaterRegion {
+    FString Id;
+    FBox Bounds;
+};
+
 UCLASS()
 class QUIETWALK_API AWalkController : public APlayerController {
     GENERATED_BODY()
@@ -106,6 +112,9 @@ public:
     bool Travel(int32 Index);
     bool RestorePosition(FVector Position, FRotator Look);
     bool Persist(bool CapturePosition);
+    // Input remains blocked after water recovery until both movement axes settle
+    // at neutral. Look and menus remain available throughout recovery.
+    bool AllowWaterMovement(float Value, bool RightAxis);
     void ApplySettings();
     FString DisplayStatus() const;
     TSharedRef<FJsonObject> DisplayReport() const;
@@ -153,6 +162,23 @@ public:
 private:
     float SaveTimer = 0;
     float FootstepTimer = 0;
+    TArray<FWalkWaterRegion> WaterRegions;
+    bool WaterDataReady = false, WaterHasSafeGround = false, WaterHasCandidateGround = false, WaterHasVerifiedGround = false;
+    bool WaterMovementLatched = false;
+    bool WaterAnchorEntryClear = false, WaterAnchorRestingGroundSafe = false;
+    float WaterForwardAxis = 0, WaterRightAxis = 0;
+    FVector WaterSafePosition = FVector::ZeroVector, WaterCandidatePosition = FVector::ZeroVector, WaterVerifiedGroundPosition = FVector::ZeroVector;
+    int32 WaterRecoveryCount = 0;
+    FString WaterLastRecoveryId;
+    TArray<TSharedPtr<FJsonValue>> WaterRecoveryEvents;
+    bool LoadWaterRegions();
+    FString WaterHazardAt(const FVector& Center) const;
+    bool WaterSafeGround(const FVector& Center, bool Diagnostics = false) const;
+    bool WaterCapsuleClear(const FVector& Center, const FRotator& Look, bool Diagnostics = false) const;
+    void ResetWaterAnchor(const FVector& Center);
+    bool RestoreWaterAnchor(const FVector& Center, const FRotator& Look);
+    void TickWaterSafety();
+    bool RecoverFromWater(const FString& Region, const FString& Reason);
     double BeginTime = 0;
     bool Smoke = false;
     bool ResumeSmoke = false;
@@ -163,6 +189,7 @@ private:
     // Read-only collision characterization on two short water-edge routes. Use
     // -WalkWaterProbe with an isolated -UserDir; it never writes a walk save.
     bool WaterProbe = false, WaterProbeMoving = false, WaterProbeFinished = false;
+    float WaterProbeInput = 1.f;
     int32 WaterProbeStage = 0;
     double WaterProbeStart = 0, WaterProbeSampleAt = 0;
     TSharedPtr<FJsonObject> WaterProbeReport, WaterProbeRoute;
@@ -172,6 +199,7 @@ private:
     double FocusAt = 0;
     int32 PendingFocus = 0;
     bool SmokeMoving = false;
+    float SmokeForwardInput = 1.f;
     FVector SmokePosition;
     double SmokeTourTime = 0;
     double DisplayLogAt = 0;
@@ -181,6 +209,10 @@ private:
     TSharedPtr<FJsonObject> SmokeDisplayReport;
     int32 SmokeTempleStairStep = 0;
     double SmokeTempleWalkAt = 0, SmokeTempleDeadline = 0;
+    int32 SmokeWaterStep = 0, SmokeWaterRecoveryBase = 0;
+    double SmokeWaterSimAt = 0, SmokeWaterDeadline = 0;
+    FVector SmokeWaterStart = FVector::ZeroVector, SmokeWaterRecovered = FVector::ZeroVector;
+    UPROPERTY() TObjectPtr<UWalkSave> SmokeWaterBaseline;
     void SmokeTick();
     // -WalkReviewPhoto=<part of a file name>: open that photograph at its saved pose, capture the
     // photo page, the side-by-side view and the overlay into Saved/WalkReview, then quit. Saves nothing.

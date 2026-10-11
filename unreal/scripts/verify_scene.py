@@ -19,6 +19,18 @@ for part in parts:
     materials = [str(slot.material_interface.get_name()) if slot.material_interface else None
                  for slot in mesh.static_materials]
     assert name in labels, f'Missing level actor: {name}'
+    instances = [actor for actor in actors if isinstance(actor, unreal.StaticMeshActor)
+                 and actor.static_mesh_component.static_mesh == mesh]
+    assert len(instances) == 1 and instances[0].get_actor_label() == name, \
+        f'Duplicate or mislabeled native instances: {name}'
+    component = instances[0].static_mesh_component
+    profile = str(component.get_collision_profile_name())
+    collision = component.get_collision_enabled()
+    if part['kind'] == 'water':
+        assert profile == 'NoCollision' and collision == unreal.CollisionEnabled.NO_COLLISION, \
+            f'Lake water reloaded with collision: profile={profile}, enabled={collision}'
+        assert not component.get_editor_property('use_default_collision'), 'Lake water uses asset collision'
+        assert not component.get_editor_property('generate_overlap_events'), 'Lake water retained overlap events'
     assert len(materials) <= 64, name
     assert all(material and material.startswith('MI_') for material in materials), (name, materials)
     assert settings.enabled == (part['kind'] != 'water'), name
@@ -43,6 +55,7 @@ for part in parts:
     report.append({'name': name, 'sections': len(materials), 'nanite': settings.enabled,
                    'source_triangles': source_triangles, 'fallback_triangles': fallback_triangles,
                    'full_collision_fallback': True, 'materials': materials,
+                   'collision_profile': profile, 'collision_enabled': str(collision),
                    'keep_percent_triangles': settings.keep_percent_triangles,
                    'trim_relative_error': settings.trim_relative_error,
                    'position_precision': settings.position_precision,

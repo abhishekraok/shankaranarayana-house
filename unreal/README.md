@@ -31,6 +31,9 @@ existing progress. Keep this folder when replacing a generated project or packag
   Saves from before this default (no `LookVersion`) have Invert reset once.
 - No jump, camera bob or motion blur. Position saves every 20 seconds on safe ground,
   when noticing a place and on exit. A new walk asks before replacing progress.
+- Entering the lake or temple pond returns you to verified dry ground. Release
+  movement before continuing; your view, journal and settings are retained.
+  Older saves inside water return to the entrance.
 
 ## Rebuild
 
@@ -57,7 +60,15 @@ It requires fresh passing reports and exit code 0, with a five-minute limit per 
 Display checks query Windows process, thread and window DPI awareness, then verify
 the actual viewport and interface scale. Unattended checks also enable native DPI mode.
 `-WalkWaterProbe -UserDir=<isolated-folder>` separately records real forward walking
-from the bathing ledge and pond approach, without writing a player save.
+and reverse escape from the bathing ledge and pond approach, including native
+support hits and recovery events, without writing a player save. Smoke checks
+also require one nearby recovery under held input and preserve the lower ledges.
+
+`blender/export-scene.mjs` exports only the two authored water hazards into
+`water-regions.json`; the installer checks their source hashes and stages them in
+`Content/WalkData`. Refresh this export when its sources change. Native water
+surfaces use a persisted `NoCollision` profile; the basin and ledges keep physical
+collision. Broad source navigation boxes are never imported as invisible floors.
 
 All imported assets, screenshots, synthesized audio and binaries remain ignored.
 Only text source and build scripts belong in Git. Audio is generated locally from

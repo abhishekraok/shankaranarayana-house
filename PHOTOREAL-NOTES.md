@@ -6,6 +6,31 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-11 roof and water pass
+
+Main `ad2b8a7` adds the split inner shelter, central opening and supported white
+platform-hall ceiling. All 172 aligned renders / 29 sheets were reviewed with no
+major new regression; source geometry/navigation and native scene/material/lighting
+audits pass. The editor exited with access violation `-1073741819` after closing
+its shutdown log: complete images, abnormal process exit. Native package checks
+are tracked separately.
+
+The lake's invisible collision floor is removed persistently. The isolated native
+probe and final package smoke now recover locally at both water areas and permit
+reverse escape. Package and cold restart pass. The initialized 1600×900 tour holds
+60 fps (final 1,000 frames: 16.667 ms median, 16.671 ms p99, zero over 33.333 ms).
+This is one route segment, not a full-route or uncapped benchmark. Checked placement handles the
+pond's native capsule overlap without disabling terrain/wall collision. The
+overlap identifies `landscape_03`, not an individual source triangle.
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/index.html),
+[before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/roof-water-2026-10-11.md).
+
+| Photo | Remaining substantial work | Render |
+|---|---|---|
+| 2011-09-21 15.13.03.jpg, 15.13.07.jpg | Rust slot roof, dark side parapets and stepped central canopy: source checkpoint `3cefea9` is reviewed, awaiting integration/rebuild. Floral openings currently read bright/flat with the new roof background. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/071-2011-09-21 15.13.03.png>) |
+| 2011-09-21 15.08.10.jpg | Native inner-hall bells receive added emission despite non-emissive source bronze. The scoped unsaved zero-fill trial improves color/shape; persistent override is in preparation. | [15.08.10](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/131-2011-09-21 15.08.10.png>) |
+
 ## 2026-10-10 model and game pass
 
 Model main `03502e1` includes the lower front floors/rear marble ledges, five-bay road frontage and raised marble court porticos. Source walking/tour checks, native package, stair walking, settings and cold restart pass. Windows DPI readback confirms the full 3840×2160 monitor and 2.5× interface scale. All 172 aligned poses / 29 sheets were reviewed without a major new regression; one missing reference does not omit its render. Saved photo poses remain unchanged.
@@ -13,12 +38,7 @@ Model main `03502e1` includes the lower front floors/rear marble ledges, five-ba
 [Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-03502e1/unreal-20261011-002917/index.html),
 [before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/model-game-2026-10-10.md).
 
-Remaining substantial model evidence:
-
-| Photo | Mismatch / next action | Render |
-|---|---|---|
-| 2011-09-21 15.13.03.jpg, 15.13.07.jpg | Platform hall needs two separated half-gables and a central opening, rather than the continuous roof. Reconcile supporting columns and beams before changing heights: the old fix-24 recipe leaves a support gap. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b868fd7/unreal-20261010-231958/071-2011-09-21 15.13.03.png>) |
-| 2011-09-21 15.08.10.jpg | Platform hall has a flat white ceiling in the photo; the render exposes a sloping corrugated underside. This is separate from the dark stone side aisle at 15.08.42. | [15.08.10](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b868fd7/unreal-20261010-231958/131-2011-09-21 15.08.10.png>) |
+The split roof and flat-ceiling findings from this batch are corrected in `ad2b8a7`.
 
 ## 2026-10-04 early morning (Claude)
 

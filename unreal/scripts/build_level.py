@@ -44,7 +44,13 @@ for entry in parts:
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
     a = spawn(unreal.StaticMeshActor, label=part)
     c = a.static_mesh_component; c.set_static_mesh(mesh)
-    if kind == 'water': c.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+    if kind == 'water':
+        # SetCollisionProfileName also disables use_default_collision. Otherwise
+        # reload restores the mesh asset's collision and exposes its thick simple
+        # hull as an invisible walking floor above the lake.
+        c.set_collision_profile_name('NoCollision')
+        c.set_collision_enabled(unreal.CollisionEnabled.NO_COLLISION)
+        c.set_editor_property('generate_overlap_events', False)
 
 # Overcast monsoon afternoon, lit by the same Poly Haven sky as the Blender renders: the HDRI
 # backdrop supplies both the visible sky and the sky light; a weak, very soft sun adds shape.

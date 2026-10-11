@@ -26,7 +26,7 @@ Entrance/frontage after: [all 172 poses / 29 sheets](D:/repos/shankaranarayana-p
 [entrance](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-a4c5efc/unreal-20261010-235712/061-2011-09-21 15.16.09.png>),
 [frontage](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-a4c5efc/unreal-20261010-235712/063-2011-09-21 15.19.36.png>).
 Portico after: [all 172 poses / 29 sheets](D:/repos/shankaranarayana-photoreal/blender/build/sheets-03502e1/unreal-20261011-002917/index.html),
-[portico](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-03502e1/unreal-20261011-002917/030-2011-09-21 15.11.07.png>).
+[portico](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-03502e1/unreal-20261011-002917/030-2011-09-21 15.10.34.png>).
 Both batches exit cleanly; every pose reviewed, no major new regression. One unavailable
 reference photo is reported; its pose is still rendered.
 

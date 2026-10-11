@@ -7,6 +7,8 @@ No photos are copied. Generated binaries, saves and imported audio stay ignored.
 """
 from pathlib import Path
 import json
+import math
+import hashlib
 import re
 import shutil
 
@@ -70,6 +72,31 @@ def main():
         raise SystemExit(f'Missing {tour}; export the scene first.')
     (PROJECT / 'Content/Tour').mkdir(parents=True, exist_ok=True)
     shutil.copy2(tour, PROJECT / 'Content/Tour/tour.json')
+    # Stage semantic water safety independently of visual mesh collision. Never
+    # import the broad anonymous navigation boxes as native physics geometry.
+    water_regions = ROOT.parent / 'blender/build/water-regions.json'
+    if not water_regions.is_file():
+        raise SystemExit(f'Missing {water_regions}; export the scene first.')
+    regions = json.loads(water_regions.read_text())
+    if (regions.get('schema') != 'quietwalk-water-regions-v1'
+            or {r.get('id') for r in regions.get('regions', [])} != {'lake', 'temple-pond'}
+            or len(regions['regions']) != 2):
+        raise SystemExit('Invalid semantic water regions')
+    expected_sources = {'blender/export-scene.mjs', 'dist/src/kit.js', 'dist/src/landscape.js', 'dist/src/main.js'}
+    hashes = regions.get('source', {}).get('sha256', {})
+    if set(hashes) != expected_sources:
+        raise SystemExit('Incomplete water-region source provenance')
+    for relative, expected in hashes.items():
+        if hashlib.sha256((ROOT.parent / relative).read_bytes()).hexdigest() != expected:
+            raise SystemExit(f'Stale water regions: {relative} changed; export the scene again.')
+    for region in regions['regions']:
+        bounds = region.get('bounds', {})
+        keys = ('minX', 'maxX', 'minZ', 'maxZ', 'bottom', 'top')
+        if (any(not isinstance(bounds.get(k), (int, float)) or not math.isfinite(bounds[k]) for k in keys)
+                or any(bounds[a] >= bounds[b] for a, b in (('minX', 'maxX'), ('minZ', 'maxZ'), ('bottom', 'top')))):
+            raise SystemExit(f'Invalid water bounds: {region.get("id")}')
+    (PROJECT / 'Content/WalkData').mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(water_regions, PROJECT / 'Content/WalkData/water-regions.json')
     managed(PROJECT / 'Config/DefaultEngine.ini', '''
 [/Script/EngineSettings.GameMapsSettings]
 GlobalDefaultGameMode=/Script/QuietWalk.WalkGameMode
@@ -109,6 +136,7 @@ bCaptureMouseOnLaunch=False
 +MapsToCook=(FilePath="/Game/Maps/Site")
 +DirectoriesToAlwaysCook=(Path="/Game/WalkAudio")
 +DirectoriesToAlwaysStageAsUFS=(Path="Tour")
++DirectoriesToAlwaysStageAsUFS=(Path="WalkData")
 FullRebuild=True
 bSkipEditorContent=True
 

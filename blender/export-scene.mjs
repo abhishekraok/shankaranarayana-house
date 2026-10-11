@@ -6,6 +6,7 @@
 // Output (blender/build/, ignored by git):
 //   scene.json  meshes, materials and transforms in three.js world space (metres, +Y up)
 //   nav.json    colliders, walkable surfaces and ramps from the kit
+//   water-regions.json  only the two authored water safety boxes, with semantic IDs
 //   scene.bin   float32 positions and normals, uint32 indices, per shared geometry
 //   textures/   procedural canvases and explicitly approved web photo assets
 //
@@ -190,8 +191,34 @@ for(const file of ['.gitignore','blender/export-scene.mjs','dist/src/kit.js','di
 for(const asset of photoAssets.values())sourceFiles[asset.sourceFile]=asset.sha256;
 const meta={schema:'shankaranarayana-blockout',version:1,coordinates:'three.js world metres, +Y up, right-handed',source:{commit:process.env.EXPORT_COMMIT||null,sha256:sourceFiles},lighting,materials,geometries:geoms,objects};
 await fs.writeFile(new URL('scene.json',out),JSON.stringify(meta));
-// Navigation the web walker uses: solid boxes, walkable slabs and stair/ramp slopes.
-// A native build rebuilds collision from these rather than from render geometry.
+// Native mesh collision remains authoritative. Transfer only the authored water
+// constraints separately: importing every navigation AABB would seal openings.
+function namedBounds(name){
+  const matches=[];for(const root of roots)root.traverse(o=>{if(o.isMesh&&o.name===name)matches.push(o);});
+  if(matches.length!==1)throw Error(`Water safety mesh ${name}: expected one, found ${matches.length}`);
+  return new THREE.Box3().setFromObject(matches[0],true);
+}
+function waterRegion(id,waterName,basinName,inset){
+  const plane=namedBounds(waterName),basin=namedBounds(basinName),epsilon=.001;
+  // The source kit has anonymous blockers. Match their complete authored XY
+  // footprint to the named water mesh, never an array index or a broad size filter.
+  const footprint={minX:plane.min.x+inset,maxX:plane.max.x-inset,minZ:plane.min.z+inset,maxZ:plane.max.z-inset};
+  const matches=K.colliders.filter(c=>Object.entries(footprint).every(([key,value])=>Math.abs(c[key]-value)<epsilon));
+  if(matches.length!==1)throw Error(`Water safety ${id}: expected one matching authored blocker, found ${matches.length}`);
+  const bounds={...matches[0]};
+  if(!Object.values(bounds).every(Number.isFinite)||bounds.bottom>=bounds.top||
+     bounds.bottom>=plane.min.y||bounds.top<=plane.max.y||basin.max.y>=plane.min.y)
+    throw Error(`Water safety ${id}: invalid authored vertical bounds`);
+  return {id,source_mesh:waterName,basin_mesh:basinName,water_y:plane.max.y,bounds};
+}
+// These margins describe existing source constraints, not new physical boxes:
+// lake blocker is inset 1.75 m; the small pond blocker extends 0.15 m beyond water.
+const waterRegions={schema:'quietwalk-water-regions-v1',coordinates:meta.coordinates,
+  source:{commit:meta.source.commit,sha256:Object.fromEntries(['blender/export-scene.mjs','dist/src/kit.js','dist/src/landscape.js','dist/src/main.js'].map(file=>[file,sourceFiles[file]]))},
+  regions:[waterRegion('lake','Reflective lake water','tank basin floor',1.75),
+           waterRegion('temple-pond','Temple small pond recessed water','Temple small pond deep bottom',-.15)]};
+await fs.writeFile(new URL('water-regions.json',out),JSON.stringify(waterRegions,null,2)+'\n');
+// Navigation is retained for existing export consumers and camera floor following.
 await fs.writeFile(new URL('nav.json',out),JSON.stringify({colliders:K.colliders,surfaces:K.surfaces,ramps:K.ramps,
   spawn:{p:[0,1.62,-2],target:[0,1.6,-12]}}));
 const inst=objects.filter(o=>o.instances).reduce((n,o)=>n+o.instances.length,0);
