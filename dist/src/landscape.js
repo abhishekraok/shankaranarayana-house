@@ -1746,9 +1746,18 @@ export function buildLandscape(K, {mobile=false}={}) {
   // cottage, its roof above the cottage's. Placement estimated; its base runs below grade.
   {const salmon=K.M.plaster.clone();salmon.color.set('#e7a08e');
    box('Slope salmon-pink house walls',-36,2.2,-21.5,7.2,6.4,6.4,salmon,true);
-   box('Slope salmon-pink house red parapet band',-36,5.26,-21.5,7.3,.32,6.5,'red'); // 2 cm proud of the walls' top: the two tops shared a plane and flickered
    for(const xx of [-38.2,-33.8])for(const y of [1.6,4.2])box('Slope salmon-pink house window',xx,y,-18.28,1.0,1.1,.05,'wood');
-   const r=K.hipRoof(group,'Slope salmon-pink house tiled roof',-36,-21.5,8.2,7.4,5.4,1.3,darkTile);K.roofs.push(r);}
+   // lane-right / 15.14.02 / 15.11.58 resolve a flat pink parapet and a black tank,
+   // not a tiled hip. Retain the reviewed walls/placement; parapet/tank sizes are estimates.
+   const roofStart=group.children.length;
+   box('Slope salmon-pink house flat roof slab',-36,5.48,-21.5,7.4,.16,6.6,materials.roofConcrete);
+   for(const z of [-24.615,-18.385])box('Slope salmon-pink house flat roof parapet',-36,5.80,z,7.2,.48,.17,salmon);
+   for(const x of [-39.515,-32.485])box('Slope salmon-pink house flat roof parapet',x,5.80,-21.5,.17,.48,6.06,salmon);
+   const tankMat=new THREE.MeshStandardMaterial({color:'#252825',roughness:.88});
+   K.cylinder(group,'Slope salmon-pink house black roof tank',-36.6,6.01,-22.1,.43,.43,.90,tankMat,20);
+   for(const y of [5.79,6.06,6.33])K.cylinder(group,'Slope salmon-pink house tank rib',-36.6,y,-22.1,.446,.446,.026,tankMat,20);
+   K.cylinder(group,'Slope salmon-pink house tank lid',-36.6,6.475,-22.1,.44,.44,.03,tankMat,20);
+   K.roofs.push(...group.children.slice(roofStart));}
   cottageMark[0].push(group.children.length,K.colliders.length,K.surfaces.length);
   // 15.28.49: a small tiled shed with bare laterite walls stands against the house's west end,
   // beside the foot of the outside stair (14.46.51 shows the neighbouring house, not this ground).
@@ -1783,8 +1792,37 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Western cottage shutter bay dark sill',-24.95,.345,-9.951,1.95,.08,.045,materials.wetStone);
   box('Western cottage recessed brown half shutter',-24.95,2.04,-9.951,1.25,.71,.045,cottageWood);
   for(let j=0;j<9;j++)box('Western cottage shutter horizontal louvre',-24.95,1.72+j*.077,-9.915,1.20,.018,.025,materials.darkSoil);
-  const cottageCanopy=box('Western cottage shallow grey shutter canopy',-24.95,2.72,-10.01,2.15,.065,.77,materials.roofConcrete);
-  cottageCanopy.rotation.x=.13;K.roofs.push(cottageCanopy);
+  // 14.46.51 shows a continuous low corrugated awning over the door/window/shutter
+  // facade, with the tiled hip immediately behind it. Roof ownership behind the cottage
+  // is ambiguous: keep that hip rather than replacing it with a full-building sheet roof.
+  // The 1.3 m depth / .22 m fall are conservative estimates at the existing facade bounds.
+  {const x0=-32.65,x1=-23.35,back=-10.6,front=-9.3,fall=.22,thickness=.032,steps=248;
+   const positions=[],uv=[];
+   const ridge=x=>.006*(1+Math.cos((x-x0)*Math.PI*2/.15));
+   const y=(x,z)=>2.87-fall*(z-back)/(front-back)+ridge(x);
+   const vertex=p=>{positions.push(...p);uv.push(p[0]*.5,p[2]*.5);};
+   const quad=(a,b,c,d)=>{for(const p of [a,b,c,a,c,d])vertex(p);};
+   for(let i=0;i<steps;i++){
+     const a=x0+(x1-x0)*i/steps,b=x0+(x1-x0)*(i+1)/steps;
+     const ab=[a,y(a,back),back],af=[a,y(a,front),front],bb=[b,y(b,back),back],bf=[b,y(b,front),front];
+     const lower=p=>[p[0],p[1]-thickness,p[2]],alb=lower(ab),alf=lower(af),blb=lower(bb),blf=lower(bf);
+     quad(ab,af,bf,bb);quad(alb,blb,blf,alf); // outward top and underside
+     quad(af,alf,blf,bf);quad(alb,ab,bb,blb); // front and rear thickness
+   }
+   for(const [x,left] of [[x0,true],[x1,false]]){
+     const a=[x,y(x,back),back],b=[x,y(x,back)-thickness,back],c=[x,y(x,front)-thickness,front],d=[x,y(x,front),front];
+     if(left)quad(a,b,c,d);else quad(d,c,b,a);
+   }
+   const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geometry.computeVertexNormals();
+   const sheetMat=new THREE.MeshStandardMaterial({color:'#8e8e80',roughness:.94});
+   const canopy=new THREE.Mesh(geometry,sheetMat);canopy.name='Western cottage continuous corrugated front awning';canopy.castShadow=canopy.receiveShadow=true;group.add(canopy);K.roofs.push(canopy);
+   box('Western cottage awning wall bearing',-28,2.775,-10.3,8.2,.05,.12,cottageWood);
+   const slope=Math.atan(fall/(front-back)),depth=Math.hypot(front-back,fall);
+   for(const x of [-31.6,-30.4,-29.2,-28,-26.8,-25.6,-24.4]){
+     const r=box('Western cottage awning timber rafter',x,2.76+ridge(x)-thickness-.025/Math.cos(slope),(back+front)/2,.055,.05,depth,cottageWood);
+     r.rotation.x=slope;K.roofs.push(r);
+   }
+   K.roofs.push(group.getObjectByName('Western cottage awning wall bearing'));}
   cottageMark[1].push(group.children.length,K.colliders.length,K.surfaces.length);
   for(const [m0,c0,s0,m1,c1,s1] of cottageMark){const rise=roadRise(-28+cottageShift)-roadRise(-28);
     for(const m of group.children.slice(m0,m1)){m.position.x+=cottageShift;m.position.y+=rise;}

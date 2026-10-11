@@ -4,6 +4,30 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: western lane roof forms
+
+- Landscape fix 9, roof forms only: 14.46.51 resolves a continuous low corrugated awning
+  over the cottage facade with a tiled hip immediately behind it. Retain that hip; replace
+  the isolated shutter cap with a 9.3 x 1.3 m sheet, .22 m fall, wall bearing and seven rafters.
+- lane-right / 15.14.02 / 15.11.58: the salmon block now has a supported flat slab, .48 m
+  pink parapet and small black tank. Existing walls, openings, positions and slope lift stay fixed.
+  Awning projection, parapet and tank dimensions/location are estimates. Separate rear-roof
+  ownership, building relocation/enlargement and vegetation changes remain deferred.
+- [Before/after source review](docs/review-2026-10-11-lane-roofs.md). Navigation, road, planting
+  and saved poses are unchanged. Native regeneration and full sheets follow integration.
+
+## 2026-10-11: central canopy and roofscape
+
+- Fix 24(b,d,e), 15.13.03 / 15.13.07 / 15.12.56: the central three floral-parapet bays
+  project .66 m over a stepped canopy, with short pierced returns. Post pitch becomes 1.454 m,
+  following five panels across three lower column bays. Existing slab and parapet heights stay fixed.
+- Dark pierced side screens bear on the flat roof at 4.14..4.74 m. A 2.5 x 1.2 m rust corrugated
+  cover fills the bottom of the sheet slot; four small steel bearings meet actual roof triangles.
+  Its depth/heights and simple frame are estimates. The tower remains visible above it.
+- [Before/after source review](docs/review-2026-10-11-central-roofscape.md). Collision boxes,
+  walking supports/ramps, corrected ceiling, carved columns, windows, skylights and saved poses
+  remain unchanged. Tower finish (24f) is deferred; native rebuild/full sheets follow integration.
+
 ## 2026-10-11: inner front roof and platform-hall ceiling
 
 - Fix 24(a,c), 15.13.03 / 15.13.07 / 15.08.10: the sheet shelter narrows from 16.8 to 13 m,

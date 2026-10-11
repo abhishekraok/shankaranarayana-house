@@ -36,6 +36,50 @@ for(let degrees=-90;degrees<=90;degrees+=3)for(const rise of [0,.08]){
 const main=await fs.readFile(new URL('../dist/src/main.js',import.meta.url),'utf8');
 const navigation=main.slice(main.indexOf('function inside('),main.indexOf('function lookAt('));
 const {collision,supportY,blockedRise}=new Function('K','THREE','farZinv',navigation+';return {collision,supportY,blockedRise};')(K,THREE,farZinv);
+// lane-right / 14.46.51 / 15.14.02: keep the cottage's tiled hip behind a low sheet
+// awning; the higher salmon block has a supported flat parapet roof and black tank.
+const laneRoofReview={references:['lane-right','14.46.51','15.14.02','15.11.58'],minimumAwningClearance:Infinity,maximumRafterBearingGap:0};
+const cottageWall=landscape.getObjectByName('Western lane right cottage white walls'),cottageWallBounds=new THREE.Box3().setFromObject(cottageWall);
+const cottageRise=cottageWallBounds.max.y-2.75;
+assert.ok(landscape.getObjectByName('Western lane right cottage weathered tiled roof'),'The photo-supported tiled hip remains');
+assert.equal(landscape.getObjectByName('Western cottage shallow grey shutter canopy'),undefined,'Continuous awning replaces the disconnected shutter cap');
+const laneAwning=landscape.getObjectByName('Western cottage continuous corrugated front awning'),awningBounds=new THREE.Box3().setFromObject(laneAwning);
+assert.ok(Math.abs(awningBounds.min.x+44.65)<.001&&Math.abs(awningBounds.max.x+35.35)<.001,'Awning stays within the existing hip width');
+assert.ok(awningBounds.min.z<cottageWallBounds.max.z&&awningBounds.max.z>cottageWallBounds.max.z+.9,'Sheet covers the existing facade and projects beyond it');
+const sheetNormals=laneAwning.geometry.attributes.normal;
+for(let i=0;i<248;i++)for(let j=0;j<6;j++){
+  assert.ok(sheetNormals.getY(i*24+j)>.9,'Corrugated top triangles face upward for native shading');
+  assert.ok(sheetNormals.getY(i*24+6+j)<-.9,'Closed sheet underside faces downward');
+}
+const bearing=landscape.getObjectByName('Western cottage awning wall bearing'),bearingBounds=new THREE.Box3().setFromObject(bearing);
+assert.ok(Math.abs(bearingBounds.min.y-cottageWallBounds.max.y)<.001,'Wall bearing sits on the retained cottage wall');
+const rafters=landscape.children.filter(o=>o.name==='Western cottage awning timber rafter');assert.equal(rafters.length,7);
+for(const r of rafters){
+  const x=r.position.x;
+  for(const z of [-10.3,-9.65]){
+    const underside=new THREE.Raycaster(new THREE.Vector3(x,2.4+cottageRise,z),new THREE.Vector3(0,1,0)).intersectObject(laneAwning,false)[0];assert.ok(underside,'Sheet covers each bearing');
+    const support=new THREE.Raycaster(underside.point.clone().add(new THREE.Vector3(0,.02,0)),new THREE.Vector3(0,-1,0),0,.05).intersectObject(r,false)[0];assert.ok(support,'Timber meets the sheet underside');
+    const gap=Math.abs(underside.point.y-support.point.y);laneRoofReview.maximumRafterBearingGap=Math.max(laneRoofReview.maximumRafterBearingGap,gap);assert.ok(gap<.012,'Rafter-to-sheet bearing has no visible gap');
+  }
+  const atWall=new THREE.Raycaster(new THREE.Vector3(x,2.83+cottageRise,-10.3),new THREE.Vector3(0,-1,0),0,.10).intersectObject(r,false)[0];assert.ok(atWall&&atWall.point.y<=bearingBounds.max.y+.001,'Rafters bear on the wall beam');
+}
+// Use the highest retained doorstep, including the native capsule footprint under the
+// lowest exposed edge, rather than relying on unchanged abstract navigation boxes.
+for(let x=-44.4;x<=-35.6;x+=.4)for(const z of [-10.2,-9.95,-9.65,-9.31]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x,.46+cottageRise,z),new THREE.Vector3(0,1,0)).intersectObject(laneAwning,false)[0];assert.ok(hit);
+  const clearance=hit.point.y-(.45+cottageRise);laneRoofReview.minimumAwningClearance=Math.min(laneRoofReview.minimumAwningClearance,clearance);assert.ok(clearance>=2.10,'Low awning clears the retained raised threshold');
+}
+const salmonWallBounds=new THREE.Box3().setFromObject(landscape.getObjectByName('Slope salmon-pink house walls'));
+const salmonSlab=landscape.getObjectByName('Slope salmon-pink house flat roof slab'),salmonSlabBounds=new THREE.Box3().setFromObject(salmonSlab);
+assert.equal(landscape.getObjectByName('Slope salmon-pink house tiled roof'),undefined,'Higher pink block has no invented tiled hip');
+assert.ok(Math.abs(salmonSlabBounds.min.y-salmonWallBounds.max.y)<.001,'Flat slab bears on the retained walls');
+assert.ok(salmonSlabBounds.min.x<salmonWallBounds.min.x&&salmonSlabBounds.max.x>salmonWallBounds.max.x&&salmonSlabBounds.min.z<salmonWallBounds.min.z&&salmonSlabBounds.max.z>salmonWallBounds.max.z,'Slab closes the retained footprint');
+const parapets=landscape.children.filter(o=>o.name==='Slope salmon-pink house flat roof parapet');assert.equal(parapets.length,4);
+for(const p of parapets)assert.ok(Math.abs(new THREE.Box3().setFromObject(p).min.y-salmonSlabBounds.max.y)<.001,'Each parapet bears on the slab');
+const roofTank=landscape.getObjectByName('Slope salmon-pink house black roof tank'),tankBounds=new THREE.Box3().setFromObject(roofTank);
+assert.ok(Math.abs(tankBounds.min.y-salmonSlabBounds.max.y)<.001&&tankBounds.min.x>salmonWallBounds.min.x&&tankBounds.max.x<salmonWallBounds.max.x&&tankBounds.min.z>salmonWallBounds.min.z&&tankBounds.max.z<salmonWallBounds.max.z,'Roof tank bears within the existing footprint');
+assert.ok(tankBounds.max.y>new THREE.Box3().setFromObject(parapets[0]).max.y+.3,'Black tank appears above the low parapet');
+assert.ok(K.roofs.includes(laneAwning)&&K.roofs.includes(salmonSlab)&&K.roofs.includes(roofTank),'Roof visibility includes sheet, flat roof and tank');
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
 // 15.13.03 / .07 and 15.08.10: the split sheet shelter reveals the tower above a supported
@@ -96,6 +140,40 @@ temple.traverse(o=>{
 });
 assert.equal(new THREE.Raycaster(new THREE.Vector3(36,2.2,15.9),new THREE.Vector3(0,0,1),0,.9).intersectObject(temple,true).length,0,'Raising wall heads preserves the existing blue-window opening');
 assert.ok(!collision(39,17.5,.57),'The central lower passage remains open below the new ceiling');
+// 15.13.03 / .07 / .12.56: a stepped central canopy carries the parapet, dark screens
+// stand on the flat hall roof, and the short rust slot cover has real roof bearings.
+const canopy=temple.getObjectByName('Inner central entrance projecting canopy'),canopyBounds=new THREE.Box3().setFromObject(canopy);
+const cornices=temple.children.filter(o=>o.name==='Inner veranda flat cornice');
+assert.equal(cornices.length,2,'Both cornice wings leave a real central forward step');
+for(const wing of cornices){const b=new THREE.Box3().setFromObject(wing);assert.ok(canopyBounds.min.z<b.min.z-.60,'Centre canopy projects visibly beyond both wings');assert.ok(Math.abs(b.max.y-canopyBounds.max.y)<.001,'Canopy and wings share the established slab height');}
+innerRoofReview.minimumCanopyClearance=Infinity;
+for(const x of [38.2,39,39.8])for(const z of [14.5,14.8,15.2,15.8])for(let j=0;j<8;j++){
+  const angle=j*Math.PI/4,feet=supportY(x,z,.57),ray=new THREE.Raycaster(new THREE.Vector3(x+.22*Math.cos(angle),feet+.01,z+.22*Math.sin(angle)),new THREE.Vector3(0,1,0));
+  const hit=ray.intersectObject(temple,true)[0];assert.ok(hit,'Entrance route remains sheltered under the stepped canopy');
+  const clearance=hit.point.y-feet;innerRoofReview.minimumCanopyClearance=Math.min(innerRoofReview.minimumCanopyClearance,clearance);
+  assert.ok(clearance>=2.10,'Stepped canopy keeps full standing clearance at '+[x,z,j,hit.object.name]);
+}
+const parapet=temple.getObjectByName('Inner parapet red posts'),postMatrix=new THREE.Matrix4(),postPosition=new THREE.Vector3(),postScale=new THREE.Vector3(),postRotation=new THREE.Quaternion();
+for(let i=0;i<parapet.count;i++){
+  parapet.getMatrixAt(i,postMatrix);postMatrix.decompose(postPosition,postRotation,postScale);
+  const foot=postPosition.y-postScale.y/2,hit=new THREE.Raycaster(new THREE.Vector3(postPosition.x,foot+.06,postPosition.z),new THREE.Vector3(0,-1,0),0,.15).intersectObjects([...cornices,canopy],false)[0];
+  assert.ok(hit&&hit.point.y>=foot-.001,'Every stepped parapet pier bears on the actual cornice/canopy');
+}
+for(const o of temple.children.filter(o=>o.name==='Inner roof dark parapet pier')){
+  const b=new THREE.Box3().setFromObject(o),foot=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.min.y+.01,o.position.z),new THREE.Vector3(0,-1,0),0,.03).intersectObject(hallSlab,false)[0];
+  assert.ok(foot&&Math.abs(foot.point.y-b.min.y)<.001,'Dark side parapets bear on the existing flat roof');
+}
+const rustRoof=temple.getObjectByName('Inner slot rust corrugated lean-to'),rustNormals=rustRoof.geometry.attributes.normal;
+for(let i=0;i<rustNormals.count;i++)assert.ok(rustNormals.getY(i)>.85,'Rust corrugated pent roof faces up for native lighting');
+for(const o of temple.children.filter(o=>o.name==='Inner slot roof steel support')){
+  const b=new THREE.Box3().setFromObject(o),foot=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.min.y+.01,o.position.z),new THREE.Vector3(0,-1,0),0,.03).intersectObjects([hallSlab,hallJunction],false)[0];
+  assert.ok(foot&&Math.abs(foot.point.y-b.min.y)<.001,'Each rust roof support meets an existing roof surface');
+  const bearing=temple.children.filter(q=>q.name==='Inner slot roof steel cross bearing');
+  const head=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.max.y-.04,o.position.z),new THREE.Vector3(0,1,0),0,.09).intersectObjects(bearing,false)[0];
+  assert.ok(head&&Math.abs(head.point.y-b.max.y)<.03,'Each rust roof support meets its cross bearing');
+  const cover=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.max.y+.026,o.position.z),new THREE.Vector3(0,1,0),0,.04).intersectObject(rustRoof,false)[0];
+  assert.ok(cover,'Cross bearings meet the short slot cover without floating above it');
+}
 // main.js stores temple viewpoints at the shipped placement; bring them back to authored coordinates.
 const inTempleXZ=(x,z)=>x>20.1&&x<58.4&&z>-.6&&z<46.5;
 const authored=v=>{const facing=v===photos.temple||v===photos.templepond;for(const k of ['p','target'])if(v[k]&&(facing||inTempleXZ(v[k][0],v[k][2]-SHIPPED_TEMPLE_SHIFT)))v[k]=[v[k][0],v[k][1],+(v[k][2]-SHIPPED_TEMPLE_SHIFT).toFixed(4)];return v;};
@@ -864,7 +942,7 @@ checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]
 checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
-const report={innerRoofReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
+const report={innerRoofReview,laneRoofReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};
