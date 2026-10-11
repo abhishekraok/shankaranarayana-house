@@ -4,6 +4,18 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: central canopy and roofscape
+
+- Fix 24(b,d,e), 15.13.03 / 15.13.07 / 15.12.56: the central three floral-parapet bays
+  project .66 m over a stepped canopy, with short pierced returns. Post pitch becomes 1.454 m,
+  following five panels across three lower column bays. Existing slab and parapet heights stay fixed.
+- Dark pierced side screens bear on the flat roof at 4.14..4.74 m. A 2.5 x 1.2 m rust corrugated
+  cover fills the bottom of the sheet slot; four small steel bearings meet actual roof triangles.
+  Its depth/heights and simple frame are estimates. The tower remains visible above it.
+- [Before/after source review](docs/review-2026-10-11-central-roofscape.md). Collision boxes,
+  walking supports/ramps, corrected ceiling, carved columns, windows, skylights and saved poses
+  remain unchanged. Tower finish (24f) is deferred; native rebuild/full sheets follow integration.
+
 ## 2026-10-11: inner front roof and platform-hall ceiling
 
 - Fix 24(a,c), 15.13.03 / 15.13.07 / 15.08.10: the sheet shelter narrows from 16.8 to 13 m,

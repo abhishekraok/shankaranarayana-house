@@ -96,6 +96,40 @@ temple.traverse(o=>{
 });
 assert.equal(new THREE.Raycaster(new THREE.Vector3(36,2.2,15.9),new THREE.Vector3(0,0,1),0,.9).intersectObject(temple,true).length,0,'Raising wall heads preserves the existing blue-window opening');
 assert.ok(!collision(39,17.5,.57),'The central lower passage remains open below the new ceiling');
+// 15.13.03 / .07 / .12.56: a stepped central canopy carries the parapet, dark screens
+// stand on the flat hall roof, and the short rust slot cover has real roof bearings.
+const canopy=temple.getObjectByName('Inner central entrance projecting canopy'),canopyBounds=new THREE.Box3().setFromObject(canopy);
+const cornices=temple.children.filter(o=>o.name==='Inner veranda flat cornice');
+assert.equal(cornices.length,2,'Both cornice wings leave a real central forward step');
+for(const wing of cornices){const b=new THREE.Box3().setFromObject(wing);assert.ok(canopyBounds.min.z<b.min.z-.60,'Centre canopy projects visibly beyond both wings');assert.ok(Math.abs(b.max.y-canopyBounds.max.y)<.001,'Canopy and wings share the established slab height');}
+innerRoofReview.minimumCanopyClearance=Infinity;
+for(const x of [38.2,39,39.8])for(const z of [14.5,14.8,15.2,15.8])for(let j=0;j<8;j++){
+  const angle=j*Math.PI/4,feet=supportY(x,z,.57),ray=new THREE.Raycaster(new THREE.Vector3(x+.22*Math.cos(angle),feet+.01,z+.22*Math.sin(angle)),new THREE.Vector3(0,1,0));
+  const hit=ray.intersectObject(temple,true)[0];assert.ok(hit,'Entrance route remains sheltered under the stepped canopy');
+  const clearance=hit.point.y-feet;innerRoofReview.minimumCanopyClearance=Math.min(innerRoofReview.minimumCanopyClearance,clearance);
+  assert.ok(clearance>=2.10,'Stepped canopy keeps full standing clearance at '+[x,z,j,hit.object.name]);
+}
+const parapet=temple.getObjectByName('Inner parapet red posts'),postMatrix=new THREE.Matrix4(),postPosition=new THREE.Vector3(),postScale=new THREE.Vector3(),postRotation=new THREE.Quaternion();
+for(let i=0;i<parapet.count;i++){
+  parapet.getMatrixAt(i,postMatrix);postMatrix.decompose(postPosition,postRotation,postScale);
+  const foot=postPosition.y-postScale.y/2,hit=new THREE.Raycaster(new THREE.Vector3(postPosition.x,foot+.06,postPosition.z),new THREE.Vector3(0,-1,0),0,.15).intersectObjects([...cornices,canopy],false)[0];
+  assert.ok(hit&&hit.point.y>=foot-.001,'Every stepped parapet pier bears on the actual cornice/canopy');
+}
+for(const o of temple.children.filter(o=>o.name==='Inner roof dark parapet pier')){
+  const b=new THREE.Box3().setFromObject(o),foot=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.min.y+.01,o.position.z),new THREE.Vector3(0,-1,0),0,.03).intersectObject(hallSlab,false)[0];
+  assert.ok(foot&&Math.abs(foot.point.y-b.min.y)<.001,'Dark side parapets bear on the existing flat roof');
+}
+const rustRoof=temple.getObjectByName('Inner slot rust corrugated lean-to'),rustNormals=rustRoof.geometry.attributes.normal;
+for(let i=0;i<rustNormals.count;i++)assert.ok(rustNormals.getY(i)>.85,'Rust corrugated pent roof faces up for native lighting');
+for(const o of temple.children.filter(o=>o.name==='Inner slot roof steel support')){
+  const b=new THREE.Box3().setFromObject(o),foot=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.min.y+.01,o.position.z),new THREE.Vector3(0,-1,0),0,.03).intersectObjects([hallSlab,hallJunction],false)[0];
+  assert.ok(foot&&Math.abs(foot.point.y-b.min.y)<.001,'Each rust roof support meets an existing roof surface');
+  const bearing=temple.children.filter(q=>q.name==='Inner slot roof steel cross bearing');
+  const head=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.max.y-.04,o.position.z),new THREE.Vector3(0,1,0),0,.09).intersectObjects(bearing,false)[0];
+  assert.ok(head&&Math.abs(head.point.y-b.max.y)<.03,'Each rust roof support meets its cross bearing');
+  const cover=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.max.y+.026,o.position.z),new THREE.Vector3(0,1,0),0,.04).intersectObject(rustRoof,false)[0];
+  assert.ok(cover,'Cross bearings meet the short slot cover without floating above it');
+}
 // main.js stores temple viewpoints at the shipped placement; bring them back to authored coordinates.
 const inTempleXZ=(x,z)=>x>20.1&&x<58.4&&z>-.6&&z<46.5;
 const authored=v=>{const facing=v===photos.temple||v===photos.templepond;for(const k of ['p','target'])if(v[k]&&(facing||inTempleXZ(v[k][0],v[k][2]-SHIPPED_TEMPLE_SHIFT)))v[k]=[v[k][0],v[k][1],+(v[k][2]-SHIPPED_TEMPLE_SHIFT).toFixed(4)];return v;};

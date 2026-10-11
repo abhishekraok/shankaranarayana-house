@@ -1054,19 +1054,38 @@ export function buildTemple(K) {
   }
   instances('Maroon pierced transom uprights',new THREE.BoxGeometry(1,1,1),maroon,transom);
   for(const x of [33.78,44.22])box('Inner cyan transom sill',x,3.14,15.25,8.1,.12,.25,paleBlue);
-  box('Inner veranda flat cornice',39,3.76,15.88,19.15,.22,1.85,weathered);
+  // 15.13.03 / 15.12.56: the centre three parapet bays project toward the court.
+  // Keep the support-derived slab height; the visible front edge steps forward .66 m.
+  const innerParapetPitch=18.9/13,innerCanopyLeft=29.55+5*innerParapetPitch,innerCanopyRight=29.55+8*innerParapetPitch;
+  for(const [a,b] of [[29.425,innerCanopyLeft-.20],[innerCanopyRight+.20,48.575]])box('Inner veranda flat cornice',(a+b)/2,3.76,15.88,b-a,.22,1.85,weathered);
+  const innerCanopyFront=14.295,innerCanopyBack=16.805;
+  const innerCanopy=box('Inner central entrance projecting canopy',39,3.76,(innerCanopyFront+innerCanopyBack)/2,innerCanopyRight-innerCanopyLeft+.40,.22,innerCanopyBack-innerCanopyFront,weathered);K.roofs.push(innerCanopy);
   // The slab's dark stone underside rendered as a black void over the veranda. Like the circuit
   // verandas (15.05.42) it gets a whitewashed ceiling, from the red fascia back to the wall.
   box('Inner veranda whitewashed soffit',40.135,3.64,15.735,16.87,.02,1.47,agedWhite);
-  box('Inner veranda red fascia',39,3.70,14.94,19.2,.14,.12,red);
+  for(const [a,b] of [[29.4,innerCanopyLeft-.20],[innerCanopyRight+.20,48.6]])box('Inner veranda red fascia',(a+b)/2,3.70,14.94,b-a,.14,.12,red);
+  box('Inner central canopy red front edge',39,3.70,innerCanopyFront-.015,innerCanopyRight-innerCanopyLeft+.45,.14,.12,red);
+  for(const x of [innerCanopyLeft-.20,innerCanopyRight+.20])box('Inner central canopy red return edge',x,3.70,(innerCanopyFront+14.955)/2,.10,.14,14.955-innerCanopyFront,red);
+  box('Inner central canopy whitewashed soffit',39,3.64,(innerCanopyFront+15.00)/2,innerCanopyRight-innerCanopyLeft+.40,.02,15.00-innerCanopyFront,agedWhite);
   const parapetPosts=[];
-  for(let i=0;i<=9;i++)parapetPosts.push([29.55+i*2.1,4.31,15.36,.62,.95,.22]); // 15.13.03: broad red piers, about 0.3 of the 2.1 m pitch
+  for(let i=0;i<=13;i++){
+    const x=29.55+i*innerParapetPitch;if(x<31.7)continue;
+    parapetPosts.push([x,4.31,i>=5&&i<=8?14.70:15.36,.40,.95,.22]);
+  }
+  parapetPosts.push([31.80,4.31,15.36,.20,.95,.22]);
+  for(const x of [innerCanopyLeft,innerCanopyRight])parapetPosts.push([x,4.31,15.36,.40,.95,.22]);
   instances('Inner parapet red posts',new THREE.BoxGeometry(1,1,1),red,parapetPosts);
-  box('Inner parapet red coping',39,4.81,15.36,19.3,.12,.29,red);
-  const panels=[];for(let i=0;i<9;i++)panels.push([30.60+i*2.1,4.32,15.36,1,1,1]);
+  for(const [a,b,z] of [[31.7,innerCanopyLeft,15.36],[innerCanopyLeft,innerCanopyRight,14.70],[innerCanopyRight,48.55,15.36]])box('Inner parapet red coping',(a+b)/2,4.81,z,b-a,.12,.29,red);
+  for(const x of [innerCanopyLeft,innerCanopyRight])box('Inner parapet red return coping',x,4.81,15.03,.29,.12,.66,red);
   // 15.13.03 / 15.12.56 / 15.03.55: the parapet panels are white pierced slabs, mostly solid, like
-  // the entrance balcony's screens; the thin ribbon rings read as empty frames.
-  instances('Inner parapet white floral openwork',screenGeometry,entranceLace,panels.map(p=>[p[0],4.31,p[2],.8,.88,1]));
+  // the entrance balcony's screens. Five panels span the three lower column bays in 15.13.07.
+  for(let i=0;i<13;i++){
+    const a=Math.max(31.90,29.55+i*innerParapetPitch+.20),b=29.55+(i+1)*innerParapetPitch-.20;if(b<=a)continue;
+    mesh('Inner parapet white floral openwork',new THREE.PlaneGeometry(b-a,.86*.88),entranceLace,(a+b)/2,4.31,i>=5&&i<8?14.70:15.36);
+  }
+  for(const x of [innerCanopyLeft,innerCanopyRight]){
+    const panel=mesh('Inner parapet white floral return',new THREE.PlaneGeometry(.44,.86*.88),entranceLace,x,4.31,15.03);panel.rotation.y=Math.PI/2;
+  }
   // 15.13.03 / 15.13.07: two narrow grey-blue half-gables, set well behind the floral parapet,
   // with a real central slot exposing the stone tower. Keep the established eave estimate.
   corrugatedRoof('Inner corrugated shelter roof',39,21.2,13,3.4,4.16,1.60,sheet,1.25);
@@ -1074,6 +1093,28 @@ export function buildTemple(K) {
   const innerHallRoof=box('Inner front hall flat white roof',39.95,innerHallSoffit+.075,17.985,16.5,.15,3.03,innerWhite);K.roofs.push(innerHallRoof);
   for(const x of innerHallBeamXs)box('Inner front hall white ceiling downstand',x,innerHallSoffit-innerHallBeamDepth/2,18.085,.25,innerHallBeamDepth,2.83,innerWhite,true);
   box('Inner front hall rear white ceiling beam',39.95,innerHallSoffit-innerHallBeamDepth/2,19.375,16.5,innerHallBeamDepth,.25,innerWhite,true);
+  // 15.13.03 / .07 / .12.56: low dark pierced parapets stand on the flat roof beside the sheet.
+  const innerDarkLace=entranceLace.clone();innerDarkLace.color.set('#4a4d4a');
+  const innerParapetStone=weathered.clone();innerParapetStone.color.set('#4a4d4a');
+  for(const [a,b] of [[31.7,32.5],[45.5,48.2]]){
+    const base=innerHallSoffit+.15,top=base+.60,count=Math.max(1,Math.ceil((b-a)/1.15)),pitch=(b-a)/count;
+    for(const y of [base+.035,top-.035])box('Inner roof dark parapet coping',(a+b)/2,y,19.37,b-a,.07,.22,innerParapetStone);
+    for(let i=0;i<=count;i++)box('Inner roof dark parapet pier',a+.06+i*(b-a-.12)/count,(base+top)/2,19.37,.12,top-base,.22,innerParapetStone);
+    for(let i=0;i<count;i++)mesh('Inner roof dark pierced parapet',new THREE.PlaneGeometry(pitch-.12,.46),innerDarkLace,a+(i+.5)*pitch,(base+top)/2,19.25);
+  }
+  // The short rust-red pent roof covers the bottom of the open slot; its frame is grounded
+  // on the actual slab / concealed roof junction after the old roof is complete below.
+  const innerRust=mat('#8a4a36',.94,{side:THREE.DoubleSide}),innerRustFront=18.70,innerRustBack=19.90;
+  const innerRustHeight=z=>4.50+(z-innerRustFront)/(innerRustBack-innerRustFront)*.22;
+  const rustPositions=[],rustUV=[];
+  for(let i=0;i<24;i++){
+    const a=37.75+i*2.5/24,b=37.75+(i+1)*2.5/24;
+    const vertex=(x,z,offset)=>[x,innerRustHeight(z)+offset,z];
+    const p=vertex(a,innerRustFront,i%2?.025:0),q=vertex(a,innerRustBack,i%2?.025:0),r=vertex(b,innerRustFront,i%2?0:.025),s=vertex(b,innerRustBack,i%2?0:.025);
+    for(const v of [p,q,r,r,q,s]){rustPositions.push(...v);rustUV.push((v[0]-37.75)/2.5,(v[2]-innerRustFront)/1.2);}
+  }
+  const rustGeometry=new THREE.BufferGeometry();rustGeometry.setAttribute('position',new THREE.Float32BufferAttribute(rustPositions,3));rustGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(rustUV,2));rustGeometry.computeVertexNormals();
+  const innerRustRoof=mesh('Inner slot rust corrugated lean-to',rustGeometry,innerRust);K.roofs.push(innerRustRoof);
   // Beyond the blue facade: older, narrower construction with red walls,
   // arched pale panels, black stone sill and deep, layered protective eaves.
   const wornRed=red.clone();wornRed.map=canvasMap(512,(c,s)=>{
@@ -2998,6 +3039,21 @@ export function buildTemple(K) {
    }
    const junction=new THREE.BufferGeometry();junction.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));junction.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));junction.computeVertexNormals();
    const join=mesh('Old inner shrine concealed hall roof junction',junction,oldTiles.material);K.roofs.push(join);
+  }
+  // The slot cover is a light corrugated shed, not a floating plane. Small steel bearings
+  // meet the existing roof surfaces; nothing extends through the supported white ceiling.
+  {
+    g.updateMatrixWorld(true);
+    const supports=[innerHallRoof,g.getObjectByName('Old inner shrine concealed hall roof junction')],frame=mat('#54534b',.76,{metalness:.45}),ray=new THREE.Raycaster();
+    for(const z of [innerRustFront+.05,innerRustBack-.05]){
+      const top=innerRustHeight(z)-.025;
+      K.beam(g,'Inner slot roof steel cross bearing',[37.80,top,z],[40.20,top,z],.05,frame);
+      for(const x of [37.82,40.18]){
+        ray.set(new THREE.Vector3(x,4.45,z),new THREE.Vector3(0,-1,0));
+        const foot=ray.intersectObjects(supports,false)[0];if(!foot)throw new Error('Missing inner slot roof bearing');
+        box('Inner slot roof steel support',x,(foot.point.y+top)/2,z,.045,top-foot.point.y,.045,frame);
+      }
+    }
   }
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
