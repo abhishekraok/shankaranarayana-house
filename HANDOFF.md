@@ -4,6 +4,18 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: western lane roof forms
+
+- Landscape fix 9, roof forms only: 14.46.51 resolves a continuous low corrugated awning
+  over the cottage facade with a tiled hip immediately behind it. Retain that hip; replace
+  the isolated shutter cap with a 9.3 x 1.3 m sheet, .22 m fall, wall bearing and seven rafters.
+- lane-right / 15.14.02 / 15.11.58: the salmon block now has a supported flat slab, .48 m
+  pink parapet and small black tank. Existing walls, openings, positions and slope lift stay fixed.
+  Awning projection, parapet and tank dimensions/location are estimates. Separate rear-roof
+  ownership, building relocation/enlargement and vegetation changes remain deferred.
+- [Before/after source review](docs/review-2026-10-11-lane-roofs.md). Navigation, road, planting
+  and saved poses are unchanged. Native regeneration and full sheets follow integration.
+
 ## 2026-10-11: central canopy and roofscape
 
 - Fix 24(b,d,e), 15.13.03 / 15.13.07 / 15.12.56: the central three floral-parapet bays
