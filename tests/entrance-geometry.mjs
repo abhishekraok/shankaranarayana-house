@@ -527,6 +527,29 @@ for(const [name,x,z,min,max] of [['Entrance court peach round column',-4.6,4.3,-
 }
 const pyramid=house.children.filter(o=>o.name==='Entrance three-tier pale pedestal');
 assert.equal(pyramid.length,3);
+// The entrance textiles shown in 175312 and turning135deg2/3 must hang from
+// retained joists, remain above the platform and leave its actual access clear.
+const innerTextiles=house.getObjectByName('Inner Naga bay hanging textiles');assert.ok(innerTextiles);
+const innerCloths=innerTextiles.children.filter(o=>o.name==='Inner Naga bay folded hanging cloth');assert.equal(innerCloths.length,4);
+const innerCord=innerTextiles.getObjectByName('Inner Naga bay supported drying cord');
+for(const cloth of innerCloths){
+  const b=new THREE.Box3().setFromObject(cloth),p=cloth.geometry.attributes.position,n=cloth.geometry.attributes.normal;
+  assert.ok(b.min.y>1.03&&b.max.y<2.86&&b.min.z>2.55&&b.max.z<2.75,'Drapes stay over the platform, behind its walking strip');
+  assert.ok(b.max.z-b.min.z>.07,'The cloth has visible soft folds');
+  const layer=p.count/2;
+  for(let i=0;i<p.count;i++)assert.ok(Number.isFinite(n.getX(i))&&Math.abs(n.getX(i)**2+n.getY(i)**2+n.getZ(i)**2-1)<.001,'Cloth normals are finite unit vectors');
+  for(const i of [28,40,400,550]){assert.ok(n.getZ(i)>.5,'Front cloth normals face the court');assert.ok(n.getZ(i+layer)<-.5,'Closed cloth back normals face the wall');}
+  const edges=new Map(),idx=cloth.geometry.index.array;
+  for(let i=0;i<idx.length;i+=3)for(const [a,c] of [[idx[i],idx[i+1]],[idx[i+1],idx[i+2]],[idx[i+2],idx[i]]]){const k=Math.min(a,c)+':'+Math.max(a,c);edges.set(k,(edges.get(k)||0)+1);}
+  assert.ok([...edges.values()].every(v=>v===2),'Cloth is a closed thin shell, including hems and sides');
+  for(let i=0;i<27;i+=4){const top=new THREE.Vector3().fromBufferAttribute(p,i).applyMatrix4(cloth.matrixWorld);const hit=new THREE.Raycaster(top.clone().add(new THREE.Vector3(0,0,.05)),new THREE.Vector3(0,0,-1),0,.065).intersectObject(innerCord,false)[0];assert.ok(hit,'Every top fold meets the supported cord');}
+}
+const ties=innerTextiles.children.filter(o=>o.name==='Inner drying line ceiling tie');assert.equal(ties.length,2);
+for(const tie of ties){const b=new THREE.Box3().setFromObject(tie),x=b.getCenter(new THREE.Vector3()).x;assert.ok(Math.abs(b.max.y-3.50)<.015,'Cord ties reach retained ceiling joists');const hit=new THREE.Raycaster(new THREE.Vector3(x,3.48,2.65),new THREE.Vector3(0,1,0),0,.06).intersectObject(house,true).find(h=>!innerTextiles.children.includes(h.object));assert.ok(hit&&Math.abs(hit.point.y-3.50)<.005,'Ceiling attachment has actual timber bearing');}
+for(const z of [3.0,3.2])for(let x=-4.85;x<=-.8;x+=.12)for(let a=0;a<8;a++){
+  const angle=a*Math.PI/4,ray=new THREE.Raycaster(HV(x+.22*Math.cos(angle),.79,z+.22*Math.sin(angle)),new THREE.Vector3(0,1,0),0,2.1);
+  assert.equal(ray.intersectObject(innerTextiles,true).length,0,'Added cloth clears the actual raised-platform walking capsule');
+}
 const pyramidTarget=new THREE.Box3().setFromObject(pyramid[2]).getCenter(new THREE.Vector3());
 assert.ok(pyramidTarget.z<4.6&&pyramidTarget.y>.8,'Stepped stand sits on the platform top at the pocket edge');
 assert.ok(pyramidTarget.clone().project(rightEntryCamera).x>0,'Pedestal appears right of the central pillars');
