@@ -38,6 +38,64 @@ const navigation=main.slice(main.indexOf('function inside('),main.indexOf('funct
 const {collision,supportY,blockedRise}=new Function('K','THREE','farZinv',navigation+';return {collision,supportY,blockedRise};')(K,THREE,farZinv);
 const photos=new Function('return ('+main.match(/const photos=(.*);/)[1]+')')();
 for(const m of main.matchAll(/photos\.(\w+)=(\{.*\});/g))photos[m[1]]=new Function('return ('+m[2]+')')();
+// 15.13.03 / .07 and 15.08.10: the split sheet shelter reveals the tower above a supported
+// white ceiling. Test openings and actual mesh clearance, including the native capsule footprint.
+const innerRoofReview={references:['15.13.03','15.13.07','15.08.10'],minimumRearPlatformClearance:Infinity};
+const hallSlab=temple.getObjectByName('Inner front hall flat white roof');
+const slabBounds=new THREE.Box3().setFromObject(hallSlab);
+assert.ok(Math.abs(slabBounds.min.y-3.99)<.001&&Math.abs(slabBounds.max.y-4.14)<.001,'White ceiling retains the support-derived height');
+assert.ok(Math.abs(slabBounds.min.x-31.7)<.001&&Math.abs(slabBounds.max.x-48.2)<.001&&Math.abs(slabBounds.max.z-19.5)<.001,'Flat roof covers the photographed platform hall');
+for(const x of [34.8,37.3,40.7,43.2]){
+  const capRay=new THREE.Raycaster(new THREE.Vector3(x,3.70,18.8),new THREE.Vector3(0,-1,0),0,.05);
+  const cap=capRay.intersectObject(temple,true).find(h=>h.object.name==='Inner hall carved stone column stone collar');
+  assert.equal(cap?.object.name,'Inner hall carved stone column stone collar','Preserved carved caps support the new beams');
+  const beam=new THREE.Raycaster(new THREE.Vector3(x,3.68,18.8),new THREE.Vector3(0,1,0),0,.05).intersectObject(temple,true).find(h=>h.object.name==='Inner front hall white ceiling downstand');
+  assert.equal(beam?.object.name,'Inner front hall white ceiling downstand');
+  assert.ok(Math.abs(beam.point.y-cap.point.y)<.001,'Ceiling beam bears on the carved cap without a gap');
+}
+// The photographed low hanging bell row is not a standing space; keep its body height.
+for(const x of [32.3,36.1,44.8,46,47])for(const z of [19.2,19.3,19.43]){
+  const feet=supportY(x,z,1.55);assert.ok(Math.abs(feet-1.55)<.001,'Rear platform walking height is unchanged');
+  assert.ok(!collision(x,z,feet),'Rear platform remains navigable at '+[x,z,feet]);
+  for(let j=0;j<8;j++){
+    const a=j*Math.PI/4,origin=new THREE.Vector3(x+.22*Math.cos(a),feet+.01,z+.22*Math.sin(a));
+    const hit=new THREE.Raycaster(origin,new THREE.Vector3(0,1,0)).intersectObject(temple,true)[0];
+    assert.ok(hit,'Rear platform remains sheltered');
+    const clearance=hit.point.y-feet;innerRoofReview.minimumRearPlatformClearance=Math.min(innerRoofReview.minimumRearPlatformClearance,clearance);
+    assert.ok(clearance>=2.10,'Rear seam head clearance '+[x,z,j,clearance,hit.object.name]);
+  }
+}
+for(const x of [37.8,38.4,39,39.6,40.2]){
+  const hit=new THREE.Raycaster(new THREE.Vector3(x,4.8,18.8),new THREE.Vector3(0,0,1),0,3).intersectObject(temple,true)[0];
+  assert.equal(hit?.object.name,'Inner tower dark tier','The central slot shows the stone tower');
+}
+for(const x of [36,42])assert.equal(new THREE.Raycaster(new THREE.Vector3(x,4.8,18.8),new THREE.Vector3(0,0,1),0,3).intersectObject(temple,true)[0]?.object.name,'Inner blue-gray corrugated gable','Both sheet half-gables remain beside the slot');
+for(const name of ['Inner corrugated shelter roof','Inner blue-gray corrugated gable']){
+  const o=temple.getObjectByName(name),p=o.geometry.attributes.position;
+  for(let i=0;i<p.count;i+=3){const xs=[p.getX(i),p.getX(i+1),p.getX(i+2)];assert.ok(Math.max(...xs)<=37.751||Math.min(...xs)>=40.249,'No sheet triangle bridges the 2.5 m slot');}
+}
+for(const name of ['Inner corrugated shelter roof','Old inner shrine concealed hall roof junction']){
+  const o=temple.getObjectByName(name),n=o.geometry.attributes.normal;
+  for(let i=0;i<n.count;i++)assert.ok(n.getY(i)>.2,'New roof triangles face up for native shading');
+}
+const hallJunction=temple.getObjectByName('Old inner shrine concealed hall roof junction'),oldHipTiles=temple.getObjectByName('Old inner shrine deep sloping roof tiles');
+innerRoofReview.maximumJunctionGap=0;innerRoofReview.minimumJunctionHeight=Infinity;
+for(let x=31.7;x<48.2;x+=.1){
+  const hit=(o,z)=>new THREE.Raycaster(new THREE.Vector3(x,3.6,z),new THREE.Vector3(0,1,0)).intersectObject(o,true)[0];
+  const before=hit(hallJunction,20.6499),after=hit(oldHipTiles,20.6501);assert.ok(before&&after,'Both sides of the hidden roof join are closed');
+  const gap=Math.abs(before.point.y-after.point.y);innerRoofReview.maximumJunctionGap=Math.max(innerRoofReview.maximumJunctionGap,gap);
+  assert.ok(gap<.002,'Actual triangulated roof meets the junction without a crack');
+  for(const z of [19.5,19.7,20,20.3,20.6]){const h=hit(hallJunction,z);assert.ok(h);innerRoofReview.minimumJunctionHeight=Math.min(innerRoofReview.minimumJunctionHeight,h.point.y);assert.ok(h.point.y>=3.689,'Hidden roofing stays above the rear beam underside');}
+}
+temple.traverse(o=>{
+  if(o.name==='Inner hall long bell suspension'){
+    const b=new THREE.Box3().setFromObject(o),up=new THREE.Raycaster(new THREE.Vector3(o.position.x,b.max.y-.008,19.12),new THREE.Vector3(0,1,0),0,.04).intersectObject(temple,true).find(h=>h.object!==o);
+    assert.ok(up&&Math.abs(up.point.y-b.max.y)<.012,'Each bell suspension meets the actual ceiling or downstand');
+  }
+  if(/^Old inner shrine deep sloping roof fascia$/.test(o.name))assert.ok(new THREE.Box3().setFromObject(o).min.z>=19.499,'Old dark eaves stop behind the new flat-ceiling room');
+});
+assert.equal(new THREE.Raycaster(new THREE.Vector3(36,2.2,15.9),new THREE.Vector3(0,0,1),0,.9).intersectObject(temple,true).length,0,'Raising wall heads preserves the existing blue-window opening');
+assert.ok(!collision(39,17.5,.57),'The central lower passage remains open below the new ceiling');
 // main.js stores temple viewpoints at the shipped placement; bring them back to authored coordinates.
 const inTempleXZ=(x,z)=>x>20.1&&x<58.4&&z>-.6&&z<46.5;
 const authored=v=>{const facing=v===photos.temple||v===photos.templepond;for(const k of ['p','target'])if(v[k]&&(facing||inTempleXZ(v[k][0],v[k][2]-SHIPPED_TEMPLE_SHIFT)))v[k]=[v[k][0],v[k][1],+(v[k][2]-SHIPPED_TEMPLE_SHIFT).toFixed(4)];return v;};
@@ -806,7 +864,7 @@ checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]
 checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
-const report={houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
+const report={innerRoofReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};

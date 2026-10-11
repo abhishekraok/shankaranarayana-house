@@ -940,26 +940,28 @@ export function buildTemple(K) {
   }
   const lace=whiteTrim.clone();lace.side=THREE.DoubleSide;
   const floral=openworkGeometry();
-  function corrugatedRoof(n,x,z,w,d,eave,rise,material){
+  function corrugatedRoof(n,x,z,w,d,eave,rise,material,slot=0){
     // Ridge along Z. Corrugation is physical, including the visible gable end.
-    const pos=[],step=.14,count=Math.ceil(w/step),front=z-d/2,back=z+d/2;
+    const pos=[],step=.14,front=z-d/2,back=z+d/2;
     const height=xx=>eave+rise*(1-Math.abs(xx-x)/(w/2));
-    for(let i=0;i<count;i++){
-      const a=x-w/2+w*i/count,b=x-w/2+w*(i+1)/count;
+    const spans=slot?[[x-w/2,x-slot],[x+slot,x+w/2]]:[[x-w/2,x+w/2]];
+    for(const [left,right] of spans){const count=Math.ceil((slot?right-left:w)/step);for(let i=0;i<count;i++){
+      const a=left+(right-left)*i/count,b=left+(right-left)*(i+1)/count;
       const ya=height(a)+(i%2?.035:0),yb=height(b)+(i%2?0:.035);
       pos.push(a,ya,front,a,ya,back,b,yb,front,b,yb,front,a,ya,back,b,yb,back);
-    }
+    }}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
     const roof=mesh(n,geo,material);K.roofs.push(roof);
     return {height,front};
   }
-  function corrugatedGable(n,x,z,w,eave,rise){
+  function corrugatedGable(n,x,z,w,eave,rise,slot=0){
     const pos=[],ribs=[];
-    for(let i=0;i<120;i++){
-      const a=x-w/2+i*w/120,b=a+w/120,ya=eave+rise*(1-Math.abs(a-x)/(w/2)),yb=eave+rise*(1-Math.abs(b-x)/(w/2));
+    const spans=slot?[[x-w/2,x-slot],[x+slot,x+w/2]]:[[x-w/2,x+w/2]];
+    for(const [left,right] of spans){const count=slot?Math.ceil((right-left)/(w/120)):120;for(let i=0;i<count;i++){
+      const a=left+(right-left)*i/count,b=left+(right-left)*(i+1)/count,ya=eave+rise*(1-Math.abs(a-x)/(w/2)),yb=eave+rise*(1-Math.abs(b-x)/(w/2));
       pos.push(a,eave,z,a,ya,z,b,yb,z,a,eave,z,b,yb,z,b,eave,z);
       ribs.push([(a+b)/2,(eave+(ya+yb)/2)/2,z-.025,.025,Math.max(.02,(ya+yb)/2-eave),.035]);
-    }
+    }}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.computeVertexNormals();
     mesh(n,geo,sheet);instances(n+' vertical seams',new THREE.BoxGeometry(1,1,1),greySheet,ribs);
   }
@@ -976,20 +978,23 @@ export function buildTemple(K) {
   for(const x of [38.17,39.83])box('Inner plinth cut end face',x,.33,15.765,.06,.46,1.41,weathered);
   // The photographed stone interior is open behind this facade.
   // 15.03.55: the windows are about 1.5 m wide, not 2 m.
+  // 15.08.10 shows a flat white ceiling with beams bearing on the existing carved caps.
+  // 3.99 is a support-derived estimate, not the older rough-pose recipe's 4.55 m measurement.
+  const innerHallSoffit=3.99,innerHallBeamDepth=.30,innerHallBeamXs=[34.8,37.3,40.7,43.2];
   const frontHoles=[[32.88,34.42],[35.51,37.05],[38.12,39.88],[40.95,42.49],[43.58,45.12]];
   let frontEdge=29.8;
   for(const [left,right] of [...frontHoles,[48.2,48.2]]){
-    if(left>frontEdge)box('Inner front facade pier',(frontEdge+left)/2,2.09,16.57,left-frontEdge,3.08,.20,innerWhite,true);
+    if(left>frontEdge)box('Inner front facade pier',(frontEdge+left)/2,(.55+innerHallSoffit)/2,16.57,left-frontEdge,innerHallSoffit-.55,.20,innerWhite,true);
     if(right>left&&left!==38.12){
       box('Inner front window sill wall',(left+right)/2,.88,16.57,right-left,.66,.20,innerWhite,true);
-      box('Inner front window lintel wall',(left+right)/2,3.13,16.57,right-left,1.0,.20,innerWhite,true);
-      K.blocker((left+right)/2,16.57,right-left,.2,.55,3.63);
+      box('Inner front window lintel wall',(left+right)/2,(2.63+innerHallSoffit)/2,16.57,right-left,innerHallSoffit-2.63,.20,innerWhite,true);
+      K.blocker((left+right)/2,16.57,right-left,.2,.55,innerHallSoffit);
     }
     frontEdge=right;
   }
-  box('Inner doorway overhead wall',39,3.21,16.57,1.76,.84,.20,innerWhite,true);
+  box('Inner doorway overhead wall',39,(2.79+innerHallSoffit)/2,16.57,1.76,innerHallSoffit-2.79,.20,innerWhite,true);
   // 15.11.08: the west end is open to the corridor; only the east end has a side wall.
-  box('Inner front side wall',48.1,2.09,18.35,.20,3.08,3.65,innerWhite,true);
+  box('Inner front side wall',48.1,(.55+innerHallSoffit)/2,18.35,.20,innerHallSoffit-.55,3.65,innerWhite,true);
   for(const x of [33.96,44.04])box('Inner facade gray marble dado',x,.86,16.47,8.32,.58,.10,dado);
   for(const x of [33.96,44.04])box('Inner facade green dado cap',x,1.19,16.40,8.32,.10,.10,greenBand);
   // Openings are layered on the enclosed facade; the unseen sanctuary stays dark.
@@ -1062,8 +1067,13 @@ export function buildTemple(K) {
   // 15.13.03 / 15.12.56 / 15.03.55: the parapet panels are white pierced slabs, mostly solid, like
   // the entrance balcony's screens; the thin ribbon rings read as empty frames.
   instances('Inner parapet white floral openwork',screenGeometry,entranceLace,panels.map(p=>[p[0],4.31,p[2],.8,.88,1]));
-  corrugatedRoof('Inner corrugated shelter roof',39,18.85,16.8,3.4,4.16,1.5,sheet);
-  corrugatedGable('Inner blue-gray corrugated gable',39,17.15,16.8,4.16,1.5);
+  // 15.13.03 / 15.13.07: two narrow grey-blue half-gables, set well behind the floral parapet,
+  // with a real central slot exposing the stone tower. Keep the established eave estimate.
+  corrugatedRoof('Inner corrugated shelter roof',39,21.2,13,3.4,4.16,1.60,sheet,1.25);
+  corrugatedGable('Inner blue-gray corrugated gable',39,19.5,13,4.16,1.60,1.25);
+  const innerHallRoof=box('Inner front hall flat white roof',39.95,innerHallSoffit+.075,17.985,16.5,.15,3.03,innerWhite);K.roofs.push(innerHallRoof);
+  for(const x of innerHallBeamXs)box('Inner front hall white ceiling downstand',x,innerHallSoffit-innerHallBeamDepth/2,18.085,.25,innerHallBeamDepth,2.83,innerWhite,true);
+  box('Inner front hall rear white ceiling beam',39.95,innerHallSoffit-innerHallBeamDepth/2,19.375,16.5,innerHallBeamDepth,.25,innerWhite,true);
   // Beyond the blue facade: older, narrower construction with red walls,
   // arched pale panels, black stone sill and deep, layered protective eaves.
   const wornRed=red.clone();wornRed.map=canvasMap(512,(c,s)=>{
@@ -2316,7 +2326,9 @@ export function buildTemple(K) {
     const ring=mesh('Inner hall bell suspension iron ring',new THREE.TorusGeometry(.043,.007,6,14),suspensionIron,x,ringY,19.12);ring.rotation.y=(j%3-1)*.24;
     const loopPoints=[new THREE.Vector3(x-.020,ringY+.07,19.12),new THREE.Vector3(x-.014,ringY+.023,19.12),new THREE.Vector3(x,ringY+.014,19.12),new THREE.Vector3(x+.014,ringY+.023,19.12),new THREE.Vector3(x+.020,ringY+.07,19.12)];
     mesh('Inner hall bell cord lower loop',new THREE.TubeGeometry(new THREE.CatmullRomCurve3(loopPoints),10,.006,4,false),suspensionIron);
-    K.beam(g,'Inner hall long bell suspension',[x,3.67,19.12],[x,ringY+.065,19.12],.010,suspensionIron);
+    // Anchor to the actual underside: the first cord is below a downstand; the others meet the slab.
+    const anchor=innerHallSoffit-(innerHallBeamXs.some(bx=>Math.abs(x-bx)<.125)?innerHallBeamDepth:0);
+    K.beam(g,'Inner hall long bell suspension',[x,anchor,19.12],[x,ringY+.065,19.12],.010,suspensionIron);
   }
 
   // 14.58.48: family-identified right edge of the temple, facing the house.
@@ -2904,6 +2916,7 @@ export function buildTemple(K) {
   {const side=(x0,d)=>o=>{o.position.x+=o.position.x<x0?d:-d;};
    const give={
      'Inner front building foundation':[.002,-.006,0],
+     'Inner front facade pier':o=>{if(o.position.x<33)o.position.x+=.003;}, // west wall head sits inside the weathered cornice end
      'Inner plinth cut end face':side(39,.004),
      'Inner entrance raised platform':[.003,0,0],
      'Inner rear raised ledge':o=>{o.scale.z*=1.032/1.04;o.scale.x*=14.092/14.1;},
@@ -2937,6 +2950,55 @@ export function buildTemple(K) {
    for(const o of [...g.children]){if(!o.isMesh||o.isInstancedMesh)continue;
      if(/^Outer circuit (white red-outlined plinth|plinth white coping|damp plinth foot)$/.test(o.name)){b.setFromObject(o);if(b.max.z>43.2)recut(o,'z',-1e9,42.94);}
      else if(/^Rear circuit (outlined plinth|white plinth coping)$/.test(o.name))recut(o,'x',24.06,55.19);}}
+  // 15.08.10: the photographed front platform room has a flat ceiling, so the old hip eave
+  // cannot hang below it. Do this after the established roof stretch, preserving every skylight.
+  // A short concealed junction meets the rear beam at 3.69 m and rises to the unchanged hip
+  // roof 1.15 m behind it; the outer eaves keep their existing profile.
+  {const front=19.5,back=20.65,bounds=new THREE.Box3();g.updateMatrixWorld(true);
+   const roofInverse=oldRoof.matrixWorld.clone().invert(),point=new THREE.Vector3();
+   const height=(x,z)=>{point.set(x,0,z).applyMatrix4(roofInverse);return roofHeight(point.x,point.z);};
+   const tileBounds=new THREE.Box3().setFromObject(oldTiles),left=tileBounds.min.x,right=tileBounds.max.x;
+   // Clip complete triangles with interpolated UVs. Close cut timber/course boxes as well.
+   const clip=(o,z0,cap)=>{bounds.setFromObject(o);if(bounds.min.z>=z0-.00001)return;
+     if(bounds.max.z<=z0){o.removeFromParent();return;}
+     const original=o.geometry,geo=original.index?original.toNonIndexed():original,p=geo.attributes.position,uv=geo.attributes.uv;
+     const inverse=o.matrixWorld.clone().invert(),pos=[],tex=[],cut=new Map();
+     const emit=v=>{const local=v.p.clone().applyMatrix4(inverse);pos.push(local.x,local.y,local.z);if(uv)tex.push(...v.uv);};
+     for(let i=0;i<p.count;i+=3){const triangle=[];for(let j=0;j<3;j++)triangle.push({p:new THREE.Vector3().fromBufferAttribute(p,i+j).applyMatrix4(o.matrixWorld),uv:uv?[uv.getX(i+j),uv.getY(i+j)]:[]});
+       const polygon=[];for(let j=0;j<3;j++){const a=triangle[j],b=triangle[(j+1)%3],inside=a.p.z>=z0;
+         if(inside)polygon.push(a);if(inside===(b.p.z>=z0))continue;
+         const t=(z0-a.p.z)/(b.p.z-a.p.z),v={p:a.p.clone().lerp(b.p,t),uv:a.uv.map((n,k)=>n+(b.uv[k]-n)*t)};v.p.z=z0;polygon.push(v);
+         if(cap)cut.set(v.p.x.toFixed(5)+','+v.p.y.toFixed(5),v);}
+       for(let j=1;j<polygon.length-1;j++)for(const v of [polygon[0],polygon[j],polygon[j+1]])emit(v);
+     }
+     if(cap&&cut.size>=3){const edge=[...cut.values()],centre=edge.reduce((v,q)=>v.add(q.p),new THREE.Vector3()).multiplyScalar(1/edge.length);
+       edge.sort((a,b)=>Math.atan2(b.p.y-centre.y,b.p.x-centre.x)-Math.atan2(a.p.y-centre.y,a.p.x-centre.x));
+       for(let j=0;j<edge.length;j++)for(const v of [{p:centre,uv:[centre.x*.36,centre.y*.36]},edge[j],edge[(j+1)%edge.length]])emit(v);}
+     const trimmed=new THREE.BufferGeometry();trimmed.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));if(uv)trimmed.setAttribute('uv',new THREE.Float32BufferAttribute(tex,2));trimmed.computeVertexNormals();
+     o.geometry=trimmed;original.dispose();if(geo!==original)geo.dispose();
+   };
+   for(const o of [...oldRoof.children])if(o.isMesh){
+     const course=/overlapping gray roof course|dark exposed rafters/.test(o.name);
+     clip(o,o===oldTiles||course?back:front,o!==oldTiles);
+   }
+   // Use the clipped triangles' boundary knots, not the ideal profile: its coarse corner
+   // triangles are a few centimetres lower. Shared knots make a continuous physical join.
+   const knots=new Set([left,31.7,48.2,right]),p=oldTiles.geometry.attributes.position;
+   for(let i=0;i<p.count;i++){point.fromBufferAttribute(p,i).applyMatrix4(oldTiles.matrixWorld);if(Math.abs(point.z-back)<.00001)knots.add(+point.x.toFixed(6));}
+   const backHeights=new Map(),roofRay=new THREE.Raycaster();
+   const actualBack=x=>{if(!backHeights.has(x)){roofRay.set(new THREE.Vector3(Math.max(left+.00001,Math.min(right-.00001,x)),10,back+.00001),new THREE.Vector3(0,-1,0));backHeights.set(x,roofRay.intersectObject(oldTiles,true)[0].point.y);}return backHeights.get(x);};
+   const positions=[],uvs=[],xs=[...knots].sort((a,b)=>a-b);
+   for(let k=0;k<xs.length-1;k++){const x0=xs[k],x1=xs[k+1];if(x1-x0<.00001)continue;const nx=Math.ceil((x1-x0)/.14),nz=12;
+     const vertex=(i,j)=>{const x=x0+(x1-x0)*i/nx,z=front+(back-front)*j/nz;
+       const blend=Math.max(0,Math.min(1,(x-left)/(31.7-left),(right-x)/(right-48.2)));
+       const y0=height(x,front)+blend*(innerHallSoffit-innerHallBeamDepth-height(x,front));
+       return [x,y0+(actualBack(x)-y0)*j/nz,z];};
+     for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const a=vertex(i,j),b=vertex(i+1,j),c=vertex(i,j+1),d=vertex(i+1,j+1);
+       for(const v of [a,c,b,b,c,d]){positions.push(...v);point.set(...v).applyMatrix4(roofInverse);uvs.push((point.x-39)*.36,(point.z-24.85)*.36);}}
+   }
+   const junction=new THREE.BufferGeometry();junction.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));junction.setAttribute('uv',new THREE.Float32BufferAttribute(uvs,2));junction.computeVertexNormals();
+   const join=mesh('Old inner shrine concealed hall roof junction',junction,oldTiles.material);K.roofs.push(join);
+  }
   // Place the temple complex (authored with its porch on the house's front line) K.templeShiftZ
   // further back from the lane, with its navigation.
   const ts=K.templeShiftZ||0;g.position.z+=ts;
