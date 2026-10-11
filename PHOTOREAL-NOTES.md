@@ -6,6 +6,20 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-11 west bank and walking checks
+
+Main `b3b0f63` is rebuilt. The wider gravel bank road and taller greenery now appear
+in Unreal. Fresh native audits, Windows package, six actual centre/edge walking legs
+and isolated cold Continue pass. All 172 poses / 29 sheets captured with clean exit 0.
+The road's pale sunlit appearance is under material/photo review. Entrance textiles
+and stage sculptures have independently reviewed source drafts awaiting native review.
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/index.html),
+[before/after and checks](D:/repos/shankaranarayana-photoreal/unreal/reviews/west-bank-walk-2026-10-11.md).
+
+The shelter front-fill trial produced only a 1–3 RGB-level difference and was rejected;
+saved materials remain unchanged. [Trial](D:/repos/shankaranarayana-photoreal/unreal/reviews/roof-trial-2026-10-11.md).
+
 ## 2026-10-11 roofscape, materials and Continue
 
 Main `1bec521` is rebuilt with the stepped central canopy, denser parapet bays,
@@ -26,8 +40,8 @@ in [Continue review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-
 
 | Photo | Remaining substantial work | Render |
 |---|---|---|
-| 2011-09-21 15.25.49 / 15.26.49 | Owner-requested vehicle-width brown road and high greenery west of the lake: reviewed source `b3b0f63` awaits native integration and actual edge walking. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-1bec521/unreal-20261011-025548/090-2011-09-21 15.25.49.png>) |
-| 2011-09-21 15.13.03 / 15.13.07 | Inner shelter's grey-blue gables remain pale. A front-face-only instance emission trial is proposed; no tint/global lighting change justified yet. Floral parapet uses a shared masked material and is deferred. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-1bec521/unreal-20261011-025548/071-2011-09-21 15.13.03.png>) |
+| 2011-09-21 15.25.49 / 15.26.49 | Geometry and actual road walking pass; pale road material remains under review. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/090-2011-09-21 15.25.49.png>) |
+| 2011-09-21 15.13.03 / 15.13.07 | Inner shelter's grey-blue gables remain pale. Rejected front-fill trial had negligible benefit; brightness/weathering remain unresolved. Floral parapet uses a shared masked material. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/071-2011-09-21 15.13.03.png>) |
 
 ## 2026-10-11 earlier roof and water pass
 

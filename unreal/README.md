@@ -65,6 +65,10 @@ the actual viewport and interface scale. Unattended checks also enable native DP
 and reverse escape from the bathing ledge and pond approach, including native
 support hits and recovery events, without writing a player save. Smoke checks
 also require one nearby recovery under held input and preserve the lower ledges.
+The west-bank road check walks three 22.8 m tracks (center and both edges) south
+and back using actual movement input, turning in place for the reverse legs.
+It checks continuous native support, sideways drift, no water recovery and intact
+view/journal/preferences, then restores the original pose before saving.
 `-WalkContinueProbeSeed -UserDir=<isolated-folder>`, followed by a fresh process
 with `-WalkContinueProbeResume` and the same folder, tests a dry-bank save that
 ordinary teleport clearance rejects. Reports are `continue-seed.json` and

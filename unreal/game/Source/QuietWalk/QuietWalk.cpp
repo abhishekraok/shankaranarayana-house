@@ -655,6 +655,13 @@ void AWalkController::PlayerTick(float D) {
     if(!Page.IsEmpty())return;
     if(!Smoke&&!WaterProbe&&!ContinueProbe&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
     auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
+    if(Smoke&&SmokeRoadActive){
+        ObserveRoadSmoke();
+        const bool South=SmokeRoadLeg%2==0;const double Y=C->GetActorLocation().Y;
+        if(SmokeMoving&&((South&&Y<=SmokeRoadTargetY)||(!South&&Y>=SmokeRoadTargetY))){
+            SmokeMoving=false;C->Forward(0);C->Right(0);C->ConsumeMovementInputVector();C->GetCharacterMovement()->StopMovementImmediately();
+        }
+    }
     if(Smoke&&SmokeMoving&&SmokeTempleStairStep>=3&&SmokeTempleStairStep<=6) {
         // Short portico routes stop at their authored endpoints, before the
         // hanging bell/columns. Movement still crosses every physical tread.
@@ -1292,6 +1299,38 @@ void AWalkController::ReviewTick() {
     default:UE_LOG(LogTemp,Display,TEXT("WALKREVIEW done %s"),*PhotoName());ReviewPhoto.Empty();UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);
     }
 }
+namespace {
+// landscape.js at reviewed model b3b0f63: final-world road top .026 m,
+// east edge -7.25 m, width 2.6 +/- .2 m, z -11.25..-35.8 m.
+// These tracks leave radius 22 cm + 10 cm clearance at the narrowest edge.
+constexpr double RoadSmokeTopCm=2.6, RoadSmokeNorthY=-1200, RoadSmokeSouthY=-3480;
+const double RoadSmokeTracks[]={-855,-757,-933};
+const TCHAR* RoadSmokeNames[]={TEXT("center"),TEXT("lake edge"),TEXT("west edge")};
+}
+void AWalkController::ObserveRoadSmoke() {
+    auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
+    const FVector P=C->GetActorLocation(),Feet=P-FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+    FHitResult Hit;FCollisionQueryParams Params(SCENE_QUERY_STAT(SmokeRoadSupport),true,C);Params.bReturnFaceIndex=true;
+    const bool Bearing=GetWorld()->LineTraceSingleByChannel(Hit,Feet+FVector(0,0,8),Feet-FVector(0,0,8),ECC_Visibility,Params);
+    const double Lateral=FMath::Abs(P.X-SmokeRoadTrackX);SmokeRoadMaxLateral=FMath::Max(SmokeRoadMaxLateral,Lateral);
+    const bool Grounded=C->GetCharacterMovement()->IsMovingOnGround();
+    const bool Safe=Grounded&&Bearing&&Hit.ImpactNormal.Z>=.65&&FMath::Abs(Hit.ImpactPoint.Z-RoadSmokeTopCm)<=.5&&
+        Lateral<=20&&P.Y>=RoadSmokeSouthY-20&&P.Y<=RoadSmokeNorthY+20&&WaterSafeGround(P);
+    if(Bearing){
+        if(SmokeRoadSupportSamples==0){SmokeRoadMinSupportZ=SmokeRoadMaxSupportZ=Hit.ImpactPoint.Z;}
+        else{SmokeRoadMinSupportZ=FMath::Min(SmokeRoadMinSupportZ,Hit.ImpactPoint.Z);SmokeRoadMaxSupportZ=FMath::Max(SmokeRoadMaxSupportZ,Hit.ImpactPoint.Z);}
+        SmokeRoadSupportPoint=Hit.ImpactPoint;
+        const auto* Mesh=Cast<UStaticMeshComponent>(Hit.GetComponent());
+        SmokeRoadSupportMesh=Mesh&&Mesh->GetStaticMesh()?Mesh->GetStaticMesh()->GetPathName():TEXT("none");
+    }
+    SmokeRoadSupportSamples++;
+    if(!Safe&&SmokeRoadContinuousSupport){
+        SmokeRoadSupportIssue=FString::Printf(TEXT("position %s grounded %d bearing %d floor %s normal %s lateral %.2f mesh %s face %d"),
+            *P.ToString(),Grounded,Bearing,*Hit.ImpactPoint.ToString(),*Hit.ImpactNormal.ToString(),Lateral,*SmokeRoadSupportMesh,Hit.FaceIndex);
+        UE_LOG(LogTemp,Display,TEXT("WALKROAD first support failure leg %d: %s"),SmokeRoadLeg,*SmokeRoadSupportIssue);
+    }
+    SmokeRoadContinuousSupport&=Safe;
+}
 void AWalkController::ContinueProbeTick() {
     const double Now=FPlatformTime::Seconds();if(ContinueProbeFinished)return;
     auto Check=[this](bool Ok,const TCHAR* What){
@@ -1780,11 +1819,87 @@ void AWalkController::SmokeTick() {
                 TEXT("old underwater save fallback preserves saved view, complete journal and all comfort/display settings"));
             Stop();SmokeForwardInput=1;SmokeWaterBaseline=nullptr;return;
         }
+        if(I==Places.Num()+14){
+            auto* C=Cast<AWalkCharacter>(GetPawn());const double Sim=GetWorld()->GetTimeSeconds();
+            auto Repeat=[&](){NextSmoke=Now+.1;SmokeStep--;};
+            auto Stop=[&](){SmokeMoving=false;SmokeForwardInput=0;C->Forward(0);C->Right(0);C->ConsumeMovementInputVector();C->GetCharacterMovement()->StopMovementImmediately();};
+            auto Wait=[&](double Duration,const FString& Name){
+                if(Sim-SmokeRoadSimAt>=Duration)return false;
+                if(Now<SmokeRoadDeadline){Repeat();return true;}
+                Check(false,Name+TEXT(" reaches its wall deadline before simulated movement completes"));return false;
+            };
+            auto ProgressIntact=[&](){const auto* B=SmokeRoadBaseline.Get();return B&&
+                Save->Visited==B->Visited&&Save->HasWalk==B->HasWalk&&Save->Version==B->Version&&Save->LookVersion==B->LookVersion&&Save->DisplayVersion==B->DisplayVersion&&
+                Save->Sensitivity==B->Sensitivity&&Save->Fov==B->Fov&&Save->Volume==B->Volume&&Save->InvertY==B->InvertY&&Save->Guidance==B->Guidance&&
+                Save->Quality==B->Quality&&Save->Fullscreen==B->Fullscreen&&Save->WindowResolution==B->WindowResolution&&Save->RenderScale==B->RenderScale;};
+            if(!SmokeRoadBaseline){
+                SmokeRoadBaseline=DuplicateObject<UWalkSave>(Save,this);SmokeRoadSavedPosition=C->GetActorLocation();SmokeRoadSavedLook=GetControlRotation();
+                SmokeRoadRecoveryBase=WaterRecoveryCount;SmokeRoadLeg=0;SmokeRoadPhase=0;
+            }
+            const bool South=SmokeRoadLeg%2==0;
+            const FRotator RouteLook(-12,South?-90:90,0);
+            const FString Name=SmokeRoadLeg<6?FString(RoadSmokeNames[SmokeRoadLeg/2])+(South?TEXT(" southbound"):TEXT(" northbound")):TEXT("road pose restore");
+            if(SmokeRoadPhase==0){
+                Stop();Show("");SmokeRoadTrackX=RoadSmokeTracks[SmokeRoadLeg/2];SmokeRoadTargetY=South?RoadSmokeSouthY:RoadSmokeNorthY;
+                if(South){
+                    // Trace the imported road itself instead of guessing a pawn
+                    // height or treating source navigation AABBs as native proof.
+                    FHitResult Floor;FCollisionQueryParams Params(SCENE_QUERY_STAT(SmokeRoadStart),true,C);
+                    const FVector XY(SmokeRoadTrackX,RoadSmokeNorthY,RoadSmokeTopCm);
+                    const bool Bearing=GetWorld()->LineTraceSingleByChannel(Floor,XY+FVector(0,0,40),XY-FVector(0,0,40),ECC_Visibility,Params);
+                    Check(Bearing&&Floor.ImpactNormal.Z>=.65&&FMath::Abs(Floor.ImpactPoint.Z-RoadSmokeTopCm)<=.5,Name+TEXT(" starts on the authored native mud surface"));
+                    const double Half=C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+                    Check(Bearing&&RestorePosition(Floor.ImpactPoint+FVector(0,0,Half+2.15),RouteLook),Name+TEXT(" collision-checked initial placement"));
+                }else SetControlRotation(RouteLook); // Reverse actual input; no endpoint teleport.
+                SmokeRoadContinuousSupport=true;SmokeRoadSupportSamples=0;SmokeRoadMaxLateral=0;SmokeRoadMinSupportZ=SmokeRoadMaxSupportZ=0;
+                SmokeRoadSupportIssue.Empty();SmokeRoadSupportMesh.Empty();SmokeRoadSupportPoint=FVector::ZeroVector;
+                SmokeRoadActive=true;SmokeRoadSimAt=Sim;SmokeRoadDeadline=Now+6;SmokeRoadPhase=1;Repeat();return;
+            }
+            if(SmokeRoadPhase==1){
+                if(Wait(.2,Name+TEXT(" initial settle")))return;
+                SmokeRoadStart=C->GetActorLocation();
+                Check(FMath::Abs(SmokeRoadStart.X-SmokeRoadTrackX)<=20&&FMath::Abs(SmokeRoadStart.Y-(South?RoadSmokeNorthY:RoadSmokeSouthY))<=20,
+                    Name+TEXT(" begins on its intended track and endpoint"));
+                SmokeRoadSimAt=Sim;SmokeRoadDeadline=Now+22;SmokeRoadPhase=2;SmokeMoving=true;SmokeForwardInput=1;Repeat();return;
+            }
+            if(SmokeRoadPhase==2){
+                if(SmokeMoving&&Now<SmokeRoadDeadline&&Sim-SmokeRoadSimAt<16){Repeat();return;}
+                Check(!SmokeMoving,Name+TEXT(" reaches its target under actual forward input within 16 simulated / 22 wall seconds"));
+                Stop();SmokeRoadSimAt=Sim;SmokeRoadDeadline=Now+4;SmokeRoadPhase=3;Repeat();return;
+            }
+            if(SmokeRoadPhase==3){
+                if(Wait(.2,Name+TEXT(" endpoint settle")))return;
+                ObserveRoadSmoke();const FVector P=C->GetActorLocation();const double Distance=(South?-1:1)*(P.Y-SmokeRoadStart.Y);
+                Check(Distance>=2200&&FMath::Abs(P.Y-SmokeRoadTargetY)<=20&&SmokeRoadMaxLateral<=20,
+                    Name+TEXT(" traverses at least 22 m and stays within 20 cm of its track: ")+P.ToString());
+                Check(SmokeRoadContinuousSupport&&SmokeRoadSupportSamples>10,
+                    Name+TEXT(" continuously retains native grounding and the authored 2.6 cm road support: ")+SmokeRoadSupportIssue);
+                Check(Walking&&Page.IsEmpty()&&!Aligning&&WaterRecoveryCount==SmokeRoadRecoveryBase&&WaterHazardAt(P).IsEmpty()&&ProgressIntact()&&GetControlRotation().Equals(RouteLook,.1),
+                    Name+TEXT(" keeps the walk, view, journal and preferences without a water or entrance recovery"));
+                auto Leg=MakeShared<FJsonObject>();Leg->SetStringField(TEXT("route"),Name);Leg->SetStringField(TEXT("source_commit"),TEXT("b3b0f632ff8b3814237386c9dbcb68f695b21c4a"));
+                auto Point=[&](const TCHAR* Key,const FVector& V){Leg->SetArrayField(Key,{MakeShared<FJsonValueNumber>(V.X),MakeShared<FJsonValueNumber>(V.Y),MakeShared<FJsonValueNumber>(V.Z)});};
+                Point(TEXT("start_cm"),SmokeRoadStart);Point(TEXT("end_cm"),P);Point(TEXT("last_support_cm"),SmokeRoadSupportPoint);
+                Leg->SetNumberField(TEXT("forward_distance_cm"),Distance);Leg->SetNumberField(TEXT("maximum_lateral_error_cm"),SmokeRoadMaxLateral);
+                Leg->SetBoolField(TEXT("continuous_native_support"),SmokeRoadContinuousSupport);Leg->SetNumberField(TEXT("support_samples"),SmokeRoadSupportSamples);
+                Leg->SetNumberField(TEXT("minimum_support_z_cm"),SmokeRoadMinSupportZ);Leg->SetNumberField(TEXT("maximum_support_z_cm"),SmokeRoadMaxSupportZ);
+                Leg->SetStringField(TEXT("support_mesh"),SmokeRoadSupportMesh);Leg->SetStringField(TEXT("first_support_failure"),SmokeRoadSupportIssue);SmokeRoadReports.Add(MakeShared<FJsonValueObject>(Leg));
+                SmokeRoadActive=false;SmokeRoadLeg++;
+                if(SmokeRoadLeg<6){SmokeRoadPhase=0;Repeat();return;}
+                Check(RestorePosition(SmokeRoadSavedPosition,SmokeRoadSavedLook),TEXT("road tests restore the original pre-test position and view"));
+                SmokeRoadSimAt=Sim;SmokeRoadDeadline=Now+4;SmokeRoadPhase=4;Repeat();return;
+            }
+            if(Wait(.2,TEXT("road original pose settle")))return;
+            Check(FVector::Dist(C->GetActorLocation(),SmokeRoadSavedPosition)<5&&GetControlRotation().Equals(SmokeRoadSavedLook,.1)&&ProgressIntact()&&WaterRecoveryCount==SmokeRoadRecoveryBase,
+                TEXT("road tests leave the original final save, full view, journal and preferences intact"));
+            Check(SmokeRoadReports.Num()==6,TEXT("all six native road walking legs were measured"));
+            Stop();SmokeForwardInput=1;SmokeRoadActive=false;SmokeRoadBaseline=nullptr;return;
+        }
         Check(Persist(true),TEXT("final save succeeds"));
         TSharedRef<FJsonObject> Report=MakeShared<FJsonObject>();Report->SetBoolField(TEXT("passed"),SmokeFailures.IsEmpty());TArray<TSharedPtr<FJsonValue>> Errors;for(auto& E:SmokeFailures)Errors.Add(MakeShared<FJsonValueString>(E));Report->SetArrayField(TEXT("failures"),Errors);
         Report->SetObjectField(TEXT("display"),DisplayReport());if(SmokeDisplayReport)Report->SetObjectField(TEXT("tested_display_modes"),SmokeDisplayReport);
         Report->SetNumberField(TEXT("loaded_water_regions"),WaterRegions.Num());Report->SetNumberField(TEXT("water_recovery_count"),WaterRecoveryCount);
         Report->SetArrayField(TEXT("water_recovery_events"),WaterRecoveryEvents);
+        Report->SetArrayField(TEXT("road_walking_legs"),SmokeRoadReports);
         FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);FJsonSerializer::Serialize(Report,Writer);FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("smoke.json")));
         NextSmoke=TNumericLimits<double>::Max();
         UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);break;

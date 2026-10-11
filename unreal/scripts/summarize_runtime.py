@@ -1,4 +1,4 @@
-"""Validate an isolated native CSV capture and summarize its final 1000 frames."""
+"""Validate a native CSV capture; summarize all frames, its tail and timed windows."""
 import csv
 import configparser
 import json
@@ -58,19 +58,43 @@ def percentile(numbers, fraction):
     return ordered[lower] + (ordered[upper] - ordered[lower]) * (position - lower)
 
 
+def timing_statistics(samples):
+    return {name: {'median': statistics.median(numbers), 'p95': percentile(numbers, .95),
+                   'p99': percentile(numbers, .99), 'maximum': max(numbers)}
+            for name, numbers in samples.items()}
+
+
+window_size = 600
+windows = []
+elapsed = 0.0
+for first in range(0, len(frames), window_size):
+    last = min(first + window_size, len(frames))
+    samples = {name: numbers[first:last] for name, numbers in values.items()}
+    start = elapsed
+    elapsed += math.fsum(samples['FrameTime']) / 1000
+    assert math.isfinite(elapsed), 'Invalid cumulative frame duration'
+    windows.append({
+        'first_frame': first + 1, 'last_frame': last, 'frames': last - first,
+        'start_elapsed_seconds': start, 'end_elapsed_seconds': elapsed,
+        'milliseconds': timing_statistics(samples),
+        'frames_over_33_333_ms': sum(value > 1000 / 30 for value in samples['FrameTime']),
+    })
+
+
 report = {
     'passed': True, 'csv': str(files[0]), 'frames': len(frames), 'tail_frames': count,
     'resolution': [int(metadata['[systemresolution.resx]']), int(metadata['[systemresolution.resy]'])],
     'target_framerate': float(metadata['[targetframerate]']),
     'vsync': metadata['[vsyncenabled]'],
     'settings_file': str(settings_file), 'saved_scalability': scalability,
-    'tail_milliseconds': {name: {'median': statistics.median(numbers), 'p95': percentile(numbers, .95),
-                                'p99': percentile(numbers, .99), 'maximum': max(numbers)}
-                          for name, numbers in tail.items()},
+    'tail_milliseconds': timing_statistics(tail),
+    'all_milliseconds': timing_statistics(values),
+    'elapsed_seconds': elapsed, 'window_frames': window_size, 'windows': windows,
     'tail_frames_over_33_333_ms': sum(value > 1000 / 30 for value in tail['FrameTime']),
     'all_frames_over_33_333_ms': sum(value > 1000 / 30 for value in values['FrameTime']),
-    'limits': 'Isolated default tour, with initialized game settings and startup transients. '
-              'Tail sample covers one route segment; no uncapped or before/after performance claim.',
+    'limits': 'Isolated default tour, including every captured frame and startup transients. '
+              'Window times accumulate CSV FrameTime, not camera or route markers. '
+              'No uncapped, complete-route or before/after performance claim.',
 }
 (root / 'summary.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
 print(json.dumps(report))

@@ -220,6 +220,16 @@ private:
     double SmokeWaterSimAt = 0, SmokeWaterDeadline = 0;
     FVector SmokeWaterStart = FVector::ZeroVector, SmokeWaterRecovered = FVector::ZeroVector;
     UPROPERTY() TObjectPtr<UWalkSave> SmokeWaterBaseline;
+    int32 SmokeRoadLeg = 0, SmokeRoadPhase = 0, SmokeRoadRecoveryBase = 0, SmokeRoadSupportSamples = 0;
+    bool SmokeRoadActive = false, SmokeRoadContinuousSupport = true;
+    double SmokeRoadSimAt = 0, SmokeRoadDeadline = 0, SmokeRoadTargetY = 0, SmokeRoadTrackX = 0;
+    double SmokeRoadMaxLateral = 0, SmokeRoadMinSupportZ = 0, SmokeRoadMaxSupportZ = 0;
+    FVector SmokeRoadStart = FVector::ZeroVector, SmokeRoadSavedPosition = FVector::ZeroVector, SmokeRoadSupportPoint = FVector::ZeroVector;
+    FRotator SmokeRoadSavedLook = FRotator::ZeroRotator;
+    FString SmokeRoadSupportIssue, SmokeRoadSupportMesh;
+    UPROPERTY() TObjectPtr<UWalkSave> SmokeRoadBaseline;
+    TArray<TSharedPtr<FJsonValue>> SmokeRoadReports;
+    void ObserveRoadSmoke();
     void SmokeTick();
     // -WalkReviewPhoto=<part of a file name>: open that photograph at its saved pose, capture the
     // photo page, the side-by-side view and the overlay into Saved/WalkReview, then quit. Saves nothing.
