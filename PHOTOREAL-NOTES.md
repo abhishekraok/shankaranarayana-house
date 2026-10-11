@@ -6,7 +6,30 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
-## 2026-10-11 roof and water pass
+## 2026-10-11 roofscape, materials and Continue
+
+Main `1bec521` is rebuilt with the stepped central canopy, denser parapet bays,
+rust slot cover, lane awning and salmon flat roof. All 172 poses / 29 sheets were
+independently compared with `ad2b8a7`; no substantial new regression found. Bronze
+bells and four carved stone courses now shade correctly after exclusive native
+instance emission overrides. Source colors, global lighting and saved poses stay fixed.
+
+Fresh scene/material/lighting audits, Windows package and isolated smoke/cold restart
+pass. Final capture exited cleanly (0). Lumen setup wrote its fresh audit and then
+exited abnormally during shutdown; subsequent audits/package/capture passed.
+Continue now preserves a valid dry-bank save when its resting capsule needs a small,
+checked entry adjustment; the reproduced cold-restart failure and fix are recorded
+in [Continue review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-cold-continue.md).
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-1bec521/unreal-20261011-025548/index.html),
+[before/after](D:/repos/shankaranarayana-photoreal/unreal/reviews/roofscape-materials-2026-10-11.md).
+
+| Photo | Remaining substantial work | Render |
+|---|---|---|
+| 2011-09-21 15.25.49 / 15.26.49 | Owner-requested vehicle-width brown road and high greenery west of the lake: reviewed source `b3b0f63` awaits native integration and actual edge walking. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-1bec521/unreal-20261011-025548/090-2011-09-21 15.25.49.png>) |
+| 2011-09-21 15.13.03 / 15.13.07 | Inner shelter's grey-blue gables remain pale. A front-face-only instance emission trial is proposed; no tint/global lighting change justified yet. Floral parapet uses a shared masked material and is deferred. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-1bec521/unreal-20261011-025548/071-2011-09-21 15.13.03.png>) |
+
+## 2026-10-11 earlier roof and water pass
 
 Main `ad2b8a7` adds the split inner shelter, central opening and supported white
 platform-hall ceiling. All 172 aligned renders / 29 sheets were reviewed with no
@@ -28,8 +51,8 @@ overlap identifies `landscape_03`, not an individual source triangle.
 
 | Photo | Remaining substantial work | Render |
 |---|---|---|
-| 2011-09-21 15.13.03.jpg, 15.13.07.jpg | Rust slot roof, dark side parapets and stepped central canopy: source checkpoint `3cefea9` is reviewed, awaiting integration/rebuild. Floral openings currently read bright/flat with the new roof background. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/071-2011-09-21 15.13.03.png>) |
-| 2011-09-21 15.08.10.jpg | Native inner-hall bells receive added emission despite non-emissive source bronze. The scoped unsaved zero-fill trial improves color/shape; persistent override is in preparation. | [15.08.10](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/131-2011-09-21 15.08.10.png>) |
+| 2011-09-21 15.13.03.jpg, 15.13.07.jpg | Rust slot roof, dark side parapets and stepped central canopy: resolved in `1bec521`. | [Earlier 15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/071-2011-09-21 15.13.03.png>) |
+| 2011-09-21 15.08.10.jpg | Native bell emission: resolved by the saved instance override in the latest capture. | [Earlier 15.08.10](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-ad2b8a7/unreal-20261011-013052/131-2011-09-21 15.08.10.png>) |
 
 ## 2026-10-10 model and game pass
 

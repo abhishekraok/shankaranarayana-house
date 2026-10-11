@@ -6,7 +6,9 @@ import unreal
 
 root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
-from material_targets import structural_timber_family, COURTYARD_FENCE_ALIAS, validate_fence_manifest
+from material_targets import (structural_timber_family, COURTYARD_FENCE_ALIAS, validate_fence_manifest,
+                              INNER_HALL_BELL_TARGETS, inner_hall_bell_family, REAR_PLINTH_LOTUS_NAME,
+                              REAR_PLINTH_LOTUS_COUNT, REAR_PLINTH_STONE_MAP, rear_plinth_lotus_families)
 meta = json.loads((root / 'blender/build/scene.json').read_text())
 mel = unreal.MaterialEditingLibrary
 import re
@@ -64,6 +66,70 @@ for parameter, expected in water_scalars.items():
 for parameter, expected in [('WaterScattering', (.011,.013,.008)), ('WaterAbsorption', (.33,.24,.36))]:
     actual = mel.get_material_instance_vector_parameter_value(water_mi, parameter)
     assert max(abs(a-b) for a,b in zip((actual.r,actual.g,actual.b),expected)) < 1e-6, parameter
+bell_index = inner_hall_bell_family(meta)
+bell_web = meta['materials'][bell_index]
+bell_name = re.sub(r'[^A-Za-z0-9]+', '_', bell_web['name']).strip('_')
+bell_mi = unreal.load_asset(f'/Game/Materials/Web/MI_{bell_name}_{bell_index}')
+assert isinstance(bell_mi, unreal.MaterialInstanceConstant), 'Missing inner-hall bronze instance'
+bell_master = unreal.load_asset('/Game/Materials/M_WebTwoSided')
+assert bell_mi.get_editor_property('parent') == bell_master, 'Inner-hall bronze master changed'
+bell_scalars = {'SheetFill': 0.0, 'SheetFillFront': 1.0,
+                'Roughness': bell_web['roughness'], 'Metallic': bell_web['metalness']}
+for parameter, expected in bell_scalars.items():
+    assert abs(mel.get_material_instance_scalar_parameter_value(bell_mi, parameter) - expected) < 1e-6, \
+        'Inner-hall bronze parameter: ' + parameter
+bell_color = mel.get_material_instance_vector_parameter_value(bell_mi, 'Color')
+def srgb(v): return v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4
+expected_bell_color = tuple(srgb(int(bell_web['color'][i:i+2], 16)/255) for i in (1, 3, 5)) + (1.0,)
+assert max(abs(a-b) for a,b in zip((bell_color.r,bell_color.g,bell_color.b,bell_color.a),
+                                  expected_bell_color)) < 1e-6, 'Inner-hall bronze tint changed'
+# The correction belongs to one instance; the shared sheet-fill default stays .12.
+fill_nodes = [node for node in mel.get_material_expressions(bell_master)
+              if isinstance(node, unreal.MaterialExpressionScalarParameter) and
+              str(node.get_editor_property('parameter_name')) == 'SheetFill']
+assert len(fill_nodes) == 1 and abs(fill_nodes[0].get_editor_property('default_value') - .12) < 1e-6, \
+    'Shared two-sided sheet-fill default changed'
+
+lotus_master = unreal.load_asset('/Game/Materials/M_mappedboth')
+assert lotus_master, 'Missing mapped two-sided stone master'
+lotus_defaults = {'SheetFill': .12, 'SheetFillFront': 1.0}
+for parameter, expected in lotus_defaults.items():
+    nodes = [node for node in mel.get_material_expressions(lotus_master)
+             if isinstance(node, unreal.MaterialExpressionScalarParameter) and
+             str(node.get_editor_property('parameter_name')) == parameter]
+    assert len(nodes) == 1 and abs(nodes[0].get_editor_property('default_value') - expected) < 1e-6, \
+        'Shared mapped two-sided default changed: ' + parameter
+lotus_instances = {}
+lotus_records = []
+for index in rear_plinth_lotus_families(meta):
+    web = meta['materials'][index]
+    name = re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_')
+    mi = unreal.load_asset(f'/Game/Materials/Web/MI_{name}_{index}')
+    assert isinstance(mi, unreal.MaterialInstanceConstant), 'Missing rear-plinth stone instance'
+    assert mi.get_editor_property('parent') == lotus_master, 'Rear-plinth stone master changed'
+    scalars = {'SheetFill': 0.0, 'SheetFillFront': 1.0, 'Roughness': web['roughness'],
+               'Metallic': web['metalness'], 'BumpCentimetres': web['bumpScale'] * 100,
+               'UseRoughnessMap': 0.0}
+    for prefix, field in [('', 'proceduralMap'), ('Bump', 'bumpMap')]:
+        texture = mel.get_material_instance_texture_parameter_value(mi, (prefix or 'Base') + 'Map')
+        assert texture and REAR_PLINTH_STONE_MAP[:20] in texture.get_name(), 'Rear-plinth stone map changed'
+        a = web[field]['matrix']
+        for axis, expected in [('U', (a[0], a[3], a[6], 0)), ('V', (a[1], a[4], a[7], 0))]:
+            row = mel.get_material_instance_vector_parameter_value(mi, prefix + 'UVRow' + axis)
+            assert max(abs(getattr(row, c) - v) for c, v in zip('rgba', expected)) < 1e-6, \
+                'Rear-plinth stone UV transform changed'
+        scalars[prefix + 'FlipY'] = float(web[field]['flipY'])
+    for parameter, expected in scalars.items():
+        assert abs(mel.get_material_instance_scalar_parameter_value(mi, parameter) - expected) < 1e-6, \
+            'Rear-plinth stone parameter: ' + parameter
+    color = mel.get_material_instance_vector_parameter_value(mi, 'Color')
+    expected_color = tuple(srgb(int(web['color'][i:i+2], 16) / 255) for i in (1, 3, 5)) + (1.0,)
+    assert max(abs(getattr(color, c) - v) for c, v in zip('rgba', expected_color)) < 1e-6, \
+        'Rear-plinth stone tint changed'
+    lotus_instances[index] = mi
+    lotus_records.append({'source_index': index, 'material': mi.get_path_name(), 'scalars': scalars,
+                          'color': list(expected_color), 'bindings': [], 'level_bindings': []})
+
 timber_index = structural_timber_family(meta)
 timber_name = re.sub(r'[^A-Za-z0-9]+', '_', meta['materials'][timber_index]['name']).strip('_')
 timber_mi = unreal.load_asset(f'/Game/Materials/Web/MI_{timber_name}_{timber_index}')
@@ -97,10 +163,16 @@ if fence_parts:
         assert mel.get_material_instance_texture_parameter_value(fence_mi, parameter) == \
             mel.get_material_instance_texture_parameter_value(timber_mi, parameter), str(parameter)
 fence_bindings = []
+bell_bindings = []
 for part in parts:
     name = part['name']
     mesh = unreal.load_asset(f'/Game/Scene/{name}/{name}/StaticMeshes/{name}.{name}')
     slots = list(mesh.static_materials)
+    bell_bindings.extend({'mesh': name, 'slot': i} for i, slot in enumerate(slots)
+                         if slot.material_interface == bell_mi)
+    for record in lotus_records:
+        record['bindings'].extend({'mesh': name, 'slot': i} for i, slot in enumerate(slots)
+                                  if slot.material_interface == lotus_instances[record['source_index']])
     aliases = [slot for slot in slots if str(slot.material_slot_name) == COURTYARD_FENCE_ALIAS]
     assert len(aliases) == int(name in fence_parts), f'Stale fence slots: {name}'
     for slot in slots:
@@ -115,6 +187,8 @@ for part in parts:
                               if gltf['materials'][p['material']]['name'] == COURTYARD_FENCE_ALIAS)
         assert alias_triangles == fence_parts[name]['triangles'], f'Fence primitive coverage: {name}'
         fence_bindings.append({'mesh': name, 'triangles': alias_triangles})
+assert bell_bindings, 'Inner-hall bronze instance is not bound to native meshes'
+assert all(record['bindings'] for record in lotus_records), 'Rear-plinth stone instance is not bound to native meshes'
 for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=False, include_folder=False):
     material = unreal.load_asset(path)
     if not isinstance(material, unreal.Material): continue
@@ -127,6 +201,11 @@ for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=F
 unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).load_level('/Game/Maps/Site')
 scene = []
 for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors():
+    for component in actor.get_components_by_class(unreal.StaticMeshComponent):
+        for record in lotus_records:
+            record['level_bindings'].extend({'component': component.get_path_name(), 'slot': i}
+                                           for i in range(component.get_num_materials())
+                                           if component.get_material(i) == lotus_instances[record['source_index']])
     label = actor.get_actor_label()
     record = {'name': label}
     if isinstance(actor, unreal.StaticMeshActor):
@@ -138,9 +217,16 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
         record['rotation'] = str(actor.get_actor_rotation())
         record['intensity'] = actor.light_component.get_editor_property('intensity')
     scene.append(record)
+assert all(record['level_bindings'] for record in lotus_records), 'Rear-plinth stone instance is not bound in the saved level'
 report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
           'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False},
           'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain},
+          'inner_hall_bells': {'source_index': bell_index, 'material': bell_mi.get_path_name(),
+                               'object_counts': INNER_HALL_BELL_TARGETS, 'scalars': bell_scalars,
+                               'color': list(expected_bell_color), 'bindings': bell_bindings},
+          'rear_plinth_lotus': {'object_counts': {REAR_PLINTH_LOTUS_NAME: REAR_PLINTH_LOTUS_COUNT},
+                               'stone_map_sha256': REAR_PLINTH_STONE_MAP,
+                               'shared_master_defaults': lotus_defaults, 'materials': lotus_records},
           'courtyard_fence': {'material': fence_mi.get_path_name() if fence_mi else None, 'gain': fence_gain, 'bindings': fence_bindings}}
 (root / 'unreal/Shankaranarayana/Saved/material-audit.json').write_text(json.dumps(report, indent=2))
 print('Material audit passed:', len(mapped))

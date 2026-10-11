@@ -96,7 +96,7 @@ profile = json.loads(Path(args.lighting_profile).read_text()) if args.lighting_p
 if set(profile) - {'sun', 'sky', 'post_process', 'material_scalars', 'object_color_gains',
                    'water_roughness', 'water_normal_irregular_mix', 'water_surface_opacity',
                    'water_scattering', 'water_absorption', 'water_phase_g', 'source_material_color_gains',
-                   'courtyard_fence_gain'}:
+                   'courtyard_fence_gain', 'inner_hall_bell_sheet_fill', 'rear_plinth_lotus_sheet_fill'}:
     raise ValueError('Unknown diagnostic lighting profile field')
 for section, allowed in [('sun', {'yaw', 'pitch', 'intensity'}), ('sky', {'intensity'})]:
     if set(profile.get(section, {})) - allowed:
@@ -214,6 +214,12 @@ if args.water_times:
     mel.recompile_material(parent)
     metadata['diagnostic_water_times'] = water_times
 material_scalars = profile.get('material_scalars', {})
+if {'inner_hall_bell_sheet_fill', 'rear_plinth_lotus_sheet_fill'}.intersection(profile) and \
+        {'SheetFill', 'SheetFillFront'}.intersection(material_scalars):
+    raise ValueError('Do not combine scoped fill with global sheet-fill overrides')
+if 'rear_plinth_lotus_sheet_fill' in profile and \
+        (profile.get('object_color_gains') or profile.get('source_material_color_gains')):
+    raise ValueError('Do not combine the lotus-course fill trial with colour overrides')
 if material_scalars:
     ranges = {'SheetFill': (0, 1), 'SheetFillFront': (0, 1),
               'LeafCellCM': (1, 1000), 'LeafClumpCM': (1, 2000),
@@ -241,6 +247,87 @@ if material_scalars:
     if found != material_scalars.keys():
         raise ValueError('Rebuild material masters before testing: ' + ', '.join(material_scalars.keys() - found))
     metadata['diagnostic_materials'] = sorted(edited)
+if 'inner_hall_bell_sheet_fill' in profile:
+    from material_targets import INNER_HALL_BELL_TARGETS, inner_hall_bell_family
+    fill = profile['inner_hall_bell_sheet_fill']
+    if type(fill) not in (float, int) or not math.isfinite(fill) or not 0 <= fill <= 1:
+        raise ValueError('Diagnostic inner_hall_bell_sheet_fill must be finite and in [0,1]')
+    scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
+    index = inner_hall_bell_family(scene)
+    name = re.sub(r'[^A-Za-z0-9]+', '_', scene['materials'][index]['name']).strip('_')
+    target = unreal.load_asset(f'/Game/Materials/Web/MI_{name}_{index}')
+    assert isinstance(target, unreal.MaterialInstanceConstant), 'Rebuild the inner-hall bronze instance first'
+    assert target.get_editor_property('parent').get_name() == 'M_WebTwoSided', 'Review changed bronze master'
+    assert any(mesh.get_material(slot) == target for actor in actors.get_all_level_actors()
+               for mesh in actor.get_components_by_class(unreal.StaticMeshComponent)
+               for slot in range(mesh.get_num_materials())), 'Inner-hall bronze is not bound in the loaded level'
+    mel = unreal.MaterialEditingLibrary
+    assert 'SheetFill' in {str(p) for p in mel.get_scalar_parameter_names(target)}, 'Rebuild the two-sided master first'
+    before = mel.get_material_instance_scalar_parameter_value(target, 'SheetFill')
+    # Change this instance in memory only. Neither the instance nor map is saved.
+    mel.set_material_instance_scalar_parameter_value(target, 'SheetFill', fill)
+    after = mel.get_material_instance_scalar_parameter_value(target, 'SheetFill')
+    assert abs(after - fill) < 1e-6, 'Scoped inner-hall bell fill failed'
+    metadata['diagnostic_inner_hall_bell_fill'] = {
+        'source_index': index, 'source_name': scene['materials'][index]['name'],
+        'object_counts': INNER_HALL_BELL_TARGETS, 'material': target.get_path_name(),
+        'parameter': 'SheetFill', 'before': before, 'after': after, 'persisted': False}
+if 'rear_plinth_lotus_sheet_fill' in profile:
+    from material_targets import (REAR_PLINTH_LOTUS_NAME, REAR_PLINTH_LOTUS_COUNT,
+                                  REAR_PLINTH_STONE_MAP, rear_plinth_lotus_families)
+    fill = profile['rear_plinth_lotus_sheet_fill']
+    if type(fill) not in (float, int) or not math.isfinite(fill) or not 0 <= fill <= 1:
+        raise ValueError('Diagnostic rear_plinth_lotus_sheet_fill must be finite and in [0,1]')
+    scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
+    indices = rear_plinth_lotus_families(scene)
+    mel = unreal.MaterialEditingLibrary
+    level_bindings = [(mesh, slot) for actor in actors.get_all_level_actors()
+                      for mesh in actor.get_components_by_class(unreal.StaticMeshComponent)
+                      for slot in range(mesh.get_num_materials())]
+    targets = []
+    # Validate every instance before the first setter, so stale exports cannot
+    # produce a partially applied trial. Preserve the authored tint and maps.
+    for index in indices:
+        web = scene['materials'][index]
+        name = re.sub(r'[^A-Za-z0-9]+', '_', web['name']).strip('_')
+        target = unreal.load_asset(f'/Game/Materials/Web/MI_{name}_{index}')
+        assert isinstance(target, unreal.MaterialInstanceConstant), 'Rebuild the lotus-course instance first'
+        assert target.get_editor_property('parent').get_name() == 'M_mappedboth', 'Review changed lotus-course master'
+        bindings = [{'component': mesh.get_path_name(), 'slot': slot} for mesh, slot in level_bindings
+                    if mesh.get_material(slot) == target]
+        assert bindings, 'Lotus-course material is not bound in the loaded level'
+        assert 'SheetFill' in {str(p) for p in mel.get_scalar_parameter_names(target)}, 'Rebuild the two-sided master first'
+        for key, expected in {'Roughness': .88, 'Metallic': 0, 'BumpCentimetres': .6,
+                              'UseRoughnessMap': 0, 'FlipY': 1, 'BumpFlipY': 1}.items():
+            assert abs(mel.get_material_instance_scalar_parameter_value(target, key) - expected) < 1e-6, \
+                'Review changed lotus-course scalar ' + key
+        rgb = [int(web['color'][k:k+2], 16) / 255 for k in (1, 3, 5)]
+        expected_color = [v / 12.92 if v <= .04045 else ((v + .055) / 1.055) ** 2.4 for v in rgb] + [1]
+        actual_color = mel.get_material_instance_vector_parameter_value(target, 'Color')
+        assert max(abs(getattr(actual_color, c) - v) for c, v in zip('rgba', expected_color)) < 1e-6, \
+            'Review changed native lotus-course tint'
+        for prefix in ('', 'Bump'):
+            texture = mel.get_material_instance_texture_parameter_value(target, (prefix or 'Base') + 'Map')
+            assert texture and REAR_PLINTH_STONE_MAP[:20] in texture.get_name(), 'Review changed native lotus-course map'
+            for axis, expected in [('U', (1, 0, 0, 0)), ('V', (0, 1, 0, 0))]:
+                row = mel.get_material_instance_vector_parameter_value(target, prefix + 'UVRow' + axis)
+                assert max(abs(getattr(row, c) - v) for c, v in zip('rgba', expected)) < 1e-6, \
+                    'Review changed native lotus-course UV transform'
+        before = mel.get_material_instance_scalar_parameter_value(target, 'SheetFill')
+        assert math.isfinite(before), 'Invalid native lotus-course fill'
+        targets.append((target, index, bindings, before))
+    records = []
+    for target, index, bindings, before in targets:
+        # Instance changes remain in this capture process; never save assets/map.
+        mel.set_material_instance_scalar_parameter_value(target, 'SheetFill', fill)
+        after = mel.get_material_instance_scalar_parameter_value(target, 'SheetFill')
+        assert abs(after - fill) < 1e-6, 'Scoped lotus-course fill failed'
+        records.append({'source_index': index, 'source_name': scene['materials'][index]['name'],
+                        'material': target.get_path_name(), 'bindings': bindings,
+                        'parameter': 'SheetFill', 'before': before, 'after': after})
+    metadata['diagnostic_rear_plinth_lotus_fill'] = {
+        'object_counts': {REAR_PLINTH_LOTUS_NAME: REAR_PLINTH_LOTUS_COUNT},
+        'stone_map_sha256': REAR_PLINTH_STONE_MAP, 'materials': records, 'persisted': False}
 if profile.get('object_color_gains'):
     scene = json.loads((Path(__file__).resolve().parents[2] / 'blender/build/scene.json').read_text())
     paths = []

@@ -1,5 +1,81 @@
 """Resolve calibrated material families from authored users, independent of indices."""
 
+import math
+
+REAR_PLINTH_LOTUS_NAME = 'Rear plinth continuous lotus course'
+REAR_PLINTH_LOTUS_COUNT = 4
+REAR_PLINTH_STONE_MAP = 'fd1772619a2f09408afae133bcbcfd9ec724f8a7e615d5a4f4a90d1614c53c7c'
+
+
+def rear_plinth_lotus_families(scene):
+    """Resolve four exclusive stone-sheet clones for a fill-only native trial."""
+    objects = [o for o in scene['objects'] if o['name'] == REAR_PLINTH_LOTUS_NAME]
+    assert len(objects) == REAR_PLINTH_LOTUS_COUNT, 'Review missing/renamed rear-plinth lotus courses'
+    assert all(len(o['materials']) == 1 for o in objects), 'Review split lotus-course slots'
+    indices = {o['materials'][0] for o in objects}
+    assert len(indices) == REAR_PLINTH_LOTUS_COUNT, 'Review shared lotus-course clones'
+    signature = {'type': 'MeshStandardMaterial', 'color': '#8f928b', 'roughness': .88,
+                 'metalness': 0, 'opacity': 1, 'transparent': False, 'doubleSided': True,
+                 'hasMap': True, 'mapBase': 'rgb(214,214,205)', 'mapIsPhoto': False,
+                 'alphaTest': 0, 'vertexColors': False}
+    map_signature = {'sha256': REAR_PLINTH_STONE_MAP, 'width': 512, 'height': 512,
+                     'matrix': [1, 0, 0, 0, 1, 0, 0, 0, 1], 'wrapS': 1000, 'wrapT': 1000,
+                     'flipY': True, 'colorSpace': 'srgb'}
+    for index in indices:
+        assert type(index) is int and 0 <= index < len(scene['materials']), 'Invalid lotus-course family'
+        users = [o for o in scene['objects'] if index in o['materials']]
+        assert len(users) == 1 and users[0]['name'] == REAR_PLINTH_LOTUS_NAME, \
+            'Lotus-course material shared outside its exclusive source object'
+        material = scene['materials'][index]
+        assert all(material.get(key) == value for key, value in signature.items()), \
+            'Recalibrate changed lotus-course stone properties'
+        assert not any(material.get(key) for key in ('emissive', 'emissiveIntensity', 'photoMap', 'roughnessMap')), \
+            'Review emissive/photo/roughness-mapped lotus-course stone'
+        bump = material.get('bumpScale')
+        assert type(bump) in (int, float) and math.isfinite(bump) and bump == .006, \
+            'Review changed lotus-course bump scale'
+        for key in ('proceduralMap', 'bumpMap'):
+            record = material.get(key) or {}
+            assert all(record.get(k) == value for k, value in map_signature.items()), \
+                'Review changed lotus-course ' + key
+        assert not users[0].get('instances') and not users[0].get('instanceColors') and \
+            not scene['geometries'][users[0]['geometry']].get('color'), \
+            'Review changed lotus-course tint/instances'
+    return sorted(indices)
+
+INNER_HALL_BELL_TARGETS = {
+    'Inner hall hanging bronze bell': 7,
+    'Inner hall hanging bronze bell crown': 7,
+}
+
+
+def inner_hall_bell_family(scene):
+    """Require fourteen non-emissive bronze users before a native fill trial."""
+    objects = [o for o in scene['objects'] if o['name'] in INNER_HALL_BELL_TARGETS]
+    counts = {name: sum(o['name'] == name for o in objects) for name in INNER_HALL_BELL_TARGETS}
+    assert counts == INNER_HALL_BELL_TARGETS, 'Review missing/renamed inner-hall bells'
+    assert all(len(o['materials']) == 1 for o in objects), 'Review split inner-hall bell slots'
+    indices = {i for o in objects for i in o['materials']}
+    assert len(indices) == 1, 'Review split inner-hall bell family'
+    index = indices.pop()
+    users = [o for o in scene['objects'] if index in o['materials']]
+    assert len(users) == len(objects) and all(o['name'] in INNER_HALL_BELL_TARGETS for o in users), \
+        'Inner-hall bronze shared outside the bell bodies/crowns'
+    material = scene['materials'][index]
+    signature = {'type': 'MeshStandardMaterial', 'color': '#8e7656', 'roughness': .55,
+                 'metalness': .55, 'opacity': 1, 'transparent': False,
+                 'doubleSided': True, 'hasMap': False, 'alphaTest': 0, 'vertexColors': False}
+    assert all(material.get(key) == value for key, value in signature.items()), \
+        'Recalibrate changed inner-hall bronze properties'
+    assert not any(material.get(key) for key in
+                   ('emissive', 'emissiveIntensity', 'proceduralMap', 'photoMap', 'bumpMap', 'roughnessMap')), \
+        'Review mapped/emissive inner-hall bronze'
+    assert all(not o.get('instances') and not o.get('instanceColors') and
+               not scene['geometries'][o['geometry']].get('color') for o in objects), \
+        'Review changed inner-hall bronze tint/instances'
+    return index
+
+
 def structural_timber_family(scene):
     objects = [o for o in scene['objects'] if o['name'] == 'Entrance seating square timber shaft']
     assert objects and all(len(o['materials']) == 1 for o in objects), 'Review renamed timber shafts'

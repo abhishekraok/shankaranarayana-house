@@ -11,11 +11,14 @@ from pathlib import Path
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
-from material_targets import structural_timber_family, COURTYARD_FENCE_ALIAS, courtyard_fence_override, validate_fence_manifest
+from material_targets import (structural_timber_family, COURTYARD_FENCE_ALIAS, courtyard_fence_override,
+                              validate_fence_manifest, inner_hall_bell_family, rear_plinth_lotus_families)
 WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
 structural_timber = structural_timber_family(meta)
+inner_hall_bronze = inner_hall_bell_family(meta)
+rear_plinth_lotus = set(rear_plinth_lotus_families(meta))
 fence_override = courtyard_fence_override(meta)
 M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
@@ -452,6 +455,18 @@ def instance(i, variant=None):
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
+    if i == inner_hall_bronze:
+        # 15.08.10: the shared sheet fill turned non-emissive bronze into pale
+        # silhouettes. Keep the hollow bells two-sided, with their own fill off.
+        assert kind == 'both', 'Review changed inner-hall bronze shader'
+        MEL.set_material_instance_scalar_parameter_value(mi, 'SheetFill', 0.0)
+        assert abs(MEL.get_material_instance_scalar_parameter_value(mi, 'SheetFill')) < 1e-6
+    if i in rear_plinth_lotus:
+        # Both rear-plinth references show shaded stone, while sheet fill made
+        # these four exclusive curved courses glow white. Keep their maps/tint.
+        assert kind == 'mappedboth', 'Review changed rear-plinth stone shader'
+        MEL.set_material_instance_scalar_parameter_value(mi, 'SheetFill', 0.0)
+        assert abs(MEL.get_material_instance_scalar_parameter_value(mi, 'SheetFill')) < 1e-6
     EAL.save_loaded_asset(mi); made[cache_key] = mi; return mi
 
 def lookup(slot):
