@@ -34,6 +34,8 @@ existing progress. Keep this folder when replacing a generated project or packag
 - Entering the lake or temple pond returns you to verified dry ground. Release
   movement before continuing; your view, journal and settings are retained.
   Older saves inside water return to the entrance.
+  Continue also tries a bounded collision-checked placement when a legitimate
+  dry resting position cannot be restored by the ordinary landing check.
 
 ## Rebuild
 
@@ -63,6 +65,11 @@ the actual viewport and interface scale. Unattended checks also enable native DP
 and reverse escape from the bathing ledge and pond approach, including native
 support hits and recovery events, without writing a player save. Smoke checks
 also require one nearby recovery under held input and preserve the lower ledges.
+`-WalkContinueProbeSeed -UserDir=<isolated-folder>`, followed by a fresh process
+with `-WalkContinueProbeResume` and the same folder, tests a dry-bank save that
+ordinary teleport clearance rejects. Reports are `continue-seed.json` and
+`continue-resume.json` under `Saved/WalkReview`; each process exits within 60 seconds
+after gameplay initialization. Player saves and private photographs are excluded.
 
 `blender/export-scene.mjs` exports only the two authored water hazards into
 `water-regions.json`; the installer checks their source hashes and stages them in

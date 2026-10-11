@@ -357,20 +357,22 @@ void AWalkCharacter::StickY(float V) { if(auto* A=Aligner(Controller))A->AlignTu
 void AWalkCharacter::Brisk(){GetCharacterMovement()->MaxWalkSpeed=300;}
 void AWalkCharacter::Slow(){GetCharacterMovement()->MaxWalkSpeed=180;}
 
-FString AWalkController::Slot() const { return WaterProbe?TEXT("QuietWalkWaterProbe"):Smoke?TEXT("QuietWalkSmoke"):TEXT("QuietWalk"); }
+FString AWalkController::Slot() const { return ContinueProbe?TEXT("QuietWalkContinueProbe"):WaterProbe?TEXT("QuietWalkWaterProbe"):Smoke?TEXT("QuietWalkSmoke"):TEXT("QuietWalk"); }
 void AWalkController::BeginPlay() {
     Super::BeginPlay(); bShouldPerformFullTickWhenPaused=true; PrimaryActorTick.bTickEvenWhenPaused=true; BeginTime=FPlatformTime::Seconds();
     WaterProbe=FParse::Param(FCommandLine::Get(),TEXT("WalkWaterProbe"));
-    ResumeSmoke=!WaterProbe&&FParse::Param(FCommandLine::Get(),TEXT("WalkSmokeResume"));
-    Smoke=!WaterProbe&&(ResumeSmoke||FParse::Param(FCommandLine::Get(),TEXT("WalkSmoke")));
-    Save=(WaterProbe||(Smoke&&!ResumeSmoke))?nullptr:Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
+    ContinueProbeResume=FParse::Param(FCommandLine::Get(),TEXT("WalkContinueProbeResume"));
+    ContinueProbe=ContinueProbeResume||FParse::Param(FCommandLine::Get(),TEXT("WalkContinueProbeSeed"));
+    ResumeSmoke=!WaterProbe&&!ContinueProbe&&FParse::Param(FCommandLine::Get(),TEXT("WalkSmokeResume"));
+    Smoke=!WaterProbe&&!ContinueProbe&&(ResumeSmoke||FParse::Param(FCommandLine::Get(),TEXT("WalkSmoke")));
+    Save=(WaterProbe||(Smoke&&!ResumeSmoke)||(ContinueProbe&&!ContinueProbeResume))?nullptr:Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
     const bool ExistingSave=Save&&Save->Version==1;
     if(!ExistingSave) Save=Cast<UWalkSave>(UGameplayStatics::CreateSaveGameObject(UWalkSave::StaticClass()));
     UpgradeSave(Save);
     UpgradeDisplaySave(Save,ExistingSave);
-    if(WaterProbe){FString Isolation;if(!FParse::Value(FCommandLine::Get(),TEXT("UserDir="),Isolation)||Isolation.IsEmpty()){
-        WaterProbeFinished=true;
-        UE_LOG(LogTemp,Error,TEXT("WATERPROBE requires an isolated -UserDir=<folder>; no probe report or game settings will be written."));
+    if(WaterProbe||ContinueProbe){FString Isolation;if(!FParse::Value(FCommandLine::Get(),TEXT("UserDir="),Isolation)||Isolation.IsEmpty()){
+        WaterProbeFinished=true;ContinueProbeFinished=true;
+        UE_LOG(LogTemp,Error,TEXT("Walking probes require an isolated -UserDir=<folder>; no probe report or game settings will be written."));
         UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);return;
     }}
     WaterDataReady=LoadWaterRegions();
@@ -406,7 +408,7 @@ void AWalkController::BeginPlay() {
           [SNew(STextBlock).Text_Lambda([this](){return Txt(Prompt());}).Font(FCoreStyle::GetDefaultFontStyle("Regular",18)).ColorAndOpacity(Cream).ShadowOffset(FVector2D(1,1)).ShadowColorAndOpacity(FLinearColor::Black)];
     GEngine->GameViewport->AddViewportWidgetContent(Hud.ToSharedRef(),1); Hud->SetVisibility(EVisibility::HitTestInvisible);
     // The private photographs stay outside the package: -WalkPhotos=<folder>, else the usual folder.
-    if(!WaterProbe&&!FParse::Value(FCommandLine::Get(),TEXT("WalkPhotos="),PhotoDir)) PhotoDir=TEXT("F:/Shankaranarayana");
+    if(!WaterProbe&&!ContinueProbe&&!FParse::Value(FCommandLine::Get(),TEXT("WalkPhotos="),PhotoDir)) PhotoDir=TEXT("F:/Shankaranarayana");
     if(Smoke){
         // The smoke run aligns generated pictures (one landscape, one portrait) in its own folder, never the real poses.
         PhotoDir=FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir()/TEXT("WalkReview/align-smoke"));IFileManager::Get().DeleteDirectory(*PhotoDir,false,true);IFileManager::Get().MakeDirectory(*PhotoDir,true);
@@ -435,7 +437,7 @@ void AWalkController::BeginPlay() {
     UE_LOG(LogTemp,Display,TEXT("QUIETWALK ready: guided tour, native menus, walking, journal and saves"));
 }
 void AWalkController::EndPlay(const EEndPlayReason::Type R) {
-    if(Save&&Walking&&!Smoke&&!WaterProbe) Persist(true);
+    if(Save&&Walking&&!Smoke&&!WaterProbe&&!ContinueProbe) Persist(true);
     if(GEngine&&GEngine->GameViewport) {if(Menu)GEngine->GameViewport->RemoveViewportWidgetContent(Menu.ToSharedRef()); if(Hud)GEngine->GameViewport->RemoveViewportWidgetContent(Hud.ToSharedRef()); if(AlignHud)GEngine->GameViewport->RemoveViewportWidgetContent(AlignHud.ToSharedRef());}
     Super::EndPlay(R);
 }
@@ -475,7 +477,7 @@ void AWalkController::Notify(const FString& T){Toast=T;ToastUntil=FPlatformTime:
 bool AWalkController::RestorePosition(FVector P, FRotator R) {
     auto* C=Cast<AWalkCharacter>(GetPawn());
     auto Rejected=[&](const TCHAR* Why,const FHitResult* Hit=nullptr){
-        if(Smoke||WaterProbe)UE_LOG(LogTemp,Display,TEXT("WALKLAND reject %s requested %s actual %s hit %s normal %s component %s"),
+        if(Smoke||WaterProbe||ContinueProbe)UE_LOG(LogTemp,Display,TEXT("WALKLAND reject %s requested %s actual %s hit %s normal %s component %s"),
             Why,*P.ToString(),C?*C->GetActorLocation().ToString():TEXT("none"),Hit?*Hit->ImpactPoint.ToString():TEXT("none"),
             Hit?*Hit->ImpactNormal.ToString():TEXT("none"),Hit&&Hit->GetComponent()?*Hit->GetComponent()->GetPathName():TEXT("none"));
         return false;
@@ -503,7 +505,11 @@ void AWalkController::StartWalk(bool Continue) {
     WaterMovementLatched=false;WaterHasSafeGround=false;WaterHasCandidateGround=false;WaterHasVerifiedGround=false;
     bool Recovered=false;
     if(!Continue){Save->Visited.Empty();if(!Travel(0)){Notify(TEXT("Entrance unavailable. Please reload the walk."));return;}}
-    else if(!RestorePosition(Save->Position,Save->Look)){
+    // Persist records grounded resting positions, which can differ from native
+    // teleport clearance. Try a bounded checked landing for verified dry saves
+    // before falling back to the entrance. Underwater saves fail this ground gate.
+    else if(!RestorePosition(Save->Position,Save->Look)&&
+            !(WaterSafeGround(Save->Position)&&RestoreWaterAnchor(Save->Position,Save->Look))){
         const FRotator SavedLook=Save->Look;
         if(!Travel(0)){Notify(TEXT("Entrance unavailable. Please reload the walk."));return;}
         if(!SavedLook.ContainsNaN())SetControlRotation(SavedLook);
@@ -632,7 +638,7 @@ FString AWalkController::Prompt() const {
 }
 void AWalkController::PlayerTick(float D) {
     Super::PlayerTick(D);
-    if(WaterProbe&&WaterProbeFinished)return;
+    if((WaterProbe&&WaterProbeFinished)||(ContinueProbe&&ContinueProbeFinished))return;
     if(!InitialViewReady&&GetPawn()){InitialViewReady=Travel(0);ApplySettings();}
     if(DisplayLogAt>0&&FPlatformTime::Seconds()>=DisplayLogAt) {
         const FIntPoint Actual=ViewportResolution();const auto Dpi=NativeDpiAwareness();
@@ -642,11 +648,12 @@ void AWalkController::PlayerTick(float D) {
     if(Menu&&FocusAt>0&&FPlatformTime::Seconds()>=FocusAt){Menu->Focus(PendingFocus);FocusAt=0;}
     if(Smoke)SmokeTick();
     if(WaterProbe)WaterProbeTick();
+    if(ContinueProbe)ContinueProbeTick();
     if(!ReviewPhoto.IsEmpty())ReviewTick();
     if(Aligning){if(Page.IsEmpty())TickAlign(D);return;}
     if(!Walking){if(Page.IsEmpty())TickTour(D);return;}
     if(!Page.IsEmpty())return;
-    if(!Smoke&&!WaterProbe&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
+    if(!Smoke&&!WaterProbe&&!ContinueProbe&&!FSlateApplication::Get().IsActive()){Show("pause");return;}
     auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
     if(Smoke&&SmokeMoving&&SmokeTempleStairStep>=3&&SmokeTempleStairStep<=6) {
         // Short portico routes stop at their authored endpoints, before the
@@ -745,7 +752,7 @@ bool AWalkController::WaterCapsuleClear(const FVector& Center,const FRotator& Lo
     // responses and native encroachment epsilon. Standing physics alone does
     // not prove a point can be used for a checked teleport.
     const bool Blocked=GetWorld()->EncroachingBlockingGeometry(C,Center,Rotation,&Adjustment);
-    if(Blocked&&Diagnostics&&(Smoke||WaterProbe)){
+    if(Blocked&&Diagnostics&&(Smoke||WaterProbe||ContinueProbe)){
         const auto* Capsule=C->GetCapsuleComponent();
         const auto* EpsilonVar=IConsoleManager::Get().FindConsoleVariable(TEXT("p.EncroachEpsilon"));
         const float Epsilon=EpsilonVar?EpsilonVar->GetFloat():.15f;
@@ -775,7 +782,7 @@ void AWalkController::ResetWaterAnchor(const FVector& Center) {
             }Index++;
         }
     }
-    if(Smoke||WaterProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR reset center %s ground %d capsule_clear_anchor %d anchor %s"),
+    if(Smoke||WaterProbe||ContinueProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR reset center %s ground %d capsule_clear_anchor %d anchor %s"),
         *Center.ToString(),WaterHasVerifiedGround,WaterHasSafeGround,*WaterSafePosition.ToString());
 }
 bool AWalkController::RestoreWaterAnchor(const FVector& Center,const FRotator& Look) {
@@ -789,19 +796,19 @@ bool AWalkController::RestoreWaterAnchor(const FVector& Center,const FRotator& L
         // gap. Movement's resting capsule may differ from teleport clearance.
         const bool Valid=Placed&&FVector::Dist2D(Actual,Center)<=64.1&&Actual.Z>=Center.Z-.1&&Actual.Z<=Center.Z+4.1&&
             WaterSafeGround(Actual,true)&&WaterCapsuleClear(Actual,Look,true);
-        if(Smoke||WaterProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR candidate %d requested %s actual %s placed %d valid %d"),Index,*Candidate.ToString(),*Actual.ToString(),Placed,Valid);
+        if(Smoke||WaterProbe||ContinueProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR candidate %d requested %s actual %s placed %d valid %d"),Index,*Candidate.ToString(),*Actual.ToString(),Placed,Valid);
         if(Valid){
             C->GetCharacterMovement()->StopMovementImmediately();C->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
             const FVector Resting=C->GetActorLocation();
             const bool RestingSafe=FVector::Dist2D(Resting,Center)<=64.1&&FMath::Abs(Resting.Z-Center.Z)<=4.1&&WaterSafeGround(Resting,true);
-            if(Smoke||WaterProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR resting candidate %d actual %s entry_capsule_clear 1 resting_ground_safe %d"),Index,*Resting.ToString(),RestingSafe);
+            if(Smoke||WaterProbe||ContinueProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR resting candidate %d actual %s entry_capsule_clear 1 resting_ground_safe %d"),Index,*Resting.ToString(),RestingSafe);
             if(RestingSafe){
                 WaterAnchorEntryClear=true;WaterAnchorRestingGroundSafe=true;
                 SetControlRotation(Look);ResetWaterAnchor(Resting);return true;
             }
         }Index++;
     }
-    if(Smoke||WaterProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR no checked landing within 64 cm of %s after %d candidates"),*Center.ToString(),Index);
+    if(Smoke||WaterProbe||ContinueProbe)UE_LOG(LogTemp,Display,TEXT("WATERANCHOR no checked landing within 64 cm of %s after %d candidates"),*Center.ToString(),Index);
     return false;
 }
 bool AWalkController::AllowWaterMovement(float Value,bool RightAxis) {
@@ -1284,6 +1291,70 @@ void AWalkController::ReviewTick() {
     case 5:FScreenshotRequest::RequestScreenshot(Dir/(Stem+TEXT("-overlay.png")),true,false);NextReview=Now+1.5;break;
     default:UE_LOG(LogTemp,Display,TEXT("WALKREVIEW done %s"),*PhotoName());ReviewPhoto.Empty();UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);
     }
+}
+void AWalkController::ContinueProbeTick() {
+    const double Now=FPlatformTime::Seconds();if(ContinueProbeFinished)return;
+    auto Check=[this](bool Ok,const TCHAR* What){
+        UE_LOG(LogTemp,Display,TEXT("CONTINUEPROBE %s %s"),Ok?TEXT("PASS"):TEXT("FAIL"),What);
+        if(!Ok)SmokeFailures.Add(What);
+    };
+    auto SamePreferences=[](const UWalkSave* A,const UWalkSave* B){return A&&B&&
+        A->Version==B->Version&&A->LookVersion==B->LookVersion&&A->DisplayVersion==B->DisplayVersion&&
+        A->InvertY==B->InvertY&&A->Guidance==B->Guidance&&A->Quality==B->Quality&&A->Fullscreen==B->Fullscreen&&A->WindowResolution==B->WindowResolution&&
+        FMath::IsNearlyEqual(A->Sensitivity,B->Sensitivity)&&FMath::IsNearlyEqual(A->Fov,B->Fov)&&FMath::IsNearlyEqual(A->Volume,B->Volume)&&FMath::IsNearlyEqual(A->RenderScale,B->RenderScale);};
+    auto Finish=[&](){
+        auto Report=MakeShared<FJsonObject>();Report->SetStringField(TEXT("schema"),TEXT("quietwalk-continue-probe-v1"));
+        Report->SetStringField(TEXT("stage"),ContinueProbeResume?TEXT("cold-continue"):TEXT("seed"));
+        Report->SetBoolField(TEXT("passed"),SmokeFailures.IsEmpty());Report->SetNumberField(TEXT("water_recovery_count"),WaterRecoveryCount);
+        TArray<TSharedPtr<FJsonValue>> Failures;for(const auto& Failure:SmokeFailures)Failures.Add(MakeShared<FJsonValueString>(Failure));Report->SetArrayField(TEXT("failures"),Failures);
+        auto Point=[&](const TCHAR* Key,const FVector& P){Report->SetArrayField(Key,{MakeShared<FJsonValueNumber>(P.X),MakeShared<FJsonValueNumber>(P.Y),MakeShared<FJsonValueNumber>(P.Z)});};
+        Point(TEXT("expected_position_cm"),ContinueProbeExpectedPosition);Point(TEXT("saved_position_cm"),Save->Position);
+        if(auto* C=Cast<AWalkCharacter>(GetPawn())){
+            Point(TEXT("actual_position_cm"),C->GetActorLocation());
+            Report->SetBoolField(TEXT("resting_ground_safe"),WaterSafeGround(C->GetActorLocation()));
+            Report->SetBoolField(TEXT("native_capsule_clear_at_rest"),WaterCapsuleClear(C->GetActorLocation(),GetControlRotation()));
+        }
+        Point(TEXT("saved_look_degrees_pitch_yaw_roll"),FVector(Save->Look.Pitch,Save->Look.Yaw,Save->Look.Roll));
+        TArray<TSharedPtr<FJsonValue>> Journal;for(const auto& Place:Save->Visited)Journal.Add(MakeShared<FJsonValueString>(Place));Report->SetArrayField(TEXT("saved_journal"),Journal);
+        Report->SetObjectField(TEXT("display"),DisplayReport());
+        const FString Dir=FPaths::ProjectSavedDir()/TEXT("WalkReview");IFileManager::Get().MakeDirectory(*Dir,true);
+        FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);const bool Written=FJsonSerializer::Serialize(Report,Writer)&&FFileHelper::SaveStringToFile(Json,*(Dir/(ContinueProbeResume?TEXT("continue-resume.json"):TEXT("continue-seed.json"))));
+        UE_LOG(LogTemp,Display,TEXT("CONTINUEPROBE done passed %d report_written %d"),SmokeFailures.IsEmpty(),Written);
+        ContinueProbeFinished=true;UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);
+    };
+    if(Now>BeginTime+60){Check(false,TEXT("focused Continue probe completes within 60 seconds"));Finish();return;}
+    if(Now<BeginTime+8||Now<NextSmoke||!InitialViewReady)return;
+    NextSmoke=Now+1;
+    auto* C=Cast<AWalkCharacter>(GetPawn());if(!C){Check(false,TEXT("native walker exists"));Finish();return;}
+    if(ContinueProbeStep++==0){
+        if(ContinueProbeResume){
+            Check(Save->HasWalk&&Save->Visited==TArray<FString>{TEXT("house"),TEXT("temple")},TEXT("fresh process loads the seeded bank walk and journal"));
+            ContinueProbeBaseline=DuplicateObject<UWalkSave>(Save,this);ContinueProbeExpectedPosition=Save->Position;
+            StartWalk(true);
+        }else{
+            StartWalk(false);
+            Check(RestorePosition(FVector(2950,-200,90),FRotator(-17,37,0)),TEXT("native placement reaches the legitimate dry pond bank"));
+            Save->Visited={TEXT("house"),TEXT("temple")};Save->Sensitivity=1.35f;Save->Fov=91;Save->Volume=.22f;Save->InvertY=true;Save->Guidance=false;
+            Save->Quality=1;Save->Fullscreen=false;Save->WindowResolution=FIntPoint(960,540);Save->RenderScale=83;ApplySettings();
+        }
+        return;
+    }
+    if(!ContinueProbeResume){
+        ContinueProbeExpectedPosition=C->GetActorLocation();
+        Check(Walking&&C->GetCharacterMovement()->IsMovingOnGround()&&WaterSafeGround(ContinueProbeExpectedPosition),TEXT("native bank position is grounded and passes all five support/hazard checks"));
+        Check(!WaterCapsuleClear(ContinueProbeExpectedPosition,GetControlRotation(),true),TEXT("legitimate resting bank reproduces native teleport-clearance mismatch"));
+        Check(Persist(true),TEXT("actual bank position saves successfully"));
+        auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
+        Check(Reload&&Reload->HasWalk&&Reload->Position.Equals(ContinueProbeExpectedPosition,.01)&&Reload->Look.Equals(FRotator(-17,37,0),.01),TEXT("save readback retains the actual dry bank pose"));
+        Check(Reload&&Reload->Visited==Save->Visited&&SamePreferences(Reload,Save),TEXT("save readback retains journal and nondefault preferences"));
+    }else{
+        Check(Walking&&Page.IsEmpty()&&FVector::Dist(C->GetActorLocation(),ContinueProbeExpectedPosition)<5,TEXT("cold Continue restores the legitimate dry bank within 5 cm"));
+        Check(C->GetCharacterMovement()->IsMovingOnGround()&&WaterSafeGround(C->GetActorLocation()),TEXT("cold Continue ends on independently verified safe ground"));
+        Check(ContinueProbeBaseline&&GetControlRotation().Equals(ContinueProbeBaseline->Look,.01)&&Save->Visited==ContinueProbeBaseline->Visited&&SamePreferences(Save,ContinueProbeBaseline),TEXT("cold Continue preserves full view, journal and preferences"));
+        auto* Reload=Cast<UWalkSave>(UGameplayStatics::LoadGameFromSlot(Slot(),0));
+        Check(Reload&&Reload->Position.Equals(ContinueProbeExpectedPosition,5),TEXT("cold Continue does not overwrite the bank save with an entrance fallback"));
+    }
+    Check(WaterRecoveryCount==0,TEXT("legitimate dry-bank save causes no water incident"));Finish();
 }
 void AWalkController::SmokeTick() {
     // Runs only with -WalkSmoke, on a separate save slot. Real scene, collision and UI.

@@ -196,6 +196,13 @@ private:
     void WaterProbeTick();
     void WaterProbeSample(const FString& Phase);
     void FinishWaterProbe(const FString& Error = FString());
+    // Two-process save/Continue check on legitimate dry ground that movement
+    // accepts but exact native teleport clearance rejects. Isolated UserDir only.
+    bool ContinueProbe = false, ContinueProbeResume = false, ContinueProbeFinished = false;
+    int32 ContinueProbeStep = 0;
+    FVector ContinueProbeExpectedPosition = FVector::ZeroVector;
+    UPROPERTY() TObjectPtr<UWalkSave> ContinueProbeBaseline;
+    void ContinueProbeTick();
     double FocusAt = 0;
     int32 PendingFocus = 0;
     bool SmokeMoving = false;
