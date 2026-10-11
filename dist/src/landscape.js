@@ -424,12 +424,20 @@ export function buildLandscape(K, {mobile=false}={}) {
     x.fillStyle='#e6e5de';x.fillRect(0,0,64,64);x.strokeStyle='#aaa89e';x.lineWidth=2;for(let i=0;i<=64;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,64);x.moveTo(0,i);x.lineTo(64,i);x.stroke();}
     dadoTiles.map=new THREE.CanvasTexture(c);dadoTiles.map.colorSpace=THREE.SRGBColorSpace;dadoTiles.map.wrapS=dadoTiles.map.wrapT=THREE.RepeatWrapping;dadoTiles.map.repeat.set(3,3);dadoTiles.color.set('#ffffff');}
   const pillarRed=materials.oldWhite.clone();pillarRed.color.set('#9a4a3a');
-  for(const x of [32.6,35.2,37.8,40.4,43.0,45.6])for(const z of [-10.24,-7.77]){
-    box('Bathing arcade red-oxide pillar base',x,.065+.11,z,.40,.22,.40,pillarRed,true);
-    box('Bathing arcade white-tiled pillar foot',x,.065+.61,z,.36,.78,.36,dadoTiles);
-    box('Bathing arcade square white pillar',x,.065+1.4,z,.29,1.6,.29,materials.oldWhite,true);
-    for(const y of [1.3,1.8])box('Bathing arcade stepped pillar collar',x,.065+y,z,.37,.2,.37,materials.oldWhite);
-    box('Bathing arcade pillar capital block',x,2.34,z,.36,.14,.36,materials.oldWhite);
+  // 15.14.02 / 15.14.07 / 15.27.07: three freestanding supports per row,
+  // excluding the west end piers and east room. Pitch over the retained roof span
+  // is an estimate; the separate question of shortening the arcade stays open.
+  for(const x of [34.3,38.5,42.7]){
+    const laneZ=-7.77,lakeZ=-10.24;
+    box('Bathing arcade red-oxide pillar base',x,.24,laneZ,.50,.35,.50,pillarRed,true);
+    box('Bathing arcade lane square white pillar',x,1.415,laneZ,.42,2.0,.42,materials.oldWhite,true);
+    for(const [y,w] of [[1.215,.52],[1.495,.65],[1.775,.52]])box('Bathing arcade lane stepped cross collar',x,y,laneZ,w,.28,w,materials.oldWhite,true);
+    box('Bathing arcade lane beam bearing',x,2.365,laneZ,.48,.10,.48,materials.oldWhite,true);
+    // 15.20.29: lake piers are slender, with a modest collar at the coping;
+    // their low white plinth is not the lane row's red foot and multiple collars.
+    box('Bathing arcade lake white plinth',x,.13,lakeZ,.44,.13,.44,materials.oldWhite,true);
+    box('Bathing arcade lake plain white pillar',x,1.305,lakeZ,.34,2.22,.34,materials.oldWhite,true);
+    box('Bathing arcade lake coping collar',x,.99,lakeZ,.44,.15,.44,materials.oldWhite,true);
   }
   // The block holds the lane-side corner; the way down to the water passes behind it.
   // 14.59.39 / 15.11.58: the west end is only a tiled pedestal carrying a stepped white
@@ -443,9 +451,31 @@ export function buildLandscape(K, {mobile=false}={}) {
   box('Lake entrance west tiled pedestal',30.15,.065+.55,-10.375,.56,1.1,.51,materials.oldWhite,true);
   box('Lake entrance west stepped white pillar',30.15,1.85,-10.38,.3,1.5,.3,materials.oldWhite,true);
   box('Lake entrance west pillar collar',30.15,1.25,-10.38,.38,.16,.38,materials.oldWhite);
-  box('Lake entrance east whitewashed room',47.9,1.28,-9.0,2.0,2.45,2.5,materials.oldWhite,true);
-  box('Lake entrance east room tiled dado',47.9,.065+.55,-9.0,2.04,1.1,2.54,dadoTiles);
-  box('Lake entrance east room dark doorway',47.9,1.05,-10.276,.8,1.9,.02,new THREE.MeshStandardMaterial({color:'#2a2622',roughness:.9}));
+  // 15.21.47 / 15.27.07: the lake-facing room wall is pierced white masonry,
+  // without a lake doorway or wrapping tiled dado. Build actual holes, not a
+  // screen on the old solid box. Room bounds/blocker and lane finishes stay fixed.
+  box('Lake entrance east whitewashed room',47.9,1.28,-7.84,2.0,2.45,.18,materials.oldWhite);
+  for(const x of [46.99,48.81])box('Lake entrance east room white side wall',x,1.28,-9.09,.18,2.45,2.32,materials.oldWhite);
+  K.blocker(47.9,-9.0,2.0,2.5,1.28-2.45/2,1.28+2.45/2);
+  const roomHoles=[];
+  for(let row=0;row<3;row++)for(let i=0;i<5;i++){
+    const x=-.72+i*.36+(row%2)*.04,y=1.20+row*.35;roomHoles.push([x-.06,x+.06,y-.06,y+.06]);
+  }
+  // A shared rectangular grid keeps the closed hole reveals and both wall faces
+  // on identical vertices; collinear hole rows otherwise give earcut T-junctions.
+  const roomXs=[...new Set([-1,1,...roomHoles.flatMap(h=>h.slice(0,2))])].sort((a,b)=>a-b),roomYs=[...new Set([.055,2.505,...roomHoles.flatMap(h=>h.slice(2))])].sort((a,b)=>a-b),wallPositions=[];
+  const filled=(i,j)=>i>=0&&i<roomXs.length-1&&j>=0&&j<roomYs.length-1&&!roomHoles.some(h=>(roomXs[i]+roomXs[i+1])/2>h[0]&&(roomXs[i]+roomXs[i+1])/2<h[1]&&(roomYs[j]+roomYs[j+1])/2>h[2]&&(roomYs[j]+roomYs[j+1])/2<h[3]);
+  const roomQuad=(a,b,c,d)=>{for(const v of [a,b,c,a,c,d])wallPositions.push(...v);};
+  for(let i=0;i<roomXs.length-1;i++)for(let j=0;j<roomYs.length-1;j++)if(filled(i,j)){
+    const a=roomXs[i],b=roomXs[i+1],c=roomYs[j],d=roomYs[j+1];
+    roomQuad([a,c,0],[a,d,0],[b,d,0],[b,c,0]);roomQuad([a,c,.18],[b,c,.18],[b,d,.18],[a,d,.18]);
+    if(!filled(i-1,j))roomQuad([a,c,0],[a,c,.18],[a,d,.18],[a,d,0]);if(!filled(i+1,j))roomQuad([b,c,0],[b,d,0],[b,d,.18],[b,c,.18]);
+    if(!filled(i,j-1))roomQuad([a,c,0],[b,c,0],[b,c,.18],[a,c,.18]);if(!filled(i,j+1))roomQuad([a,d,0],[a,d,.18],[b,d,.18],[b,d,0]);
+  }
+  const roomGeometry=new THREE.BufferGeometry();roomGeometry.setAttribute('position',new THREE.Float32BufferAttribute(wallPositions,3));roomGeometry.setAttribute('uv',new THREE.Float32BufferAttribute(wallPositions.flatMap((v,i)=>i%3===0?[v*.5,wallPositions[i+1]*.5]:[]),2));roomGeometry.computeVertexNormals();
+  const eastRoomWall=new THREE.Mesh(roomGeometry,materials.oldWhite);eastRoomWall.name='Lake entrance east room pierced lake wall';eastRoomWall.position.set(47.9,0,-10.25);eastRoomWall.castShadow=eastRoomWall.receiveShadow=true;group.add(eastRoomWall);
+  box('Lake entrance east room tiled dado',47.9,.065+.55,-7.74,2.04,1.1,.02,dadoTiles);
+  for(const x of [46.89,48.91])box('Lake entrance east room side tiled dado',x,.065+.55,-8.90,.02,1.1,2.34,dadoTiles);
   // 14.59.54: the sign is a painted tin sheet, orange at its top and bottom edges and faded pale
   // in between, with big red-and-yellow letters, black number lines above and a blue line below.
   {const c=document.createElement('canvas');c.width=256;c.height=168;const x=c.getContext('2d');
@@ -469,13 +499,28 @@ export function buildLandscape(K, {mobile=false}={}) {
   for(let k=0;k<8;k++)K.cylinder(group,'Lake entrance notice banded pole',29.55,.125+k*.25,-7.35,.035,.035,.25,new THREE.MeshStandardMaterial({color:k%2?'#222222':'#e0b020',roughness:.8}),8);
   box('Lake entrance notice board post',29.2,.72,-7.15,.06,1.44,.06,'metal');
   // 14.59.39 / 15.11.58 show a deeper roof than first built; 14.58.05's end view limits the pitch.
-  K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25,darkTile);
+  const arcadeRoof=K.gableRoof(group,'Long lakeside bathing arcade tiled roof',39,-9.0,20.1,3.6,2.57,1.25,darkTile);
+  // The helper creates four pitched sheet triangles and two end infills, no
+  // bottom ceiling. Remove only this roof's west infill; shared helper untouched.
+  const arcadeTiles=arcadeRoof.children.find(o=>o.name==='Long lakeside bathing arcade tiled roof tiles'),roofGeometry=arcadeTiles.geometry,roofPositions=roofGeometry.attributes.position,keep=[];
+  for(let i=0;i<roofPositions.count;i+=3)if(![0,1,2].every(j=>Math.abs(roofPositions.getX(i+j)+10.05)<.0001))keep.push(i,i+1,i+2);
+  for(const [name,attribute] of Object.entries(roofGeometry.attributes))roofGeometry.setAttribute(name,new THREE.Float32BufferAttribute(keep.flatMap(i=>Array.from({length:attribute.itemSize},(_,j)=>attribute.array[i*attribute.itemSize+j])),attribute.itemSize));
+  roofGeometry.computeBoundingBox();roofGeometry.computeBoundingSphere();
+  // A tie rests on the retained west piers; both rafters follow the unchanged
+  // pitched underside. Short bearings and king post meet their actual triangles.
+  const tie=K.beam(group,'Bathing arcade west truss tie',[30.15,2.65,-10.8],[30.15,2.65,-7.2],.10,'wood');
+  const trussRafters=[];for(const z of [-10.8,-7.2])trussRafters.push(K.beam(group,'Bathing arcade west truss rafter',[30.15,2.509,z],[30.15,3.759,-9.0],.10,'wood'));
+  group.updateMatrixWorld(true);
+  for(const z of [-10.38,-9.0,-7.9]){
+    const hit=new THREE.Raycaster(new THREE.Vector3(30.15,2.7,z),new THREE.Vector3(0,1,0),0,1.3).intersectObjects(trussRafters,false)[0];
+    box(z===-9.0?'Bathing arcade west truss king post':'Bathing arcade west truss pier bearing',30.15,(2.7+hit.point.y)/2,z,.08,hit.point.y-2.7,.08,'wood');
+  }
   for(const z of [-10.24,-7.77])K.beam(group,'Bathing arcade dark beam',[29.5,2.5,z],[48.5,2.5,z],.17,'wood',.2);
   // 15.27.07 / 15.27.10: lake-facing pierced masonry beneath the arcade.
   const arcadePlaster=K.M.plaster.clone();arcadePlaster.color.set('#e4e0d6'); // 15.11.58 / 15.22.36: whitewashed
   const arcadeScreen=new THREE.Shape();arcadeScreen.moveTo(-9.10,.20);
-  arcadeScreen.lineTo(9.10,.20);arcadeScreen.lineTo(9.10,.89);arcadeScreen.lineTo(-9.10,.89);arcadeScreen.closePath();
-  for(let row=0;row<3;row++)for(let x=-8.92+(row%2)*.17;x<8.99;x+=.34){
+  arcadeScreen.lineTo(7.92,.20);arcadeScreen.lineTo(7.92,.89);arcadeScreen.lineTo(-9.10,.89);arcadeScreen.closePath();
+  for(let row=0;row<3;row++)for(let x=-8.92+(row%2)*.17;x<7.84;x+=.34){
     const y=.32+row*.18,hole=new THREE.Path();
     hole.moveTo(x-.058,y-.054);hole.lineTo(x-.058,y+.054);
     hole.lineTo(x+.058,y+.054);hole.lineTo(x+.058,y-.054);hole.closePath();arcadeScreen.holes.push(hole);
@@ -483,8 +528,10 @@ export function buildLandscape(K, {mobile=false}={}) {
   const arcadeWall=new THREE.Mesh(new THREE.ExtrudeGeometry(arcadeScreen,{depth:.16,bevelEnabled:false}),arcadePlaster);
   arcadeWall.name='Bathing arcade lake-facing pierced masonry';arcadeWall.position.set(39,0,-10.31);
   arcadeWall.castShadow=arcadeWall.receiveShadow=true;group.add(arcadeWall);
-  box('Bathing arcade lake-facing coping',39,.94,-10.23,18.35,.10,.27,materials.oldWhite);
-  box('Bathing arcade pink lower wall band',39,.30,-10.14,18.35,.2,.02,new THREE.MeshStandardMaterial({color:'#c48b83',roughness:.9}));
+  // Ends meet the room's west wall, with a small concealed masonry overlap;
+  // the old long screen/coping must not fill its new perforations.
+  box('Bathing arcade lake-facing coping',38.3725,.94,-10.23,17.095,.10,.27,materials.oldWhite);
+  box('Bathing arcade pink lower wall band',38.3725,.30,-10.14,17.095,.2,.02,new THREE.MeshStandardMaterial({color:'#c48b83',roughness:.9}));
   box('Bathing arcade dark waterline foundation',39,-1.23,-10.23,18.35,2.74,.27,materials.wetStone);
   K.blocker(39,-10.23,18.35,.27,-2.6,.99);
 
