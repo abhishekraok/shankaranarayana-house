@@ -2036,6 +2036,49 @@ export function buildHouse(K) {
   {const paleBlue=K.M.plaster.clone();paleBlue.color.set('#a4d6de');const b3=new THREE.Box3();
    for(const o of g.children){if(!o.isMesh||!/^(Front room facade pier|Upper room front wall pier|Upper west gable pier|West exterior wall pier|Upper stair-side wall dark lower band)$/.test(o.name))continue;
      b3.setFromObject(o);if(b3.max.x<-8.1)o.material=o.name.includes('dark lower band')?o.material:paleBlue;}}
+  // IMG_20130720_175312 and 'turning 135 degrees 2/3': large cloths hang
+  // across the inner Naga bay. Attachment/size are estimates; keep the access
+  // strip at z >= 3.0 clear and leave the owner's emptied sitting bays alone.
+  {const drying=new THREE.Group();drying.name='Inner Naga bay hanging textiles';g.add(drying);
+   const x0=-4.4,x1=-1.7,lineZ=2.65,lineY=x=>2.84-.08*Math.sin(Math.PI*(x-x0)/(x1-x0));
+   const cord=new THREE.MeshStandardMaterial({name:'Inner bay worn drying cord',color:'#71644f',roughness:1});
+   class DryingLine extends THREE.Curve{getPoint(t,target=new THREE.Vector3()){const x=x0+(x1-x0)*t;return target.set(x,lineY(x),lineZ);}}
+   const rope=new THREE.Mesh(new THREE.TubeGeometry(new DryingLine(),40,.008,6,false),cord);rope.name='Inner Naga bay supported drying cord';rope.castShadow=rope.receiveShadow=true;drying.add(rope);
+   // Both ends hang from retained ceiling joists (underside y 3.50).
+   for(const x of [x0,x1]){
+     K.beam(drying,'Inner drying line ceiling tie',[x,3.50,lineZ],[x,lineY(x),lineZ],.012,cord);
+     K.box(drying,'Inner drying line joist cleat',x,3.515,lineZ,.07,.03,.10,verandaTimber);
+   }
+   function fabric(name,base,pattern=false){
+     const canvas=document.createElement('canvas');canvas.width=canvas.height=256;const c=canvas.getContext('2d');c.fillStyle=base;c.fillRect(0,0,256,256);
+     c.strokeStyle='#eee5d21c';c.lineWidth=1;for(let i=0;i<256;i+=4){c.beginPath();c.moveTo(i,0);c.lineTo(i,256);c.moveTo(0,i);c.lineTo(256,i);c.stroke();}
+     c.strokeStyle='#59474e38';c.lineWidth=3;c.strokeRect(8,7,240,242);c.lineWidth=1;c.strokeRect(13,12,230,232);
+     if(pattern){c.strokeStyle='#d3c0b54d';c.lineWidth=2;
+       for(const [x,y] of [[66,69],[190,69],[66,193],[190,193]])for(let p=0;p<8;p++){
+         const a=p*Math.PI/4;c.save();c.translate(x,y);c.rotate(a);c.beginPath();c.moveTo(0,0);c.bezierCurveTo(-15,-7,-16,-31,0,-36);c.bezierCurveTo(16,-31,15,-7,0,0);c.stroke();c.restore();
+       }}
+     const map=new THREE.CanvasTexture(canvas);map.colorSpace=THREE.SRGBColorSpace;
+     return new THREE.MeshStandardMaterial({name,map,roughness:1});
+   }
+   const fabrics=[fabric('Inner bay faded cream woven cloth','#c9c2b2'),fabric('Inner bay charcoal woven cloth','#504b4c'),fabric('Inner bay faded sage woven cloth','#b0b6a7'),fabric('Inner bay muted rose patterned cloth','#ae8795',true)];
+   for(const [left,right,length,kind] of [[-4.31,-3.74,1.12,0],[-3.72,-3.36,1.40,1],[-3.34,-2.84,1.17,2],[-2.82,-1.80,1.59,3]]){
+     const nx=26,ny=30,pos=[],uv=[],indices=[],phase=left*7;
+     for(let side=0;side<2;side++)for(let j=0;j<=ny;j++)for(let i=0;i<=nx;i++){
+       const u=i/nx,t=j/ny,x=left+(right-left)*u;
+       const fold=t*(.008+.055*t)*Math.sin(u*Math.PI*7+phase)+.014*t*t*Math.sin(u*Math.PI*13+phase);
+       pos.push(x,lineY(x)-length*t-.018*Math.sin(u*Math.PI*3)*t*t,lineZ+fold+(side?-.003:.003));uv.push(u,1-t);
+     }
+     const layer=(nx+1)*(ny+1),quad=(a,b,c,d)=>indices.push(a,b,c,a,c,d);
+     for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+       const a=j*(nx+1)+i,b=a+1,d=a+nx+1,c=d+1;
+       quad(a,d,c,b);quad(a+layer,b+layer,c+layer,d+layer);
+     }
+     for(let i=0;i<nx;i++){quad(i,i+1,i+1+layer,i+layer);const a=ny*(nx+1)+i;quad(a,a+layer,a+1+layer,a+1);}
+     for(let j=0;j<ny;j++){const a=j*(nx+1),b=a+nx,c=b+nx+1,d=a+nx+1;quad(a,a+layer,d+layer,d);quad(b,c,c+layer,b+layer);}
+     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(indices);geo.computeVertexNormals();
+     const cloth=new THREE.Mesh(geo,fabrics[kind]);cloth.name='Inner Naga bay folded hanging cloth';cloth.castShadow=cloth.receiveShadow=true;drying.add(cloth);
+   }
+  }
   // Place the house (authored with its front door at x=0) at K.houseShiftX, with its navigation.
   const hs=K.houseShiftX||0;g.position.x+=hs;
   for(const c of K.colliders.slice(navStart.colliders)){c.minX+=hs;c.maxX+=hs;}

@@ -4,6 +4,15 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: inner entrance hanging textiles
+
+- 175312 and turning 135 degrees 2/3 show large cloths across the Naga bay. Four softly folded
+  woven cloths now hang from a sagging cord tied to retained ceiling joists, behind the platform
+  access strip. Dimensions, attachments and procedural patterns are estimates; dated colours vary.
+- No sitting-bay furniture or storage restored. Walls, floors, pillars, stairs, navigation and all
+  172 poses stay fixed. Wheel/tour, physical support/clearance and exact conservation checks pass.
+  [Before/after source review](docs/review-2026-10-11-entrance-textiles.md); native views follow integration.
+
 ## 2026-10-11: west-bank mud road and taller greenery
 
 - Owner's Oct 4 15.25.49 note, corroborated by 15.26.49: replace the 1.35 m red gap through
