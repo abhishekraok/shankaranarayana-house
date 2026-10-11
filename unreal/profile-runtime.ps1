@@ -37,6 +37,7 @@ try {
         "-UserDir=`"$taskOut`"", "-abslog=`"$taskOut/game.log`"",
         "-ExecCmds=`"t.IdleWhenNotForeground 0,CsvProfile FRAMES=$Frames`"")
     $taskProcess = Start-Process $taskExecutable -ArgumentList $taskArgs -WindowStyle Hidden -PassThru
+    $null = $taskProcess.Handle
     $taskWatch = [Diagnostics.Stopwatch]::StartNew()
     $taskTimedOut = $false
     while (-not $taskProcess.WaitForExit(10000)) {
@@ -48,7 +49,7 @@ try {
             break
         }
     }
-    $taskProcess.Refresh()
+    $taskProcess.WaitForExit()
     @{executable=$taskExecutable; started_utc=$taskStarted.ToString('o');
       exit_code=$taskProcess.ExitCode; timed_out=$taskTimedOut;
       duration_seconds=$taskWatch.Elapsed.TotalSeconds; capture_frames=$Frames;

@@ -12,13 +12,15 @@ from pathlib import Path
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from material_targets import (structural_timber_family, COURTYARD_FENCE_ALIAS, courtyard_fence_override,
-                              validate_fence_manifest, inner_hall_bell_family, rear_plinth_lotus_families)
+                              validate_fence_manifest, inner_hall_bell_family, rear_plinth_lotus_families,
+                              west_bank_road_family, WEST_BANK_ROAD_COLOR_GAIN)
 WATER_NORMAL_CODE = (Path(HERE) / 'water_normal.hlsl').read_text()
 SCENE = os.path.normpath(os.path.join(HERE, '..', '..', 'blender', 'build', 'scene.json'))
 meta = json.load(open(SCENE, encoding='utf8'))
 structural_timber = structural_timber_family(meta)
 inner_hall_bronze = inner_hall_bell_family(meta)
 rear_plinth_lotus = set(rear_plinth_lotus_families(meta))
+west_bank_road = west_bank_road_family(meta)
 fence_override = courtyard_fence_override(meta)
 M = meta['materials']; G = meta['geometries']
 by_name = {m['name']: i for i, m in enumerate(M)}
@@ -452,7 +454,16 @@ def instance(i, variant=None):
     if i == structural_timber:
         gain = COURTYARD_FENCE_GAIN if variant else HOUSE_TIMBER_GAIN
         c = unreal.LinearColor(c.r*gain, c.g*gain, c.b*gain, c.a)
+    if i == west_bank_road:
+        # Three bank-road views show brown gravel; the native map rendered cream.
+        assert kind == 'mapped' and (c.r, c.g, c.b, c.a) == (1, 1, 1, 1), 'Review west-bank road shader/tint'
+        c = unreal.LinearColor(c.r * WEST_BANK_ROAD_COLOR_GAIN, c.g * WEST_BANK_ROAD_COLOR_GAIN,
+                               c.b * WEST_BANK_ROAD_COLOR_GAIN, c.a)
     MEL.set_material_instance_vector_parameter_value(mi, 'Color', c)
+    if i == west_bank_road:
+        actual = MEL.get_material_instance_vector_parameter_value(mi, 'Color')
+        assert all(math.isfinite(getattr(actual, channel)) and abs(getattr(actual, channel) - value) < 1e-6
+                   for channel, value in zip('rgba', (c.r, c.g, c.b, c.a))), 'West-bank road gain readback failed'
     MEL.set_material_instance_scalar_parameter_value(mi, 'Roughness', 0.08 if kind == 'water' else .32 if i in altar_brass else .3 if i in polished_brass else float(web['roughness'] if web['roughness'] is not None else 0.85))
     MEL.set_material_instance_scalar_parameter_value(mi, 'Metallic', .9 if i in altar_brass or i in polished_brass else float(web['metalness'] or 0))
     if i == inner_hall_bronze:

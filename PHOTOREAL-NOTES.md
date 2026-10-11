@@ -6,11 +6,28 @@ On 2026-10-10 the owner expanded Codex's goal to improve both the model and the 
 
 Before every render batch or Unreal rebuild, run `git merge main`. For conflicts in `dist/` or `tests/`, use main's version. Refresh generated scenes when their model source hashes differ. After each merge, produce all aligned poses under `blender/build/sheets-<main short hash>/`, with a searchable overview and explicit coverage count. Retain before/after Markdown reviews after major improvements. Do not modify the alignment server or the pose repository; read poses and photographs in place.
 
+## 2026-10-11 entrance textiles, road shade and stage walking
+
+Main `a0546ae` is rebuilt. Four folded entrance cloths fill the bare inner bay,
+and the exclusive gravel-road material now retains its darker gain after regeneration.
+Fresh native audits, Windows package, six stage walking legs, six bank-road legs,
+ordinary cold restart and focused bank Continue pass. The stage legs retain native
+support over 1,193 samples. All 172 poses / 29 sheets were independently compared
+with `b3b0f63`; no substantial new regression found. The editor exited with access violation `-1073741819` after
+closing its capture log; packaged tests exit 0. No cause is established.
+
+[Current overview](D:/repos/shankaranarayana-photoreal/blender/build/sheets-a0546ae/unreal-20261011-043115/index.html),
+[entrance and walking review](D:/repos/shankaranarayana-photoreal/unreal/reviews/entrance-stage-walk-2026-10-11.md),
+[road material review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-bank-road.md).
+Stage sculptures and the bathing arcade have independently reviewed source drafts
+awaiting separate native integration.
+
 ## 2026-10-11 west bank and walking checks
 
 Main `b3b0f63` is rebuilt. The wider gravel bank road and taller greenery now appear
 in Unreal. Fresh native audits, Windows package, six actual centre/edge walking legs
 and isolated cold Continue pass. All 172 poses / 29 sheets captured with clean exit 0.
+Independent comparison of all 29 sheets found no substantial new regression.
 The road's pale sunlit appearance is under material/photo review. Entrance textiles
 and stage sculptures have independently reviewed source drafts awaiting native review.
 
@@ -40,7 +57,7 @@ in [Continue review](D:/repos/shankaranarayana-photoreal/docs/review-2026-10-11-
 
 | Photo | Remaining substantial work | Render |
 |---|---|---|
-| 2011-09-21 15.25.49 / 15.26.49 | Geometry and actual road walking pass; pale road material remains under review. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/090-2011-09-21 15.25.49.png>) |
+| 2011-09-21 15.25.49 / 15.26.49 | Road geometry/walking pass; pale native material corrected in a0546ae. Ruts and weathering remain approximate. | [15.25.49](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-a0546ae/unreal-20261011-043115/090-2011-09-21 15.25.49.png>) |
 | 2011-09-21 15.13.03 / 15.13.07 | Inner shelter's grey-blue gables remain pale. Rejected front-fill trial had negligible benefit; brightness/weathering remain unresolved. Floral parapet uses a shared masked material. | [15.13.03](<D:/repos/shankaranarayana-photoreal/blender/build/sheets-b3b0f63/unreal-20261011-034353/071-2011-09-21 15.13.03.png>) |
 
 ## 2026-10-11 earlier roof and water pass

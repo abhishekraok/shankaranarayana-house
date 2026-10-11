@@ -1,6 +1,6 @@
 """Audit persisted material maps and UV transforms in a fresh Unreal process."""
 import json
-import os, sys
+import os, sys, math
 from pathlib import Path
 import unreal
 
@@ -8,7 +8,8 @@ root = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).parent))
 from material_targets import (structural_timber_family, COURTYARD_FENCE_ALIAS, validate_fence_manifest,
                               INNER_HALL_BELL_TARGETS, inner_hall_bell_family, REAR_PLINTH_LOTUS_NAME,
-                              REAR_PLINTH_LOTUS_COUNT, REAR_PLINTH_STONE_MAP, rear_plinth_lotus_families)
+                              REAR_PLINTH_LOTUS_COUNT, REAR_PLINTH_STONE_MAP, rear_plinth_lotus_families,
+                              west_bank_road_family, WEST_BANK_ROAD_MAP, WEST_BANK_ROAD_COLOR_GAIN)
 meta = json.loads((root / 'blender/build/scene.json').read_text())
 mel = unreal.MaterialEditingLibrary
 import re
@@ -130,6 +131,39 @@ for index in rear_plinth_lotus_families(meta):
     lotus_records.append({'source_index': index, 'material': mi.get_path_name(), 'scalars': scalars,
                           'color': list(expected_color), 'bindings': [], 'level_bindings': []})
 
+road_index = west_bank_road_family(meta)
+road_web = meta['materials'][road_index]
+road_name = re.sub(r'[^A-Za-z0-9]+', '_', road_web['name']).strip('_')
+road_mi = unreal.load_asset(f'/Game/Materials/Web/MI_{road_name}_{road_index}')
+road_master = unreal.load_asset('/Game/Materials/M_mapped')
+assert isinstance(road_mi, unreal.MaterialInstanceConstant) and road_master and \
+    road_mi.get_editor_property('parent') == road_master, 'West-bank road master changed'
+road_color = mel.get_material_instance_vector_parameter_value(road_mi, 'Color')
+road_expected_color = (WEST_BANK_ROAD_COLOR_GAIN,) * 3 + (1.0,)
+assert all(math.isfinite(getattr(road_color, c)) and abs(getattr(road_color, c) - v) < 1e-6
+           for c, v in zip('rgba', road_expected_color)), 'West-bank road colour gain was not rebuilt'
+road_scalars = {'Roughness': 1.0, 'Metallic': 0.0, 'BumpCentimetres': 0.0,
+                'UseRoughnessMap': 0.0, 'FlipY': 1.0}
+for parameter, expected in road_scalars.items():
+    actual = mel.get_material_instance_scalar_parameter_value(road_mi, parameter)
+    assert math.isfinite(actual) and abs(actual - expected) < 1e-6, 'West-bank road parameter: ' + parameter
+road_texture = mel.get_material_instance_texture_parameter_value(road_mi, 'BaseMap')
+assert road_texture and WEST_BANK_ROAD_MAP[:20] in road_texture.get_name(), 'West-bank road map changed'
+for axis, expected in [('U', (1, 0, 0, 0)), ('V', (0, 1, 0, 0))]:
+    row = mel.get_material_instance_vector_parameter_value(road_mi, 'UVRow' + axis)
+    assert all(math.isfinite(getattr(row, c)) and abs(getattr(row, c) - v) < 1e-6
+               for c, v in zip('rgba', expected)), 'West-bank road UV transform changed'
+road_default = [node for node in mel.get_material_expressions(road_master)
+                if isinstance(node, unreal.MaterialExpressionVectorParameter) and
+                str(node.get_editor_property('parameter_name')) == 'Color']
+assert len(road_default) == 1, 'West-bank road shared Color parameter changed'
+road_default_color = road_default[0].get_editor_property('default_value')
+assert all(math.isfinite(getattr(road_default_color, c)) and abs(getattr(road_default_color, c) - 1) < 1e-6
+           for c in 'rgba'), 'Shared mapped colour default changed'
+road_record = {'source_index': road_index, 'material': road_mi.get_path_name(),
+               'gain': WEST_BANK_ROAD_COLOR_GAIN, 'color': list(road_expected_color),
+               'map_sha256': WEST_BANK_ROAD_MAP, 'scalars': road_scalars, 'bindings': [], 'level_bindings': []}
+
 timber_index = structural_timber_family(meta)
 timber_name = re.sub(r'[^A-Za-z0-9]+', '_', meta['materials'][timber_index]['name']).strip('_')
 timber_mi = unreal.load_asset(f'/Game/Materials/Web/MI_{timber_name}_{timber_index}')
@@ -170,6 +204,8 @@ for part in parts:
     slots = list(mesh.static_materials)
     bell_bindings.extend({'mesh': name, 'slot': i} for i, slot in enumerate(slots)
                          if slot.material_interface == bell_mi)
+    road_record['bindings'].extend({'mesh': name, 'slot': i} for i, slot in enumerate(slots)
+                                   if slot.material_interface == road_mi)
     for record in lotus_records:
         record['bindings'].extend({'mesh': name, 'slot': i} for i, slot in enumerate(slots)
                                   if slot.material_interface == lotus_instances[record['source_index']])
@@ -188,6 +224,7 @@ for part in parts:
         assert alias_triangles == fence_parts[name]['triangles'], f'Fence primitive coverage: {name}'
         fence_bindings.append({'mesh': name, 'triangles': alias_triangles})
 assert bell_bindings, 'Inner-hall bronze instance is not bound to native meshes'
+assert road_record['bindings'], 'West-bank road instance is not bound to native meshes'
 assert all(record['bindings'] for record in lotus_records), 'Rear-plinth stone instance is not bound to native meshes'
 for path in unreal.EditorAssetLibrary.list_assets('/Game/Materials', recursive=False, include_folder=False):
     material = unreal.load_asset(path)
@@ -202,6 +239,9 @@ unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).load_level('/Game/Maps/
 scene = []
 for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_level_actors():
     for component in actor.get_components_by_class(unreal.StaticMeshComponent):
+        road_record['level_bindings'].extend({'component': component.get_path_name(), 'slot': i}
+                                            for i in range(component.get_num_materials())
+                                            if component.get_material(i) == road_mi)
         for record in lotus_records:
             record['level_bindings'].extend({'component': component.get_path_name(), 'slot': i}
                                            for i in range(component.get_num_materials())
@@ -218,9 +258,11 @@ for actor in unreal.get_editor_subsystem(unreal.EditorActorSubsystem).get_all_le
         record['intensity'] = actor.light_component.get_editor_property('intensity')
     scene.append(record)
 assert all(record['level_bindings'] for record in lotus_records), 'Rear-plinth stone instance is not bound in the saved level'
+assert road_record['level_bindings'], 'West-bank road instance is not bound in the saved level'
 report = {'passed': True, 'mapped_materials': len(mapped), 'materials': mapped, 'scene': scene,
           'water': {'material': water_mi.get_path_name(), 'scalars': water_scalars, 'capture_time_persisted': False},
           'structural_timber': {'source_index': timber_index, 'material': timber_mi.get_path_name(), 'gain': timber_gain},
+          'west_bank_road': road_record,
           'inner_hall_bells': {'source_index': bell_index, 'material': bell_mi.get_path_name(),
                                'object_counts': INNER_HALL_BELL_TARGETS, 'scalars': bell_scalars,
                                'color': list(expected_bell_color), 'bindings': bell_bindings},

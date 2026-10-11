@@ -69,6 +69,9 @@ The west-bank road check walks three 22.8 m tracks (center and both edges) south
 and back using actual movement input, turning in place for the reverse legs.
 It checks continuous native support, sideways drift, no water recovery and intact
 view/journal/preferences, then restores the original pose before saving.
+The stage check walks the full front flight at its center and beside the elephants,
+plus the terrace side flight, up and back. Native grounding, floor rise, clearance
+and progress retention are checked; `stage_walking_legs` records all six legs.
 `-WalkContinueProbeSeed -UserDir=<isolated-folder>`, followed by a fresh process
 with `-WalkContinueProbeResume` and the same folder, tests a dry-bank save that
 ordinary teleport clearance rejects. Reports are `continue-seed.json` and

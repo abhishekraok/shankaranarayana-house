@@ -2,6 +2,40 @@
 
 import math
 
+WEST_BANK_ROAD_NAME = 'West bank vehicle-width brown mud road'
+WEST_BANK_ROAD_MAP = '9186890a1a093d571d9ed55ffae50db9131e8a0515de4bcd23e3fee48466cc24'
+WEST_BANK_ROAD_COLOR_GAIN = .5
+
+
+def west_bank_road_family(scene):
+    """Resolve the exclusive brown-gravel road before its native colour gain."""
+    objects = [o for o in scene['objects'] if o['name'] == WEST_BANK_ROAD_NAME]
+    assert len(objects) == 1 and len(objects[0]['materials']) == 1, 'Review changed west-bank road users/slots'
+    index = objects[0]['materials'][0]
+    assert type(index) is int and 0 <= index < len(scene['materials']), 'Invalid west-bank road family'
+    users = [o for o in scene['objects'] if index in o['materials']]
+    assert len(users) == 1, 'West-bank road material shared outside its source object'
+    material = scene['materials'][index]
+    signature = {'name': 'west bank brown gravel road', 'type': 'MeshStandardMaterial', 'color': '#ffffff',
+                 'roughness': 1, 'metalness': 0, 'opacity': 1, 'transparent': False, 'doubleSided': False,
+                 'hasMap': True, 'alphaTest': 0, 'vertexColors': False, 'mapIsPhoto': False,
+                 'mapBase': 'rgb(134,110,88)'}
+    assert all(material.get(k) == v for k, v in signature.items()), 'Recalibrate changed west-bank road properties'
+    assert all(type(material.get(k)) in (int, float) and math.isfinite(material[k])
+               for k in ('roughness', 'metalness', 'opacity', 'alphaTest')), 'Invalid west-bank road scalars'
+    assert not any(material.get(k) for k in ('emissive', 'emissiveIntensity', 'photoMap', 'bumpMap', 'roughnessMap')), \
+        'Review emissive/photo/bump/roughness-mapped west-bank road'
+    map_signature = {'sha256': WEST_BANK_ROAD_MAP, 'width': 256, 'height': 256,
+                     'matrix': [1, 0, 0, 0, 1, 0, 0, 0, 1], 'wrapS': 1000, 'wrapT': 1000,
+                     'flipY': True, 'colorSpace': 'srgb'}
+    assert all((material.get('proceduralMap') or {}).get(k) == v for k, v in map_signature.items()), \
+        'Review changed west-bank road procedural map'
+    obj = objects[0]
+    assert not obj.get('instances') and not obj.get('instanceColors') and \
+        not scene['geometries'][obj['geometry']].get('color'), 'Review west-bank road tint/instances'
+    return index
+
+
 REAR_PLINTH_LOTUS_NAME = 'Rear plinth continuous lotus course'
 REAR_PLINTH_LOTUS_COUNT = 4
 REAR_PLINTH_STONE_MAP = 'fd1772619a2f09408afae133bcbcfd9ec724f8a7e615d5a4f4a90d1614c53c7c'

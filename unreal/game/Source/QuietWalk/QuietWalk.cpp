@@ -662,6 +662,11 @@ void AWalkController::PlayerTick(float D) {
             SmokeMoving=false;C->Forward(0);C->Right(0);C->ConsumeMovementInputVector();C->GetCharacterMovement()->StopMovementImmediately();
         }
     }
+    if(Smoke&&SmokeStageActive){
+        ObserveStageSmoke();
+        const bool Arrived=FVector::DotProduct(C->GetActorLocation()-SmokeStageTarget,SmokeStageForward)>=0;
+        if(SmokeMoving&&Arrived){SmokeMoving=false;C->Forward(0);C->Right(0);C->ConsumeMovementInputVector();C->GetCharacterMovement()->StopMovementImmediately();}
+    }
     if(Smoke&&SmokeMoving&&SmokeTempleStairStep>=3&&SmokeTempleStairStep<=6) {
         // Short portico routes stop at their authored endpoints, before the
         // hanging bell/columns. Movement still crosses every physical tread.
@@ -1306,6 +1311,13 @@ namespace {
 constexpr double RoadSmokeTopCm=2.6, RoadSmokeNorthY=-1200, RoadSmokeSouthY=-3480;
 const double RoadSmokeTracks[]={-855,-757,-933};
 const TCHAR* RoadSmokeNames[]={TEXT("center"),TEXT("lake edge"),TEXT("west edge")};
+// landscape.js b4fdb175: 7 plain + 10 tiled front treads; six side treads.
+// The -640 track clears the porch column foot by 5 cm for a 22 cm capsule.
+struct FStageSmokeRoute { const TCHAR* Name; FVector Low,High; };
+const FStageSmokeRoute StageSmokeRoutes[]={
+    {TEXT("stage front center"),FVector(5430,-500,5.1),FVector(6040,-500,282)},
+    {TEXT("stage front beside elephants"),FVector(5430,-640,5.1),FVector(6040,-640,282)},
+    {TEXT("stage terrace side flight"),FVector(5955,-30,170),FVector(5955,-235,282)}};
 }
 void AWalkController::ObserveRoadSmoke() {
     auto* C=Cast<AWalkCharacter>(GetPawn());if(!C)return;
@@ -1330,6 +1342,34 @@ void AWalkController::ObserveRoadSmoke() {
         UE_LOG(LogTemp,Display,TEXT("WALKROAD first support failure leg %d: %s"),SmokeRoadLeg,*SmokeRoadSupportIssue);
     }
     SmokeRoadContinuousSupport&=Safe;
+}
+void AWalkController::ObserveStageSmoke() {
+    auto* C=Cast<AWalkCharacter>(GetPawn());if(!C||SmokeStageLeg>=6)return;
+    const auto& Route=StageSmokeRoutes[SmokeStageLeg/2];auto* M=C->GetCharacterMovement();
+    const FVector P=C->GetActorLocation(),Feet=P-FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight());
+    const FVector Along=(Route.High-Route.Low).GetSafeNormal2D(),Across(-Along.Y,Along.X,0);
+    const double Travelled=FVector::DotProduct(P-Route.Low,Along),Length=FVector::Dist2D(Route.Low,Route.High);
+    const double Lateral=FMath::Abs(FVector::DotProduct(P-Route.Low,Across));SmokeStageMaxLateral=FMath::Max(SmokeStageMaxLateral,Lateral);
+    FHitResult Hit;FCollisionQueryParams Params(SCENE_QUERY_STAT(SmokeStageSupport),true,C);
+    // A capsule steps ahead of its centre. The configured step depth admits the
+    // previous tread below it; five flat-ground rays would reject real stairs.
+    const bool Bearing=GetWorld()->LineTraceSingleByChannel(Hit,Feet+FVector(0,0,8),Feet-FVector(0,0,M->MaxStepHeight+8),ECC_Visibility,Params);
+    const bool Grounded=M->IsMovingOnGround()&&M->CurrentFloor.IsWalkableFloor();
+    const bool Safe=Grounded&&Bearing&&M->IsWalkable(Hit)&&Lateral<=10&&Travelled>=-10&&Travelled<=Length+10&&
+        Hit.ImpactPoint.Z>=Route.Low.Z-2&&Hit.ImpactPoint.Z<=Route.High.Z+4&&WaterHazardAt(P).IsEmpty();
+    if(Bearing){
+        if(SmokeStageSupportSamples==0)SmokeStageMinSupportZ=SmokeStageMaxSupportZ=Hit.ImpactPoint.Z;
+        else{SmokeStageMinSupportZ=FMath::Min(SmokeStageMinSupportZ,Hit.ImpactPoint.Z);SmokeStageMaxSupportZ=FMath::Max(SmokeStageMaxSupportZ,Hit.ImpactPoint.Z);}
+        SmokeStageSupportPoint=Hit.ImpactPoint;const auto* Mesh=Cast<UStaticMeshComponent>(Hit.GetComponent());
+        SmokeStageSupportMesh=Mesh&&Mesh->GetStaticMesh()?Mesh->GetStaticMesh()->GetPathName():TEXT("none");
+    }
+    SmokeStageSupportSamples++;
+    if(!Safe&&SmokeStageContinuousSupport){
+        SmokeStageSupportIssue=FString::Printf(TEXT("position %s grounded %d bearing %d floor %s normal %s lateral %.2f mesh %s"),
+            *P.ToString(),Grounded,Bearing,*Hit.ImpactPoint.ToString(),*Hit.ImpactNormal.ToString(),Lateral,*SmokeStageSupportMesh);
+        UE_LOG(LogTemp,Display,TEXT("WALKSTAGE first support failure leg %d: %s"),SmokeStageLeg,*SmokeStageSupportIssue);
+    }
+    SmokeStageContinuousSupport&=Safe;
 }
 void AWalkController::ContinueProbeTick() {
     const double Now=FPlatformTime::Seconds();if(ContinueProbeFinished)return;
@@ -1894,12 +1934,71 @@ void AWalkController::SmokeTick() {
             Check(SmokeRoadReports.Num()==6,TEXT("all six native road walking legs were measured"));
             Stop();SmokeForwardInput=1;SmokeRoadActive=false;SmokeRoadBaseline=nullptr;return;
         }
+        if(I==Places.Num()+15){
+            auto* C=Cast<AWalkCharacter>(GetPawn());auto* M=C->GetCharacterMovement();const double Sim=GetWorld()->GetTimeSeconds();
+            auto Repeat=[&](){NextSmoke=Now+.1;SmokeStep--;};
+            auto Stop=[&](){SmokeMoving=false;SmokeForwardInput=0;C->Forward(0);C->Right(0);C->ConsumeMovementInputVector();M->StopMovementImmediately();};
+            auto Wait=[&](){if(Sim-SmokeStageSimAt>=.2)return false;if(Now<SmokeStageDeadline){Repeat();return true;}Check(false,TEXT("stage settle completes before wall deadline"));return false;};
+            auto ProgressIntact=[&](){const auto* B=SmokeStageBaseline.Get();return B&&Save->Visited==B->Visited&&Save->HasWalk==B->HasWalk&&Save->Version==B->Version&&Save->LookVersion==B->LookVersion&&Save->DisplayVersion==B->DisplayVersion&&
+                Save->Sensitivity==B->Sensitivity&&Save->Fov==B->Fov&&Save->Volume==B->Volume&&Save->InvertY==B->InvertY&&Save->Guidance==B->Guidance&&
+                Save->Quality==B->Quality&&Save->Fullscreen==B->Fullscreen&&Save->WindowResolution==B->WindowResolution&&Save->RenderScale==B->RenderScale;};
+            if(!SmokeStageBaseline){SmokeStageBaseline=DuplicateObject<UWalkSave>(Save,this);SmokeStageSavedPosition=C->GetActorLocation();SmokeStageSavedLook=GetControlRotation();SmokeStageRecoveryBase=WaterRecoveryCount;}
+            if(SmokeStagePhase==4){
+                if(Wait())return;
+                Check(FVector::Dist(C->GetActorLocation(),SmokeStageSavedPosition)<5&&GetControlRotation().Equals(SmokeStageSavedLook,.1)&&ProgressIntact()&&WaterRecoveryCount==SmokeStageRecoveryBase,
+                    TEXT("stage tests restore the original final save, full view, journal and preferences"));
+                Check(SmokeStageReports.Num()==6,TEXT("all six native stage stair legs were measured"));
+                Stop();SmokeForwardInput=1;SmokeStageActive=false;SmokeStageBaseline=nullptr;return;
+            }
+            const auto& Route=StageSmokeRoutes[SmokeStageLeg/2];const bool Up=SmokeStageLeg%2==0;
+            const FVector Target=Up?Route.High:Route.Low,Forward=(Up?Route.High-Route.Low:Route.Low-Route.High).GetSafeNormal2D();
+            const FRotator Look(-12,Forward.Rotation().Yaw,0);const FString Name=FString(Route.Name)+(Up?TEXT(" up"):TEXT(" down"));
+            if(SmokeStagePhase==0){
+                Stop();Show("");Check(M->MaxStepHeight>=19,TEXT("configured walk step height supports the authored stage risers"));
+                if(Up){FHitResult Floor;FCollisionQueryParams Params(SCENE_QUERY_STAT(SmokeStageStart),true,C);
+                    const bool Bearing=GetWorld()->LineTraceSingleByChannel(Floor,Route.Low+FVector(0,0,40),Route.Low-FVector(0,0,40),ECC_Visibility,Params);
+                    Check(Bearing&&M->IsWalkable(Floor)&&FMath::Abs(Floor.ImpactPoint.Z-Route.Low.Z)<1.5,Name+TEXT(" begins on its authored native lower floor"));
+                    Check(Bearing&&RestorePosition(Floor.ImpactPoint+FVector(0,0,C->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()+2.15),Look),Name+TEXT(" collision-checked initial placement"));
+                }else SetControlRotation(Look); // Return through every tread with actual input.
+                SmokeStageContinuousSupport=true;SmokeStageSupportSamples=0;SmokeStageMaxLateral=0;SmokeStageSupportIssue.Empty();SmokeStageSupportMesh.Empty();
+                SmokeStageMinSupportZ=SmokeStageMaxSupportZ=0;SmokeStageSupportPoint=FVector::ZeroVector;SmokeStageTarget=Target;SmokeStageForward=Forward;
+                SmokeStageActive=true;SmokeStageSimAt=Sim;SmokeStageDeadline=Now+4;SmokeStagePhase=1;Repeat();return;
+            }
+            if(SmokeStagePhase==1){
+                if(Wait())return;ObserveStageSmoke();SmokeStageStart=C->GetActorLocation();SmokeStageStartFloor=SmokeStageSupportPoint.Z;
+                const FVector Origin=Up?Route.Low:Route.High;
+                Check(FVector::Dist2D(SmokeStageStart,Origin)<10&&FMath::Abs(SmokeStageStartFloor-Origin.Z)<1.5,Name+TEXT(" settles on its intended starting floor"));
+                SmokeStageSimAt=Sim;SmokeStageDeadline=Now+(SmokeStageLeg>=4?6:12);SmokeStagePhase=2;SmokeMoving=true;SmokeForwardInput=1;Repeat();return;
+            }
+            if(SmokeStagePhase==2){
+                if(SmokeMoving&&Now<SmokeStageDeadline&&Sim-SmokeStageSimAt<(SmokeStageLeg>=4?4:8)){Repeat();return;}
+                Check(!SmokeMoving,Name+TEXT(" reaches its endpoint under bounded actual movement input"));
+                Stop();SmokeStageSimAt=Sim;SmokeStageDeadline=Now+4;SmokeStagePhase=3;Repeat();return;
+            }
+            if(Wait())return;ObserveStageSmoke();const FVector P=C->GetActorLocation();const double Distance=FVector::DotProduct(P-SmokeStageStart,Forward),Rise=SmokeStageSupportPoint.Z-SmokeStageStartFloor;
+            Check(Distance>=FVector::Dist2D(Route.Low,Route.High)-20&&FVector::Dist2D(P,Target)<10&&SmokeStageMaxLateral<=10&&FMath::Abs(SmokeStageSupportPoint.Z-Target.Z)<1.5&&
+                FMath::Abs(Rise-(Up?1:-1)*(Route.High.Z-Route.Low.Z))<2,Name+TEXT(" crosses the entire flight to the correct native floor: ")+P.ToString());
+            Check(SmokeStageContinuousSupport&&SmokeStageSupportSamples>10,Name+TEXT(" continuously retains walkable native stair support: ")+SmokeStageSupportIssue);
+            Check(Walking&&Page.IsEmpty()&&!Aligning&&WaterRecoveryCount==SmokeStageRecoveryBase&&ProgressIntact()&&GetControlRotation().Equals(Look,.1),
+                Name+TEXT(" retains walk, view, journal and preferences without recovery"));
+            auto Leg=MakeShared<FJsonObject>();Leg->SetStringField(TEXT("route"),Name);Leg->SetStringField(TEXT("route_definition_commit"),TEXT("b4fdb175a378f311f6352b7054d2f17061506a09"));
+            auto Point=[&](const TCHAR* Key,const FVector& V){Leg->SetArrayField(Key,{MakeShared<FJsonValueNumber>(V.X),MakeShared<FJsonValueNumber>(V.Y),MakeShared<FJsonValueNumber>(V.Z)});};
+            Point(TEXT("start_cm"),SmokeStageStart);Point(TEXT("end_cm"),P);Point(TEXT("last_support_cm"),SmokeStageSupportPoint);
+            Leg->SetNumberField(TEXT("forward_distance_cm"),Distance);Leg->SetNumberField(TEXT("floor_rise_cm"),Rise);Leg->SetNumberField(TEXT("maximum_lateral_error_cm"),SmokeStageMaxLateral);
+            Leg->SetBoolField(TEXT("continuous_native_support"),SmokeStageContinuousSupport);Leg->SetNumberField(TEXT("support_samples"),SmokeStageSupportSamples);
+            Leg->SetNumberField(TEXT("minimum_support_z_cm"),SmokeStageMinSupportZ);Leg->SetNumberField(TEXT("maximum_support_z_cm"),SmokeStageMaxSupportZ);
+            Leg->SetStringField(TEXT("support_mesh"),SmokeStageSupportMesh);Leg->SetStringField(TEXT("first_support_failure"),SmokeStageSupportIssue);SmokeStageReports.Add(MakeShared<FJsonValueObject>(Leg));
+            SmokeStageActive=false;SmokeStageLeg++;SmokeStagePhase=0;
+            if(SmokeStageLeg==6){Check(RestorePosition(SmokeStageSavedPosition,SmokeStageSavedLook),TEXT("stage tests restore the pre-test position and view"));SmokeStageSimAt=Sim;SmokeStageDeadline=Now+4;SmokeStagePhase=4;}
+            Repeat();return;
+        }
         Check(Persist(true),TEXT("final save succeeds"));
         TSharedRef<FJsonObject> Report=MakeShared<FJsonObject>();Report->SetBoolField(TEXT("passed"),SmokeFailures.IsEmpty());TArray<TSharedPtr<FJsonValue>> Errors;for(auto& E:SmokeFailures)Errors.Add(MakeShared<FJsonValueString>(E));Report->SetArrayField(TEXT("failures"),Errors);
         Report->SetObjectField(TEXT("display"),DisplayReport());if(SmokeDisplayReport)Report->SetObjectField(TEXT("tested_display_modes"),SmokeDisplayReport);
         Report->SetNumberField(TEXT("loaded_water_regions"),WaterRegions.Num());Report->SetNumberField(TEXT("water_recovery_count"),WaterRecoveryCount);
         Report->SetArrayField(TEXT("water_recovery_events"),WaterRecoveryEvents);
         Report->SetArrayField(TEXT("road_walking_legs"),SmokeRoadReports);
+        Report->SetArrayField(TEXT("stage_walking_legs"),SmokeStageReports);
         FString Json;auto Writer=TJsonWriterFactory<>::Create(&Json);FJsonSerializer::Serialize(Report,Writer);FFileHelper::SaveStringToFile(Json,*(Dir/TEXT("smoke.json")));
         NextSmoke=TNumericLimits<double>::Max();
         UKismetSystemLibrary::QuitGame(this,this,EQuitPreference::Quit,false);break;

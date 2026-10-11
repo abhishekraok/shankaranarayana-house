@@ -19,6 +19,8 @@ save within 0.000003 cm, preserving view, journal and preferences; both processe
 172/172 aligned renders, 29 sheets, clean exit 0. One unavailable photograph still has
 its pose rendered. Road appearance remains pale in sunlight; color accuracy needs
 material/photo review rather than an assumed global exposure change.
+Independent comparison of all 29 before/after sheets found no substantial new
+regression; the roofscape, house, lanes, bells and carved-stone shading are retained.
 
 Package inventory: nine approved source photograph textures, 3,416 IoStore entries,
 204 native texture entries, no private photo filename matches. This checks filenames
