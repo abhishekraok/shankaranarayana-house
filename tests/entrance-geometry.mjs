@@ -409,7 +409,7 @@ for(const name of ['Stage upper left stone figure','Stage upper right stone figu
 const stageSculptures=landscape.children.filter(o=>o.name==='Stage stair black stone elephant'||/^Stage (lower|upper) (left|right) stone figure$/.test(o.name));
 assert.equal(stageSculptures.length,6);
 const stageSculptureReview={closedMeshes:0,adultBearingFeet:0,calfBearingFeet:0,guardianBearingFeet:0,stairCapsuleSamples:0};
-function closedOutwardStone(mesh){
+function closedOutwardStone(mesh,countReview=stageSculptureReview){
   const p=mesh.geometry.attributes.position,n=mesh.geometry.attributes.normal,index=mesh.geometry.index;
   const welded=new Map(),ids=[],edges=new Map();let volume=0;
   for(let i=0;i<p.count;i++){
@@ -425,8 +425,8 @@ function closedOutwardStone(mesh){
     volume+=v[0].dot(v[1].clone().cross(v[2]))/6;
     for(let j=0;j<3;j++){const a=ids[t[j]],b=ids[t[(j+1)%3]];assert.notEqual(a,b,mesh.name+' nondegenerate welded edge');const key=a<b?a+':'+b:b+':'+a,edge=edges.get(key)||[0,0];edge[0]++;edge[1]+=a<b?1:-1;edges.set(key,edge);}
   }
-  for(const [key,[count,balance]] of edges)assert.ok(count===2&&balance===0,mesh.name+' closed consistently wound edge '+key);
-  if(mesh.geometry.type==='BufferGeometry'){
+  for(const [key,[count,balance]] of edges)assert.ok(count===2&&balance===0,mesh.name+' closed consistently wound edge '+key+' count '+count+' balance '+balance);
+  if(countReview===stageSculptureReview&&mesh.geometry.type==='BufferGeometry'){
     const ringSize=(p.count-2)%24===0?24:12,ringCount=(p.count-2)/ringSize,centers=[];
     for(let j=0;j<ringCount;j++){const center=new THREE.Vector3();for(let k=0;k<ringSize;k++)center.add(new THREE.Vector3().fromBufferAttribute(p,j*ringSize+k));centers.push(center.divideScalar(ringSize));}
     for(let i=0;i<(ringCount-1)*ringSize*6;i+=3){
@@ -436,7 +436,7 @@ function closedOutwardStone(mesh){
       assert.ok(dot>=-.0001,mesh.name+' no folded inward side face: '+dot);
     }
   }
-  assert.ok(volume>1e-8,mesh.name+' outward signed volume');stageSculptureReview.closedMeshes++;
+  assert.ok(volume>1e-8,mesh.name+' outward signed volume');countReview.closedMeshes++;
 }
 const childMeshes=(g,name)=>g.children.filter(o=>o.isMesh&&o.name===name);
 for(const g of stageSculptures){
@@ -484,6 +484,69 @@ for(const z of [-6.5,-5,-3.5])for(const reverse of [false,true]){
       assert.equal(ray.intersectObjects(stageSculptures,true).length,0,'Stone sculptures clear the supported walking capsule on the stair tracks');
       stageSculptureReview.stairCapsuleSamples++;
     }
+  }
+}
+// 14.58.05 / 14.59.39 / 15.14.02 / 15.20.29 / 15.27.07: open timber west
+// gable, three freestanding supports per row, and a genuinely pierced room wall.
+const arcadeReview={closedMeshes:0,supports:6,maximumRoofBearingGap:0,roomHoleRays:0,routeCapsuleSamples:0};
+const arcadeRoof=landscape.getObjectByName('Long lakeside bathing arcade tiled roof'),arcadeTiles=arcadeRoof.getObjectByName('Long lakeside bathing arcade tiled roof tiles'),ap=arcadeTiles.geometry.attributes.position,an=arcadeTiles.geometry.attributes.normal;
+assert.equal(ap.count,15,'Only the local west triangle is removed, leaving four pitched sheets and the east infill');
+for(let i=0;i<ap.count;i+=3){
+  assert.ok(![0,1,2].every(j=>Math.abs(ap.getX(i+j)+10.05)<.0001),'No opaque west gable remains');
+  if(![0,1,2].every(j=>Math.abs(ap.getX(i+j)-10.05)<.0001))for(let j=0;j<3;j++)assert.ok(an.getY(i+j)>.8,'Both roof slopes keep their original upward winding');
+}
+const arcRoofBounds=new THREE.Box3().setFromObject(arcadeTiles);
+assert.ok(Math.abs(arcRoofBounds.min.x-28.95)<.00001&&Math.abs(arcRoofBounds.max.x-49.05)<.00001&&Math.abs(arcRoofBounds.min.z+10.8)<.00001&&Math.abs(arcRoofBounds.max.z+7.2)<.00001&&Math.abs(arcRoofBounds.max.y-3.82)<.00001,'Roof extent, eave and pitch remain fixed');
+const lanePiers=landscape.children.filter(o=>o.name==='Bathing arcade lane square white pillar'),lakePiers=landscape.children.filter(o=>o.name==='Bathing arcade lake plain white pillar');
+assert.equal(lanePiers.length,3);assert.equal(lakePiers.length,3);
+assert.equal(landscape.children.filter(o=>o.name==='Bathing arcade lake coping collar').length,3,'Lake piers retain the photographed modest coping-level collars');
+assert.equal(landscape.getObjectByName('Bathing arcade white-tiled pillar foot'),undefined,'Freestanding piers are not wrapped in invented tile');
+const arcadeBeams=landscape.children.filter(o=>o.name==='Bathing arcade dark beam');
+for(const pier of [...lanePiers,...lakePiers]){
+  const b=new THREE.Box3().setFromObject(pier),up=new THREE.Raycaster(new THREE.Vector3(pier.position.x,2.3,pier.position.z),new THREE.Vector3(0,1,0),0,.2).intersectObjects(arcadeBeams,false)[0];
+  assert.ok(up&&Math.abs(b.max.y-up.point.y)<.00001,'Each shaft bears against the retained longitudinal roof beam');
+  assert.ok(collision(pier.position.x,pier.position.z,.065),'Blockers follow the actual six supports');
+}
+for(const x of [32.6,35.2,37.8,40.4,45.6])assert.ok(!collision(x,-7.77,.065),'Removed lane pillars leave no invisible blockers'); // Lake row remains inside the retained parapet blocker.
+const arcadeTruss=landscape.children.filter(o=>o.name.startsWith('Bathing arcade west truss ')),tie=landscape.getObjectByName('Bathing arcade west truss tie'),tieBounds=new THREE.Box3().setFromObject(tie),arcadeRafters=arcadeTruss.filter(o=>o.name==='Bathing arcade west truss rafter');
+assert.equal(arcadeRafters.length,2);
+for(const z of [-10.38,-7.9]){
+  const pier=landscape.children.find(o=>o.name==='Lake entrance west stepped white pillar'&&Math.abs(o.position.z-z)<.001),p=new THREE.Box3().setFromObject(pier);
+  const contact=new THREE.Raycaster(new THREE.Vector3(30.15,p.max.y-.01,z),new THREE.Vector3(0,1,0),0,.03).intersectObject(tie,false)[0];assert.ok(contact&&Math.abs(contact.point.y-p.max.y)<.00001,'West truss tie bears on the unchanged end piers');
+}
+for(const z of [-10.65,-10.1,-9.45,-8.55,-7.9,-7.35]){
+  const roof=new THREE.Raycaster(new THREE.Vector3(30.15,2.3,z),new THREE.Vector3(0,1,0),0,2).intersectObject(arcadeTiles,false)[0];assert.ok(roof);
+  const support=new THREE.Raycaster(roof.point.clone().add(new THREE.Vector3(0,.01,0)),new THREE.Vector3(0,-1,0),0,.2).intersectObjects(arcadeRafters,false)[0];assert.ok(support);
+  const gap=Math.abs(roof.point.y-support.point.y);arcadeReview.maximumRoofBearingGap=Math.max(arcadeReview.maximumRoofBearingGap,gap);assert.ok(gap<.001,'Actual arcadeRafters meet both pitched roof triangles');
+}
+for(const post of arcadeTruss.filter(o=>/king post|pier bearing/.test(o.name))){
+  const b=new THREE.Box3().setFromObject(post),up=new THREE.Raycaster(new THREE.Vector3(post.position.x,b.max.y-.01,post.position.z),new THREE.Vector3(0,1,0),0,.03).intersectObjects(arcadeRafters,false)[0];
+  assert.ok(Math.abs(b.min.y-tieBounds.max.y)<.00001&&up&&Math.abs(b.max.y-up.point.y)<.00001,'Truss king post and short bearings touch tie and arcadeRafters');
+}
+assert.equal(new THREE.Raycaster(new THREE.Vector3(28.8,3.10,-8.7),new THREE.Vector3(1,0,0),0,1.5).intersectObjects([arcadeTiles,...arcadeTruss],false).length,0,'West gable exposes real empty space between timbers');
+const roomWall=landscape.getObjectByName('Lake entrance east room pierced lake wall');
+assert.ok(roomWall&&!landscape.getObjectByName('Lake entrance east room dark doorway'),'False lake doorway is removed');
+for(let row=0;row<3;row++)for(let i=0;i<5;i++){
+  const x=47.9-.72+i*.36+(row%2)*.04,y=1.20+row*.35,ray=new THREE.Raycaster(new THREE.Vector3(x,y,-10.6),new THREE.Vector3(0,0,1),0,.65);
+  assert.equal(ray.intersectObject(landscape,true).length,0,'Room apertures are not blocked by an old solid box, wrapping dado or lower arcade screen');arcadeReview.roomHoleRays++;
+}
+assert.equal(new THREE.Raycaster(new THREE.Vector3(47.36,1.2,-10.6),new THREE.Vector3(0,0,1),0,.65).intersectObject(landscape,true)[0]?.object.name,roomWall.name,'Masonry between room holes remains solid');
+assert.ok(landscape.getObjectByName('Lake entrance orange painted sign')&&landscape.getObjectByName('Lake entrance brass tap pipe')&&landscape.getObjectByName('Lake entrance east room tiled dado'),'Lane-facing sign, tap and dado remain');
+const closedArcade=landscape.children.filter(o=>/^Bathing arcade (lane |lake white plinth|lake plain white pillar|lake coping collar|red-oxide pillar base|west truss )/.test(o.name)||/^Lake entrance east (whitewashed room|room white side wall|room pierced lake wall|room tiled dado|room side tiled dado)$/.test(o.name));
+for(const mesh of closedArcade)closedOutwardStone(mesh,arcadeReview);
+// The native capsule radius clears the full sheltered aisle and the retained bathing
+// stair head. Actual mesh rays supplement abstract navigation/support conservation.
+const arcadeVisuals=[...closedArcade,...arcadeBeams,arcadeTiles];
+for(const z of [-9.5,-9,-8.5])for(let x=30.7;x<=46.5;x+=.1){
+  assert.ok(!collision(x,z,.065)&&Math.abs(supportY(x,z,.065)-.065)<.00001,'Arcade aisle has its original clear supported floor');
+  for(let j=0;j<9;j++){const a=j*Math.PI/4,r=j===8?0:.22,ray=new THREE.Raycaster(new THREE.Vector3(x+r*Math.cos(a),.09,z+r*Math.sin(a)),new THREE.Vector3(0,1,0),0,2.10);assert.equal(ray.intersectObjects(arcadeVisuals,false).length,0,'New arcade supports/truss/room clear the physical walking capsule');arcadeReview.routeCapsuleSamples++;}
+}
+const arcadeAccessVisuals=[...arcadeVisuals,...landscape.children.filter(o=>/^(Lake entrance west (tiled pedestal|stepped white pillar|pillar collar)|Bathing arcade lake-facing pierced masonry)$/.test(o.name))];
+for(const reverse of [false,true]){
+  let feet=reverse?-1.55:.065;
+  for(let i=0;i<=66;i++){
+    const x=reverse?27.4+i*.05:30.7-i*.05,z=-9.65;feet=supportY(x,z,feet);assert.ok(!collision(x,z,feet),'Bathing stair approach keeps its clear route both ways');
+    for(let j=0;j<9;j++){const a=j*Math.PI/4,r=j===8?0:.22,ray=new THREE.Raycaster(new THREE.Vector3(x+r*Math.cos(a),feet+.025,z+r*Math.sin(a)),new THREE.Vector3(0,1,0),0,2.10);assert.equal(ray.intersectObjects(arcadeAccessVisuals,false).length,0,'West truss/end piers clear the physical bathing-stair capsule');arcadeReview.routeCapsuleSamples++;}
   }
 }
 // The shop is beside the adjacent building, not another temple frontage.
@@ -1083,7 +1146,7 @@ checkRoute('Opposite-bank path crosses stair landing',[[11.7,-37.4],[14.8,-37.4]
 checkRoute('Opposite-bank left flight descent',[[9.35,-37.4],[9.35,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank right flight descent',[[17.25,-37.4],[17.25,-35.2675],[13.25,-35.2675],[13.25,-32.63]],1.38,-1.56);
 checkRoute('Opposite-bank flight ascent',[[13.25,-32.63],[13.25,-35.2675],[9.35,-35.2675],[9.35,-37.4]],-1.55,-1.56);
-const report={innerRoofReview,laneRoofReview,stageSculptureReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
+const report={innerRoofReview,laneRoofReview,stageSculptureReview,arcadeReview,houseUpperPanorama:{references:['15.30.09','15.30.06','15.30.02'],sameCamera:true,panRight:true,oppositeBuildingsVisible:true,pavilionMovesRightToLeft:true,centralBankStairsAccessible:true},lakeFence:{reference:'14.58.02',heavyRoadsidePiers:true,darkRailsWhitePiers:true,bathingOpeningsClear:true,shopStageTempleVisibleInOrder:true,stageFiguresVisible:true,referenceKeptOutOfPublicAssets:true},shop:{references:['15.20.13','15.28.26'],bothViewpointsSupported:true,shopfrontVisibleFromBoth:true,leftOfAdjacentBuildingAcrossLake:true},templeFrontRefinement:{references:['15.14.30','15.15.11','15.15.17','15.15.51','15.20.01','15.22.12'],centralPassageHeight:.20,sideFloorHeight:.39,rearLedgeHeight:.85,deityOrder:['Ganesh','Shiva','Vishnu','Hanuman'],fourTexturedPaintingsVisible:true,pondWaterBelowGround:true,pondUncoveredByTerrain:true,upperEntryCanopyBelowRightWing:true,newViewpointsSupported:true},lakePanorama:{references:['15.22.33','15.22.36','15.22.40'],sameCamera:true,oppositeMudRoad:true,pavilionNearLeft:true,templeAndHouseVisible:true},templeEntrance:{exteriorReference:'15.19.41',doorwayReference:'15.15.51',adjacentHallReference:'15.19.57',exteriorLeftOfEntrance:true,doorwayPaintingsAndInscriptionVisible:true,passageOpen:true},referenceView:'On the veranda before the main door, looking left',camera:reference,veranda:{photoStops:verandaKeys,allBeforeMainDoor:true,sittingBaysReachableBothDirections:true,lowerWalkwayHeadClearance:true,benchChairAndRecessedWindowVisible:true,rightBayWallOnLeft:true},frontRoadViews:{tankOnLeft:true,adjacentBuildingAhead:true,templeLayoutUnchanged:true},templeOuterCircuit:{completeLoopBothDirections:true,meshHeadClearance:true,verandaStairsReachable:true,standingStoneVisible:true,threeShrineNichesVisible:true,photoStops:outerKeys},templeTowardsHouse:{camera:homePhoto,houseLeftLakeRight:true,doorCarAndTarpVisible:true,walkToHouseClear:true},godroom:{camera:god,gateVisible:true,stepsReachable:true,postsInFrame:true},templeGallery:{threePhotoPositionsSupported:true,facadeWindowsVisible:true,lampLeftPillarRight:true,stairHeadClearance:true,templeMeshCount},routes,meshCount,tour:{durationSeconds:tour.duration,checkpoints,collisionSamples},passed:true};
 await fs.writeFile(new URL('../checks/entrance-correction.json',import.meta.url),JSON.stringify(report,null,2)+'\n');
 console.log(JSON.stringify(report,null,2));
 export {K,THREE,main,collision,supportY,blockedRise,farZ,farZinv};

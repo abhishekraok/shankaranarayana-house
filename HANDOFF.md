@@ -4,6 +4,19 @@ Claude's reconstruction handoff, updated after the local Codex fidelity pass bel
 Read AGENTS.md first; its rules (local commits only, no push or deploy, private photos never
 committed) still apply.
 
+## 2026-10-11: bathing arcade open bays and room face
+
+- 14.58.05 / 14.59.39 / 15.14.02 / 15.20.29 / 15.21.47 / 15.27.07: open the west tiled
+  infill and add a supported timber truss; use three freestanding supports per row, with heavy
+  red-foot lane piers and slender lake piers retaining modest coping collars. The end room's
+  lake face has real pierced holes, without the false door/wrapping tiles; lane finishes stay.
+- Roof extent/pitch, floor, end piers/pedestals, notice, bank, gate and stairs stay fixed.
+  Support pitch/profile, truss sizes and apertures are estimates; arcade shortening/east-end
+  layout remain unresolved. Pillar blockers follow the six supports; all other navigation,
+  172 poses and unrelated geometry remain exact. Source bearing/clearance, wheel/tour and
+  conservation checks pass. [Before/after review](docs/review-2026-10-11-bathing-arcade.md);
+  native appearance and collision validation follow integration.
+
 ## 2026-10-11: stage sculpture silhouettes
 
 - 15.13.30 / 15.13.26 and 15.12.15 / 15.19.57: replace ball/straight-trunk elephants
